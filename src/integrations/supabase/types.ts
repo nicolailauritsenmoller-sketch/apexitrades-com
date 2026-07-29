@@ -14,7 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      positions: {
+        Row: {
+          asset_class: Database["public"]["Enums"]["asset_class"]
+          closed_at: string | null
+          currency: string
+          display_symbol: string
+          entry_price: number
+          exit_price: number | null
+          id: string
+          leverage: number
+          opened_at: string
+          quantity: number
+          realized_pnl: number | null
+          side: Database["public"]["Enums"]["trade_side"]
+          status: Database["public"]["Enums"]["position_status"]
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          asset_class: Database["public"]["Enums"]["asset_class"]
+          closed_at?: string | null
+          currency?: string
+          display_symbol: string
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          leverage?: number
+          opened_at?: string
+          quantity: number
+          realized_pnl?: number | null
+          side: Database["public"]["Enums"]["trade_side"]
+          status?: Database["public"]["Enums"]["position_status"]
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          asset_class?: Database["public"]["Enums"]["asset_class"]
+          closed_at?: string | null
+          currency?: string
+          display_symbol?: string
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          leverage?: number
+          opened_at?: string
+          quantity?: number
+          realized_pnl?: number | null
+          side?: Database["public"]["Enums"]["trade_side"]
+          status?: Database["public"]["Enums"]["position_status"]
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          base_currency: string
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          display_name?: string
+          id: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          currency: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      watchlist: {
+        Row: {
+          created_at: string
+          id: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +142,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      asset_class: "crypto" | "stock" | "future" | "forex" | "metal"
+      position_status: "open" | "closed"
+      trade_side: "long" | "short"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +271,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      asset_class: ["crypto", "stock", "future", "forex", "metal"],
+      position_status: ["open", "closed"],
+      trade_side: ["long", "short"],
+    },
   },
 } as const
