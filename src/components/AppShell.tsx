@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/dashboard", label: "Portfolio", icon: LayoutDashboard },
-  { to: "/markets", label: "Markets", icon: Compass },
-  { to: "/terminal/BTCUSDT", label: "Terminal", icon: LineChart },
+  { to: "/dashboard", params: {}, label: "Portfolio", icon: LayoutDashboard },
+  { to: "/markets", params: {}, label: "Markets", icon: Compass },
+  { to: "/terminal/$symbol", params: { symbol: "BTCUSDT" }, label: "Terminal", icon: LineChart },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
