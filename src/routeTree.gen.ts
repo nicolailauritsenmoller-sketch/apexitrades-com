@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
+import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +40,26 @@ const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   path: '/markets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTerminalSymbolRoute =
+  AuthenticatedTerminalSymbolRouteImport.update({
+    id: '/terminal/$symbol',
+    path: '/terminal/$symbol',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +68,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
+  '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/markets'
+  fullPaths: '/' | '/auth' | '/dashboard' | '/markets' | '/terminal/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/markets'
+  to: '/' | '/auth' | '/dashboard' | '/markets' | '/terminal/$symbol'
   id:
     | '__root__'
     | '/'
@@ -72,6 +82,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/markets'
+    | '/_authenticated/terminal/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,17 +128,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/terminal/$symbol': {
+      id: '/_authenticated/terminal/$symbol'
+      path: '/terminal/$symbol'
+      fullPath: '/terminal/$symbol'
+      preLoaderRoute: typeof AuthenticatedTerminalSymbolRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
+  AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
+  AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
