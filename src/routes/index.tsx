@@ -94,7 +94,7 @@ function Landing() {
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">
             Real prices from live exchanges. Multi-currency wallets in USD, EUR, GBP, USDT and
-            BTC. Leverage up to 100x — with zero real money at risk.
+            BTC. Leverage up to 20x — with zero real money at risk.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
