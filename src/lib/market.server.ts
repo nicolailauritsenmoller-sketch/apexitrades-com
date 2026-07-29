@@ -54,7 +54,9 @@ async function yahooChart(symbol: string, timeframe: Timeframe) {
 function yahooQuoteFrom(result: any, inst: Instrument): Quote {
   const meta = result.meta ?? {};
   const price = Number(meta.regularMarketPrice ?? 0);
-  const prev = Number(meta.chartPreviousClose ?? meta.previousClose ?? price);
+  // previousClose is the true prior session close; chartPreviousClose depends on
+  // the requested range and is wrong for intraday windows.
+  const prev = Number(meta.previousClose ?? meta.chartPreviousClose ?? price);
   return {
     symbol: inst.symbol,
     price,
