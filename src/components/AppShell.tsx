@@ -33,10 +33,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="flex items-center gap-1">
-            {NAV.map(({ to, label, icon: Icon }) => (
+            {NAV.map(({ to, params, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
+                params={params}
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ className: "bg-secondary text-foreground" }}
               >
