@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, Gauge, Layers, ShieldCheck, Zap } from "lucide-react";
 import { useQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
+import { AssetIcon } from "@/lib/asset-icons";
 
 const TICKER = [
   "BTCUSDT",
@@ -66,6 +67,7 @@ function Landing() {
         <div className="marquee flex w-max gap-8 whitespace-nowrap">
           {[...row, ...row].map((r, i) => (
             <span key={i} className="num flex items-center gap-2 text-xs">
+              <AssetIcon symbol={r.symbol} size={16} />
               <span className="text-muted-foreground">{displaySymbol(r.symbol)}</span>
               <span>{r.quote ? formatPrice(r.quote.price, r.symbol) : "—"}</span>
               <span
