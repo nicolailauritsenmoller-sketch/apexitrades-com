@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
 import {
   ASSET_CLASS_LABEL,
@@ -116,8 +117,13 @@ function Markets() {
               return (
                 <tr key={i.symbol} className="border-b border-border/60 last:border-0">
                   <td className="px-4 py-3">
-                    <div className="font-medium">{displaySymbol(i.symbol)}</div>
-                    <div className="text-[11px] text-muted-foreground">{i.name}</div>
+                    <div className="flex items-center gap-2.5">
+                      <AssetIcon symbol={i.symbol} size={26} />
+                      <div className="min-w-0">
+                        <div className="font-medium">{displaySymbol(i.symbol)}</div>
+                        <div className="text-[11px] text-muted-foreground">{i.name}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {ASSET_CLASS_LABEL[i.assetClass]}
