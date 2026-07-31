@@ -108,16 +108,31 @@ function Terminal() {
 
   const positions = (portfolio.data?.positions ?? []) as PositionRow[];
   const openHere = positions.filter((p) => p.status === "open" && p.symbol === symbol);
-  const wallet = (portfolio.data?.wallets ?? []).find((w) => w.currency === inst.currency);
+  const wallets = portfolio.data?.wallets ?? [];
+  const wallet = wallets.find((w) => w.currency === inst.currency);
+  const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
   const qty = Number(quantity) || 0;
   const notional = (quote?.price ?? 0) * qty;
   const margin = notional / leverage;
   const up = (quote?.changePercent ?? 0) >= 0;
   const starred = watchlist.data?.includes(symbol) ?? false;
 
+  // Fold the live quote into the most recent candle so the chart ticks in real time.
+  const liveCandles = useMemo(() => {
+    const rows = candles.data ?? [];
+    const price = quote?.price;
+    if (rows.length === 0 || !price) return rows;
+    const last = rows[rows.length - 1];
+    return [
+      ...rows.slice(0, -1),
+      { ...last, c: price, h: Math.max(last.h, price), l: Math.min(last.l, price) },
+    ];
+  }, [candles.data, quote?.price]);
+
   const related = INSTRUMENTS.filter(
     (i) => i.assetClass === inst.assetClass && i.symbol !== symbol,
   ).slice(0, 8);
+
 
   return (
     <AppShell>
