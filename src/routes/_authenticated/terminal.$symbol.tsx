@@ -172,9 +172,10 @@ function Terminal() {
               Loading chart…
             </div>
           ) : (
-            <PriceChart candles={candles.data ?? []} symbol={symbol} bullish={up} />
+            <CandleChart candles={liveCandles} symbol={symbol} />
           )}
         </div>
+
 
         <div className="panel p-4">
           <div className="mb-3 flex items-center justify-between">
