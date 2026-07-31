@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -140,6 +140,7 @@ function Terminal() {
         <div className="flex items-center gap-4">
           <div>
             <div className="flex items-center gap-2">
+              <AssetIcon symbol={symbol} size={30} />
               <h1 className="text-2xl font-bold">{displaySymbol(symbol)}</h1>
               <button
                 onClick={() => toggleMutation.mutate()}
@@ -279,13 +280,19 @@ function Terminal() {
                 key={i.symbol}
                 to="/terminal/$symbol"
                 params={{ symbol: i.symbol }}
-                className="rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="flex items-center gap-1.5 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
+                <AssetIcon symbol={i.symbol} size={14} />
                 {displaySymbol(i.symbol)}
               </Link>
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="hidden lg:block" />
+        <TimedContractPanel symbol={symbol} balance={usdtBalance} />
       </div>
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
