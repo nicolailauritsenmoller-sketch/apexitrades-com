@@ -1,13 +1,21 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LineChart, LayoutDashboard, Compass, LogOut } from "lucide-react";
+import { LineChart, LayoutDashboard, Compass, LogOut, Home, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/dashboard", params: {}, label: "Portfolio", icon: LayoutDashboard },
-  { to: "/markets", params: {}, label: "Markets", icon: Compass },
-  { to: "/terminal/$symbol", params: { symbol: "BTCUSDT" }, label: "Terminal", icon: LineChart },
+  { to: "/", params: {}, label: "Home", icon: Home, exact: true },
+  { to: "/dashboard", params: {}, label: "Portfolio", icon: LayoutDashboard, exact: false },
+  { to: "/markets", params: {}, label: "Market", icon: Compass, exact: false },
+  {
+    to: "/terminal/$symbol",
+    params: { symbol: "BTCUSDT" },
+    label: "Trade",
+    icon: LineChart,
+    exact: false,
+  },
+  { to: "/assets", params: {}, label: "Assets", icon: Wallet, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -24,20 +32,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-6 px-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">
+        <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
+            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <LineChart className="size-4" strokeWidth={2.6} />
             </span>
-            <span className="font-display text-sm font-bold tracking-tight">VELOCITY</span>
+            <span className="truncate font-display text-sm font-bold tracking-tight">VELOCITY</span>
           </Link>
 
-          <nav className="flex items-center gap-1">
-            {NAV.map(({ to, params, label, icon: Icon }) => (
+          <nav className="hidden items-center gap-1 md:flex">
+            {NAV.map(({ to, params, label, icon: Icon, exact }) => (
               <Link
                 key={to}
                 to={to}
                 params={params}
+                activeOptions={{ exact }}
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ className: "bg-secondary text-foreground" }}
               >
@@ -47,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-3 md:ml-auto">
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               Paper account
@@ -62,7 +71,28 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-[1600px] px-4 py-6">{children}</main>
+
+      <main className="mx-auto max-w-[1600px] px-4 py-6 pb-24 md:pb-6">{children}</main>
+
+      {/* Mobile taskbar */}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
+        <ul className="mx-auto grid max-w-lg grid-cols-5">
+          {NAV.map(({ to, params, label, icon: Icon, exact }) => (
+            <li key={to}>
+              <Link
+                to={to}
+                params={params}
+                activeOptions={{ exact }}
+                className="flex flex-col items-center gap-1 py-2 text-[10px] text-muted-foreground transition-colors"
+                activeProps={{ className: "text-primary" }}
+              >
+                <Icon className="size-5" />
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }

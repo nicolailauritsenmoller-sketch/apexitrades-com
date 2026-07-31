@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      contracts: {
+        Row: {
+          currency: string
+          direction: string
+          display_symbol: string
+          duration_seconds: number
+          entry_price: number
+          exit_price: number | null
+          expires_at: string
+          id: string
+          opened_at: string
+          payout: number | null
+          payout_pct: number
+          result: string | null
+          settled_at: string | null
+          stake: number
+          status: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          currency?: string
+          direction: string
+          display_symbol: string
+          duration_seconds: number
+          entry_price: number
+          exit_price?: number | null
+          expires_at: string
+          id?: string
+          opened_at?: string
+          payout?: number | null
+          payout_pct: number
+          result?: string | null
+          settled_at?: string | null
+          stake: number
+          status?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          currency?: string
+          direction?: string
+          display_symbol?: string
+          duration_seconds?: number
+          entry_price?: number
+          exit_price?: number | null
+          expires_at?: string
+          id?: string
+          opened_at?: string
+          payout?: number | null
+          payout_pct?: number
+          result?: string | null
+          settled_at?: string | null
+          stake?: number
+          status?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       positions: {
         Row: {
           asset_class: Database["public"]["Enums"]["asset_class"]

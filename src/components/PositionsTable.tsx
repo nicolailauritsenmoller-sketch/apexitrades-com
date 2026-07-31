@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { closePosition } from "@/lib/trading.functions";
 import { formatMoney, formatPrice } from "@/lib/instruments";
+import { AssetIcon } from "@/lib/asset-icons";
 import type { Quote } from "@/lib/market-types";
 
 export type PositionRow = {
@@ -80,15 +81,20 @@ export function PositionsTable({
             return (
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-4 py-3">
-                  <Link
-                    to="/terminal/$symbol"
-                    params={{ symbol: p.symbol }}
-                    className="font-medium hover:text-primary"
-                  >
-                    {p.displaySymbol}
-                  </Link>
-                  <div className="num text-[11px] text-muted-foreground">
-                    {p.leverage}x · {p.currency}
+                  <div className="flex items-center gap-2.5">
+                    <AssetIcon symbol={p.symbol} size={24} />
+                    <div className="min-w-0">
+                      <Link
+                        to="/terminal/$symbol"
+                        params={{ symbol: p.symbol }}
+                        className="font-medium hover:text-primary"
+                      >
+                        {p.displaySymbol}
+                      </Link>
+                      <div className="num text-[11px] text-muted-foreground">
+                        {p.leverage}x · {p.currency}
+                      </div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">

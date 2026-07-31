@@ -1,11 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { PriceChart } from "@/components/PriceChart";
+import { CandleChart } from "@/components/CandleChart";
+import { TimedContractPanel } from "@/components/TimedContractPanel";
+import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
 import { getPortfolio, openPosition, getWatchlist, toggleWatchlist } from "@/lib/trading.functions";
@@ -106,16 +108,31 @@ function Terminal() {
 
   const positions = (portfolio.data?.positions ?? []) as PositionRow[];
   const openHere = positions.filter((p) => p.status === "open" && p.symbol === symbol);
-  const wallet = (portfolio.data?.wallets ?? []).find((w) => w.currency === inst.currency);
+  const wallets = portfolio.data?.wallets ?? [];
+  const wallet = wallets.find((w) => w.currency === inst.currency);
+  const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
   const qty = Number(quantity) || 0;
   const notional = (quote?.price ?? 0) * qty;
   const margin = notional / leverage;
   const up = (quote?.changePercent ?? 0) >= 0;
   const starred = watchlist.data?.includes(symbol) ?? false;
 
+  // Fold the live quote into the most recent candle so the chart ticks in real time.
+  const liveCandles = useMemo(() => {
+    const rows = candles.data ?? [];
+    const price = quote?.price;
+    if (rows.length === 0 || !price) return rows;
+    const last = rows[rows.length - 1];
+    return [
+      ...rows.slice(0, -1),
+      { ...last, c: price, h: Math.max(last.h, price), l: Math.min(last.l, price) },
+    ];
+  }, [candles.data, quote?.price]);
+
   const related = INSTRUMENTS.filter(
     (i) => i.assetClass === inst.assetClass && i.symbol !== symbol,
   ).slice(0, 8);
+
 
   return (
     <AppShell>
@@ -123,6 +140,7 @@ function Terminal() {
         <div className="flex items-center gap-4">
           <div>
             <div className="flex items-center gap-2">
+              <AssetIcon symbol={symbol} size={30} />
               <h1 className="text-2xl font-bold">{displaySymbol(symbol)}</h1>
               <button
                 onClick={() => toggleMutation.mutate()}
@@ -170,9 +188,10 @@ function Terminal() {
               Loading chart…
             </div>
           ) : (
-            <PriceChart candles={candles.data ?? []} symbol={symbol} bullish={up} />
+            <CandleChart candles={liveCandles} symbol={symbol} />
           )}
         </div>
+
 
         <div className="panel p-4">
           <div className="mb-3 flex items-center justify-between">
@@ -261,13 +280,19 @@ function Terminal() {
                 key={i.symbol}
                 to="/terminal/$symbol"
                 params={{ symbol: i.symbol }}
-                className="rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="flex items-center gap-1.5 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
+                <AssetIcon symbol={i.symbol} size={14} />
                 {displaySymbol(i.symbol)}
               </Link>
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="hidden lg:block" />
+        <TimedContractPanel symbol={symbol} balance={usdtBalance} />
       </div>
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">

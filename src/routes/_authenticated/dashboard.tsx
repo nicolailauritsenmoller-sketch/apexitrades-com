@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wallet, TrendingUp, Activity } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
 import { useQuotes } from "@/hooks/useMarket";
 import { getPortfolio } from "@/lib/trading.functions";
@@ -95,7 +96,8 @@ function Dashboard() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {(data?.wallets ?? []).map((w) => (
           <div key={w.currency} className="panel p-4">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
+              <AssetIcon currency={w.currency} size={22} />
               {w.currency}
             </div>
             <div className="num mt-1.5 text-lg font-semibold">
