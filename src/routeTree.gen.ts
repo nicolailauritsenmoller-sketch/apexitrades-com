@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   path: '/markets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTerminalSymbolRoute =
   AuthenticatedTerminalSymbolRouteImport.update({
     id: '/terminal/$symbol',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/wallet': typeof AuthenticatedWalletRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/wallet': typeof AuthenticatedWalletRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRoutesById {
@@ -77,15 +85,28 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
+  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/assets' | '/dashboard' | '/markets' | '/terminal/$symbol'
+    | '/'
+    | '/auth'
+    | '/assets'
+    | '/dashboard'
+    | '/markets'
+    | '/wallet'
+    | '/terminal/$symbol'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/auth' | '/assets' | '/dashboard' | '/markets' | '/terminal/$symbol'
+    | '/'
+    | '/auth'
+    | '/assets'
+    | '/dashboard'
+    | '/markets'
+    | '/wallet'
+    | '/terminal/$symbol'
   id:
     | '__root__'
     | '/'
@@ -94,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assets'
     | '/_authenticated/dashboard'
     | '/_authenticated/markets'
+    | '/_authenticated/wallet'
     | '/_authenticated/terminal/$symbol'
   fileRoutesById: FileRoutesById
 }
@@ -147,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/terminal/$symbol': {
       id: '/_authenticated/terminal/$symbol'
       path: '/terminal/$symbol'
@@ -161,6 +190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
 }
 
@@ -168,6 +198,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
 }
 
