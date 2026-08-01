@@ -22,10 +22,7 @@ export function ChatWidget() {
     if (!open || sessionId) return;
     (async () => {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) {
-      setSending(false);
-      return;
-    }
+      if (!user.user) return;
       const { data: existing } = await supabase
         .from("chat_sessions")
         .select("*")
