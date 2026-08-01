@@ -22,7 +22,10 @@ export function ChatWidget() {
     if (!open || sessionId) return;
     (async () => {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      if (!user.user) {
+      setSending(false);
+      return;
+    }
       const { data: existing } = await supabase
         .from("chat_sessions")
         .select("*")
@@ -83,7 +86,10 @@ export function ChatWidget() {
     setSending(true);
     setDraft("");
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return;
+    if (!user.user) {
+      setSending(false);
+      return;
+    }
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
       sender_id: user.user.id,
