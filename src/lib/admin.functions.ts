@@ -231,7 +231,8 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!row) throw new Error("Submission not found.");
 
-    const sign = async (path: string) => {
+    const sign = async (path: string | null) => {
+      if (!path) return null;
       const { data: signed } = await context.supabase.storage
         .from("kyc-documents")
         .createSignedUrl(path, 300);
