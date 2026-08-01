@@ -1,0 +1,347 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+type Ctx = { supabase: any; userId: string };
+
+async function assertAdmin(context: Ctx) {
+  const { data, error } = await context.supabase.rpc("has_role", {
+    _user_id: context.userId,
+    _role: "admin",
+  });
+  if (error || !data) throw new Error("Forbidden: admin access required.");
+}
+
+async function assertStaff(context: Ctx) {
+  const { data, error } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
+  if (error || !data) throw new Error("Forbidden: staff access required.");
+}
+
+export const getMyAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [admin, staff] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
+      context.supabase.rpc("is_staff", { _user_id: context.userId }),
+    ]);
+    return { isAdmin: admin.data === true, isStaff: staff.data === true };
+  });
+
+export const getAdminOverview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { supabase } = context;
+
+    const [deposits, withdrawals, kyc, addresses, profiles, contracts] = await Promise.all([
+      supabase.from("deposits").select("*").order("created_at", { ascending: false }).limit(80),
+      supabase.from("withdrawals").select("*").order("created_at", { ascending: false }).limit(80),
+      supabase
+        .from("kyc_submissions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(80),
+      supabase.from("deposit_addresses").select("*").order("coin"),
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase
+        .from("contracts")
+        .select("*")
+        .eq("status", "open")
+        .order("expires_at", { ascending: true })
+        .limit(100),
+    ]);
+
+    return {
+      deposits: deposits.data ?? [],
+      withdrawals: withdrawals.data ?? [],
+      kyc: kyc.data ?? [],
+      addresses: addresses.data ?? [],
+      profiles: profiles.data ?? [],
+      openContracts: contracts.data ?? [],
+    };
+  });
+
+const reviewInput = z.object({
+  id: z.string().uuid(),
+  action: z.enum(["approve", "reject"]),
+  note: z.string().trim().max(500).optional(),
+});
+
+async function notify(supabase: any, userId: string, title: string, body: string, kind = "info") {
+  await supabase.from("notifications").insert({ user_id: userId, title, body, kind });
+}
+
+export const reviewDeposit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabase, userId } = context;
+
+    const { data: dep } = await supabase.from("deposits").select("*").eq("id", data.id).maybeSingle();
+    if (!dep) throw new Error("Deposit not found.");
+    if (dep.status !== "pending") throw new Error("Deposit already reviewed.");
+
+    const status = data.action === "approve" ? "approved" : "rejected";
+    const { error } = await supabase
+      .from("deposits")
+      .update({
+        status,
+        admin_note: data.note ?? null,
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", dep.id)
+      .eq("status", "pending");
+    if (error) throw new Error(error.message);
+
+    if (data.action === "approve") {
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", dep.user_id)
+        .eq("currency", dep.coin)
+        .maybeSingle();
+
+      if (wallet) {
+        await supabase
+          .from("wallets")
+          .update({
+            balance: Number(wallet.balance) + Number(dep.amount),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", wallet.id);
+      } else {
+        await supabase
+          .from("wallets")
+          .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
+      }
+    }
+
+    await notify(
+      supabase,
+      dep.user_id,
+      data.action === "approve" ? "Deposit approved" : "Deposit rejected",
+      `${Number(dep.amount)} ${dep.coin} (${dep.network}) — ${status}.${data.note ? ` Note: ${data.note}` : ""}`,
+      data.action === "approve" ? "success" : "warning",
+    );
+
+    return { ok: true };
+  });
+
+export const reviewWithdrawal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabase, userId } = context;
+
+    const { data: wd } = await supabase
+      .from("withdrawals")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!wd) throw new Error("Withdrawal not found.");
+    if (wd.status !== "pending") throw new Error("Withdrawal already reviewed.");
+
+    if (data.action === "approve") {
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", wd.user_id)
+        .eq("currency", wd.coin)
+        .maybeSingle();
+      if (!wallet || Number(wallet.balance) < Number(wd.amount)) {
+        throw new Error("User no longer has sufficient balance for this withdrawal.");
+      }
+      await supabase
+        .from("wallets")
+        .update({
+          balance: Number(wallet.balance) - Number(wd.amount),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", wallet.id);
+    }
+
+    const status = data.action === "approve" ? "approved" : "rejected";
+    const { error } = await supabase
+      .from("withdrawals")
+      .update({
+        status,
+        admin_note: data.note ?? null,
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", wd.id)
+      .eq("status", "pending");
+    if (error) throw new Error(error.message);
+
+    await notify(
+      supabase,
+      wd.user_id,
+      data.action === "approve" ? "Withdrawal approved" : "Withdrawal rejected",
+      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} — ${status}.${data.note ? ` Note: ${data.note}` : ""}`,
+      data.action === "approve" ? "success" : "warning",
+    );
+
+    return { ok: true };
+  });
+
+export const reviewKyc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabase, userId } = context;
+
+    const status = data.action === "approve" ? "approved" : "rejected";
+    const { data: row, error } = await supabase
+      .from("kyc_submissions")
+      .update({
+        status,
+        admin_note: data.note ?? null,
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (row) {
+      await notify(
+        supabase,
+        row.user_id,
+        data.action === "approve" ? "Identity verified" : "Identity verification rejected",
+        data.note ?? `Your KYC submission was ${status}.`,
+        data.action === "approve" ? "success" : "warning",
+      );
+    }
+    return { ok: true };
+  });
+
+export const getKycDocumentUrls = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: row } = await context.supabase
+      .from("kyc_submissions")
+      .select("document_path, selfie_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!row) throw new Error("Submission not found.");
+
+    const sign = async (path: string | null) => {
+      if (!path) return null;
+      const { data: signed } = await context.supabase.storage
+        .from("kyc-documents")
+        .createSignedUrl(path, 300);
+      return signed?.signedUrl ?? null;
+    };
+
+    return { document: await sign(row.document_path), selfie: await sign(row.selfie_path) };
+  });
+
+const addressInput = z.object({
+  id: z.string().uuid().optional(),
+  coin: z.string().trim().min(1).max(12),
+  network: z.string().trim().min(1).max(24),
+  address: z.string().trim().min(4).max(200),
+  memo: z.string().trim().max(120).optional(),
+  active: z.boolean().default(true),
+});
+
+export const upsertDepositAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => addressInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const payload = {
+      coin: data.coin.toUpperCase(),
+      network: data.network,
+      address: data.address,
+      memo: data.memo || null,
+      active: data.active,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = data.id
+      ? await context.supabase.from("deposit_addresses").update(payload).eq("id", data.id)
+      : await context.supabase.from("deposit_addresses").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setUserOutcomeMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        mode: z.enum(["normal", "force_win", "force_loss"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ outcome_mode: data.mode })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setContractOutcomeMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        contractId: z.string().uuid(),
+        mode: z.enum(["normal", "force_win", "force_loss"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("contracts")
+      .update({ outcome_override: data.mode })
+      .eq("id", data.contractId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const broadcastNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        title: z.string().trim().min(2).max(120),
+        body: z.string().trim().min(2).max(1000),
+        userId: z.string().uuid().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase.from("notifications").insert({
+      user_id: data.userId ?? null,
+      title: data.title,
+      body: data.body,
+      kind: "announcement",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getSupportInbox = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { data } = await context.supabase
+      .from("chat_sessions")
+      .select("*")
+      .order("last_message_at", { ascending: false })
+      .limit(100);
+    return data ?? [];
+  });

@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LineChart, LayoutDashboard, Compass, LogOut, Home, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/NotificationBell";
+import { ChatWidget } from "@/components/ChatWidget";
 
 const NAV = [
   { to: "/", params: {}, label: "Home", icon: Home, exact: true },
@@ -15,7 +17,7 @@ const NAV = [
     icon: LineChart,
     exact: false,
   },
-  { to: "/assets", params: {}, label: "Assets", icon: Wallet, exact: false },
+  { to: "/wallet", params: {}, label: "Wallet", icon: Wallet, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -56,7 +58,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3 md:ml-auto">
+          <div className="flex items-center gap-2 md:ml-auto">
+            <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               Paper account
@@ -93,6 +96,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </ul>
       </nav>
+
+      <ChatWidget />
     </div>
   );
 }

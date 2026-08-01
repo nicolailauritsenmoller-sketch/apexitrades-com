@@ -146,8 +146,23 @@ export const settleContract = createServerFn({ method: "POST" })
     const stake = Number(contract.stake);
     const pct = Number(contract.payout_pct);
 
+    // Settlement outcome can be overridden by an administrator, either for this
+    // single contract or globally for the account.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("outcome_mode")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const override =
+      contract.outcome_override && contract.outcome_override !== "normal"
+        ? contract.outcome_override
+        : (profile?.outcome_mode ?? "normal");
+
     let result: "win" | "loss" | "draw";
-    if (exit === entry) result = "draw";
+    if (override === "force_win") result = "win";
+    else if (override === "force_loss") result = "loss";
+    else if (exit === entry) result = "draw";
     else if ((exit > entry && contract.direction === "up") || (exit < entry && contract.direction === "down"))
       result = "win";
     else result = "loss";
