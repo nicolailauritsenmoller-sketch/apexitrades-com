@@ -83,9 +83,10 @@ export function ChatWidget() {
     setSending(true);
     setDraft("");
     const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return;
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
-      sender_id: user.user?.id,
+      sender_id: user.user.id,
       sender_role: "user",
       body,
     });
