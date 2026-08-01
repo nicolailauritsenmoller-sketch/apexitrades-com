@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+          session_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role?: string
+          session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           currency: string
@@ -25,6 +87,7 @@ export type Database = {
           expires_at: string
           id: string
           opened_at: string
+          outcome_override: Database["public"]["Enums"]["outcome_mode"]
           payout: number | null
           payout_pct: number
           result: string | null
@@ -44,6 +107,7 @@ export type Database = {
           expires_at: string
           id?: string
           opened_at?: string
+          outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
           payout_pct: number
           result?: string | null
@@ -63,6 +127,7 @@ export type Database = {
           expires_at?: string
           id?: string
           opened_at?: string
+          outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
           payout_pct?: number
           result?: string | null
@@ -71,6 +136,174 @@ export type Database = {
           status?: string
           symbol?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      deposit_addresses: {
+        Row: {
+          active: boolean
+          address: string
+          coin: string
+          created_at: string
+          id: string
+          memo: string | null
+          network: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address: string
+          coin: string
+          created_at?: string
+          id?: string
+          memo?: string | null
+          network: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string
+          coin?: string
+          created_at?: string
+          id?: string
+          memo?: string | null
+          network?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deposits: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          coin: string
+          created_at: string
+          id: string
+          network: string
+          receipt_path: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          coin: string
+          created_at?: string
+          id?: string
+          network: string
+          receipt_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          coin?: string
+          created_at?: string
+          id?: string
+          network?: string
+          receipt_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kyc_submissions: {
+        Row: {
+          address: string | null
+          admin_note: string | null
+          country: string
+          created_at: string
+          date_of_birth: string | null
+          document_number: string | null
+          document_path: string | null
+          document_type: string
+          full_name: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          admin_note?: string | null
+          country: string
+          created_at?: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_path?: string | null
+          document_type: string
+          full_name: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          admin_note?: string | null
+          country?: string
+          created_at?: string
+          date_of_birth?: string | null
+          document_number?: string | null
+          document_path?: string | null
+          document_type?: string
+          full_name?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -134,18 +367,75 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          outcome_mode: Database["public"]["Enums"]["outcome_mode"]
         }
         Insert: {
           base_currency?: string
           created_at?: string
           display_name?: string
           id: string
+          outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
         }
         Update: {
           base_currency?: string
           created_at?: string
           display_name?: string
           id?: string
+          outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
+        }
+        Relationships: []
+      }
+      swaps: {
+        Row: {
+          created_at: string
+          from_amount: number
+          from_currency: string
+          id: string
+          rate: number
+          to_amount: number
+          to_currency: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_amount: number
+          from_currency: string
+          id?: string
+          rate: number
+          to_amount: number
+          to_currency: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_amount?: number
+          from_currency?: string
+          id?: string
+          rate?: number
+          to_amount?: number
+          to_currency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -194,16 +484,71 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          coin: string
+          created_at: string
+          destination_address: string
+          id: string
+          network: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          coin: string
+          created_at?: string
+          destination_address: string
+          id?: string
+          network: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          coin?: string
+          created_at?: string
+          destination_address?: string
+          id?: string
+          network?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "agent" | "user"
       asset_class: "crypto" | "stock" | "future" | "forex" | "metal"
+      outcome_mode: "normal" | "force_win" | "force_loss"
       position_status: "open" | "closed"
+      request_status: "pending" | "approved" | "rejected"
       trade_side: "long" | "short"
     }
     CompositeTypes: {
@@ -332,8 +677,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "agent", "user"],
       asset_class: ["crypto", "stock", "future", "forex", "metal"],
+      outcome_mode: ["normal", "force_win", "force_loss"],
       position_status: ["open", "closed"],
+      request_status: ["pending", "approved", "rejected"],
       trade_side: ["long", "short"],
     },
   },
