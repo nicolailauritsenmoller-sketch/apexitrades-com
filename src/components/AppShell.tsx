@@ -78,6 +78,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-2 rounded-md border border-primary/40 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/10"
+                activeProps={{ className: "bg-primary/10" }}
+              >
+                <ShieldCheck className="size-4" />
+                <span className="hidden sm:inline">Admin Panel</span>
+              </Link>
+            )}
+
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
