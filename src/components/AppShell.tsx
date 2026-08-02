@@ -1,10 +1,21 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { LineChart, LayoutDashboard, Compass, LogOut, Home, Wallet } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  LineChart,
+  LayoutDashboard,
+  Compass,
+  LogOut,
+  Home,
+  Wallet,
+  ShieldCheck,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getMyAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
+
 
 const NAV = [
   { to: "/", params: {}, label: "Home", icon: Home, exact: true },
