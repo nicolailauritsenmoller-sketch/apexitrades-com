@@ -34,6 +34,13 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const fetchAccess = useServerFn(getMyAccess);
+  const access = useQuery({
+    queryKey: ["my-access"],
+    queryFn: () => fetchAccess(),
+    staleTime: 5 * 60_000,
+  });
+  const isAdmin = access.data?.isAdmin === true;
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -41,6 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     router.navigate({ to: "/auth", replace: true });
   }
+
 
   return (
     <div className="min-h-screen bg-background">
