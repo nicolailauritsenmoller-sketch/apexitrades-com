@@ -345,3 +345,65 @@ export const getSupportInbox = createServerFn({ method: "POST" })
       .limit(100);
     return data ?? [];
   });
+
+export const getUserWallets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: rows } = await context.supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", data.userId)
+      .order("currency");
+    return rows ?? [];
+  });
+
+export const adjustUserBalance = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        currency: z.string().trim().min(1).max(12),
+        amount: z.number().finite(),
+        mode: z.enum(["set", "delta"]).default("delta"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const currency = data.currency.toUpperCase();
+    const { data: wallet } = await context.supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", data.userId)
+      .eq("currency", currency)
+      .maybeSingle();
+
+    const next =
+      data.mode === "set" ? data.amount : Number(wallet?.balance ?? 0) + data.amount;
+    if (next < 0) throw new Error("Resulting balance cannot be negative.");
+
+    if (wallet) {
+      const { error } = await context.supabase
+        .from("wallets")
+        .update({ balance: next, updated_at: new Date().toISOString() })
+        .eq("id", wallet.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await context.supabase
+        .from("wallets")
+        .insert({ user_id: data.userId, currency, balance: next });
+      if (error) throw new Error(error.message);
+    }
+
+    await notify(
+      context.supabase,
+      data.userId,
+      "Balance updated",
+      `Your ${currency} balance was adjusted by an administrator to ${next}.`,
+      "info",
+    );
+    return { balance: next };
+  });
