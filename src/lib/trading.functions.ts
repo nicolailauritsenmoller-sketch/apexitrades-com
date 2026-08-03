@@ -58,6 +58,9 @@ export const openPosition = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { INSTRUMENT_MAP, displaySymbol } = await import("./instruments");
     const { fetchPrice } = await import("./market.server");
+    // Clients cannot write wallets/positions directly; all values are derived here.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     const inst = INSTRUMENT_MAP[data.symbol];
     if (!inst) throw new Error("Unknown instrument.");
@@ -80,13 +83,14 @@ export const openPosition = createServerFn({ method: "POST" })
       );
     }
 
-    const { error: debitError } = await supabase
+    const { error: debitError } = await db
       .from("wallets")
       .update({ balance: Number(wallet.balance) - margin, updated_at: new Date().toISOString() })
-      .eq("id", wallet.id);
+      .eq("id", wallet.id)
+      .eq("user_id", userId);
     if (debitError) throw new Error(debitError.message);
 
-    const { data: position, error } = await supabase
+    const { data: position, error } = await db
       .from("positions")
       .insert({
         user_id: userId,
@@ -103,10 +107,11 @@ export const openPosition = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      await supabase
+      await db
         .from("wallets")
         .update({ balance: Number(wallet.balance) })
-        .eq("id", wallet.id);
+        .eq("id", wallet.id)
+        .eq("user_id", userId);
       throw new Error(error.message);
     }
 
@@ -119,6 +124,8 @@ export const closePosition = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { fetchPrice } = await import("./market.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     const { data: position } = await supabase
       .from("positions")
@@ -138,7 +145,7 @@ export const closePosition = createServerFn({ method: "POST" })
     const margin = (entry * qty) / Number(position.leverage);
     const payout = Math.max(0, margin + pnl);
 
-    const { error: closeError } = await supabase
+    const { data: closed, error: closeError } = await db
       .from("positions")
       .update({
         status: "closed",
@@ -146,10 +153,14 @@ export const closePosition = createServerFn({ method: "POST" })
         realized_pnl: pnl,
         closed_at: new Date().toISOString(),
       })
-      .eq("id", position.id);
+      .eq("id", position.id)
+      .eq("user_id", userId)
+      .eq("status", "open")
+      .select("id");
     if (closeError) throw new Error(closeError.message);
+    if (!closed || closed.length === 0) throw new Error("Position is already closed.");
 
-    const { data: wallet } = await supabase
+    const { data: wallet } = await db
       .from("wallets")
       .select("*")
       .eq("user_id", userId)
@@ -157,13 +168,14 @@ export const closePosition = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (wallet) {
-      await supabase
+      await db
         .from("wallets")
         .update({
           balance: Number(wallet.balance) + payout,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", wallet.id);
+        .eq("id", wallet.id)
+        .eq("user_id", userId);
     }
 
     return { exitPrice: price, pnl, currency: position.currency };

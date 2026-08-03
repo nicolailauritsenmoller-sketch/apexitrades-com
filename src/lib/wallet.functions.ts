@@ -169,6 +169,9 @@ export const swapAssets = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { usdtRates } = await import("./rates.server");
+    // Clients have no write access to wallets; swap amounts are computed here.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     if (data.from === data.to) throw new Error("Pick two different assets.");
 
@@ -194,19 +197,21 @@ export const swapAssets = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
-    const { error: debitError } = await supabase
+    const { error: debitError } = await db
       .from("wallets")
       .update({ balance: Number(fromWallet.balance) - data.amount, updated_at: now })
-      .eq("id", fromWallet.id);
+      .eq("id", fromWallet.id)
+      .eq("user_id", userId);
     if (debitError) throw new Error(debitError.message);
 
     if (toWallet) {
-      await supabase
+      await db
         .from("wallets")
         .update({ balance: Number(toWallet.balance) + toAmount, updated_at: now })
-        .eq("id", toWallet.id);
+        .eq("id", toWallet.id)
+        .eq("user_id", userId);
     } else {
-      await supabase
+      await db
         .from("wallets")
         .insert({ user_id: userId, currency: data.to, balance: toAmount });
     }

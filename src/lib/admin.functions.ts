@@ -4,28 +4,43 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Ctx = { supabase: any; userId: string };
 
+/** Reads the caller's own roles (RLS: users may read their own role rows). */
+async function myRoles(context: Ctx): Promise<string[]> {
+  const { data } = await context.supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", context.userId);
+  return (data ?? []).map((r: { role: string }) => r.role);
+}
+
 async function assertAdmin(context: Ctx) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (error || !data) throw new Error("Forbidden: admin access required.");
+  const roles = await myRoles(context);
+  if (!roles.includes("admin")) throw new Error("Forbidden: admin access required.");
 }
 
 async function assertStaff(context: Ctx) {
-  const { data, error } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
-  if (error || !data) throw new Error("Forbidden: staff access required.");
+  const roles = await myRoles(context);
+  if (!roles.includes("admin") && !roles.includes("agent")) {
+    throw new Error("Forbidden: staff access required.");
+  }
+}
+
+/** Service-role client: the only way financial tables can be written. */
+async function privileged() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin as any;
 }
 
 export const getMyAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const [admin, staff] = await Promise.all([
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
-      context.supabase.rpc("is_staff", { _user_id: context.userId }),
-    ]);
-    return { isAdmin: admin.data === true, isStaff: staff.data === true };
+    const roles = await myRoles(context);
+    return {
+      isAdmin: roles.includes("admin"),
+      isStaff: roles.includes("admin") || roles.includes("agent"),
+    };
   });
+
 
 export const getAdminOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -96,7 +111,8 @@ export const reviewDeposit = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     if (data.action === "approve") {
-      const { data: wallet } = await supabase
+      const db = await privileged();
+      const { data: wallet } = await db
         .from("wallets")
         .select("*")
         .eq("user_id", dep.user_id)
@@ -104,7 +120,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
         .maybeSingle();
 
       if (wallet) {
-        await supabase
+        await db
           .from("wallets")
           .update({
             balance: Number(wallet.balance) + Number(dep.amount),
@@ -112,7 +128,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
           })
           .eq("id", wallet.id);
       } else {
-        await supabase
+        await db
           .from("wallets")
           .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
       }
@@ -145,7 +161,8 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     if (wd.status !== "pending") throw new Error("Withdrawal already reviewed.");
 
     if (data.action === "approve") {
-      const { data: wallet } = await supabase
+      const db = await privileged();
+      const { data: wallet } = await db
         .from("wallets")
         .select("*")
         .eq("user_id", wd.user_id)
@@ -154,7 +171,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       if (!wallet || Number(wallet.balance) < Number(wd.amount)) {
         throw new Error("User no longer has sufficient balance for this withdrawal.");
       }
-      await supabase
+      await db
         .from("wallets")
         .update({
           balance: Number(wallet.balance) - Number(wd.amount),
@@ -303,7 +320,8 @@ export const setContractOutcomeMode = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { error } = await context.supabase
+    const db = await privileged();
+    const { error } = await db
       .from("contracts")
       .update({ outcome_override: data.mode })
       .eq("id", data.contractId);
@@ -374,7 +392,8 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const currency = data.currency.toUpperCase();
-    const { data: wallet } = await context.supabase
+    const db = await privileged();
+    const { data: wallet } = await db
       .from("wallets")
       .select("*")
       .eq("user_id", data.userId)
@@ -386,17 +405,18 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     if (next < 0) throw new Error("Resulting balance cannot be negative.");
 
     if (wallet) {
-      const { error } = await context.supabase
+      const { error } = await db
         .from("wallets")
         .update({ balance: next, updated_at: new Date().toISOString() })
         .eq("id", wallet.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase
+      const { error } = await db
         .from("wallets")
         .insert({ user_id: data.userId, currency, balance: next });
       if (error) throw new Error(error.message);
     }
+
 
     await notify(
       context.supabase,
