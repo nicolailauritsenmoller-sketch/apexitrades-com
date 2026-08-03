@@ -111,7 +111,8 @@ export const reviewDeposit = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     if (data.action === "approve") {
-      const { data: wallet } = await supabase
+      const db = await privileged();
+      const { data: wallet } = await db
         .from("wallets")
         .select("*")
         .eq("user_id", dep.user_id)
@@ -119,7 +120,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
         .maybeSingle();
 
       if (wallet) {
-        await supabase
+        await db
           .from("wallets")
           .update({
             balance: Number(wallet.balance) + Number(dep.amount),
@@ -127,7 +128,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
           })
           .eq("id", wallet.id);
       } else {
-        await supabase
+        await db
           .from("wallets")
           .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
       }
