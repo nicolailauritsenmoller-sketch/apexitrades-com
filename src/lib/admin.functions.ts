@@ -320,7 +320,8 @@ export const setContractOutcomeMode = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { error } = await context.supabase
+    const db = await privileged();
+    const { error } = await db
       .from("contracts")
       .update({ outcome_override: data.mode })
       .eq("id", data.contractId);
