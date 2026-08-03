@@ -392,7 +392,8 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const currency = data.currency.toUpperCase();
-    const { data: wallet } = await context.supabase
+    const db = await privileged();
+    const { data: wallet } = await db
       .from("wallets")
       .select("*")
       .eq("user_id", data.userId)
@@ -404,17 +405,18 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     if (next < 0) throw new Error("Resulting balance cannot be negative.");
 
     if (wallet) {
-      const { error } = await context.supabase
+      const { error } = await db
         .from("wallets")
         .update({ balance: next, updated_at: new Date().toISOString() })
         .eq("id", wallet.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await context.supabase
+      const { error } = await db
         .from("wallets")
         .insert({ user_id: data.userId, currency, balance: next });
       if (error) throw new Error(error.message);
     }
+
 
     await notify(
       context.supabase,
