@@ -88,7 +88,7 @@ function AuthPage() {
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {mode === "signup"
-            ? "Funded instantly with 100,000 USD, 25,000 EUR, 10,000 GBP, 50,000 USDT and 0.5 BTC."
+            ? "Create your account, then fund it with a deposit to start trading."
             : "Sign in to your trading terminal."}
         </p>
 
