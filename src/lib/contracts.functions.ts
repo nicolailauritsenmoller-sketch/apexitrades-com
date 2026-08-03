@@ -136,6 +136,8 @@ export const settleContract = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { fetchPrice } = await import("./market.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     const { data: contract } = await supabase
       .from("contracts")
@@ -178,7 +180,7 @@ export const settleContract = createServerFn({ method: "POST" })
 
     const payout = result === "win" ? stake + (stake * pct) / 100 : result === "draw" ? stake : 0;
 
-    const { error: updateError } = await supabase
+    const { data: settled, error: updateError } = await db
       .from("contracts")
       .update({
         status: "settled",
@@ -188,26 +190,32 @@ export const settleContract = createServerFn({ method: "POST" })
         settled_at: new Date().toISOString(),
       })
       .eq("id", contract.id)
-      .eq("status", "open");
+      .eq("user_id", userId)
+      .eq("status", "open")
+      .select("id");
     if (updateError) throw new Error(updateError.message);
+    // Another concurrent settle already credited this contract.
+    if (!settled || settled.length === 0) throw new Error("Contract already settled.");
 
     if (payout > 0) {
-      const { data: wallet } = await supabase
+      const { data: wallet } = await db
         .from("wallets")
         .select("*")
         .eq("user_id", userId)
         .eq("currency", contract.currency)
         .maybeSingle();
       if (wallet) {
-        await supabase
+        await db
           .from("wallets")
           .update({
             balance: Number(wallet.balance) + payout,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", wallet.id);
+          .eq("id", wallet.id)
+          .eq("user_id", userId);
       }
     }
+
 
     return { result, exitPrice: exit, payout, currency: contract.currency };
   });
