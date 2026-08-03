@@ -51,6 +51,10 @@ export const placeContract = createServerFn({ method: "POST" })
     const { INSTRUMENT_MAP, displaySymbol } = await import("./instruments");
     const { TIER_MAP, CONTRACT_CURRENCY } = await import("./contract-tiers");
     const { fetchPrice } = await import("./market.server");
+    // Financial writes bypass the caller's token: clients have no write access
+    // to wallets/contracts, so every value here is derived server-side.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
 
     const inst = INSTRUMENT_MAP[data.symbol];
     if (!inst) throw new Error("Unknown instrument.");
@@ -79,18 +83,19 @@ export const placeContract = createServerFn({ method: "POST" })
 
     const price = await fetchPrice(inst.symbol);
 
-    const { error: debitError } = await supabase
+    const { error: debitError } = await db
       .from("wallets")
       .update({
         balance: Number(wallet.balance) - data.stake,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", wallet.id);
+      .eq("id", wallet.id)
+      .eq("user_id", userId);
     if (debitError) throw new Error(debitError.message);
 
     const expiresAt = new Date(Date.now() + tier.seconds * 1000).toISOString();
 
-    const { data: contract, error } = await supabase
+    const { data: contract, error } = await db
       .from("contracts")
       .insert({
         user_id: userId,
@@ -108,7 +113,11 @@ export const placeContract = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      await supabase.from("wallets").update({ balance: Number(wallet.balance) }).eq("id", wallet.id);
+      await db
+        .from("wallets")
+        .update({ balance: Number(wallet.balance) })
+        .eq("id", wallet.id)
+        .eq("user_id", userId);
       throw new Error(error.message);
     }
 
