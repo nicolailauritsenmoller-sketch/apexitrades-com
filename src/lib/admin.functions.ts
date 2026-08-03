@@ -161,7 +161,8 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     if (wd.status !== "pending") throw new Error("Withdrawal already reviewed.");
 
     if (data.action === "approve") {
-      const { data: wallet } = await supabase
+      const db = await privileged();
+      const { data: wallet } = await db
         .from("wallets")
         .select("*")
         .eq("user_id", wd.user_id)
@@ -170,7 +171,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       if (!wallet || Number(wallet.balance) < Number(wd.amount)) {
         throw new Error("User no longer has sufficient balance for this withdrawal.");
       }
-      await supabase
+      await db
         .from("wallets")
         .update({
           balance: Number(wallet.balance) - Number(wd.amount),
