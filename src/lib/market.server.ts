@@ -37,19 +37,52 @@ const YAHOO_INTERVAL: Record<Timeframe, string> = {
   "1d": "1d",
 };
 
-async function yahooChart(symbol: string, timeframe: Timeframe) {
-  const url =
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=${YAHOO_INTERVAL[timeframe]}&range=${YAHOO_RANGE[timeframe]}`;
+const YAHOO_HOSTS = ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"];
+
+/** Binance mirrors: some edge regions get 451/403 from the primary host. */
+const BINANCE_HOSTS = [
+  "https://data-api.binance.vision",
+  "https://api.binance.com",
+  "https://api-gcp.binance.com",
+  "https://api1.binance.com",
+];
+
+async function fetchJson(url: string, timeoutMs = 8000): Promise<any> {
   const res = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
+    signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!res.ok) throw new Error(`Yahoo ${symbol} failed: ${res.status}`);
-  const json = (await res.json()) as any;
-  const result = json?.chart?.result?.[0];
-  if (!result) throw new Error(`Yahoo ${symbol} returned no data`);
-  return result;
+  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+  return res.json();
 }
+
+/** Tries each host in order, returning the first successful payload. */
+async function firstOk<T>(urls: string[], parse: (json: any) => T): Promise<T> {
+  let lastError: unknown = new Error("no hosts");
+  for (const url of urls) {
+    try {
+      return parse(await fetchJson(url));
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
+async function yahooChart(symbol: string, timeframe: Timeframe) {
+  const path =
+    `/v8/finance/chart/${encodeURIComponent(symbol)}` +
+    `?interval=${YAHOO_INTERVAL[timeframe]}&range=${YAHOO_RANGE[timeframe]}`;
+  return firstOk(
+    YAHOO_HOSTS.map((h) => h + path),
+    (json) => {
+      const result = json?.chart?.result?.[0];
+      if (!result) throw new Error(`Yahoo ${symbol} returned no data`);
+      return result;
+    },
+  );
+}
+
 
 function yahooQuoteFrom(result: any, inst: Instrument): Quote {
   const meta = result.meta ?? {};
