@@ -161,6 +161,7 @@ export function ChatWidget() {
       )}
 
       <button
+        data-chat-toggle
         onClick={() => setOpen((v) => !v)}
         aria-label="Live chat"
         className="fixed bottom-20 right-4 z-50 grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition-transform hover:scale-105 md:bottom-6"
