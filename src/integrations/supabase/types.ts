@@ -227,6 +227,7 @@ export type Database = {
           country: string
           created_at: string
           date_of_birth: string | null
+          document_expires_at: string | null
           document_number: string | null
           document_path: string | null
           document_type: string
@@ -245,6 +246,7 @@ export type Database = {
           country: string
           created_at?: string
           date_of_birth?: string | null
+          document_expires_at?: string | null
           document_number?: string | null
           document_path?: string | null
           document_type: string
@@ -263,6 +265,7 @@ export type Database = {
           country?: string
           created_at?: string
           date_of_birth?: string | null
+          document_expires_at?: string | null
           document_number?: string | null
           document_path?: string | null
           document_type?: string
@@ -363,25 +366,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           base_currency: string
           created_at: string
           display_name: string
           id: string
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
+          referral_code: string | null
+          referral_rewards_usdt: number
+          referred_by: string | null
+          uid: string | null
         }
         Insert: {
+          avatar_url?: string | null
           base_currency?: string
           created_at?: string
           display_name?: string
           id: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
+          referral_code?: string | null
+          referral_rewards_usdt?: number
+          referred_by?: string | null
+          uid?: string | null
         }
         Update: {
+          avatar_url?: string | null
           base_currency?: string
           created_at?: string
           display_name?: string
           id?: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
+          referral_code?: string | null
+          referral_rewards_usdt?: number
+          referred_by?: string | null
+          uid?: string | null
         }
         Relationships: []
       }
@@ -435,6 +453,45 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          browser: string
+          country: string | null
+          created_at: string
+          device_id: string
+          id: string
+          ip_address: string | null
+          last_active_at: string
+          os: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string
+          country?: string | null
+          created_at?: string
+          device_id: string
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          os?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string
+          country?: string | null
+          created_at?: string
+          device_id?: string
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          os?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -534,7 +591,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_uid7: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
