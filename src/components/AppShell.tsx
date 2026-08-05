@@ -9,6 +9,7 @@ import {
   Home,
   Wallet,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ const NAV = [
     exact: false,
   },
   { to: "/wallet", params: {}, label: "Wallet", icon: Wallet, exact: false },
+  { to: "/profile", params: {}, label: "Profile", icon: UserRound, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
