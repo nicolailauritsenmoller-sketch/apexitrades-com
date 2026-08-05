@@ -116,9 +116,9 @@ export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => profileInput.parse(input))
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
-    if (data.displayName !== undefined) patch["display_name"] = data.displayName;
-    if (data.avatarUrl !== undefined) patch["avatar_url"] = data.avatarUrl;
+    const patch: { display_name?: string; avatar_url?: string | null } = {};
+    if (data.displayName !== undefined) patch.display_name = data.displayName;
+    if (data.avatarUrl !== undefined) patch.avatar_url = data.avatarUrl;
     if (Object.keys(patch).length === 0) return { ok: true };
 
     const { error } = await context.supabase
