@@ -11,6 +11,7 @@ const submitInput = z.object({
   documentNumber: z.string().trim().min(2).max(60),
   documentPath: z.string().trim().min(1).max(300),
   selfiePath: z.string().trim().min(1).max(300),
+  documentExpiresAt: z.string().trim().min(4).max(20).optional(),
 });
 
 export const getMyKyc = createServerFn({ method: "POST" })
@@ -25,14 +26,31 @@ export const getMyKyc = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!data) return null;
+
+    const sign = async (path: string | null) => {
+      if (!path) return null;
+      const { data: signed } = await context.supabase.storage
+        .from("kyc-documents")
+        .createSignedUrl(path, 300);
+      return signed?.signedUrl ?? null;
+    };
+
+    const expiresAt = (data as { document_expires_at?: string | null }).document_expires_at ?? null;
+    const expired = expiresAt ? new Date(expiresAt).getTime() < Date.now() : false;
+
     return {
       id: data.id,
       fullName: data.full_name,
       country: data.country,
       documentType: data.document_type,
+      documentNumber: data.document_number,
       status: data.status as string,
       adminNote: data.admin_note,
       createdAt: data.created_at,
+      documentExpiresAt: expiresAt,
+      expired,
+      documentUrl: await sign(data.document_path),
+      selfieUrl: await sign(data.selfie_path),
     };
   });
 
@@ -50,6 +68,7 @@ export const submitKyc = createServerFn({ method: "POST" })
       document_number: data.documentNumber,
       document_path: data.documentPath,
       selfie_path: data.selfiePath,
+      document_expires_at: data.documentExpiresAt || null,
     });
     if (error) throw new Error(error.message);
     return { ok: true };

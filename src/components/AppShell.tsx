@@ -9,6 +9,7 @@ import {
   Home,
   Wallet,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ const NAV = [
     exact: false,
   },
   { to: "/wallet", params: {}, label: "Wallet", icon: Wallet, exact: false },
+  { to: "/profile", params: {}, label: "Profile", icon: UserRound, exact: false },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -109,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile taskbar */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
-        <ul className="mx-auto grid max-w-lg grid-cols-5">
+        <ul className="mx-auto grid max-w-lg grid-cols-6">
           {NAV.map(({ to, params, label, icon: Icon, exact }) => (
             <li key={to}>
               <Link
