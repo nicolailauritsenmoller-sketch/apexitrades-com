@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -6,6 +7,8 @@ import { closePosition } from "@/lib/trading.functions";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import type { Quote } from "@/lib/market-types";
+import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { buildPositionSummary, type TradeSummary } from "@/lib/trade-summary";
 
 export type PositionRow = {
   id: string;
@@ -40,10 +43,30 @@ export function PositionsTable({
 }) {
   const queryClient = useQueryClient();
   const close = useServerFn(closePosition);
+  const [summary, setSummary] = useState<TradeSummary | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (id: string) => close({ data: { id } }),
-    onSuccess: (res) => {
+    mutationFn: async (id: string) => ({ id, res: await close({ data: { id } }) }),
+    onSuccess: ({ id, res }) => {
+      const p = positions.find((row) => row.id === id);
+      if (p) {
+        setSummary(
+          buildPositionSummary({
+            id: p.id,
+            symbol: p.symbol,
+            displaySymbol: p.displaySymbol,
+            side: p.side,
+            quantity: p.quantity,
+            entryPrice: p.entryPrice,
+            exitPrice: res.exitPrice,
+            leverage: p.leverage,
+            currency: res.currency,
+            pnl: res.pnl,
+            openedAt: p.openedAt,
+            closedAt: new Date().toISOString(),
+          }),
+        );
+      }
       toast[res.pnl >= 0 ? "success" : "error"](
         `Closed at ${formatPrice(res.exitPrice)} · ${res.pnl >= 0 ? "+" : ""}${formatMoney(res.pnl, res.currency)}`,
       );
@@ -58,6 +81,7 @@ export function PositionsTable({
 
   return (
     <div className="overflow-x-auto">
+      {summary && <TradeCloseSummary summary={summary} onClose={() => setSummary(null)} />}
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">

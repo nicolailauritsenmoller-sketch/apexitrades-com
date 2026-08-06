@@ -18,6 +18,17 @@ export function ChatWidget() {
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // Other surfaces (e.g. the closed-trade summary) can request support chat.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setOpen(true);
+      const detail = (e as CustomEvent<{ message?: string }>).detail;
+      if (detail?.message) setDraft(detail.message);
+    };
+    window.addEventListener("velocity:open-chat", handler);
+    return () => window.removeEventListener("velocity:open-chat", handler);
+  }, []);
+
   useEffect(() => {
     if (!open || sessionId) return;
     (async () => {

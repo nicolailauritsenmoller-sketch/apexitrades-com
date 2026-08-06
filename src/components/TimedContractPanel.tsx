@@ -16,6 +16,8 @@ import {
   type ContractTier,
 } from "@/lib/contract-tiers";
 import { formatMoney, formatPrice } from "@/lib/instruments";
+import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -37,6 +39,7 @@ export function TimedContractPanel({
   const queryClient = useQueryClient();
   const [tier, setTier] = useState<ContractTier>(CONTRACT_TIERS[0]);
   const [amount, setAmount] = useState(String(CONTRACT_TIERS[0].minInvestment));
+  const [summary, setSummary] = useState<TradeSummary | null>(null);
 
   const fetchContracts = useServerFn(getContracts);
   const contracts = useQuery({
@@ -62,8 +65,28 @@ export function TimedContractPanel({
   });
 
   const settleMutation = useMutation({
-    mutationFn: (id: string) => settle({ data: { id } }),
-    onSuccess: (res) => {
+    mutationFn: async (id: string) => ({ id, res: await settle({ data: { id } }) }),
+    onSuccess: ({ id, res }) => {
+      const c = (contracts.data ?? []).find((row) => row.id === id);
+      if (c) {
+        setSummary(
+          buildContractSummary({
+            id: c.id,
+            symbol: c.symbol,
+            displaySymbol: c.displaySymbol,
+            direction: c.direction,
+            stake: c.stake,
+            currency: res.currency,
+            entryPrice: c.entryPrice,
+            exitPrice: res.exitPrice,
+            payout: res.payout,
+            result: res.result,
+            openedAt: c.openedAt,
+            closedAt: new Date().toISOString(),
+            balanceBefore: balance,
+          }),
+        );
+      }
       if (res.result === "win") {
         toast.success(`Contract won · payout ${formatMoney(res.payout, res.currency)}`);
       } else if (res.result === "draw") {
@@ -105,6 +128,20 @@ export function TimedContractPanel({
 
   return (
     <div className="panel p-4">
+      {summary && (
+        <TradeCloseSummary
+          summary={summary}
+          onClose={() => setSummary(null)}
+          onTradeAgain={() => {
+            setSummary(null);
+            placeMutation.mutate(summary.side === "Long" ? "up" : "down");
+          }}
+          onReverse={() => {
+            setSummary(null);
+            placeMutation.mutate(summary.side === "Long" ? "down" : "up");
+          }}
+        />
+      )}
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
           <Timer className="size-3.5" /> Timed scalp contract
@@ -258,8 +295,14 @@ function ContractCard({ contract, now }: { contract: ContractRow; now: number })
           {left > 0 ? formatCountdown(left) : "Settling…"}
         </span>
       </div>
-      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border">
-        <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+      <div className="mt-2 flex items-center gap-3">
+        <CircularTimer progress={progress} label={left > 0 ? formatCountdown(left) : "…"} />
+        <div className="min-w-0 flex-1 text-[11px] text-muted-foreground">
+          <p className="num">
+            Entry {formatPrice(contract.entryPrice, contract.symbol)}
+          </p>
+          <p className="num">{contract.durationSeconds}s contract</p>
+        </div>
       </div>
       <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
         <span className="num">
@@ -269,5 +312,43 @@ function ContractCard({ contract, now }: { contract: ContractRow; now: number })
         <span className="num text-bull">+{formatMoney(profit, contract.currency)}</span>
       </div>
     </li>
+  );
+}
+
+function CircularTimer({ progress, label }: { progress: number; label: string }) {
+  const size = 56;
+  const stroke = 5;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - Math.min(1, Math.max(0, progress / 100)));
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90" role="img" aria-label={`Time remaining ${label}`}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--color-border)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--color-primary)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s linear" }}
+        />
+      </svg>
+      <span className="num absolute inset-0 grid place-items-center text-[10px] font-semibold tabular-nums">
+        {label}
+      </span>
+    </div>
   );
 }
