@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/PasswordInput";
 import { formatMoney } from "@/lib/instruments";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
@@ -784,29 +785,23 @@ function PasswordForm({ email }: { email: string | null }) {
 
   return (
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-3">
-      <input
-        type="password"
+      <PasswordInput
         required
         placeholder="Current password"
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
         required
         placeholder="New password"
         value={next}
         onChange={(e) => setNext(e.target.value)}
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
         required
         placeholder="Confirm new password"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       <button
         type="submit"
