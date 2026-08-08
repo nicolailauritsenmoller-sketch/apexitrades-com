@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { ThemeSetting } from "@/lib/theme";
 import {
   BadgeCheck,
   Copy,
@@ -344,8 +345,15 @@ function ProfilePage() {
         </Section>
 
         {/* 4. Security */}
-        <Section icon={ShieldCheck} title="Security" description="Change your account password.">
-          <PasswordForm email={profile?.email ?? null} />
+        <Section
+          icon={ShieldCheck}
+          title="Security & settings"
+          description="Appearance preference and account password."
+        >
+          <div className="space-y-4">
+            <ThemeSetting />
+            <PasswordForm email={profile?.email ?? null} />
+          </div>
         </Section>
 
         {/* 5. Referrals */}

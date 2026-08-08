@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
+import { ThemeToggle } from "@/lib/theme";
 
 
 const NAV = [
@@ -91,6 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             )}
 
+            <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
@@ -98,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <LogOut className="size-4" />
               <span className="hidden sm:inline">Sign out</span>
@@ -107,10 +109,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-4 py-6 pb-24 md:pb-6">{children}</main>
+      <main className="mx-auto max-w-[1600px] touch-manipulation px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
+        {children}
+      </main>
 
       {/* Mobile taskbar */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         <ul className="mx-auto grid max-w-lg grid-cols-6">
           {NAV.map(({ to, params, label, icon: Icon, exact }) => (
             <li key={to}>
@@ -118,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={to}
                 params={params}
                 activeOptions={{ exact }}
-                className="flex flex-col items-center gap-1 py-2 text-[10px] text-muted-foreground transition-colors"
+                className="flex min-h-[56px] touch-manipulation flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors active:bg-secondary/60"
                 activeProps={{ className: "text-primary" }}
               >
                 <Icon className="size-5" />

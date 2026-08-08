@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { themeBootstrapScript, useTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -78,7 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
+      },
       { title: "Velocity Terminal — Multi-Currency Paper Trading" },
       {
         name: "description",
@@ -111,6 +116,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
       <body>
         {children}
@@ -123,6 +129,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
@@ -133,11 +140,34 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Lock pinch-zoom and double-tap zoom (iOS Safari ignores user-scalable=no).
+  useEffect(() => {
+    const stop = (e: Event) => e.preventDefault();
+    let lastTouch = 0;
+    const onTouchEnd = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouch <= 300) e.preventDefault();
+      lastTouch = now;
+    };
+    document.addEventListener("gesturestart", stop as EventListener);
+    document.addEventListener("gesturechange", stop as EventListener);
+    document.addEventListener("dblclick", stop);
+    document.addEventListener("touchend", onTouchEnd, { passive: false });
+    return () => {
+      document.removeEventListener("gesturestart", stop as EventListener);
+      document.removeEventListener("gesturechange", stop as EventListener);
+      document.removeEventListener("dblclick", stop);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
+
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <Toaster theme="dark" position="top-right" richColors />
+      <Toaster theme={theme} position="top-right" richColors />
     </QueryClientProvider>
   );
 }

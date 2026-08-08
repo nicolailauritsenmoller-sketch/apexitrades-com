@@ -427,3 +427,153 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     );
     return { balance: next };
   });
+
+/** Aggregated metrics, activity feeds and ledgers for the admin control center. */
+export const getAdminAnalytics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const iso = (d: Date) => d.toISOString();
+    const now = new Date();
+    const day = new Date(now.getTime() - 864e5);
+    const week = new Date(now.getTime() - 7 * 864e5);
+    const month = new Date(now.getTime() - 30 * 864e5);
+
+    const [profiles, deposits, withdrawals, contracts, sessions, chats, swaps, wallets, kyc] =
+      await Promise.all([
+        db.from("profiles").select("id,display_name,uid,created_at,outcome_mode,referred_by,referral_rewards_usdt,base_currency").order("created_at", { ascending: false }).limit(500),
+        db.from("deposits").select("id,user_id,coin,amount,status,created_at").order("created_at", { ascending: false }).limit(500),
+        db.from("withdrawals").select("id,user_id,coin,amount,status,created_at").order("created_at", { ascending: false }).limit(500),
+        db.from("contracts").select("id,user_id,display_symbol,direction,stake,currency,status,result,payout,opened_at,expires_at,settled_at").order("opened_at", { ascending: false }).limit(500),
+        db.from("user_sessions").select("id,user_id,browser,os,ip_address,country,last_active_at,created_at").order("last_active_at", { ascending: false }).limit(60),
+        db.from("chat_sessions").select("id,user_id,subject,status,last_message_at").order("last_message_at", { ascending: false }).limit(60),
+        db.from("swaps").select("id,user_id,from_currency,to_currency,from_amount,to_amount,created_at").order("created_at", { ascending: false }).limit(60),
+        db.from("wallets").select("currency,balance"),
+        db.from("kyc_submissions").select("id,user_id,full_name,status,document_expires_at,created_at").order("created_at", { ascending: false }).limit(200),
+      ]);
+
+    const P: any[] = (profiles.data ?? []) as any[];
+    const D: any[] = (deposits.data ?? []) as any[];
+    const W: any[] = (withdrawals.data ?? []) as any[];
+    const C: any[] = (contracts.data ?? []) as any[];
+    const K: any[] = (kyc.data ?? []) as any[];
+
+    const since = (rows: any[], field: string, from: Date) =>
+      rows.filter((r) => new Date(r[field]).getTime() >= from.getTime()).length;
+    const sum = (rows: any[], pred: (r: any) => boolean) =>
+      rows.filter(pred).reduce((a, r) => a + Number(r.amount ?? 0), 0);
+
+    const settled = C.filter((c) => c.status !== "open");
+    const revenue = settled.reduce(
+      (a, c) => a + (Number(c.payout ?? 0) > 0 ? -(Number(c.payout) - Number(c.stake)) : Number(c.stake)),
+      0,
+    );
+
+    // 14-day time series for charts
+    const series: {
+      date: string;
+      signups: number;
+      deposits: number;
+      withdrawals: number;
+      revenue: number;
+      visitors: number;
+    }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const start = new Date(now.getTime() - i * 864e5);
+      start.setUTCHours(0, 0, 0, 0);
+      const end = new Date(start.getTime() + 864e5);
+      const inRange = (v: string) => {
+        const t = new Date(v).getTime();
+        return t >= start.getTime() && t < end.getTime();
+      };
+      const dayContracts = settled.filter((c) => c.settled_at && inRange(c.settled_at));
+      series.push({
+        date: iso(start).slice(0, 10),
+        signups: P.filter((p) => inRange(p.created_at)).length,
+        deposits: D.filter((d) => d.status === "approved" && inRange(d.created_at)).reduce(
+          (a, d) => a + Number(d.amount),
+          0,
+        ),
+        withdrawals: W.filter((w) => w.status === "approved" && inRange(w.created_at)).reduce(
+          (a, w) => a + Number(w.amount),
+          0,
+        ),
+        revenue: dayContracts.reduce(
+          (a, c) =>
+            a + (Number(c.payout ?? 0) > 0 ? -(Number(c.payout) - Number(c.stake)) : Number(c.stake)),
+          0,
+        ),
+        visitors: (sessions.data ?? []).filter((s: any) => inRange(s.last_active_at)).length,
+      });
+    }
+
+    const walletTotals: Record<string, number> = {};
+    for (const w of (wallets.data ?? []) as any[]) {
+      walletTotals[w.currency] = (walletTotals[w.currency] ?? 0) + Number(w.balance);
+    }
+
+    return {
+      metrics: {
+        totalUsers: P.length,
+        newUsersToday: since(P, "created_at", day),
+        signupsWeek: since(P, "created_at", week),
+        signupsMonth: since(P, "created_at", month),
+        totalDeposits: sum(D, (d) => d.status === "approved"),
+        pendingDeposits: D.filter((d) => d.status === "pending").length,
+        pendingWithdrawals: W.filter((w) => w.status === "pending").length,
+        totalWithdrawals: sum(W, (w) => w.status === "approved"),
+        revenue,
+        activeTrades: C.filter((c) => c.status === "open").length,
+        pendingKyc: K.filter((k) => k.status === "pending").length,
+        openTickets: (chats.data ?? []).filter((c: any) => c.status === "open").length,
+      },
+      series,
+      contracts: C.slice(0, 120),
+      tradeStats: {
+        settled: settled.length,
+        wins: settled.filter((c) => c.result === "win").length,
+        losses: settled.filter((c) => c.result === "loss").length,
+        volume: C.reduce((a, c) => a + Number(c.stake), 0),
+      },
+      ledger: [
+        ...D.slice(0, 60).map((d) => ({
+          id: d.id,
+          kind: "deposit" as const,
+          user_id: d.user_id,
+          coin: d.coin,
+          amount: Number(d.amount),
+          status: d.status,
+          created_at: d.created_at,
+        })),
+        ...W.slice(0, 60).map((w) => ({
+          id: w.id,
+          kind: "withdrawal" as const,
+          user_id: w.user_id,
+          coin: w.coin,
+          amount: Number(w.amount),
+          status: w.status,
+          created_at: w.created_at,
+        })),
+        ...(swaps.data ?? []).map((s: any) => ({
+          id: s.id,
+          kind: "swap" as const,
+          user_id: s.user_id,
+          coin: `${s.from_currency}→${s.to_currency}`,
+          amount: Number(s.from_amount),
+          status: "approved",
+          created_at: s.created_at,
+        })),
+      ].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)),
+      walletTotals,
+      sessions: sessions.data ?? [],
+      chats: chats.data ?? [],
+      kycExpiring: K.filter(
+        (k) =>
+          k.document_expires_at &&
+          new Date(k.document_expires_at).getTime() < now.getTime() + 30 * 864e5,
+      ),
+      referrals: P.filter((p) => p.referred_by).length,
+      referralRewards: P.reduce((a, p) => a + Number(p.referral_rewards_usdt ?? 0), 0),
+    };
+  });
