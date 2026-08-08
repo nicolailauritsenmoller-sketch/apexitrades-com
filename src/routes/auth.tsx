@@ -97,6 +97,7 @@ function AuthPage() {
             <Zap className="size-4" strokeWidth={2.8} />
           </span>
           <span className="font-display text-sm font-bold">VELOCITY</span>
+          <ThemeToggle className="ml-auto" />
         </div>
 
         <h1 className="mt-6 text-2xl font-bold">
