@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
+import { ThemeToggle } from "@/lib/theme";
 
 
 const NAV = [
