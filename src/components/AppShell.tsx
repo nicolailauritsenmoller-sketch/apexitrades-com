@@ -91,6 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             )}
 
+            <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
@@ -98,7 +99,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <LogOut className="size-4" />
               <span className="hidden sm:inline">Sign out</span>
