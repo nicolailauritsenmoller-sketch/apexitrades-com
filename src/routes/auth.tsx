@@ -5,6 +5,7 @@ import { Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
+import { ThemeToggle } from "@/lib/theme";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
