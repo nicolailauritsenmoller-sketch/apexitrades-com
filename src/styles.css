@@ -147,6 +147,9 @@
 
   html {
     color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: manipulation;
   }
 
   html.dark {
@@ -158,6 +161,21 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
+    overscroll-behavior-y: none;
+  }
+
+  main,
+  header,
+  nav,
+  section,
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
   }
 
   h1,
