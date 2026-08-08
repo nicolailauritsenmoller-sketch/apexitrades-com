@@ -5,7 +5,7 @@ export type Theme = "light" | "dark";
 export const THEME_KEY = "velocity.theme";
 
 /** Inline script injected before hydration so the theme class is applied without flash. */
-export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(!t){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var r=document.documentElement;r.classList.toggle("dark",t==="dark");r.style.colorScheme=t;}catch(e){}})();`;
+export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(!t){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var r=document.documentElement;r.classList.toggle("dark",t==="dark");}catch(e){}})();`;
 
 function readTheme(): Theme {
   if (typeof window === "undefined") return "light";
@@ -17,7 +17,7 @@ function readTheme(): Theme {
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
-  root.style.colorScheme = theme;
+  window.dispatchEvent(new CustomEvent<Theme>("velocity:theme", { detail: theme }));
 }
 
 export function useTheme() {
@@ -27,6 +27,9 @@ export function useTheme() {
     const next = readTheme();
     setThemeState(next);
     applyTheme(next);
+    const onChange = (e: Event) => setThemeState((e as CustomEvent<Theme>).detail);
+    window.addEventListener("velocity:theme", onChange);
+    return () => window.removeEventListener("velocity:theme", onChange);
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
