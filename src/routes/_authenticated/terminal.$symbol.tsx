@@ -298,7 +298,7 @@ function Terminal() {
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Open positions · {displaySymbol(symbol)}
       </h2>
-      <div className="panel mb-10">
+      <div className="panel mb-28 md:mb-10">
         <PositionsTable
           positions={openHere}
           quotes={quotes}
