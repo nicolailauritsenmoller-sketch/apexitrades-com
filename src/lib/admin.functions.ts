@@ -453,11 +453,11 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         db.from("kyc_submissions").select("id,user_id,full_name,status,document_expires_at,created_at").order("created_at", { ascending: false }).limit(200),
       ]);
 
-    const P = profiles.data ?? [];
-    const D = deposits.data ?? [];
-    const W = withdrawals.data ?? [];
-    const C = contracts.data ?? [];
-    const K = kyc.data ?? [];
+    const P: any[] = (profiles.data ?? []) as any[];
+    const D: any[] = (deposits.data ?? []) as any[];
+    const W: any[] = (withdrawals.data ?? []) as any[];
+    const C: any[] = (contracts.data ?? []) as any[];
+    const K: any[] = (kyc.data ?? []) as any[];
 
     const since = (rows: any[], field: string, from: Date) =>
       rows.filter((r) => new Date(r[field]).getTime() >= from.getTime()).length;
@@ -509,7 +509,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
     }
 
     const walletTotals: Record<string, number> = {};
-    for (const w of wallets.data ?? []) {
+    for (const w of (wallets.data ?? []) as any[]) {
       walletTotals[w.currency] = (walletTotals[w.currency] ?? 0) + Number(w.balance);
     }
 
