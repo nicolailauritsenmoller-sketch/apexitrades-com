@@ -305,6 +305,30 @@ function Terminal() {
           emptyLabel="No open positions on this instrument."
         />
       </div>
+
+      {/* Sticky one-handed execution controls (mobile) */}
+      <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 px-3 py-2 backdrop-blur-xl md:hidden">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>{displaySymbol(symbol)}</span>
+          <span className="num">{quote ? formatPrice(quote.price, symbol) : "—"}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => orderMutation.mutate("long")}
+            disabled={orderMutation.isPending || qty <= 0}
+            className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground disabled:opacity-40"
+          >
+            Buy / Long
+          </button>
+          <button
+            onClick={() => orderMutation.mutate("short")}
+            disabled={orderMutation.isPending || qty <= 0}
+            className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground disabled:opacity-40"
+          >
+            Sell / Short
+          </button>
+        </div>
+      </div>
     </AppShell>
   );
 }
