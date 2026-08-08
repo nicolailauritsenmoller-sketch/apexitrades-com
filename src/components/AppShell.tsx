@@ -109,10 +109,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-4 py-6 pb-24 md:pb-6">{children}</main>
+      <main className="mx-auto max-w-[1600px] touch-manipulation px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
+        {children}
+      </main>
 
       {/* Mobile taskbar */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         <ul className="mx-auto grid max-w-lg grid-cols-6">
           {NAV.map(({ to, params, label, icon: Icon, exact }) => (
             <li key={to}>
@@ -120,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={to}
                 params={params}
                 activeOptions={{ exact }}
-                className="flex flex-col items-center gap-1 py-2 text-[10px] text-muted-foreground transition-colors"
+                className="flex min-h-[56px] touch-manipulation flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors active:bg-secondary/60"
                 activeProps={{ className: "text-primary" }}
               >
                 <Icon className="size-5" />
