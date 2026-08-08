@@ -140,6 +140,29 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Lock pinch-zoom and double-tap zoom (iOS Safari ignores user-scalable=no).
+  useEffect(() => {
+    const stop = (e: Event) => e.preventDefault();
+    let lastTouch = 0;
+    const onTouchEnd = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouch <= 300) e.preventDefault();
+      lastTouch = now;
+    };
+    document.addEventListener("gesturestart", stop as EventListener);
+    document.addEventListener("gesturechange", stop as EventListener);
+    document.addEventListener("dblclick", stop);
+    document.addEventListener("touchend", onTouchEnd, { passive: false });
+    return () => {
+      document.removeEventListener("gesturestart", stop as EventListener);
+      document.removeEventListener("gesturechange", stop as EventListener);
+      document.removeEventListener("dblclick", stop);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
+
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
