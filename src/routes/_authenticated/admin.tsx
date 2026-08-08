@@ -3,12 +3,35 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldCheck, Wallet2, Megaphone, Users, Landmark, Gauge } from "lucide-react";
+import {
+  ShieldCheck,
+  Wallet2,
+  Megaphone,
+  Users,
+  Landmark,
+  Gauge,
+  LayoutDashboard,
+  BarChart3,
+  Receipt,
+  LifeBuoy,
+  Settings2,
+} from "lucide-react";
+import {
+  MetricsBar,
+  AnalyticsCharts,
+  SystemActivity,
+  TradeStatsPanel,
+  TransactionsPanel,
+  SupportHub,
+  KycExpiry,
+  type Analytics,
+} from "@/components/admin/AdminAnalytics";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
   adjustUserBalance,
   broadcastNotification,
+  getAdminAnalytics,
   getAdminOverview,
   getKycDocumentUrls,
   getMyAccess,
@@ -49,12 +72,18 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const TABS = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "deposits", label: "Deposits", icon: Wallet2 },
   { id: "withdrawals", label: "Withdrawals", icon: Landmark },
   { id: "addresses", label: "Addresses", icon: ShieldCheck },
   { id: "outcomes", label: "Outcomes", icon: Gauge },
   { id: "users", label: "Users & KYC", icon: Users },
+  { id: "trades", label: "Trades", icon: Gauge },
+  { id: "transactions", label: "Transactions", icon: Receipt },
+  { id: "support", label: "Support", icon: LifeBuoy },
   { id: "broadcast", label: "Broadcast", icon: Megaphone },
+  { id: "settings", label: "Settings", icon: Settings2 },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -131,10 +160,11 @@ function ModeToggle({
 
 function AdminPage() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<TabId>("deposits");
+  const [tab, setTab] = useState<TabId>("overview");
 
   const fetchAccess = useServerFn(getMyAccess);
   const fetchOverview = useServerFn(getAdminOverview);
+  const fetchAnalytics = useServerFn(getAdminAnalytics);
 
   const access = useQuery({ queryKey: ["my-access"], queryFn: () => fetchAccess() });
   const isAdmin = access.data?.isAdmin === true;
@@ -146,7 +176,17 @@ function AdminPage() {
     refetchInterval: 20_000,
   });
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["admin-overview"] });
+  const analyticsQuery = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: () => fetchAnalytics(),
+    enabled: isAdmin,
+    refetchInterval: 30_000,
+  });
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    qc.invalidateQueries({ queryKey: ["admin-analytics"] });
+  };
 
   if (access.isLoading) {
     return (
@@ -170,6 +210,7 @@ function AdminPage() {
   }
 
   const data = overview.data;
+  const analytics = analyticsQuery.data as Analytics | undefined;
 
   return (
     <AppShell>
@@ -212,6 +253,56 @@ function AdminPage() {
           <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
         ) : (
           <>
+            {tab === "overview" && (
+              <div className="space-y-4">
+                {analytics ? (
+                  <>
+                    <MetricsBar a={analytics} />
+                    <AnalyticsCharts a={analytics} />
+                    <KycExpiry a={analytics} />
+                    <SystemActivity a={analytics} />
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Loading metrics…</p>
+                )}
+              </div>
+            )}
+            {tab === "analytics" &&
+              (analytics ? (
+                <div className="space-y-4">
+                  <AnalyticsCharts a={analytics} />
+                  <SystemActivity a={analytics} />
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading analytics…</p>
+              ))}
+            {tab === "trades" && (
+              <div className="space-y-4">
+                {analytics && <TradeStatsPanel a={analytics} />}
+                <OutcomesTab
+                  contracts={data.openContracts}
+                  profiles={data.profiles}
+                  onDone={refresh}
+                />
+              </div>
+            )}
+            {tab === "transactions" &&
+              (analytics ? (
+                <TransactionsPanel a={analytics} />
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading ledger…</p>
+              ))}
+            {tab === "support" && analytics && <SupportHub a={analytics} />}
+            {tab === "settings" && (
+              <div className="space-y-4">
+                <AddressesTab rows={data.addresses} onDone={refresh} />
+                <OutcomesTab
+                  contracts={data.openContracts}
+                  profiles={data.profiles}
+                  onDone={refresh}
+                />
+              </div>
+            )}
             {tab === "deposits" && <DepositsTab rows={data.deposits} onDone={refresh} />}
             {tab === "withdrawals" && <WithdrawalsTab rows={data.withdrawals} onDone={refresh} />}
             {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
