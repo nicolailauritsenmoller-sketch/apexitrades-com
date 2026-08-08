@@ -129,6 +129,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
@@ -143,7 +144,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <Toaster theme="dark" position="top-right" richColors />
+      <Toaster theme={theme} position="top-right" richColors />
     </QueryClientProvider>
   );
 }
