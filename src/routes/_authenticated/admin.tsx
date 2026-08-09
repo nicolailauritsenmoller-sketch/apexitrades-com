@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -62,6 +62,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  beforeLoad: async () => {
+    // Role gate: only users holding the admin role may reach /admin.
+    const access = await getMyAccess();
+    if (!access.isAdmin) throw redirect({ to: "/dashboard" });
+  },
   component: AdminPage,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-sm text-bear">
