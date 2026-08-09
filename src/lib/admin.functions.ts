@@ -45,7 +45,8 @@ export const getMyAccess = createServerFn({ method: "POST" })
 export const getAdminOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertStaff(context);
+    // KYC records and financial ledgers are admin-only.
+    await assertAdmin(context);
     const { supabase } = context;
 
     const [deposits, withdrawals, kyc, addresses, profiles, contracts] = await Promise.all([
