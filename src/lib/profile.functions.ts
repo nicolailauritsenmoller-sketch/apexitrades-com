@@ -89,6 +89,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         email: (claims as any)?.email ?? null,
         referralCode: (profile as any)?.referral_code ?? null,
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
+        creditScore: Number((profile as any)?.credit_score ?? 750),
         createdAt: profile?.created_at ?? null,
       },
       balances: {
