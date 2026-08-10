@@ -110,7 +110,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1600px] touch-manipulation overflow-x-hidden px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
+      <main className="mx-auto w-full max-w-[1600px] overflow-x-hidden overflow-y-auto px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
         {children}
       </main>
 

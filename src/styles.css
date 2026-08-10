@@ -149,8 +149,8 @@
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    touch-action: manipulation;
     overflow-x: hidden;
+    overflow-y: auto;
     max-width: 100%;
   }
 
@@ -163,23 +163,40 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    touch-action: manipulation;
-    overscroll-behavior-y: none;
     overflow-x: hidden;
+    overflow-y: auto;
     max-width: 100%;
+    min-height: 100vh;
   }
 
-  main,
-  header,
-  nav,
-  section,
-  button,
-  a,
-  [role="button"],
-  input,
-  select,
-  textarea {
-    touch-action: manipulation;
+  /* Touch/gesture locks apply to touch devices only — never block desktop wheel/trackpad scrolling. */
+  @media (pointer: coarse) {
+    html,
+    body {
+      touch-action: manipulation;
+      overscroll-behavior-y: none;
+    }
+
+    main,
+    header,
+    nav,
+    section,
+    button,
+    a,
+    [role="button"],
+    input,
+    select,
+    textarea {
+      touch-action: manipulation;
+    }
+  }
+
+  @media (pointer: fine) {
+    button,
+    a,
+    [role="button"] {
+      touch-action: manipulation;
+    }
   }
 
   h1,
@@ -190,6 +207,7 @@
     letter-spacing: -0.022em;
   }
 }
+
 
 
 @utility num {
