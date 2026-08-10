@@ -31,6 +31,7 @@ import {
   signOutEverywhere,
 } from "@/lib/sessions";
 import { LEGAL_DOCS, type LegalDoc } from "@/lib/legal-content";
+import { TicketDialog } from "@/components/support/TicketDialog";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -469,12 +470,12 @@ function ProfilePage() {
               >
                 Live chat
               </button>
-              <a
-                href="mailto:support@velocity.trade?subject=Support%20ticket"
-                className="rounded-md border border-border px-3 py-2 text-sm hover:bg-secondary"
+              <button
+                onClick={() => setTicketOpen(true)}
+                className="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-secondary"
               >
                 Submit a ticket
-              </a>
+              </button>
               <button
                 onClick={() => setLegal(LEGAL_DOCS.faq)}
                 className="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-secondary"
