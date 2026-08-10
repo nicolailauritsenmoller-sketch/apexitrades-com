@@ -540,7 +540,10 @@ function ProfilePage() {
           </div>
         </div>
       )}
+
+      <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
     </AppShell>
+
   );
 }
 
