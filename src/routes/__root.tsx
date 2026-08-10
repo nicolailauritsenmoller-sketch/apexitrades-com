@@ -144,8 +144,10 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // Lock pinch-zoom and double-tap zoom (iOS Safari ignores user-scalable=no).
+  // Lock pinch-zoom and double-tap zoom on touch devices only (never on desktop).
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(pointer: coarse)").matches) return;
     const stop = (e: Event) => e.preventDefault();
     let lastTouch = 0;
     const onTouchEnd = (e: TouchEvent) => {
@@ -155,12 +157,10 @@ function RootComponent() {
     };
     document.addEventListener("gesturestart", stop as EventListener);
     document.addEventListener("gesturechange", stop as EventListener);
-    document.addEventListener("dblclick", stop);
     document.addEventListener("touchend", onTouchEnd, { passive: false });
     return () => {
       document.removeEventListener("gesturestart", stop as EventListener);
       document.removeEventListener("gesturechange", stop as EventListener);
-      document.removeEventListener("dblclick", stop);
       document.removeEventListener("touchend", onTouchEnd);
     };
   }, []);
