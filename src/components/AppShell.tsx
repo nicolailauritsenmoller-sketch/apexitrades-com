@@ -18,6 +18,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
+import brandLogo from "@/assets/velocity-trade-logo.png";
 
 
 const NAV = [
@@ -59,9 +60,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-              <LineChart className="size-4" strokeWidth={2.6} />
-            </span>
+            <img
+              src={brandLogo}
+              alt="Velocity Trade logo"
+              width={1024}
+              height={1024}
+              className="size-9 shrink-0 object-contain"
+            />
             <span className="truncate font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
           </Link>
 
