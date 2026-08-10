@@ -1,73 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import videoAsset from "@/assets/market-ambient.mp4.asset.json";
 import posterImg from "@/assets/market-ambient-poster.jpg";
 
 type Props = {
   /** Opacity of the media layer (0-1). */
   intensity?: number;
+  /** Use fixed positioning so the video spans the whole page while scrolling. */
+  fixed?: boolean;
   className?: string;
 };
 
 /**
- * Ambient looping market video used as a section background.
- * - Plays only while the section is on screen (smooth scroll performance)
- * - Video is desktop-only; mobile falls back to a static high-res graphic
+ * Ambient looping market video used as a page/section background.
+ * Autoplays muted + inline, loops continuously, and never blocks pointer events.
  */
-export function AmbientMarketBackdrop({ intensity = 0.35, className = "" }: Props) {
-  const hostRef = useRef<HTMLDivElement | null>(null);
+export function AmbientMarketBackdrop({
+  intensity = 0.45,
+  fixed = false,
+  className = "",
+}: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => setVisible(entries.some((e) => e.isIntersecting)),
-      { rootMargin: "200px 0px", threshold: 0.01 },
-    );
-    io.observe(host);
-    return () => io.disconnect();
-  }, []);
 
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (visible) void v.play().catch(() => undefined);
-    else v.pause();
-  }, [visible]);
+    const tryPlay = () => void v.play().catch(() => undefined);
+    tryPlay();
+    // Some browsers pause background media on tab switch — resume on return.
+    document.addEventListener("visibilitychange", tryPlay);
+    window.addEventListener("focus", tryPlay);
+    return () => {
+      document.removeEventListener("visibilitychange", tryPlay);
+      window.removeEventListener("focus", tryPlay);
+    };
+  }, []);
 
   return (
     <div
-      ref={hostRef}
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+      className={`pointer-events-none ${fixed ? "fixed" : "absolute"} inset-0 z-0 h-full w-full overflow-hidden ${className}`}
     >
-      {/* Mobile / reduced-motion: static graphic */}
-      <img
-        src={posterImg}
-        alt=""
-        loading="lazy"
-        width={1920}
-        height={1088}
-        className="absolute inset-0 size-full object-cover md:hidden"
-        style={{ opacity: intensity }}
-      />
-      {/* Desktop: looping ambient video */}
       <video
         ref={videoRef}
-        src={videoAsset.url}
         poster={posterImg}
         autoPlay
         loop
         muted
         playsInline
-        preload="metadata"
-        className="absolute inset-0 hidden size-full object-cover md:block motion-reduce:hidden"
+        preload="auto"
+        disablePictureInPicture
+        className="pointer-events-none absolute inset-0 size-full h-full w-full object-cover"
         style={{ opacity: intensity }}
-      />
-      {/* Contrast mask */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background" />
+      >
+        <source src={videoAsset.url} type="video/mp4" />
+      </video>
+      {/* Contrast mask — keeps headlines legible over the footage */}
+      <div className="absolute inset-0 bg-background/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/25 to-background/70" />
     </div>
   );
 }
