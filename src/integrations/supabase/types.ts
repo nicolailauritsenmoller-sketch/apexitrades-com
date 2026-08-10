@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          actor_name: string | null
+          created_at: string
+          details: Json
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          actor_name?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          actor_name?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           body: string
@@ -432,6 +462,7 @@ export type Database = {
           avatar_url: string | null
           base_currency: string
           created_at: string
+          credit_score: number
           display_name: string
           id: string
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
@@ -445,6 +476,7 @@ export type Database = {
           avatar_url?: string | null
           base_currency?: string
           created_at?: string
+          credit_score?: number
           display_name?: string
           id: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
@@ -458,6 +490,7 @@ export type Database = {
           avatar_url?: string | null
           base_currency?: string
           created_at?: string
+          credit_score?: number
           display_name?: string
           id?: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
