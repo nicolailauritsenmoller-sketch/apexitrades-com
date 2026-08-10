@@ -10,17 +10,20 @@ const depositInput = z.object({
 });
 
 const withdrawInput = z.object({
-  coin: z.string().min(1).max(12),
+  coin: z.string().min(1).max(16),
   network: z.string().min(1).max(24),
   amount: z.number().positive().max(100_000_000),
   destinationAddress: z.string().trim().min(8).max(200),
 });
 
 const swapInput = z.object({
-  from: z.string().min(2).max(6),
-  to: z.string().min(2).max(6),
+  from: z.string().min(1).max(16),
+  to: z.string().min(1).max(16),
   amount: z.number().positive().max(100_000_000),
 });
+
+export const MIN_WITHDRAWAL_CREDIT_SCORE = 500;
+
 
 export const getDepositAddresses = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
