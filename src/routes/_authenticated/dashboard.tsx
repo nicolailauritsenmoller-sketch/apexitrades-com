@@ -7,6 +7,8 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
 import { useQuotes } from "@/hooks/useMarket";
 import { getPortfolio } from "@/lib/trading.functions";
+import { getPortfolioValue } from "@/lib/wallet.functions";
+import { AssetsOverview } from "@/components/AssetsOverview";
 import { formatMoney } from "@/lib/instruments";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -42,6 +44,13 @@ function Dashboard() {
     refetchInterval: 15_000,
   });
 
+  const fetchValue = useServerFn(getPortfolioValue);
+  const value = useQuery({
+    queryKey: ["portfolio-value"],
+    queryFn: () => fetchValue(),
+    refetchInterval: 30_000,
+  });
+
   const positions = (data?.positions ?? []) as PositionRow[];
   const open = positions.filter((p) => p.status === "open");
   const closed = positions.filter((p) => p.status === "closed");
@@ -70,6 +79,20 @@ function Dashboard() {
         </div>
       </div>
 
+      <div className="panel mb-4 p-5">
+        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          Total portfolio balance
+        </div>
+        <div className="num text-3xl font-bold">
+          {value.isLoading
+            ? "—"
+            : `${(value.data?.totalUsdt ?? 0).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })} USDT`}
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <StatCard
           icon={<Activity className="size-4 text-primary" />}
@@ -90,33 +113,30 @@ function Dashboard() {
         />
       </div>
 
-      <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
-        Wallets
-      </h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {(data?.wallets ?? []).map((w) => (
-          <div key={w.currency} className="panel p-4">
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
-              <AssetIcon currency={w.currency} size={22} />
-              {w.currency}
-            </div>
-            <div className="num mt-1.5 text-lg font-semibold">
-              {formatMoney(w.balance, w.currency)}
-            </div>
-            {unrealizedByCurrency[w.currency] != null && (
-              <div
-                className={`num mt-1 text-xs ${
-                  unrealizedByCurrency[w.currency] >= 0 ? "text-bull" : "text-bear"
-                }`}
-              >
-                {unrealizedByCurrency[w.currency] >= 0 ? "+" : ""}
-                {unrealizedByCurrency[w.currency].toFixed(2)} open
-              </div>
-            )}
-          </div>
-        ))}
-        {isLoading && <div className="panel p-4 text-sm text-muted-foreground">Loading…</div>}
+      <div className="mt-8">
+        <AssetsOverview
+          holdings={value.data?.wallets ?? []}
+          totalUsdt={value.data?.totalUsdt ?? 0}
+          isLoading={value.isLoading}
+        />
       </div>
+
+      {Object.keys(unrealizedByCurrency).length > 0 && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {Object.entries(unrealizedByCurrency).map(([currency, pnl]) => (
+            <div key={currency} className="panel p-4">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <AssetIcon currency={currency} size={22} />
+                {currency} open P&L
+              </div>
+              <div className={`num mt-1.5 text-lg font-semibold ${pnl >= 0 ? "text-bull" : "text-bear"}`}>
+                {pnl >= 0 ? "+" : ""}
+                {formatMoney(pnl, currency)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Open positions

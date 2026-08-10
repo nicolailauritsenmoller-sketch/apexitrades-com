@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -6,6 +6,14 @@ import { toast } from "sonner";
 import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
+import { AssetsOverview } from "@/components/AssetsOverview";
+import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
+import {
+  STATUS_STYLE,
+  shortenAddress,
+  toTxStatus,
+  type TransactionRecord,
+} from "@/lib/transactions";
 import {
   ASSET_CLASS_LABEL,
   CURRENCIES,
@@ -58,12 +66,6 @@ const TABS = [
   { id: "swap", label: "Swap", icon: Repeat },
 ] as const;
 
-const STATUS_TONE: Record<string, string> = {
-  pending: "text-amber-400",
-  approved: "text-bull",
-  rejected: "text-bear",
-};
-
 function qrUrl(text: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
 }
@@ -71,6 +73,7 @@ function qrUrl(text: string) {
 function WalletPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("deposit");
+  const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
 
   const fetchAddresses = useServerFn(getDepositAddresses);
   const fetchValue = useServerFn(getPortfolioValue);
@@ -92,6 +95,59 @@ function WalletPage() {
 
   const wallets = value.data?.wallets ?? [];
 
+  const transactions = useMemo<TransactionRecord[]>(() => {
+    const a = activity.data;
+    if (!a) return [];
+    const deposits: TransactionRecord[] = a.deposits.map((d) => ({
+      id: d.id,
+      type: "deposit" as const,
+      status: toTxStatus(d.status),
+      rawStatus: d.status,
+      asset: d.coin,
+      amount: d.amount,
+      network: d.network,
+      address: null,
+      txHash: d.txHash ?? null,
+      note: d.adminNote ?? null,
+      createdAt: d.createdAt,
+      title: `Deposit ${d.amount} ${d.coin}`,
+      subtitle: d.network,
+    }));
+    const withdrawals: TransactionRecord[] = a.withdrawals.map((w) => ({
+      id: w.id,
+      type: "withdrawal" as const,
+      status: toTxStatus(w.status),
+      rawStatus: w.status,
+      asset: w.coin,
+      amount: w.amount,
+      network: w.network,
+      address: w.destinationAddress,
+      txHash: null,
+      note: w.adminNote ?? null,
+      createdAt: w.createdAt,
+      title: `Withdrawal ${w.amount} ${w.coin}`,
+      subtitle: `${w.network} · ${shortenAddress(w.destinationAddress)}`,
+    }));
+    const swaps: TransactionRecord[] = a.swaps.map((s) => ({
+      id: s.id,
+      type: "swap" as const,
+      status: "successful" as const,
+      rawStatus: "approved",
+      asset: s.toCurrency,
+      amount: s.toAmount,
+      network: null,
+      address: null,
+      txHash: null,
+      note: null,
+      createdAt: s.createdAt,
+      title: `Swap ${s.fromAmount.toFixed(4)} ${s.fromCurrency} → ${s.toAmount.toFixed(4)} ${s.toCurrency}`,
+      subtitle: `Rate ${s.rate.toFixed(6)}`,
+    }));
+    return [...deposits, ...withdrawals, ...swaps].sort((x, y) =>
+      x.createdAt < y.createdAt ? 1 : -1,
+    );
+  }, [activity.data]);
+
   return (
     <AppShell>
       <h1 className="text-2xl font-bold">Wallet</h1>
@@ -99,28 +155,12 @@ function WalletPage() {
         Fund your account, request withdrawals and swap between assets at live rates.
       </p>
 
-      <div className="panel mb-6 p-5">
-        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-          Total portfolio value
-        </div>
-        <div className="num text-3xl font-bold">
-          {value.isLoading ? "—" : formatMoney(value.data?.totalUsdt ?? 0, "USDT")}
-        </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-          {wallets.map((w) => (
-            <div key={w.currency} className="flex items-center gap-2 rounded-md bg-secondary/50 p-3">
-              <AssetIcon currency={w.currency} size={28} />
-              <div className="min-w-0">
-                <div className="num truncate text-sm font-semibold">
-                  {formatMoney(w.balance, w.currency)}
-                </div>
-                <div className="num text-[11px] text-muted-foreground">
-                  ≈ {w.valueUsdt.toFixed(2)} USDT
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="mb-6">
+        <AssetsOverview
+          holdings={wallets}
+          totalUsdt={value.data?.totalUsdt ?? 0}
+          isLoading={value.isLoading}
+        />
       </div>
 
       <div className="mb-4 flex gap-1 rounded-lg bg-secondary/60 p-1">
@@ -139,12 +179,17 @@ function WalletPage() {
       </div>
 
       {tab === "deposit" && (
-        <DepositTab addresses={addresses.data ?? []} onDone={refresh} />
+        <DepositTab
+          addresses={addresses.data ?? []}
+          onDone={refresh}
+          onSubmitted={setActiveTx}
+        />
       )}
       {tab === "withdraw" && (
         <WithdrawTab
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.balance }))}
           onDone={refresh}
+          onSubmitted={setActiveTx}
         />
       )}
       {tab === "swap" && (
@@ -155,74 +200,59 @@ function WalletPage() {
       )}
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
-        Recent activity
+        Transaction history
       </h2>
       <div className="panel divide-y divide-border">
-        {(activity.data?.deposits ?? []).map((d) => (
-          <Row
-            key={d.id}
-            left={`Deposit ${d.amount} ${d.coin}`}
-            sub={`${d.network} · ${new Date(d.createdAt).toLocaleString()}`}
-            right={d.status}
-            tone={STATUS_TONE[d.status]}
-          />
-        ))}
-        {(activity.data?.withdrawals ?? []).map((w) => (
-          <Row
-            key={w.id}
-            left={`Withdrawal ${w.amount} ${w.coin}`}
-            sub={`${w.destinationAddress.slice(0, 18)}… · ${new Date(w.createdAt).toLocaleString()}`}
-            right={w.status}
-            tone={STATUS_TONE[w.status]}
-          />
-        ))}
-        {(activity.data?.swaps ?? []).map((s) => (
-          <Row
-            key={s.id}
-            left={`Swap ${s.fromAmount.toFixed(4)} ${s.fromCurrency} → ${s.toAmount.toFixed(4)} ${s.toCurrency}`}
-            sub={new Date(s.createdAt).toLocaleString()}
-            right="done"
-            tone="text-muted-foreground"
-          />
-        ))}
-        {!activity.isLoading &&
-          (activity.data?.deposits.length ?? 0) +
-            (activity.data?.withdrawals.length ?? 0) +
-            (activity.data?.swaps.length ?? 0) ===
-            0 && (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">No activity yet.</p>
-          )}
+        {transactions.map((t) => {
+          const style = STATUS_STYLE[t.status];
+          return (
+            <button
+              key={`${t.type}-${t.id}`}
+              onClick={() => setActiveTx(t)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
+            >
+              <AssetIcon currency={t.asset} size={30} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm">{t.title}</div>
+                <div className="truncate text-[11px] text-muted-foreground">
+                  {t.subtitle} · {new Date(t.createdAt).toLocaleString()}
+                </div>
+              </div>
+              <span
+                className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${style.badge}`}
+              >
+                {style.label}
+              </span>
+            </button>
+          );
+        })}
+        {!activity.isLoading && transactions.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No activity yet.</p>
+        )}
       </div>
+
+      <TransactionStatusDialog
+        tx={activeTx}
+        open={activeTx !== null}
+        onOpenChange={(v) => !v && setActiveTx(null)}
+      />
+
       <div className="h-10" />
     </AppShell>
   );
 }
 
-function Row({
-  left,
-  sub,
-  right,
-  tone,
-}: {
-  left: string;
-  sub: string;
-  right: string;
-  tone?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm">{left}</div>
-        <div className="truncate text-[11px] text-muted-foreground">{sub}</div>
-      </div>
-      <span className={`text-xs uppercase tracking-wide ${tone ?? ""}`}>{right}</span>
-    </div>
-  );
-}
-
 type Address = { id: string; coin: string; network: string; address: string; memo: string | null };
 
-function DepositTab({ addresses, onDone }: { addresses: Address[]; onDone: () => void }) {
+function DepositTab({
+  addresses,
+  onDone,
+  onSubmitted,
+}: {
+  addresses: Address[];
+  onDone: () => void;
+  onSubmitted: (tx: TransactionRecord) => void;
+}) {
   const [selected, setSelected] = useState(0);
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
@@ -231,8 +261,22 @@ function DepositTab({ addresses, onDone }: { addresses: Address[]; onDone: () =>
   const mutation = useMutation({
     mutationFn: (vars: { coin: string; network: string; amount: number; txHash?: string }) =>
       submit({ data: vars }),
-    onSuccess: () => {
-      toast.success("Deposit submitted — awaiting admin approval.");
+    onSuccess: (res, vars) => {
+      onSubmitted({
+        id: res.id,
+        type: "deposit",
+        status: "pending",
+        rawStatus: "pending",
+        asset: vars.coin,
+        amount: vars.amount,
+        network: vars.network,
+        address: addresses.find((a) => a.coin === vars.coin && a.network === vars.network)?.address ?? null,
+        txHash: vars.txHash ?? null,
+        note: null,
+        createdAt: res.createdAt,
+        title: `Deposit ${vars.amount} ${vars.coin}`,
+        subtitle: vars.network,
+      });
       setAmount("");
       setTxHash("");
       onDone();
@@ -372,9 +416,11 @@ function trimAmount(value: number, decimals = 8) {
 function WithdrawTab({
   balances,
   onDone,
+  onSubmitted,
 }: {
   balances: { currency: string; balance: number }[];
   onDone: () => void;
+  onSubmitted: (tx: TransactionRecord) => void;
 }) {
   const [coin, setCoin] = useState("USDT");
   const [network, setNetwork] = useState("TRC20");
@@ -395,8 +441,22 @@ function WithdrawTab({
       amount: number;
       destinationAddress: string;
     }) => submit({ data: vars }),
-    onSuccess: () => {
-      toast.success("Withdrawal requested — pending admin approval.");
+    onSuccess: (res, vars) => {
+      onSubmitted({
+        id: res.id,
+        type: "withdrawal",
+        status: "pending",
+        rawStatus: "pending",
+        asset: vars.coin,
+        amount: vars.amount,
+        network: vars.network,
+        address: vars.destinationAddress,
+        txHash: null,
+        note: null,
+        createdAt: res.createdAt,
+        title: `Withdrawal ${vars.amount} ${vars.coin}`,
+        subtitle: `${vars.network} · ${shortenAddress(vars.destinationAddress)}`,
+      });
       setAmount("");
       setAddress("");
       onDone();
