@@ -18,6 +18,8 @@ import {
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
+import { LivePnl } from "@/components/LivePnl";
+import { useQuotes } from "@/hooks/useMarket";
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -109,6 +111,10 @@ export function TimedContractPanel({
   );
 
   const now = useNow(openContracts.length > 0);
+  const { quotes } = useQuotes(
+    useMemo(() => Array.from(new Set(openContracts.map((c) => c.symbol))), [openContracts]),
+    3000,
+  );
 
   // Auto-settle expired contracts once their countdown reaches zero.
   useEffect(() => {
@@ -241,7 +247,7 @@ export function TimedContractPanel({
           </h3>
           <ul className="space-y-2">
             {openContracts.map((c) => (
-              <ContractCard key={c.id} contract={c} now={now} />
+              <ContractCard key={c.id} contract={c} now={now} mark={quotes[c.symbol]?.price} />
             ))}
           </ul>
         </>
@@ -253,22 +259,40 @@ export function TimedContractPanel({
             Recent settlements
           </h3>
           <ul className="space-y-1.5 text-xs">
-            {settled.map((c) => (
-              <li key={c.id} className="flex items-center justify-between">
-                <span className="text-muted-foreground">
-                  {c.displaySymbol} · {c.direction === "up" ? "Buy Long" : "Sell Short"}
-                </span>
-                <span
-                  className={`num ${c.result === "win" ? "text-bull" : c.result === "loss" ? "text-bear" : ""}`}
-                >
-                  {c.result === "win" ? "+" : c.result === "loss" ? "-" : ""}
-                  {formatMoney(
-                    c.result === "win" ? (c.stake * c.payoutPct) / 100 : c.result === "loss" ? c.stake : 0,
-                    c.currency,
-                  )}
-                </span>
-              </li>
-            ))}
+            {settled.map((c) => {
+              const net = (c.payout ?? 0) - c.stake;
+              return (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSummary(
+                        buildContractSummary({
+                          id: c.id,
+                          symbol: c.symbol,
+                          displaySymbol: c.displaySymbol,
+                          direction: c.direction,
+                          stake: c.stake,
+                          currency: c.currency,
+                          entryPrice: c.entryPrice,
+                          exitPrice: c.exitPrice ?? c.entryPrice,
+                          payout: c.payout ?? 0,
+                          result: (c.result ?? "draw") as "win" | "loss" | "draw",
+                          openedAt: c.openedAt,
+                          closedAt: c.settledAt ?? c.expiresAt,
+                        }),
+                      )
+                    }
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-secondary/60"
+                  >
+                    <span className="truncate text-muted-foreground">
+                      {c.displaySymbol} · {c.direction === "up" ? "Buy Long" : "Sell Short"}
+                    </span>
+                    <LivePnl value={net} currency={c.currency} />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}
@@ -276,11 +300,28 @@ export function TimedContractPanel({
   );
 }
 
-function ContractCard({ contract, now }: { contract: ContractRow; now: number }) {
+function ContractCard({
+  contract,
+  now,
+  mark,
+}: {
+  contract: ContractRow;
+  now: number;
+  mark?: number;
+}) {
   const left = new Date(contract.expiresAt).getTime() - now;
   const total = contract.durationSeconds * 1000;
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
   const profit = (contract.stake * contract.payoutPct) / 100;
+  const expired = left <= 0;
+  const livePnl =
+    mark == null
+      ? null
+      : mark === contract.entryPrice
+        ? 0
+        : (contract.direction === "up" ? mark > contract.entryPrice : mark < contract.entryPrice)
+          ? profit
+          : -contract.stake;
 
   return (
     <li className="rounded-md border border-border bg-surface p-2.5">
@@ -304,12 +345,16 @@ function ContractCard({ contract, now }: { contract: ContractRow; now: number })
           <p className="num">{contract.durationSeconds}s contract</p>
         </div>
       </div>
-      <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span className="num">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <span className="num truncate">
           {formatMoney(contract.stake, contract.currency)} @{" "}
           {formatPrice(contract.entryPrice, contract.symbol)}
+          {mark != null && <> · mark {formatPrice(mark, contract.symbol)}</>}
         </span>
-        <span className="num text-bull">+{formatMoney(profit, contract.currency)}</span>
+        <span className="flex shrink-0 items-center gap-1">
+          <span className="uppercase tracking-wider">{expired ? "Final" : "Live P/L"}</span>
+          <LivePnl value={livePnl} currency={contract.currency} live={!expired} />
+        </span>
       </div>
     </li>
   );
