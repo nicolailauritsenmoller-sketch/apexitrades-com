@@ -111,7 +111,7 @@ function Assets() {
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{c.displaySymbol}</div>
               <div className="text-[11px] uppercase text-muted-foreground">
-                Timed contract · {c.direction === "up" ? "higher" : "lower"}
+                Timed contract · {c.direction === "up" ? "Buy Long" : "Sell Short"}
               </div>
             </div>
             <div className="num text-right text-sm">{formatMoney(c.stake, c.currency)}</div>

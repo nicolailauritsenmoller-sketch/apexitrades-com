@@ -26,6 +26,7 @@ import {
   KycExpiry,
   type Analytics,
 } from "@/components/admin/AdminAnalytics";
+import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
@@ -300,6 +301,7 @@ function AdminPage() {
             {tab === "support" && analytics && <SupportHub a={analytics} />}
             {tab === "settings" && (
               <div className="space-y-4">
+                <PlatformSettingsPanel />
                 <AddressesTab rows={data.addresses} onDone={refresh} />
                 <OutcomesTab
                   contracts={data.openContracts}

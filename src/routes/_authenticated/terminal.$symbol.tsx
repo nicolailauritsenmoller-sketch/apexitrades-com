@@ -136,26 +136,27 @@ function Terminal() {
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2">
+      <div className="w-full max-w-full overflow-x-hidden">
+      <div className="mb-4 flex w-full max-w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
               <AssetIcon symbol={symbol} size={30} />
-              <h1 className="text-2xl font-bold">{displaySymbol(symbol)}</h1>
+              <h1 className="truncate text-xl font-bold sm:text-2xl">{displaySymbol(symbol)}</h1>
               <button
                 onClick={() => toggleMutation.mutate()}
                 aria-label="Toggle watchlist"
-                className="text-muted-foreground transition-colors hover:text-primary"
+                className="shrink-0 touch-manipulation text-muted-foreground transition-colors hover:text-primary"
               >
                 <Star className={`size-4 ${starred ? "fill-primary text-primary" : ""}`} />
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="truncate text-xs text-muted-foreground">
               {inst.name} · {ASSET_CLASS_LABEL[inst.assetClass]} · settles in {inst.currency}
             </p>
           </div>
-          <div className="pl-4">
-            <div className="num text-2xl font-semibold">
+          <div className="min-w-0">
+            <div className="num text-xl font-semibold sm:text-2xl">
               {quote ? formatPrice(quote.price, symbol) : "—"}
             </div>
             <div className={`num flex items-center gap-1 text-xs ${up ? "text-bull" : "text-bear"}`}>
@@ -164,12 +165,12 @@ function Terminal() {
             </div>
           </div>
         </div>
-        <div className="flex gap-1">
+        <div className="-mx-1 flex max-w-full gap-1 overflow-x-auto px-1 pb-1">
           {TIMEFRAMES.map((tf) => (
             <button
               key={tf}
               onClick={() => setTimeframe(tf)}
-              className={`rounded px-2.5 py-1 text-xs transition-colors ${
+              className={`shrink-0 touch-manipulation rounded-lg px-3 py-1.5 text-xs transition-colors ${
                 timeframe === tf
                   ? "bg-primary text-primary-foreground"
                   : "border border-border text-muted-foreground hover:bg-secondary"
@@ -181,8 +182,8 @@ function Terminal() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="panel p-4">
+      <div className="grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="panel min-w-0 max-w-full overflow-hidden p-3 sm:p-4">
           {candles.isLoading ? (
             <div className="flex h-[380px] items-center justify-center text-sm text-muted-foreground">
               Loading chart…
@@ -193,7 +194,8 @@ function Terminal() {
         </div>
 
 
-        <div className="panel p-4">
+        <div className="panel min-w-0 max-w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-9rem)]">
+
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
               Order ticket
@@ -258,59 +260,62 @@ function Terminal() {
             <button
               onClick={() => orderMutation.mutate("long")}
               disabled={orderMutation.isPending || qty <= 0}
-              className="rounded-md bg-bull py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              Buy / Long
+              Buy Long
             </button>
             <button
               onClick={() => orderMutation.mutate("short")}
               disabled={orderMutation.isPending || qty <= 0}
-              className="rounded-md bg-bear py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              Sell / Short
+              Sell Short
             </button>
           </div>
 
           <h3 className="mb-2 mt-6 text-xs uppercase tracking-widest text-muted-foreground">
             Related
           </h3>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex max-w-full flex-wrap gap-1.5">
             {related.map((i) => (
               <Link
                 key={i.symbol}
                 to="/terminal/$symbol"
                 params={{ symbol: i.symbol }}
-                className="flex items-center gap-1.5 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="flex min-w-0 touch-manipulation items-center gap-1.5 rounded-lg border border-border px-2 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 <AssetIcon symbol={i.symbol} size={14} />
-                {displaySymbol(i.symbol)}
+                <span className="truncate">{displaySymbol(i.symbol)}</span>
               </Link>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+      <div className="mt-4 grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="hidden lg:block" />
-        <TimedContractPanel symbol={symbol} balance={usdtBalance} />
+        <div className="min-w-0 max-w-full">
+          <TimedContractPanel symbol={symbol} balance={usdtBalance} />
+        </div>
       </div>
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Open positions · {displaySymbol(symbol)}
       </h2>
-      <div className="panel mb-28 md:mb-10">
+      <div className="panel mb-40 w-full max-w-full overflow-x-auto md:mb-10">
         <PositionsTable
           positions={openHere}
           quotes={quotes}
           emptyLabel="No open positions on this instrument."
         />
       </div>
+      </div>
 
       {/* Sticky one-handed execution controls (mobile) */}
-      <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 px-3 py-2 backdrop-blur-xl md:hidden">
-        <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>{displaySymbol(symbol)}</span>
-          <span className="num">{quote ? formatPrice(quote.price, symbol) : "—"}</span>
+      <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 w-full max-w-full border-t border-border bg-background/95 px-3 py-2 backdrop-blur-xl md:hidden">
+        <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+          <span className="truncate">{displaySymbol(symbol)}</span>
+          <span className="num shrink-0">{quote ? formatPrice(quote.price, symbol) : "—"}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -318,14 +323,14 @@ function Terminal() {
             disabled={orderMutation.isPending || qty <= 0}
             className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground disabled:opacity-40"
           >
-            Buy / Long
+            Buy Long
           </button>
           <button
             onClick={() => orderMutation.mutate("short")}
             disabled={orderMutation.isPending || qty <= 0}
             className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground disabled:opacity-40"
           >
-            Sell / Short
+            Sell Short
           </button>
         </div>
       </div>

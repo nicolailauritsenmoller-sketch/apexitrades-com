@@ -17,6 +17,7 @@ import { getMyAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
+import { SiteFooter } from "@/components/SiteFooter";
 
 
 const NAV = [
@@ -109,9 +110,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] touch-manipulation px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
+      <main className="mx-auto w-full max-w-[1600px] touch-manipulation overflow-x-hidden px-3 py-4 pb-28 sm:px-4 sm:py-6 md:pb-6">
         {children}
       </main>
+
+      <div className="pb-24 md:pb-0">
+        <SiteFooter />
+      </div>
 
       {/* Mobile taskbar */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">

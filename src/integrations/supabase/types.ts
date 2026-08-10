@@ -76,6 +76,45 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_records: {
+        Row: {
+          analytics: boolean
+          anon_id: string | null
+          created_at: string
+          essential: boolean
+          functional: boolean
+          id: string
+          marketing: boolean
+          policy_version: string
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          analytics?: boolean
+          anon_id?: string | null
+          created_at?: string
+          essential?: boolean
+          functional?: boolean
+          id?: string
+          marketing?: boolean
+          policy_version?: string
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          analytics?: boolean
+          anon_id?: string | null
+          created_at?: string
+          essential?: boolean
+          functional?: boolean
+          id?: string
+          marketing?: boolean
+          policy_version?: string
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           currency: string
@@ -310,6 +349,24 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       positions: {
         Row: {
           asset_class: Database["public"]["Enums"]["asset_class"]
@@ -372,6 +429,7 @@ export type Database = {
           display_name: string
           id: string
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
+          preferences: Json
           referral_code: string | null
           referral_rewards_usdt: number
           referred_by: string | null
@@ -384,6 +442,7 @@ export type Database = {
           display_name?: string
           id: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
+          preferences?: Json
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
@@ -396,6 +455,7 @@ export type Database = {
           display_name?: string
           id?: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
+          preferences?: Json
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
