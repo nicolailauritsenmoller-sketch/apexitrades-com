@@ -5,6 +5,7 @@ import { displaySymbol, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
+import { AmbientMarketBackdrop } from "@/components/home/AmbientMarketBackdrop";
 import { ThemeToggle } from "@/lib/theme";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
@@ -100,6 +101,7 @@ function Landing() {
 
       {/* 1. Hero */}
       <section className="hero-glow relative w-full max-w-full overflow-hidden">
+        <AmbientMarketBackdrop intensity={0.45} />
         <div className="grid-lines absolute inset-0 opacity-[0.35]" />
         <div className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:py-24">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -189,7 +191,9 @@ function Landing() {
       </section>
 
       {/* 4. Trading features */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16">
+      <section className="relative w-full max-w-full overflow-hidden">
+        <AmbientMarketBackdrop intensity={0.28} />
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Trading features</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
