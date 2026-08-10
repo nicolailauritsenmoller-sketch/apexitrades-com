@@ -16,9 +16,9 @@ import { Route as MarketRouteImport } from './routes/market'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TradeRouteImport } from './routes/trade'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDeskManagementRouteImport } from './routes/_authenticated/desk-management'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
@@ -59,11 +59,6 @@ const TradeRoute = TradeRouteImport.update({
   path: '/trade',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
   id: '/assets',
   path: '/assets',
@@ -74,6 +69,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeskManagementRoute =
+  AuthenticatedDeskManagementRouteImport.update({
+    id: '/desk-management',
+    path: '/desk-management',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
@@ -108,9 +109,9 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/desk-management': typeof AuthenticatedDeskManagementRoute
   '/markets': typeof AuthenticatedMarketsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -124,9 +125,9 @@ export interface FileRoutesByTo {
   '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/desk-management': typeof AuthenticatedDeskManagementRoute
   '/markets': typeof AuthenticatedMarketsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -142,9 +143,9 @@ export interface FileRoutesById {
   '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/desk-management': typeof AuthenticatedDeskManagementRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -160,9 +161,9 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reset-password'
     | '/trade'
-    | '/admin'
     | '/assets'
     | '/dashboard'
+    | '/desk-management'
     | '/markets'
     | '/profile'
     | '/wallet'
@@ -176,9 +177,9 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reset-password'
     | '/trade'
-    | '/admin'
     | '/assets'
     | '/dashboard'
+    | '/desk-management'
     | '/markets'
     | '/profile'
     | '/wallet'
@@ -193,9 +194,9 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reset-password'
     | '/trade'
-    | '/_authenticated/admin'
     | '/_authenticated/assets'
     | '/_authenticated/dashboard'
+    | '/_authenticated/desk-management'
     | '/_authenticated/markets'
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
@@ -265,13 +266,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TradeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/assets': {
       id: '/_authenticated/assets'
       path: '/assets'
@@ -284,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/desk-management': {
+      id: '/_authenticated/desk-management'
+      path: '/desk-management'
+      fullPath: '/desk-management'
+      preLoaderRoute: typeof AuthenticatedDeskManagementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/markets': {
@@ -325,9 +326,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDeskManagementRoute: typeof AuthenticatedDeskManagementRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
@@ -335,9 +336,9 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDeskManagementRoute: AuthenticatedDeskManagementRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
