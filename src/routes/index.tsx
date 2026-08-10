@@ -225,6 +225,7 @@ function Landing() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* 5. Crypto trading access */}
