@@ -114,7 +114,7 @@ export function GlobalMembershipSection() {
   ].filter((s) => typeof s.value === "number" && s.value !== null);
 
   return (
-    <section className="w-full max-w-full border-y border-border bg-surface">
+    <section className="w-full max-w-full border-y border-border bg-surface/70 backdrop-blur-sm">
       <div className="mx-auto w-full max-w-6xl px-4 py-16">
         <div className="flex flex-col gap-3">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
