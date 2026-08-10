@@ -341,6 +341,26 @@ function DepositTab({ addresses, onDone }: { addresses: Address[]; onDone: () =>
   );
 }
 
+function MaxButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-primary/15 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-primary hover:bg-primary/25"
+    >
+      Max
+    </button>
+  );
+}
+
+/** Formats a balance without rounding up beyond what the user actually holds. */
+function trimAmount(value: number, decimals = 8) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  const factor = 10 ** decimals;
+  const floored = Math.floor(value * factor) / factor;
+  return String(floored);
+}
+
 function WithdrawTab({
   balances,
   onDone,
@@ -353,6 +373,12 @@ function WithdrawTab({
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
   const submit = useServerFn(requestWithdrawal);
+  const fetchEligibility = useServerFn(getWithdrawalEligibility);
+
+  const eligibility = useQuery({
+    queryKey: ["withdrawal-eligibility"],
+    queryFn: () => fetchEligibility(),
+  });
 
   const mutation = useMutation({
     mutationFn: (vars: {
@@ -371,9 +397,31 @@ function WithdrawTab({
   });
 
   const available = balances.find((b) => b.currency === coin)?.balance ?? 0;
+  const requested = Number(amount);
+  const overBalance = Number.isFinite(requested) && requested > available;
+  const blocked = eligibility.data ? !eligibility.data.canWithdraw : false;
 
   return (
     <div className="panel max-w-xl space-y-3 p-5">
+      {eligibility.data && (
+        <div
+          className={`rounded-md border p-3 text-xs ${
+            blocked ? "border-bear/40 bg-bear/10 text-bear" : "border-border text-muted-foreground"
+          }`}
+        >
+          <div className="font-semibold">
+            Credit score {eligibility.data.creditScore} · KYC {eligibility.data.kycStatus}
+          </div>
+          {blocked && (
+            <ul className="mt-1 list-inside list-disc">
+              {eligibility.data.reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
           <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Asset</span>
@@ -411,13 +459,21 @@ function WithdrawTab({
         Available: <span className="num">{formatMoney(available, coin)}</span>
       </div>
 
-      <input
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        inputMode="decimal"
-        placeholder="Amount"
-        className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-      />
+      <div className="relative">
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          inputMode="decimal"
+          placeholder="Amount"
+          className="w-full rounded-md bg-secondary px-3 py-2 pr-16 text-sm outline-none"
+        />
+        <MaxButton onClick={() => setAmount(trimAmount(available))} />
+      </div>
+      {overBalance && (
+        <p className="text-[11px] text-bear">
+          Amount exceeds your available {coin} balance.
+        </p>
+      )}
       <input
         value={address}
         onChange={(e) => setAddress(e.target.value)}
@@ -426,10 +482,11 @@ function WithdrawTab({
         className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
       />
       <button
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || blocked || overBalance}
         onClick={() => {
           const value = Number(amount);
           if (!Number.isFinite(value) || value <= 0) return toast.error("Enter a valid amount.");
+          if (value > available) return toast.error("Amount exceeds your available balance.");
           if (address.trim().length < 8) return toast.error("Enter a valid destination address.");
           mutation.mutate({
             coin,
@@ -446,19 +503,64 @@ function WithdrawTab({
   );
 }
 
+const SWAP_GROUPS: { label: string; codes: string[] }[] = [
+  { label: "Cash & wallets", codes: [...CURRENCIES] },
+  ...(["crypto", "stock", "future", "forex", "metal"] as const).map((cls) => ({
+    label: ASSET_CLASS_LABEL[cls],
+    codes: INSTRUMENTS.filter((i) => i.assetClass === cls).map((i) => i.symbol),
+  })),
+];
+
+function AssetSelect({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
+      >
+        {SWAP_GROUPS.map((g) => (
+          <optgroup key={g.label} label={g.label}>
+            {g.codes.map((code) => (
+              <option key={code} value={code}>
+                {INSTRUMENT_MAP[code] ? `${displaySymbol(code)} — ${INSTRUMENT_MAP[code]!.name}` : code}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function SwapTab({
   balances,
-  rates,
   onDone,
 }: {
   balances: { currency: string; balance: number }[];
-  rates: Record<string, number>;
   onDone: () => void;
 }) {
   const [from, setFrom] = useState("USDT");
-  const [to, setTo] = useState("BTC");
+  const [to, setTo] = useState("BTCUSDT");
   const [amount, setAmount] = useState("");
   const submit = useServerFn(swapAssets);
+  const fetchRate = useServerFn(getSwapRate);
+
+  const quote = useQuery({
+    queryKey: ["swap-rate", from, to],
+    queryFn: () => fetchRate({ data: { from, to } }),
+    refetchInterval: 15_000,
+    enabled: from !== to,
+  });
 
   const mutation = useMutation({
     mutationFn: (vars: { from: string; to: string; amount: number }) => submit({ data: vars }),
@@ -470,68 +572,51 @@ function SwapTab({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const options = ["USD", "EUR", "GBP", "USDT", "BTC"];
-  const rate = (rates[from] ?? 0) / (rates[to] || 1);
+  const rate = quote.data?.rate ?? 0;
   const estimate = Number(amount) > 0 ? Number(amount) * rate : 0;
   const available = balances.find((b) => b.currency === from)?.balance ?? 0;
+  const overBalance = Number(amount) > available;
 
   return (
     <div className="panel max-w-xl space-y-3 p-5">
       <div className="grid grid-cols-2 gap-3">
-        <label className="block">
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">From</span>
-          <select
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="mt-1 w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-          >
-            {options.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">To</span>
-          <select
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="mt-1 w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-          >
-            {options.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
+        <AssetSelect value={from} onChange={setFrom} label="From" />
+        <AssetSelect value={to} onChange={setTo} label="To" />
       </div>
 
-      <div className="text-[11px] text-muted-foreground">
-        Available: <span className="num">{formatMoney(available, from)}</span> · Rate{" "}
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <span>
+          Available: <span className="num">{formatMoney(available, from)}</span>
+        </span>
         <span className="num">
-          1 {from} = {rate ? rate.toFixed(6) : "—"} {to}
+          1 {from} = {rate ? rate.toFixed(8) : quote.isLoading ? "…" : "—"} {to}
         </span>
       </div>
 
-      <input
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        inputMode="decimal"
-        placeholder={`Amount in ${from}`}
-        className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-      />
+      <div className="relative">
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          inputMode="decimal"
+          placeholder={`Amount in ${from}`}
+          className="w-full rounded-md bg-secondary px-3 py-2 pr-16 text-sm outline-none"
+        />
+        <MaxButton onClick={() => setAmount(trimAmount(available))} />
+      </div>
+      {overBalance && (
+        <p className="text-[11px] text-bear">Amount exceeds your available {from} balance.</p>
+      )}
 
       <div className="rounded-md bg-secondary/50 p-3 text-sm">
-        You receive ≈ <span className="num font-semibold">{estimate.toFixed(6)}</span> {to}
+        You receive ≈ <span className="num font-semibold">{estimate.toFixed(8)}</span> {to}
       </div>
 
       <button
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || overBalance || from === to}
         onClick={() => {
           const value = Number(amount);
           if (!Number.isFinite(value) || value <= 0) return toast.error("Enter a valid amount.");
+          if (value > available) return toast.error("Amount exceeds your available balance.");
           mutation.mutate({ from, to, amount: value });
         }}
         className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
@@ -541,3 +626,4 @@ function SwapTab({
     </div>
   );
 }
+
