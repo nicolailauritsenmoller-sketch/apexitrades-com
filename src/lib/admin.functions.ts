@@ -812,3 +812,149 @@ export const replyToTicket = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ */
+/* Roles, credit scores and audit logging                              */
+/* ------------------------------------------------------------------ */
+
+/** Directory of users with their roles, credit score and wallet totals. */
+export const getUserDirectory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+
+    const [profiles, roles, kyc, wallets] = await Promise.all([
+      db
+        .from("profiles")
+        .select("id,display_name,uid,base_currency,credit_score,outcome_mode,created_at,referred_by")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db.from("user_roles").select("user_id,role"),
+      db.from("kyc_submissions").select("user_id,status,full_name,created_at"),
+      db.from("wallets").select("user_id,currency,balance"),
+    ]);
+
+    const roleMap = new Map<string, string[]>();
+    for (const r of (roles.data ?? []) as any[]) {
+      roleMap.set(r.user_id, [...(roleMap.get(r.user_id) ?? []), r.role]);
+    }
+    const kycMap = new Map<string, any>();
+    for (const k of (kyc.data ?? []) as any[]) {
+      if (!kycMap.has(k.user_id)) kycMap.set(k.user_id, k);
+    }
+    const walletMap = new Map<string, { currency: string; balance: number }[]>();
+    for (const w of (wallets.data ?? []) as any[]) {
+      walletMap.set(w.user_id, [
+        ...(walletMap.get(w.user_id) ?? []),
+        { currency: w.currency, balance: Number(w.balance) },
+      ]);
+    }
+
+    return ((profiles.data ?? []) as any[]).map((p) => ({
+      id: p.id,
+      displayName: p.display_name,
+      uid: p.uid,
+      baseCurrency: p.base_currency,
+      creditScore: Number(p.credit_score ?? 750),
+      outcomeMode: p.outcome_mode,
+      createdAt: p.created_at,
+      roles: roleMap.get(p.id) ?? ["user"],
+      isAdmin: (roleMap.get(p.id) ?? []).includes("admin"),
+      kycStatus: kycMap.get(p.id)?.status ?? "unverified",
+      legalName: kycMap.get(p.id)?.full_name ?? null,
+      wallets: walletMap.get(p.id) ?? [],
+    }));
+  });
+
+export const setUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        role: z.enum(["admin", "agent"]),
+        grant: z.boolean(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (data.userId === context.userId && data.role === "admin" && !data.grant) {
+      throw new Error("You cannot revoke your own admin access.");
+    }
+    const db = await privileged();
+
+    if (data.grant) {
+      const { error } = await db
+        .from("user_roles")
+        .upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id,role" });
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await db
+        .from("user_roles")
+        .delete()
+        .eq("user_id", data.userId)
+        .eq("role", data.role);
+      if (error) throw new Error(error.message);
+    }
+
+    await writeAudit(context, data.grant ? "role.grant" : "role.revoke", data.userId, {
+      role: data.role,
+    });
+    await notify(
+      db,
+      data.userId,
+      data.grant ? `Granted ${data.role} access` : `Revoked ${data.role} access`,
+      `An administrator ${data.grant ? "granted" : "revoked"} your ${data.role} permissions.`,
+      "info",
+    );
+    return { ok: true };
+  });
+
+export const setUserCreditScore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        score: z.number().int().min(300).max(850),
+        note: z.string().trim().max(300).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { error } = await db
+      .from("profiles")
+      .update({ credit_score: data.score })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+
+    await writeAudit(context, "credit_score.update", data.userId, {
+      score: data.score,
+      note: data.note ?? null,
+    });
+    await notify(
+      db,
+      data.userId,
+      "Credit score updated",
+      `Your account credit score is now ${data.score}.${data.note ? ` Note: ${data.note}` : ""}`,
+      "info",
+    );
+    return { ok: true };
+  });
+
+export const getAuditLogs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { data } = await db
+      .from("admin_audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return data ?? [];
+  });
