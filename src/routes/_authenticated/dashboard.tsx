@@ -12,13 +12,13 @@ import { formatMoney } from "@/lib/instruments";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Portfolio — Velocity Terminal" },
+      { title: "Portfolio — Velocity Trade" },
       {
         name: "description",
         content:
           "Track multi-currency paper wallets, open positions and realized P&L across crypto, stocks, futures, forex and gold.",
       },
-      { property: "og:title", content: "Portfolio — Velocity Terminal" },
+      { property: "og:title", content: "Portfolio — Velocity Trade" },
       {
         property: "og:description",
         content: "Your multi-currency trading balances and live position P&L.",

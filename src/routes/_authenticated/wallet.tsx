@@ -19,7 +19,7 @@ import {
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({
     meta: [
-      { title: "Wallet — deposits, withdrawals & swaps | Velocity Terminal" },
+      { title: "Wallet — deposits, withdrawals & swaps | Velocity Trade" },
       {
         name: "description",
         content:

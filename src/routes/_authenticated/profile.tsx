@@ -35,13 +35,13 @@ import { LEGAL_DOCS, type LegalDoc } from "@/lib/legal-content";
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
-      { title: "My Profile — identity, security & referrals | Velocity" },
+      { title: "My Profile — identity, security & referrals | Velocity Trade" },
       {
         name: "description",
         content:
-          "Manage your Velocity account: identity verification, wallet balances, password security, referral rewards and signed-in devices.",
+          "Manage your Velocity Trade account: identity verification, wallet balances, password security, referral rewards and signed-in devices.",
       },
-      { property: "og:title", content: "My Profile — Velocity Terminal" },
+      { property: "og:title", content: "My Profile — Velocity Trade" },
       {
         property: "og:description",
         content: "Identity verification, balances, security settings, referrals and device management.",

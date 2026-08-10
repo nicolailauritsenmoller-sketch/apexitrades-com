@@ -87,13 +87,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
       },
-      { title: "Velocity Terminal — Multi-Currency Paper Trading" },
+      { title: "Velocity Trade — Multi-Currency Paper Trading" },
       {
         name: "description",
         content:
           "Scalp crypto, stocks, futures, forex and gold on live market data with multi-currency paper wallets.",
       },
-      { name: "author", content: "Velocity Terminal" },
+      { name: "author", content: "Velocity Trade" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

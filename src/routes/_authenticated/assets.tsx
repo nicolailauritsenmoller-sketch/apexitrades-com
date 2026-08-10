@@ -11,13 +11,13 @@ import { INSTRUMENTS, displaySymbol, formatMoney, formatPrice } from "@/lib/inst
 export const Route = createFileRoute("/_authenticated/assets")({
   head: () => ({
     meta: [
-      { title: "Assets & wallets — Velocity Terminal" },
+      { title: "Assets & wallets — Velocity Trade" },
       {
         name: "description",
         content:
           "Track multi-currency paper balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
       },
-      { property: "og:title", content: "Assets & wallets — Velocity Terminal" },
+      { property: "og:title", content: "Assets & wallets — Velocity Trade" },
       {
         property: "og:description",
         content: "Multi-currency wallets, open exposure and every tradable asset in one place.",

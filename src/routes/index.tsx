@@ -32,13 +32,13 @@ const MARKET_GROUPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Velocity Terminal — Scalp Crypto, Stocks, Futures, Forex & Gold" },
+      { title: "Velocity Trade — Scalp Crypto, Stocks, Futures, Forex & Gold" },
       {
         name: "description",
         content:
           "A multi-currency paper trading terminal on live market data. Scalp crypto, trade stocks, futures, forex and gold with USD, EUR, GBP, USDT and BTC wallets.",
       },
-      { property: "og:title", content: "Velocity Terminal — Multi-Currency Trading" },
+      { property: "og:title", content: "Velocity Trade — Multi-Currency Trading" },
       {
         property: "og:description",
         content:
@@ -61,7 +61,7 @@ function Landing() {
             <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <Zap className="size-4" strokeWidth={2.8} />
             </span>
-            <span className="truncate font-display text-sm font-bold">VELOCITY</span>
+            <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
@@ -134,7 +134,7 @@ function Landing() {
               A professional terminal, without the capital risk
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Velocity streams live prices from crypto exchanges and global market data providers,
+              Velocity Trade streams live prices from crypto exchanges and global market data providers,
               then settles your orders against those quotes in simulated multi-currency wallets.
               You get the workflow of a professional desk — charting, order tickets, timed scalp
               contracts, position management and verified withdrawals — while you build the habits

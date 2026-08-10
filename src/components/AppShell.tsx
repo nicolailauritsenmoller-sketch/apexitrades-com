@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <LineChart className="size-4" strokeWidth={2.6} />
             </span>
-            <span className="truncate font-display text-sm font-bold tracking-tight">VELOCITY</span>
+            <span className="truncate font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">

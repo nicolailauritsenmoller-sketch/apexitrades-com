@@ -9,14 +9,14 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Reset password — Velocity" },
+      { title: "Reset password — Velocity Trade" },
       {
         name: "description",
         content:
-          "Verify your emailed code and set a new password for your Velocity trading account.",
+          "Verify your emailed code and set a new password for your Velocity Trade trading account.",
       },
-      { property: "og:title", content: "Reset password — Velocity" },
-      { property: "og:description", content: "Set a new password for your Velocity account." },
+      { property: "og:title", content: "Reset password — Velocity Trade" },
+      { property: "og:description", content: "Set a new password for your Velocity Trade account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
