@@ -14,6 +14,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { themeBootstrapScript, useTheme } from "@/lib/theme";
+import { ConsentProvider } from "@/lib/consent";
+import { CookieConsent } from "@/components/CookieConsent";
+import { restoreAccountPreferences } from "@/lib/preferences";
 
 function NotFoundComponent() {
   return (
@@ -136,6 +139,7 @@ function RootComponent() {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      if (event === "SIGNED_IN") void restoreAccountPreferences();
     });
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
@@ -161,13 +165,14 @@ function RootComponent() {
     };
   }, []);
 
-
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster theme={theme} position="top-right" richColors />
+      <ConsentProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <CookieConsent />
+        <Toaster theme={theme} position="top-right" richColors />
+      </ConsentProvider>
     </QueryClientProvider>
   );
 }

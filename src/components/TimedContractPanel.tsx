@@ -223,14 +223,14 @@ export function TimedContractPanel({
           disabled={disabled}
           className="flex items-center justify-center gap-1.5 rounded-md bg-bull py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
         >
-          <TrendingUp className="size-4" /> Higher
+          <TrendingUp className="size-4" /> Buy Long
         </button>
         <button
           onClick={() => placeMutation.mutate("down")}
           disabled={disabled}
           className="flex items-center justify-center gap-1.5 rounded-md bg-bear py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
         >
-          <TrendingDown className="size-4" /> Lower
+          <TrendingDown className="size-4" /> Sell Short
         </button>
       </div>
 
@@ -256,7 +256,7 @@ export function TimedContractPanel({
             {settled.map((c) => (
               <li key={c.id} className="flex items-center justify-between">
                 <span className="text-muted-foreground">
-                  {c.displaySymbol} · {c.direction === "up" ? "Higher" : "Lower"}
+                  {c.displaySymbol} · {c.direction === "up" ? "Buy Long" : "Sell Short"}
                 </span>
                 <span
                   className={`num ${c.result === "win" ? "text-bull" : c.result === "loss" ? "text-bear" : ""}`}
@@ -288,7 +288,7 @@ function ContractCard({ contract, now }: { contract: ContractRow; now: number })
         <span className="font-medium">
           {contract.displaySymbol}{" "}
           <span className={contract.direction === "up" ? "text-bull" : "text-bear"}>
-            {contract.direction === "up" ? "Higher" : "Lower"}
+            {contract.direction === "up" ? "Buy Long" : "Sell Short"}
           </span>
         </span>
         <span className="num tabular-nums">

@@ -150,6 +150,8 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     touch-action: manipulation;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   html.dark {
@@ -163,6 +165,8 @@
     -webkit-font-smoothing: antialiased;
     touch-action: manipulation;
     overscroll-behavior-y: none;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   main,
