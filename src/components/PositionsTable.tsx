@@ -9,6 +9,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import type { Quote } from "@/lib/market-types";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildPositionSummary, type TradeSummary } from "@/lib/trade-summary";
+import { LivePnl } from "@/components/LivePnl";
 
 export type PositionRow = {
   id: string;
@@ -101,7 +102,6 @@ export function PositionsTable({
             const mark = quotes[p.symbol]?.price;
             const pnl =
               p.status === "open" ? unrealizedPnl(p, mark) : (p.realizedPnl ?? 0);
-            const positive = (pnl ?? 0) >= 0;
             return (
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-4 py-3">
