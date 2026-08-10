@@ -104,11 +104,19 @@ export const getWalletActivity = createServerFn({ method: "POST" })
 export const getPortfolioValue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { usdtRates } = await import("./rates.server");
-    const [{ data: wallets }, rates] = await Promise.all([
-      context.supabase.from("wallets").select("*").eq("user_id", context.userId).order("currency"),
+    const { usdtRates, assetUsdtRates } = await import("./rates.server");
+    const { data: wallets } = await context.supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", context.userId)
+      .order("currency");
+
+    const codes = (wallets ?? []).map((w) => w.currency);
+    const [base, extra] = await Promise.all([
       usdtRates(),
+      assetUsdtRates(codes.filter((c) => !["USD", "EUR", "GBP", "USDT", "BTC"].includes(c))),
     ]);
+    const rates = { ...base, ...extra };
 
     const rows = (wallets ?? []).map((w) => {
       const rate = rates[w.currency] ?? 0;
@@ -122,6 +130,54 @@ export const getPortfolioValue = createServerFn({ method: "POST" })
 
     return { rates, wallets: rows, totalUsdt: rows.reduce((s, r) => s + r.valueUsdt, 0) };
   });
+
+/** Live conversion rate between any two supported assets. */
+export const getSwapRate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ from: z.string().min(1).max(16), to: z.string().min(1).max(16) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assetUsdtRates } = await import("./rates.server");
+    const rates = await assetUsdtRates([data.from, data.to]);
+    const fromRate = rates[data.from.toUpperCase()] ?? 0;
+    const toRate = rates[data.to.toUpperCase()] ?? 0;
+    return {
+      fromRate,
+      toRate,
+      rate: fromRate > 0 && toRate > 0 ? fromRate / toRate : 0,
+    };
+  });
+
+/** Credit score / KYC gate shown on the withdrawal form. */
+export const getWithdrawalEligibility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const [{ data: profile }, { data: kyc }] = await Promise.all([
+      supabase.from("profiles").select("credit_score").eq("id", userId).maybeSingle(),
+      supabase
+        .from("kyc_submissions")
+        .select("status")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    const creditScore = Number((profile as any)?.credit_score ?? 750);
+    const kycStatus = (kyc as any)?.status ?? "unverified";
+    const reasons: string[] = [];
+    if (kycStatus !== "approved") reasons.push("Identity verification (KYC) must be approved.");
+    if (creditScore < MIN_WITHDRAWAL_CREDIT_SCORE) {
+      reasons.push(
+        `Credit score ${creditScore} is below the ${MIN_WITHDRAWAL_CREDIT_SCORE} withdrawal threshold.`,
+      );
+    }
+
+    return { creditScore, kycStatus, canWithdraw: reasons.length === 0, reasons };
+  });
+
 
 export const requestDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
