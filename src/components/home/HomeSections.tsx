@@ -1,51 +1,50 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Globe2, ShieldCheck, LineChart, Headphones, KeyRound, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+import coinbaseLogo from "@/assets/logos/coinbase.png";
+import binanceLogo from "@/assets/logos/binance.svg";
+import metamaskLogo from "@/assets/logos/metamask.svg";
+import cryptocomLogo from "@/assets/logos/cryptocom.svg";
+import robinhoodLogo from "@/assets/logos/robinhood.svg";
+import krakenLogo from "@/assets/logos/kraken.svg";
+import shakepayLogo from "@/assets/logos/shakepay.svg";
+import bitbuyLogo from "@/assets/logos/bitbuy.png";
+import revolutLogo from "@/assets/logos/revolut.svg";
+
 /* ---------------- Case in point: crypto trading services ---------------- */
 
-type Brand = { name: string; slug: string };
+type Brand = { name: string; logo: string };
 
 const BRANDS: Brand[] = [
-  { name: "Coinbase", slug: "coinbase" },
-  { name: "Binance", slug: "binance" },
-  { name: "MetaMask", slug: "metamask" },
-  { name: "Crypto.com", slug: "cryptodotcom" },
-  { name: "Robinhood", slug: "robinhood" },
-  { name: "Kraken", slug: "kraken" },
-  { name: "Shakepay", slug: "shakepay" },
-  { name: "Bitbuy", slug: "bitbuy" },
-  { name: "Revolut", slug: "revolut" },
+  { name: "Coinbase", logo: coinbaseLogo },
+  { name: "Binance", logo: binanceLogo },
+  { name: "MetaMask", logo: metamaskLogo },
+  { name: "Crypto.com", logo: cryptocomLogo },
+  { name: "Robinhood", logo: robinhoodLogo },
+  { name: "Kraken", logo: krakenLogo },
+  { name: "Shakepay", logo: shakepayLogo },
+  { name: "Bitbuy", logo: bitbuyLogo },
+  { name: "Revolut", logo: revolutLogo },
 ];
 
 function BrandLogo({ brand }: { brand: Brand }) {
-  const [failed, setFailed] = useState(false);
-
   return (
-    <div className="flex min-w-0 flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
-      <div className="grid h-16 w-full place-items-center">
-        {failed ? (
-          <span className="font-display text-2xl font-bold tracking-tight text-foreground">
-            {brand.name.slice(0, 2).toUpperCase()}
-          </span>
-        ) : (
-          <img
-            src={`https://cdn.simpleicons.org/${brand.slug}`}
-            alt={`${brand.name} logo`}
-            loading="lazy"
-            width={64}
-            height={64}
-            onError={() => setFailed(true)}
-            className="h-16 w-16 object-contain"
-          />
-        )}
+    <div className="flex min-w-0 touch-manipulation flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
+      <div className="grid h-16 w-full place-items-center rounded-xl bg-white p-2">
+        <img
+          src={brand.logo}
+          alt={`${brand.name} logo`}
+          loading="lazy"
+          className="max-h-12 w-auto object-contain"
+        />
       </div>
       <p className="w-full truncate text-sm font-semibold">{brand.name}</p>
     </div>
   );
 }
+
 
 
 export function CaseInPointSection() {
