@@ -25,6 +25,13 @@ export const INSTRUMENTS: Instrument[] = [
   { symbol: "AVAXUSDT", name: "Avalanche", assetClass: "crypto", currency: "USDT", source: "binance", precision: 3, step: 0.1 },
   { symbol: "LINKUSDT", name: "Chainlink", assetClass: "crypto", currency: "USDT", source: "binance", precision: 3, step: 0.1 },
   { symbol: "TONUSDT", name: "Toncoin", assetClass: "crypto", currency: "USDT", source: "binance", precision: 4, step: 1 },
+  { symbol: "SUIUSDT", name: "Sui", assetClass: "crypto", currency: "USDT", source: "binance", precision: 4, step: 1 },
+  { symbol: "NEARUSDT", name: "NEAR Protocol", assetClass: "crypto", currency: "USDT", source: "binance", precision: 4, step: 1 },
+  { symbol: "APTUSDT", name: "Aptos", assetClass: "crypto", currency: "USDT", source: "binance", precision: 4, step: 1 },
+  { symbol: "ATOMUSDT", name: "Cosmos", assetClass: "crypto", currency: "USDT", source: "binance", precision: 4, step: 0.1 },
+  { symbol: "POLUSDT", name: "Polygon (POL)", assetClass: "crypto", currency: "USDT", source: "binance", precision: 5, step: 10 },
+  { symbol: "PEPEUSDT", name: "Pepe", assetClass: "crypto", currency: "USDT", source: "binance", precision: 8, step: 1000000 },
+  { symbol: "SHIBUSDT", name: "Shiba Inu", assetClass: "crypto", currency: "USDT", source: "binance", precision: 8, step: 100000 },
 
   // ---- Stocks ----
   { symbol: "AAPL", name: "Apple Inc.", assetClass: "stock", currency: "USD", source: "yahoo", precision: 2, step: 1 },
@@ -42,6 +49,8 @@ export const INSTRUMENTS: Instrument[] = [
   { symbol: "YM=F", name: "E-mini Dow", assetClass: "future", currency: "USD", source: "yahoo", precision: 2, step: 1 },
   { symbol: "CL=F", name: "Crude Oil WTI", assetClass: "future", currency: "USD", source: "yahoo", precision: 2, step: 1 },
   { symbol: "NG=F", name: "Natural Gas", assetClass: "future", currency: "USD", source: "yahoo", precision: 3, step: 1 },
+  { symbol: "RTY=F", name: "E-mini Russell 2000", assetClass: "future", currency: "USD", source: "yahoo", precision: 2, step: 1 },
+  { symbol: "BZ=F", name: "Brent Crude Oil", assetClass: "future", currency: "USD", source: "yahoo", precision: 2, step: 1 },
   { symbol: "ZB=F", name: "US Treasury Bond", assetClass: "future", currency: "USD", source: "yahoo", precision: 3, step: 1 },
 
   // ---- Forex ----
@@ -51,11 +60,17 @@ export const INSTRUMENTS: Instrument[] = [
   { symbol: "AUDUSD=X", name: "Australian Dollar / US Dollar", assetClass: "forex", currency: "USD", source: "yahoo", precision: 5, step: 1000 },
   { symbol: "USDCHF=X", name: "US Dollar / Swiss Franc", assetClass: "forex", currency: "USD", source: "yahoo", precision: 5, step: 1000 },
   { symbol: "EURGBP=X", name: "Euro / British Pound", assetClass: "forex", currency: "EUR", source: "yahoo", precision: 5, step: 1000 },
+  { symbol: "USDCAD=X", name: "US Dollar / Canadian Dollar", assetClass: "forex", currency: "USD", source: "yahoo", precision: 5, step: 1000 },
+  { symbol: "NZDUSD=X", name: "New Zealand Dollar / US Dollar", assetClass: "forex", currency: "USD", source: "yahoo", precision: 5, step: 1000 },
+  { symbol: "EURJPY=X", name: "Euro / Japanese Yen", assetClass: "forex", currency: "EUR", source: "yahoo", precision: 3, step: 1000 },
+  { symbol: "GBPJPY=X", name: "British Pound / Japanese Yen", assetClass: "forex", currency: "GBP", source: "yahoo", precision: 3, step: 1000 },
+  { symbol: "AUDJPY=X", name: "Australian Dollar / Japanese Yen", assetClass: "forex", currency: "AUD", source: "yahoo", precision: 3, step: 1000 },
 
   // ---- Metals ----
   { symbol: "GC=F", name: "Gold Spot Futures", assetClass: "metal", currency: "USD", source: "yahoo", precision: 2, step: 0.1 },
   { symbol: "SI=F", name: "Silver Futures", assetClass: "metal", currency: "USD", source: "yahoo", precision: 3, step: 1 },
   { symbol: "PL=F", name: "Platinum Futures", assetClass: "metal", currency: "USD", source: "yahoo", precision: 2, step: 1 },
+  { symbol: "PA=F", name: "Palladium Futures", assetClass: "metal", currency: "USD", source: "yahoo", precision: 2, step: 1 },
   { symbol: "HG=F", name: "Copper Futures", assetClass: "metal", currency: "USD", source: "yahoo", precision: 4, step: 1 },
 ];
 
