@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as MarketRouteImport } from './routes/market'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TradeRouteImport } from './routes/trade'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -36,9 +39,24 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TradeRoute = TradeRouteImport.update({
+  id: '/trade',
+  path: '/trade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -86,7 +104,10 @@ const AuthenticatedTerminalSymbolRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/market': typeof MarketRoute
+  '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/trade': typeof TradeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -99,7 +120,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/market': typeof MarketRoute
+  '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/trade': typeof TradeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -114,7 +138,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/market': typeof MarketRoute
+  '/portfolio': typeof PortfolioRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/trade': typeof TradeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -129,7 +156,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/market'
+    | '/portfolio'
     | '/reset-password'
+    | '/trade'
     | '/admin'
     | '/assets'
     | '/dashboard'
@@ -142,7 +172,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/market'
+    | '/portfolio'
     | '/reset-password'
+    | '/trade'
     | '/admin'
     | '/assets'
     | '/dashboard'
@@ -156,7 +189,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/market'
+    | '/portfolio'
     | '/reset-password'
+    | '/trade'
     | '/_authenticated/admin'
     | '/_authenticated/assets'
     | '/_authenticated/dashboard'
@@ -171,7 +207,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MarketRoute: typeof MarketRoute
+  PortfolioRoute: typeof PortfolioRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TradeRoute: typeof TradeRoute
   LegalDocRoute: typeof LegalDocRoute
 }
 
@@ -198,11 +237,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trade': {
+      id: '/trade'
+      path: '/trade'
+      fullPath: '/trade'
+      preLoaderRoute: typeof TradeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -291,7 +351,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  MarketRoute: MarketRoute,
+  PortfolioRoute: PortfolioRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TradeRoute: TradeRoute,
   LegalDocRoute: LegalDocRoute,
 }
 export const routeTree = rootRouteImport

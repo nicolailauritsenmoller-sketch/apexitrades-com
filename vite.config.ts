@@ -6,10 +6,23 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Bundled dev mode serves the client entry through `/@vite/lazy`, which 404s in this
+// project's dev server and leaves the app permanently unhydrated (blank pages, dead
+// buttons). Disabling it restores normal dev module serving and hydration.
+const disableBundledDev = {
+  name: "lovable-disable-bundled-dev",
+  config() {
+    return { experimental: { bundledDev: false } };
+  },
+};
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    plugins: [disableBundledDev],
   },
 });

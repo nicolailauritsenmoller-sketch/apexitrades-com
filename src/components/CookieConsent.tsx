@@ -147,9 +147,10 @@ export function CookieConsent() {
         <div
           role="dialog"
           aria-label="Cookie consent"
-          className="fixed inset-x-0 bottom-0 z-[60] w-full max-w-full px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] md:px-6 md:pb-6"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] w-full max-w-full px-3 pb-[calc(env(safe-area-inset-bottom)+76px)] md:px-6 md:pb-6"
         >
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 rounded-2xl border border-border bg-popover/98 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center">
+          <div className="pointer-events-auto mx-auto flex w-full max-w-5xl flex-col gap-3 rounded-2xl border border-border bg-popover/98 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center">
+
             <div className="flex min-w-0 items-start gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Cookie className="size-4" />
