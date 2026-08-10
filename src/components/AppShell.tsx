@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2 md:ml-auto">
             {isAdmin && (
               <Link
-                to="/admin"
+                to="/desk-management"
                 className="flex items-center gap-2 rounded-md border border-primary/40 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/10"
                 activeProps={{ className: "bg-primary/10" }}
               >

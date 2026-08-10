@@ -15,6 +15,9 @@ import {
   Receipt,
   LifeBuoy,
   Settings2,
+  ScrollText,
+  KeySquare,
+  CreditCard,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -27,6 +30,9 @@ import {
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
+import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
+import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
+import { downloadCsv } from "@/lib/csv";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
@@ -45,7 +51,7 @@ import {
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/admin")({
+export const Route = createFileRoute("/_authenticated/desk-management")({
   head: () => ({
     meta: [
       { title: "Admin console | Velocity Trade" },
@@ -64,7 +70,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
     ],
   }),
   beforeLoad: async () => {
-    // Role gate: only users holding the admin role may reach /admin.
+    // Role gate: only users holding the admin role may reach /desk-management.
     // Skipped during SSR/prerender, where there is no authenticated session.
     if (typeof window === "undefined") return;
     const access = await getMyAccess();
@@ -80,23 +86,52 @@ export const Route = createFileRoute("/_authenticated/admin")({
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
 
-const TABS = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "deposits", label: "Deposits", icon: Wallet2 },
-  { id: "withdrawals", label: "Withdrawals", icon: Landmark },
-  { id: "addresses", label: "Addresses", icon: ShieldCheck },
-  { id: "outcomes", label: "Outcomes", icon: Gauge },
-  { id: "users", label: "Users & KYC", icon: Users },
-  { id: "trades", label: "Trades", icon: Gauge },
-  { id: "transactions", label: "Transactions", icon: Receipt },
-  { id: "support", label: "Support desk", icon: LifeBuoy },
-  { id: "tickets", label: "Support tickets", icon: LifeBuoy },
-  { id: "broadcast", label: "Broadcast", icon: Megaphone },
-  { id: "settings", label: "Settings", icon: Settings2 },
-] as const;
+const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
+  {
+    section: "Overview",
+    items: [
+      { id: "overview", label: "Dashboard", icon: LayoutDashboard },
+      { id: "analytics", label: "Analytics & volume", icon: BarChart3 },
+      { id: "trades", label: "Trades & outcomes", icon: Gauge },
+    ],
+  },
+  {
+    section: "People",
+    items: [
+      { id: "users", label: "Users & KYC", icon: Users },
+      { id: "roles", label: "Roles & permissions", icon: KeySquare },
+      { id: "credit", label: "Credit scores", icon: CreditCard },
+    ],
+  },
+  {
+    section: "Money",
+    items: [
+      { id: "deposits", label: "Deposits & approvals", icon: Wallet2 },
+      { id: "withdrawals", label: "Withdrawals", icon: Landmark },
+      { id: "transactions", label: "Transactions", icon: Receipt },
+      { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
+    ],
+  },
+  {
+    section: "Engagement",
+    items: [
+      { id: "support", label: "Support chats", icon: LifeBuoy },
+      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
+      { id: "broadcast", label: "Broadcast", icon: Megaphone },
+    ],
+  },
+  {
+    section: "System",
+    items: [
+      { id: "audit", label: "Audit logs", icon: ScrollText },
+      { id: "settings", label: "Settings", icon: Settings2 },
+    ],
+  },
+];
 
-type TabId = (typeof TABS)[number]["id"];
+const TAB_IDS = NAV.flatMap((g) => g.items.map((i) => i.id));
+
+type TabId = (typeof TAB_IDS)[number];
 
 const STATUS_TONE: Record<string, string> = {
   pending: "text-amber-400",
@@ -222,116 +257,139 @@ function AdminPage() {
   const data = overview.data;
   const analytics = analyticsQuery.data as Analytics | undefined;
 
+  const activeLabel =
+    NAV.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
+
   return (
     <AppShell>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-xl font-bold tracking-tight">Admin console</h1>
-            <p className="text-sm text-muted-foreground">
-              Approvals, address settings, outcome control, users and announcements.
-            </p>
-          </div>
-          <button
-            onClick={refresh}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            Refresh
-          </button>
-        </div>
-
-        <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                tab === id
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon className="size-4" />
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {overview.isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading console…</p>
-        ) : !data ? (
-          <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
-        ) : (
-          <>
-            {tab === "overview" && (
-              <div className="space-y-4">
-                {analytics ? (
-                  <>
-                    <MetricsBar a={analytics} />
-                    <AnalyticsCharts a={analytics} />
-                    <KycExpiry a={analytics} />
-                    <SystemActivity a={analytics} />
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Loading metrics…</p>
-                )}
-              </div>
-            )}
-            {tab === "analytics" &&
-              (analytics ? (
-                <div className="space-y-4">
-                  <AnalyticsCharts a={analytics} />
-                  <SystemActivity a={analytics} />
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Vertical backend sidebar */}
+        <aside className="shrink-0 lg:w-60">
+          <div className="rounded-lg border border-border bg-card p-2 lg:sticky lg:top-20">
+            <div className="hidden px-2 py-2 lg:block">
+              <p className="font-display text-sm font-bold tracking-tight">Desk management</p>
+              <p className="text-[11px] text-muted-foreground">Operations backend</p>
+            </div>
+            <nav className="flex gap-1 overflow-x-auto lg:block lg:space-y-3 lg:overflow-visible">
+              {NAV.map((group) => (
+                <div key={group.section} className="shrink-0 lg:block">
+                  <p className="hidden px-2 pb-1 pt-2 text-[10px] uppercase tracking-widest text-muted-foreground lg:block">
+                    {group.section}
+                  </p>
+                  <div className="flex gap-1 lg:block lg:space-y-0.5">
+                    {group.items.map(({ id, label, icon: Icon }) => (
+                      <button
+                        key={id}
+                        onClick={() => setTab(id)}
+                        className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                          tab === id
+                            ? "bg-primary/15 font-medium text-primary"
+                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <Icon className="size-4 shrink-0" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Loading analytics…</p>
               ))}
-            {tab === "trades" && (
-              <div className="space-y-4">
-                {analytics && <TradeStatsPanel a={analytics} />}
-                <OutcomesTab
-                  contracts={data.openContracts}
-                  profiles={data.profiles}
-                  onDone={refresh}
-                />
-              </div>
-            )}
-            {tab === "transactions" &&
-              (analytics ? (
-                <TransactionsPanel a={analytics} />
-              ) : (
-                <p className="text-sm text-muted-foreground">Loading ledger…</p>
-              ))}
-            {tab === "support" && <SupportDesk />}
-            {tab === "tickets" && <SupportDesk initialView="tickets" />}
-            {tab === "settings" && (
-              <div className="space-y-4">
-                <PlatformSettingsPanel />
-                <AddressesTab rows={data.addresses} onDone={refresh} />
-                <OutcomesTab
-                  contracts={data.openContracts}
-                  profiles={data.profiles}
-                  onDone={refresh}
-                />
-              </div>
-            )}
-            {tab === "deposits" && <DepositsTab rows={data.deposits} onDone={refresh} />}
-            {tab === "withdrawals" && <WithdrawalsTab rows={data.withdrawals} onDone={refresh} />}
-            {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
-            {tab === "outcomes" && (
-              <OutcomesTab
-                contracts={data.openContracts}
-                profiles={data.profiles}
-                onDone={refresh}
-              />
-            )}
-            {tab === "users" && (
-              <UsersTab profiles={data.profiles} kyc={data.kyc} onDone={refresh} />
-            )}
-            {tab === "broadcast" && <BroadcastTab profiles={data.profiles} />}
-          </>
-        )}
+            </nav>
+          </div>
+        </aside>
+
+        <div className="min-w-0 flex-1 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="font-display text-xl font-bold tracking-tight">{activeLabel}</h1>
+              <p className="text-sm text-muted-foreground">
+                Approvals, roles, credit scores, outcome control and platform settings.
+              </p>
+            </div>
+            <button
+              onClick={refresh}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {tab === "roles" && <RolesPanel />}
+          {tab === "credit" && <CreditScorePanel />}
+          {tab === "audit" && <AuditLogPanel />}
+
+          {overview.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading console…</p>
+          ) : !data ? (
+            <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
+          ) : (
+            <>
+              {tab === "overview" && (
+                <div className="space-y-4">
+                  {analytics ? (
+                    <>
+                      <MetricsBar a={analytics} />
+                      <AnalyticsCharts a={analytics} />
+                      <KycExpiry a={analytics} />
+                      <SystemActivity a={analytics} />
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Loading metrics…</p>
+                  )}
+                </div>
+              )}
+              {tab === "analytics" &&
+                (analytics ? (
+                  <div className="space-y-4">
+                    <AnalyticsCharts a={analytics} />
+                    <SystemActivity a={analytics} />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Loading analytics…</p>
+                ))}
+              {tab === "trades" && (
+                <div className="space-y-4">
+                  {analytics && <TradeStatsPanel a={analytics} />}
+                  <OutcomesTab
+                    contracts={data.openContracts}
+                    profiles={data.profiles}
+                    onDone={refresh}
+                  />
+                </div>
+              )}
+              {tab === "transactions" &&
+                (analytics ? (
+                  <TransactionsPanel a={analytics} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Loading ledger…</p>
+                ))}
+              {tab === "support" && <SupportDesk />}
+              {tab === "tickets" && <SupportDesk initialView="tickets" />}
+              {tab === "settings" && (
+                <div className="space-y-4">
+                  <PlatformSettingsPanel />
+                  <AddressesTab rows={data.addresses} onDone={refresh} />
+                  <OutcomesTab
+                    contracts={data.openContracts}
+                    profiles={data.profiles}
+                    onDone={refresh}
+                  />
+                </div>
+              )}
+              {tab === "deposits" && <DepositsTab rows={data.deposits} onDone={refresh} />}
+              {tab === "withdrawals" && (
+                <WithdrawalsTab rows={data.withdrawals} onDone={refresh} />
+              )}
+              {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
+              {tab === "users" && (
+                <UsersTab profiles={data.profiles} kyc={data.kyc} onDone={refresh} />
+              )}
+              {tab === "broadcast" && <BroadcastTab profiles={data.profiles} />}
+            </>
+          )}
+        </div>
       </div>
+
     </AppShell>
   );
 }
@@ -381,7 +439,28 @@ function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   const [note, setNote] = useState<Record<string, string>>({});
 
   return (
-    <Card title={`Deposit submissions (${rows.length})`}>
+    <Card
+      title={`Deposit submissions (${rows.length})`}
+      action={
+        <ExportButton
+          label="Export CSV"
+          onClick={() =>
+            downloadCsv(
+              `deposits-${new Date().toISOString().slice(0, 10)}`,
+              rows.map((d) => ({
+                created_at: d.created_at,
+                user_id: d.user_id,
+                coin: d.coin,
+                network: d.network,
+                amount: d.amount,
+                status: d.status,
+                tx_hash: d.tx_hash ?? "",
+              })),
+            )
+          }
+        />
+      }
+    >
       {rows.length === 0 ? (
         <Empty label="No deposits submitted yet." />
       ) : (
@@ -450,7 +529,28 @@ function WithdrawalsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   const [note, setNote] = useState<Record<string, string>>({});
 
   return (
-    <Card title={`Withdrawal requests (${rows.length})`}>
+    <Card
+      title={`Withdrawal requests (${rows.length})`}
+      action={
+        <ExportButton
+          label="Export CSV"
+          onClick={() =>
+            downloadCsv(
+              `withdrawals-${new Date().toISOString().slice(0, 10)}`,
+              rows.map((w) => ({
+                created_at: w.created_at,
+                user_id: w.user_id,
+                coin: w.coin,
+                network: w.network,
+                amount: w.amount,
+                destination: w.destination_address,
+                status: w.status,
+              })),
+            )
+          }
+        />
+      }
+    >
       {rows.length === 0 ? (
         <Empty label="No withdrawal requests yet." />
       ) : (

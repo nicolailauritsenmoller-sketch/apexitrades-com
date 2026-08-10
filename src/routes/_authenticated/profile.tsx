@@ -25,6 +25,12 @@ import { formatMoney } from "@/lib/instruments";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
 import {
+  CREDIT_SCORE_MAX,
+  CREDIT_SCORE_MIN,
+  MIN_WITHDRAWAL_CREDIT_SCORE,
+  creditScoreBand,
+} from "@/lib/limits";
+import {
   listSessions,
   registerCurrentDevice,
   removeSession,
@@ -207,6 +213,8 @@ function ProfilePage() {
   });
 
   const status = kyc.data?.status ?? "unverified";
+  const creditScore = Number((profile as any)?.creditScore ?? 750);
+  const creditBand = creditScoreBand(creditScore);
   const needsResubmit = status === "rejected" || kyc.data?.expired === true;
 
   const referralLink = useMemo(() => {
@@ -259,6 +267,12 @@ function ProfilePage() {
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
                 >
                   {KYC_LABEL[status] ?? status}
+                </span>
+                <span
+                  className={`rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-widest ${creditBand.tone}`}
+                  title="Account credit score"
+                >
+                  Credit {creditScore} · {creditBand.label}
                 </span>
               </div>
               <p className="truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
@@ -326,6 +340,34 @@ function ProfilePage() {
             value={`${balances?.wallets.filter((w) => w.balance > 0).length ?? 0} funded`}
             hint={balances?.wallets.map((w) => w.currency).join(" · ")}
           />
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Account credit score
+              </p>
+              <p className={`font-display text-2xl font-bold ${creditBand.tone}`}>
+                {creditScore}{" "}
+                <span className="text-sm font-medium text-muted-foreground">
+                  {creditBand.label}
+                </span>
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Withdrawals require an approved KYC and a score of at least{" "}
+              {MIN_WITHDRAWAL_CREDIT_SCORE}.
+            </p>
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{
+                width: `${Math.min(100, Math.max(0, ((creditScore - CREDIT_SCORE_MIN) / (CREDIT_SCORE_MAX - CREDIT_SCORE_MIN)) * 100))}%`,
+              }}
+            />
+          </div>
         </div>
 
         {/* 2. KYC */}
