@@ -578,3 +578,237 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
       referralRewards: P.reduce((a, p) => a + Number(p.referral_rewards_usdt ?? 0), 0),
     };
   });
+
+/* ------------------------------------------------------------------ */
+/* Support desk: isolated chat inboxes + native ticketing              */
+/* ------------------------------------------------------------------ */
+
+/** Every user conversation with identity, last message preview and unread count. */
+export const getSupportThreads = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+
+    const { data: sessions } = await db
+      .from("chat_sessions")
+      .select("*")
+      .order("last_message_at", { ascending: false })
+      .limit(200);
+
+    const rows: any[] = sessions ?? [];
+    const userIds = [...new Set(rows.map((r) => r.user_id))];
+    if (userIds.length === 0) return [];
+
+    const [profiles, kyc, messages] = await Promise.all([
+      db.from("profiles").select("id,display_name,uid").in("id", userIds),
+      db.from("kyc_submissions").select("user_id,full_name,status").in("user_id", userIds),
+      db
+        .from("chat_messages")
+        .select("session_id,body,created_at,sender_role")
+        .in(
+          "session_id",
+          rows.map((r) => r.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(1000),
+    ]);
+
+    const profileMap = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
+    const kycMap = new Map((kyc.data ?? []).map((k: any) => [k.user_id, k]));
+    const msgs: any[] = messages.data ?? [];
+
+    return rows.map((s) => {
+      const mine = msgs.filter((m) => m.session_id === s.id);
+      const unread = mine.filter(
+        (m) =>
+          m.sender_role === "user" &&
+          new Date(m.created_at).getTime() > new Date(s.agent_last_read_at ?? 0).getTime(),
+      ).length;
+      const profile: any = profileMap.get(s.user_id);
+      const identity: any = kycMap.get(s.user_id);
+      return {
+        id: s.id,
+        userId: s.user_id,
+        subject: s.subject,
+        status: s.status,
+        lastMessageAt: s.last_message_at,
+        preview: mine[0]?.body ?? null,
+        unread,
+        displayName: profile?.display_name ?? "Trader",
+        legalName: identity?.full_name ?? null,
+        kycStatus: identity?.status ?? "unverified",
+        uid: profile?.uid ?? null,
+      };
+    });
+  });
+
+export const getThreadMessages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { data: rows } = await db
+      .from("chat_messages")
+      .select("*")
+      .eq("session_id", data.sessionId)
+      .order("created_at");
+    await db
+      .from("chat_sessions")
+      .update({ agent_last_read_at: new Date().toISOString() })
+      .eq("id", data.sessionId);
+    return rows ?? [];
+  });
+
+export const sendAgentMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ sessionId: z.string().uuid(), body: z.string().trim().min(1).max(2000) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { error } = await db.from("chat_messages").insert({
+      session_id: data.sessionId,
+      sender_id: context.userId,
+      sender_role: "agent",
+      body: data.body,
+    });
+    if (error) throw new Error(error.message);
+    await db
+      .from("chat_sessions")
+      .update({
+        last_message_at: new Date().toISOString(),
+        agent_last_read_at: new Date().toISOString(),
+        status: "open",
+      })
+      .eq("id", data.sessionId);
+    return { ok: true };
+  });
+
+export const setThreadStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ sessionId: z.string().uuid(), status: z.enum(["open", "closed"]) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { error } = await db
+      .from("chat_sessions")
+      .update({ status: data.status })
+      .eq("id", data.sessionId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getSupportTickets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { data: tickets } = await db
+      .from("support_tickets")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    const rows: any[] = tickets ?? [];
+    if (rows.length === 0) return { tickets: [], messages: [] };
+
+    const [profiles, kyc, messages] = await Promise.all([
+      db.from("profiles").select("id,display_name,uid").in("id", [...new Set(rows.map((t) => t.user_id))]),
+      db.from("kyc_submissions").select("user_id,full_name").in("user_id", [...new Set(rows.map((t) => t.user_id))]),
+      db
+        .from("support_ticket_messages")
+        .select("*")
+        .in("ticket_id", rows.map((t) => t.id))
+        .order("created_at"),
+    ]);
+
+    const profileMap = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
+    const kycMap = new Map((kyc.data ?? []).map((k: any) => [k.user_id, k]));
+
+    return {
+      tickets: rows.map((t) => ({
+        ...t,
+        displayName: (profileMap.get(t.user_id) as any)?.display_name ?? "Trader",
+        uid: (profileMap.get(t.user_id) as any)?.uid ?? null,
+        legalName: (kycMap.get(t.user_id) as any)?.full_name ?? null,
+      })),
+      messages: messages.data ?? [],
+    };
+  });
+
+export const updateTicketStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        ticketId: z.string().uuid(),
+        status: z.enum(["open", "pending", "resolved"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { data: row, error } = await db
+      .from("support_tickets")
+      .update({ status: data.status })
+      .eq("id", data.ticketId)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (row) {
+      await notify(
+        db,
+        row.user_id,
+        `Ticket ${data.status}`,
+        `Your ticket "${row.subject}" is now marked ${data.status}.`,
+        data.status === "resolved" ? "success" : "info",
+      );
+    }
+    return { ok: true };
+  });
+
+export const replyToTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ ticketId: z.string().uuid(), body: z.string().trim().min(1).max(2000) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { data: ticket } = await db
+      .from("support_tickets")
+      .select("id,user_id,subject")
+      .eq("id", data.ticketId)
+      .maybeSingle();
+    if (!ticket) throw new Error("Ticket not found.");
+
+    const { error } = await db.from("support_ticket_messages").insert({
+      ticket_id: data.ticketId,
+      sender_id: context.userId,
+      sender_role: "agent",
+      body: data.body,
+    });
+    if (error) throw new Error(error.message);
+
+    await db.from("support_tickets").update({ status: "pending" }).eq("id", data.ticketId);
+    await notify(
+      db,
+      ticket.user_id,
+      "Support replied to your ticket",
+      `${ticket.subject}: ${data.body.slice(0, 200)}`,
+      "info",
+    );
+    return { ok: true };
+  });

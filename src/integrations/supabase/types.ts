@@ -51,28 +51,34 @@ export type Database = {
       }
       chat_sessions: {
         Row: {
+          agent_last_read_at: string
           created_at: string
           id: string
           last_message_at: string
           status: string
           subject: string | null
           user_id: string
+          user_last_read_at: string
         }
         Insert: {
+          agent_last_read_at?: string
           created_at?: string
           id?: string
           last_message_at?: string
           status?: string
           subject?: string | null
           user_id: string
+          user_last_read_at?: string
         }
         Update: {
+          agent_last_read_at?: string
           created_at?: string
           id?: string
           last_message_at?: string
           status?: string
           subject?: string | null
           user_id?: string
+          user_last_read_at?: string
         }
         Relationships: []
       }
@@ -460,6 +466,77 @@ export type Database = {
           referral_rewards_usdt?: number
           referred_by?: string | null
           uid?: string | null
+        }
+        Relationships: []
+      }
+      support_ticket_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+          ticket_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role?: string
+          ticket_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
