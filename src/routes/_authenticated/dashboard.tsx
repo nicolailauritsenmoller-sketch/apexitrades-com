@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet, TrendingUp, Activity } from "lucide-react";
+import { Wallet, TrendingUp, Activity, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
@@ -9,6 +10,8 @@ import { useQuotes } from "@/hooks/useMarket";
 import { getPortfolio } from "@/lib/trading.functions";
 import { getPortfolioValue } from "@/lib/wallet.functions";
 import { AssetsOverview } from "@/components/AssetsOverview";
+import { TradeHistoryList } from "@/components/TradeHistoryList";
+import { getContracts } from "@/lib/contracts.functions";
 import { formatMoney } from "@/lib/instruments";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -51,6 +54,13 @@ function Dashboard() {
     refetchInterval: 30_000,
   });
 
+  const fetchContracts = useServerFn(getContracts);
+  const contracts = useQuery({
+    queryKey: ["contracts"],
+    queryFn: () => fetchContracts(),
+    refetchInterval: 30_000,
+  });
+
   const positions = (data?.positions ?? []) as PositionRow[];
   const open = positions.filter((p) => p.status === "open");
   const closed = positions.filter((p) => p.status === "closed");
@@ -77,6 +87,33 @@ function Dashboard() {
             Multi-currency paper balances settled per instrument currency.
           </p>
         </div>
+      </div>
+
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <Link
+          to="/wallet"
+          search={{ tab: "deposit" }}
+          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-[0.98]"
+        >
+          <ArrowDownToLine className="size-5" strokeWidth={2.6} />
+          Deposit
+        </Link>
+        <Link
+          to="/wallet"
+          search={{ tab: "withdraw" }}
+          className="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition-transform active:scale-[0.98]"
+        >
+          <ArrowUpFromLine className="size-5" strokeWidth={2.6} />
+          Withdraw
+        </Link>
+        <Link
+          to="/wallet"
+          search={{ tab: "swap" }}
+          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-transform active:scale-[0.98]"
+        >
+          <Repeat className="size-5" strokeWidth={2.6} />
+          Swap
+        </Link>
       </div>
 
       <div className="panel mb-4 p-5">
@@ -152,8 +189,12 @@ function Dashboard() {
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Trade history
       </h2>
-      <div className="panel mb-10">
-        <PositionsTable positions={closed} quotes={quotes} emptyLabel="No closed trades yet." />
+      <div className="panel mb-10 overflow-hidden">
+        <TradeHistoryList
+          positions={closed}
+          contracts={contracts.data ?? []}
+          isLoading={contracts.isLoading || isLoading}
+        />
       </div>
     </AppShell>
   );

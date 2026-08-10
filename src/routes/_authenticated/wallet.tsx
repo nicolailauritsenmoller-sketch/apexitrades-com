@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
+import { AssetPicker } from "@/components/AssetPicker";
 import { AssetsOverview } from "@/components/AssetsOverview";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
@@ -33,7 +34,14 @@ import {
   swapAssets,
 } from "@/lib/wallet.functions";
 
+const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
+type TabId = (typeof TAB_IDS)[number];
+
 export const Route = createFileRoute("/_authenticated/wallet")({
+  validateSearch: (search: Record<string, unknown>): { tab: TabId } => {
+    const t = String(search["tab"] ?? "deposit") as TabId;
+    return { tab: TAB_IDS.includes(t) ? t : "deposit" };
+  },
   head: () => ({
     meta: [
       { title: "Wallet — deposits, withdrawals & swaps | Velocity Trade" },
@@ -61,9 +69,27 @@ export const Route = createFileRoute("/_authenticated/wallet")({
 });
 
 const TABS = [
-  { id: "deposit", label: "Deposit", icon: ArrowDownToLine },
-  { id: "withdraw", label: "Withdraw", icon: ArrowUpFromLine },
-  { id: "swap", label: "Swap", icon: Repeat },
+  {
+    id: "deposit",
+    label: "Deposit",
+    icon: ArrowDownToLine,
+    active: "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20",
+    idle: "text-emerald-600 dark:text-emerald-500",
+  },
+  {
+    id: "withdraw",
+    label: "Withdraw",
+    icon: ArrowUpFromLine,
+    active: "bg-rose-600 text-white shadow-lg shadow-rose-600/20",
+    idle: "text-rose-600 dark:text-rose-500",
+  },
+  {
+    id: "swap",
+    label: "Swap",
+    icon: Repeat,
+    active: "bg-blue-600 text-white shadow-lg shadow-blue-600/20",
+    idle: "text-blue-600 dark:text-blue-500",
+  },
 ] as const;
 
 function qrUrl(text: string) {
@@ -72,7 +98,9 @@ function qrUrl(text: string) {
 
 function WalletPage() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("deposit");
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate();
+  const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
 
   const fetchAddresses = useServerFn(getDepositAddresses);
@@ -163,16 +191,16 @@ function WalletPage() {
         />
       </div>
 
-      <div className="mb-4 flex gap-1 rounded-lg bg-secondary/60 p-1">
-        {TABS.map(({ id, label, icon: Icon }) => (
+      <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl bg-secondary/60 p-1.5">
+        {TABS.map(({ id, label, icon: Icon, active, idle }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-              tab === id ? "bg-background text-foreground" : "text-muted-foreground"
+            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
+              tab === id ? active : `${idle} hover:bg-background/60`
             }`}
           >
-            <Icon className="size-4" />
+            <Icon className="size-5" strokeWidth={2.6} />
             {label}
           </button>
         ))}
@@ -563,8 +591,9 @@ function WithdrawTab({
             destinationAddress: address.trim(),
           });
         }}
-        className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 py-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
       >
+        <ArrowUpFromLine className="size-4" strokeWidth={2.8} />
         Request withdrawal
       </button>
     </div>
@@ -579,36 +608,7 @@ const SWAP_GROUPS: { label: string; codes: string[] }[] = [
   })),
 ];
 
-function AssetSelect({
-  value,
-  onChange,
-  label,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  label: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-      >
-        {SWAP_GROUPS.map((g) => (
-          <optgroup key={g.label} label={g.label}>
-            {g.codes.map((code) => (
-              <option key={code} value={code}>
-                {INSTRUMENT_MAP[code] ? `${displaySymbol(code)} — ${INSTRUMENT_MAP[code]!.name}` : code}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    </label>
-  );
-}
+const SWAP_OPTIONS = SWAP_GROUPS.flatMap((g) => g.codes.map((code) => ({ code, group: g.label })));
 
 function SwapTab({
   balances,
@@ -648,8 +648,8 @@ function SwapTab({
   return (
     <div className="panel max-w-xl space-y-3 p-5">
       <div className="grid grid-cols-2 gap-3">
-        <AssetSelect value={from} onChange={setFrom} label="From" />
-        <AssetSelect value={to} onChange={setTo} label="To" />
+        <AssetPicker value={from} onChange={setFrom} label="From" options={SWAP_OPTIONS} />
+        <AssetPicker value={to} onChange={setTo} label="To" options={SWAP_OPTIONS} />
       </div>
 
       <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
@@ -662,12 +662,16 @@ function SwapTab({
       </div>
 
       <div className="relative">
+        <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+          <AssetIcon symbol={from} currency={from} size={22} />
+          <span className="text-xs font-semibold text-muted-foreground">{from}</span>
+        </span>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           inputMode="decimal"
-          placeholder={`Amount in ${from}`}
-          className="w-full rounded-md bg-secondary px-3 py-2 pr-16 text-sm outline-none"
+          placeholder="0.00"
+          className="w-full rounded-md bg-secondary py-2.5 pl-24 pr-16 text-sm outline-none"
         />
         <MaxButton onClick={() => setAmount(trimAmount(available))} />
       </div>
@@ -675,8 +679,11 @@ function SwapTab({
         <p className="text-[11px] text-bear">Amount exceeds your available {from} balance.</p>
       )}
 
-      <div className="rounded-md bg-secondary/50 p-3 text-sm">
-        You receive ≈ <span className="num font-semibold">{estimate.toFixed(8)}</span> {to}
+      <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
+        <AssetIcon symbol={to} currency={to} size={22} />
+        <span>
+          You receive ≈ <span className="num font-semibold">{estimate.toFixed(8)}</span> {to}
+        </span>
       </div>
 
       <button
@@ -687,8 +694,9 @@ function SwapTab({
           if (value > available) return toast.error("Amount exceeds your available balance.");
           mutation.mutate({ from, to, amount: value });
         }}
-        className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
       >
+        <Repeat className="size-4" strokeWidth={2.8} />
         Swap instantly
       </button>
     </div>
