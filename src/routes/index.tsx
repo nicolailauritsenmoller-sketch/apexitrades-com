@@ -6,6 +6,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
 import { ThemeToggle } from "@/lib/theme";
+import brandLogo from "@/assets/velocity-trade-logo.png";
 
 const TICKER = [
   "BTCUSDT",
