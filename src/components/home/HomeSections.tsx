@@ -6,48 +6,47 @@ import { supabase } from "@/integrations/supabase/client";
 
 /* ---------------- Case in point: crypto trading services ---------------- */
 
-type Brand = { name: string; slug: string; region: string };
+type Brand = { name: string; slug: string };
 
 const BRANDS: Brand[] = [
-  { name: "Coinbase", slug: "coinbase", region: "Global" },
-  { name: "MetaMask", slug: "metamask", region: "Global" },
-  { name: "Crypto.com", slug: "cryptodotcom", region: "Global" },
-  { name: "Robinhood", slug: "robinhood", region: "United States" },
-  { name: "Kraken", slug: "kraken", region: "Global" },
-  { name: "Shakepay", slug: "shakepay", region: "Canada" },
-  { name: "Bitbuy", slug: "bitbuy", region: "Canada" },
-  { name: "Revolut", slug: "revolut", region: "Europe & UK" },
+  { name: "Coinbase", slug: "coinbase" },
+  { name: "Binance", slug: "binance" },
+  { name: "MetaMask", slug: "metamask" },
+  { name: "Crypto.com", slug: "cryptodotcom" },
+  { name: "Robinhood", slug: "robinhood" },
+  { name: "Kraken", slug: "kraken" },
+  { name: "Shakepay", slug: "shakepay" },
+  { name: "Bitbuy", slug: "bitbuy" },
+  { name: "Revolut", slug: "revolut" },
 ];
 
 function BrandLogo({ brand }: { brand: Brand }) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <div className="flex min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-3 py-5 text-center">
-      <div className="grid h-9 w-full place-items-center">
+    <div className="flex min-w-0 flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
+      <div className="grid h-16 w-full place-items-center">
         {failed ? (
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">
+          <span className="font-display text-2xl font-bold tracking-tight text-foreground">
             {brand.name.slice(0, 2).toUpperCase()}
           </span>
         ) : (
           <img
-            src={`https://cdn.jsdelivr.net/npm/simple-icons@13/icons/${brand.slug}.svg`}
+            src={`https://cdn.simpleicons.org/${brand.slug}`}
             alt={`${brand.name} logo`}
             loading="lazy"
-            width={32}
-            height={32}
+            width={64}
+            height={64}
             onError={() => setFailed(true)}
-            className="h-8 w-8 object-contain opacity-80 dark:invert"
+            className="h-16 w-16 object-contain"
           />
         )}
       </div>
-      <p className="w-full truncate text-xs font-semibold">{brand.name}</p>
-      <p className="w-full truncate text-[10px] uppercase tracking-widest text-muted-foreground">
-        {brand.region}
-      </p>
+      <p className="w-full truncate text-sm font-semibold">{brand.name}</p>
     </div>
   );
 }
+
 
 export function CaseInPointSection() {
   return (
