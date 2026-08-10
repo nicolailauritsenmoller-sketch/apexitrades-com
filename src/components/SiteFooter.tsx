@@ -43,7 +43,7 @@ export function SiteFooter() {
             <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <LineChart className="size-4" strokeWidth={2.6} />
             </span>
-            <span className="font-display text-sm font-bold tracking-tight">VELOCITY</span>
+            <span className="font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             A multi-currency trading terminal for crypto, stocks, futures, forex and gold. Live
@@ -84,7 +84,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border px-4 py-5 text-center text-xs text-muted-foreground">
-        © {year} Velocity Terminal. All rights reserved.
+        © {year} Velocity Trade. All rights reserved.
       </div>
     </footer>
   );

@@ -10,13 +10,13 @@ import { ThemeToggle } from "@/lib/theme";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Velocity" },
+      { title: "Sign in — Velocity Trade" },
       {
         name: "description",
         content:
-          "Sign in or create a Velocity account to trade crypto, stocks, futures, forex and gold with live market prices.",
+          "Sign in or create a Velocity Trade account to trade crypto, stocks, futures, forex and gold with live market prices.",
       },
-      { property: "og:title", content: "Sign in — Velocity" },
+      { property: "og:title", content: "Sign in — Velocity Trade" },
       {
         property: "og:description",
         content: "Access your multi-currency trading account.",
@@ -96,7 +96,7 @@ function AuthPage() {
           <span className="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Zap className="size-4" strokeWidth={2.8} />
           </span>
-          <span className="font-display text-sm font-bold">VELOCITY</span>
+          <span className="font-display text-sm font-bold">VELOCITY TRADE</span>
           <ThemeToggle className="ml-auto" />
         </div>
 

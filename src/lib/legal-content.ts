@@ -10,7 +10,7 @@ export const LEGAL_DOCS: Record<
   terms: {
     title: "Terms of Service",
     body: [
-      "By opening an account you agree to use Velocity solely for lawful trading activity and to provide accurate identity information on request.",
+      "By opening an account you agree to use Velocity Trade solely for lawful trading activity and to provide accurate identity information on request.",
       "Accounts are personal and non-transferable. You are responsible for keeping your credentials and devices secure, and for all activity carried out under your account.",
       "Deposits are credited only after review. Withdrawals are processed after identity verification and may be delayed where additional checks are required.",
       "We may suspend or close accounts that breach these terms, attempt to manipulate pricing, or are linked to fraudulent activity.",
@@ -37,7 +37,7 @@ export const LEGAL_DOCS: Record<
   aml: {
     title: "AML Policy",
     body: [
-      "Velocity operates a risk-based anti-money-laundering programme. All users must complete identity verification before withdrawing funds.",
+      "Velocity Trade operates a risk-based anti-money-laundering programme. All users must complete identity verification before withdrawing funds.",
       "We monitor deposits, withdrawals and trading patterns for behaviour consistent with money laundering, terrorist financing or sanctions evasion.",
       "Suspicious activity may result in frozen balances, requests for source-of-funds evidence, and reporting to the relevant authorities.",
       "We do not accept third-party deposits: funding must originate from an account or wallet you control.",

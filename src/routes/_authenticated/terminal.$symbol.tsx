@@ -30,10 +30,10 @@ export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Unavailable — Velocity Terminal" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Unavailable — Velocity Trade" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.ticker} scalping terminal — Velocity`;
+    const title = `${loaderData.ticker} scalping terminal — Velocity Trade`;
     const description = `Live ${loaderData.name} chart, order ticket and open positions for fast scalp entries and exits.`;
     return {
       meta: [

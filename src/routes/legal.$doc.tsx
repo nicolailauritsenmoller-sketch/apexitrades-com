@@ -17,9 +17,9 @@ const EXTRA_DOCS: Record<string, { title: string; body: string[] }> = {
     ],
   },
   about: {
-    title: "About Velocity",
+    title: "About Velocity Trade",
     body: [
-      "Velocity Terminal is a multi-currency trading environment covering crypto, equities, futures, forex and precious metals on live market data.",
+      "Velocity Trade is a multi-currency trading environment covering crypto, equities, futures, forex and precious metals on live market data.",
       "The platform combines a professional charting terminal, timed scalp contracts, multi-currency wallets and a full compliance workflow for identity verification.",
       "Positions are simulated. Prices are real, so you can learn market structure and execution without risking capital.",
     ],
@@ -42,8 +42,8 @@ export const Route = createFileRoute("/legal/$doc")({
     return doc;
   },
   head: ({ loaderData }) => {
-    const title = loaderData ? `${loaderData.title} | Velocity Terminal` : "Velocity Terminal";
-    const description = loaderData?.body[0]?.slice(0, 155) ?? "Velocity Terminal legal information.";
+    const title = loaderData ? `${loaderData.title} | Velocity Trade` : "Velocity Trade";
+    const description = loaderData?.body[0]?.slice(0, 155) ?? "Velocity Trade legal information.";
     return {
       meta: [
         { title },
@@ -78,7 +78,7 @@ function LegalPage() {
             <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <LineChart className="size-4" strokeWidth={2.6} />
             </span>
-            <span className="truncate font-display text-sm font-bold">VELOCITY</span>
+            <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </Link>
           <ThemeToggle />
         </div>

@@ -48,13 +48,13 @@ import {
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Admin console | Velocity Terminal" },
+      { title: "Admin console | Velocity Trade" },
       {
         name: "description",
         content:
           "Approve deposits and withdrawals, manage receiving addresses, review KYC, control contract outcomes and broadcast notifications.",
       },
-      { property: "og:title", content: "Admin console — Velocity Terminal" },
+      { property: "og:title", content: "Admin console — Velocity Trade" },
       {
         property: "og:description",
         content: "Operations console for deposits, withdrawals, KYC, users and announcements.",

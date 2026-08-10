@@ -15,13 +15,13 @@ import {
 export const Route = createFileRoute("/_authenticated/markets")({
   head: () => ({
     meta: [
-      { title: "Markets — Velocity Terminal" },
+      { title: "Markets — Velocity Trade" },
       {
         name: "description",
         content:
           "Browse live prices for crypto pairs, US stocks, index futures, major forex pairs and precious metals in one terminal.",
       },
-      { property: "og:title", content: "Markets — Velocity Terminal" },
+      { property: "og:title", content: "Markets — Velocity Trade" },
       {
         property: "og:description",
         content: "Live quotes across five asset classes, updated every few seconds.",
