@@ -143,15 +143,10 @@ export function PositionsTable({
                       : "—"
                     : formatPrice(p.exitPrice ?? 0, p.symbol)}
                 </td>
-                <td
-                  className={`num px-4 py-3 text-right font-medium ${
-                    pnl == null ? "text-muted-foreground" : positive ? "text-bull" : "text-bear"
-                  }`}
-                >
-                  {pnl == null
-                    ? "—"
-                    : `${positive ? "+" : ""}${formatMoney(pnl, p.currency)}`}
+                <td className="px-4 py-3 text-right font-medium">
+                  <LivePnl value={pnl} currency={p.currency} live={p.status === "open"} />
                 </td>
+
                 <td className="px-4 py-3 text-right">
                   {p.status === "open" && (
                     <button
