@@ -439,7 +439,28 @@ function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   const [note, setNote] = useState<Record<string, string>>({});
 
   return (
-    <Card title={`Deposit submissions (${rows.length})`}>
+    <Card
+      title={`Deposit submissions (${rows.length})`}
+      action={
+        <ExportButton
+          label="Export CSV"
+          onClick={() =>
+            downloadCsv(
+              `deposits-${new Date().toISOString().slice(0, 10)}`,
+              rows.map((d) => ({
+                created_at: d.created_at,
+                user_id: d.user_id,
+                coin: d.coin,
+                network: d.network,
+                amount: d.amount,
+                status: d.status,
+                tx_hash: d.tx_hash ?? "",
+              })),
+            )
+          }
+        />
+      }
+    >
       {rows.length === 0 ? (
         <Empty label="No deposits submitted yet." />
       ) : (
@@ -508,7 +529,28 @@ function WithdrawalsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   const [note, setNote] = useState<Record<string, string>>({});
 
   return (
-    <Card title={`Withdrawal requests (${rows.length})`}>
+    <Card
+      title={`Withdrawal requests (${rows.length})`}
+      action={
+        <ExportButton
+          label="Export CSV"
+          onClick={() =>
+            downloadCsv(
+              `withdrawals-${new Date().toISOString().slice(0, 10)}`,
+              rows.map((w) => ({
+                created_at: w.created_at,
+                user_id: w.user_id,
+                coin: w.coin,
+                network: w.network,
+                amount: w.amount,
+                destination: w.destination_address,
+                status: w.status,
+              })),
+            )
+          }
+        />
+      }
+    >
       {rows.length === 0 ? (
         <Empty label="No withdrawal requests yet." />
       ) : (
