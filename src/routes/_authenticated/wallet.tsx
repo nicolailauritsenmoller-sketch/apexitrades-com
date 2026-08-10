@@ -6,10 +6,19 @@ import { toast } from "sonner";
 import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
-import { formatMoney } from "@/lib/instruments";
+import {
+  ASSET_CLASS_LABEL,
+  CURRENCIES,
+  INSTRUMENTS,
+  INSTRUMENT_MAP,
+  displaySymbol,
+  formatMoney,
+} from "@/lib/instruments";
 import {
   getDepositAddresses,
   getPortfolioValue,
+  getSwapRate,
+  getWithdrawalEligibility,
   getWalletActivity,
   requestDeposit,
   requestWithdrawal,
@@ -141,7 +150,6 @@ function WalletPage() {
       {tab === "swap" && (
         <SwapTab
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.balance }))}
-          rates={value.data?.rates ?? {}}
           onDone={refresh}
         />
       )}
@@ -414,7 +422,7 @@ function WithdrawTab({
           </div>
           {blocked && (
             <ul className="mt-1 list-inside list-disc">
-              {eligibility.data.reasons.map((r) => (
+              {eligibility.data.reasons.map((r: string) => (
                 <li key={r}>{r}</li>
               ))}
             </ul>
