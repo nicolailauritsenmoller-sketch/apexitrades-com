@@ -26,6 +26,7 @@ import {
   KycExpiry,
   type Analytics,
 } from "@/components/admin/AdminAnalytics";
+import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -90,7 +91,8 @@ const TABS = [
   { id: "users", label: "Users & KYC", icon: Users },
   { id: "trades", label: "Trades", icon: Gauge },
   { id: "transactions", label: "Transactions", icon: Receipt },
-  { id: "support", label: "Support", icon: LifeBuoy },
+  { id: "support", label: "Support desk", icon: LifeBuoy },
+  { id: "tickets", label: "Support tickets", icon: LifeBuoy },
   { id: "broadcast", label: "Broadcast", icon: Megaphone },
   { id: "settings", label: "Settings", icon: Settings2 },
 ] as const;
@@ -301,7 +303,8 @@ function AdminPage() {
               ) : (
                 <p className="text-sm text-muted-foreground">Loading ledger…</p>
               ))}
-            {tab === "support" && analytics && <SupportHub a={analytics} />}
+            {tab === "support" && <SupportDesk />}
+            {tab === "tickets" && <SupportDesk />}
             {tab === "settings" && (
               <div className="space-y-4">
                 <PlatformSettingsPanel />
