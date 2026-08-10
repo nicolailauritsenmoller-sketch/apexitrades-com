@@ -59,9 +59,13 @@ function Landing() {
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Zap className="size-4" strokeWidth={2.8} />
-            </span>
+            <img
+              src={brandLogo}
+              alt="Velocity Trade logo"
+              width={1024}
+              height={1024}
+              className="size-9 shrink-0 object-contain"
+            />
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
