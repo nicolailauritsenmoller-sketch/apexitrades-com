@@ -183,6 +183,13 @@ export function TradeCloseSummary({
           {/* Headline */}
           <div className="px-5 pt-5">
             <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-widest ${
+                  positive ? "bg-bull text-background" : "bg-bear text-background"
+                }`}
+              >
+                {positive ? "Profit" : "Loss"}
+              </span>
               <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${badge}`}>
                 {summary.classification}
               </span>
