@@ -24,8 +24,8 @@ const PRIORITY_TONE: Record<string, string> = {
   urgent: "text-bear",
 };
 
-export function SupportDesk() {
-  const [view, setView] = useState<"inbox" | "tickets">("inbox");
+export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" | "tickets" }) {
+  const [view, setView] = useState<"inbox" | "tickets">(initialView);
   return (
     <div className="space-y-4">
       <div className="inline-flex rounded-lg border border-border bg-card p-1">

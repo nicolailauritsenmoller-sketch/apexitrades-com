@@ -22,7 +22,6 @@ import {
   SystemActivity,
   TradeStatsPanel,
   TransactionsPanel,
-  SupportHub,
   KycExpiry,
   type Analytics,
 } from "@/components/admin/AdminAnalytics";
@@ -304,7 +303,7 @@ function AdminPage() {
                 <p className="text-sm text-muted-foreground">Loading ledger…</p>
               ))}
             {tab === "support" && <SupportDesk />}
-            {tab === "tickets" && <SupportDesk />}
+            {tab === "tickets" && <SupportDesk initialView="tickets" />}
             {tab === "settings" && (
               <div className="space-y-4">
                 <PlatformSettingsPanel />
