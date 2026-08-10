@@ -158,6 +158,13 @@ export const reviewDeposit = createServerFn({ method: "POST" })
       }
     }
 
+    await writeAudit(context, `deposit.${data.action}`, dep.user_id, {
+      amount: Number(dep.amount),
+      coin: dep.coin,
+      network: dep.network,
+      note: data.note ?? null,
+    });
+
     await notify(
       supabase,
       dep.user_id,
@@ -217,6 +224,13 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       .eq("status", "pending");
     if (error) throw new Error(error.message);
 
+    await writeAudit(context, `withdrawal.${data.action}`, wd.user_id, {
+      amount: Number(wd.amount),
+      coin: wd.coin,
+      destination: wd.destination_address,
+      note: data.note ?? null,
+    });
+
     await notify(
       supabase,
       wd.user_id,
@@ -249,6 +263,7 @@ export const reviewKyc = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (row) {
+      await writeAudit(context, `kyc.${data.action}`, row.user_id, { note: data.note ?? null });
       await notify(
         supabase,
         row.user_id,
@@ -441,6 +456,13 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
+
+    await writeAudit(context, "balance.adjust", data.userId, {
+      currency,
+      amount: data.amount,
+      mode: data.mode,
+      resulting_balance: next,
+    });
 
     await notify(
       context.supabase,
