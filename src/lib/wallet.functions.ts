@@ -247,17 +247,19 @@ export const swapAssets = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => swapInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { usdtRates } = await import("./rates.server");
+    const { assetUsdtRates } = await import("./rates.server");
     // Clients have no write access to wallets; swap amounts are computed here.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
+    data = { ...data, from: data.from.toUpperCase(), to: data.to.toUpperCase() };
     if (data.from === data.to) throw new Error("Pick two different assets.");
 
-    const rates = await usdtRates();
+    const rates = await assetUsdtRates([data.from, data.to]);
     const fromRate = rates[data.from];
     const toRate = rates[data.to];
-    if (!fromRate || !toRate) throw new Error("Unsupported swap pair.");
+    if (!fromRate || !toRate) throw new Error("Live pricing unavailable for this pair.");
+
 
     const rate = fromRate / toRate;
     const toAmount = data.amount * rate;
