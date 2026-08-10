@@ -200,16 +200,36 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const { data: wallet } = await supabase
-      .from("wallets")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("currency", data.coin)
-      .maybeSingle();
+    const [{ data: wallet }, { data: profile }, { data: kyc }] = await Promise.all([
+      supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("currency", data.coin)
+        .maybeSingle(),
+      supabase.from("profiles").select("credit_score").eq("id", userId).maybeSingle(),
+      supabase
+        .from("kyc_submissions")
+        .select("status")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if ((kyc as any)?.status !== "approved") {
+      throw new Error("Withdrawals require an approved identity verification (KYC).");
+    }
+    if (Number((profile as any)?.credit_score ?? 750) < MIN_WITHDRAWAL_CREDIT_SCORE) {
+      throw new Error(
+        `Your credit score is below the ${MIN_WITHDRAWAL_CREDIT_SCORE} threshold required for withdrawals.`,
+      );
+    }
 
     if (!wallet || Number(wallet.balance) < data.amount) {
       throw new Error(`Insufficient ${data.coin} balance for this withdrawal.`);
     }
+
 
     const { error } = await supabase.from("withdrawals").insert({
       user_id: userId,
