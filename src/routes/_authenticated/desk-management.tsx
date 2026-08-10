@@ -40,7 +40,6 @@ import {
   broadcastNotification,
   getAdminAnalytics,
   getAdminOverview,
-  getAuditLogs,
   getKycDocumentUrls,
   getMyAccess,
   getUserWallets,
