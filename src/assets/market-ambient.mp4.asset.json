@@ -1,9 +1,11 @@
 {
   "version": 1,
-  "asset_id": "82065ed8-83ea-4828-aa2f-435b19b0c630",
+  "asset_id": "bd537656-7cfa-4672-9703-d32ddab6f442",
   "project_id": "b33ffeb4-168b-45ac-bc5f-4f3c5d586c15",
-  "url": "/__l5e/assets-v1/82065ed8-83ea-4828-aa2f-435b19b0c630/market-ambient.mp4",
+  "url": "/__l5e/assets-v1/bd537656-7cfa-4672-9703-d32ddab6f442/market-ambient.mp4",
+  "r2_key": "a/v1/b33ffeb4-168b-45ac-bc5f-4f3c5d586c15/bd537656-7cfa-4672-9703-d32ddab6f442/market-ambient.mp4",
   "original_filename": "market-ambient.mp4",
-  "size": 16492823,
-  "created_at": "2026-08-10T22:51:25Z"
+  "size": 1275689,
+  "content_type": "video/mp4",
+  "created_at": "2026-08-10T23:00:24Z"
 }

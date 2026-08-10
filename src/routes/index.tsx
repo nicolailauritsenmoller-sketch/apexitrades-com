@@ -56,8 +56,9 @@ function Landing() {
   const row = TICKER.map((s) => ({ symbol: s, quote: quotes[s] }));
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden bg-background">
-      <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-xl">
+    <div className="relative w-full max-w-full overflow-x-hidden bg-background">
+      <AmbientMarketBackdrop fixed intensity={0.5} />
+      <header className="relative z-40 sticky top-0 w-full border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
           <div className="flex min-w-0 items-center gap-2">
             <img
@@ -82,7 +83,7 @@ function Landing() {
       </header>
 
       {/* Live ticker tape */}
-      <div className="w-full max-w-full overflow-hidden border-b border-border bg-surface py-2">
+      <div className="relative z-10 w-full max-w-full overflow-hidden border-b border-border bg-surface/70 py-2 backdrop-blur-sm">
         <div className="marquee flex w-max gap-8 whitespace-nowrap">
           {[...row, ...row].map((r, i) => (
             <span key={i} className="num flex items-center gap-2 text-xs">
@@ -100,8 +101,7 @@ function Landing() {
       </div>
 
       {/* 1. Hero */}
-      <section className="hero-glow relative w-full max-w-full overflow-hidden">
-        <AmbientMarketBackdrop intensity={0.45} />
+      <section className="hero-glow relative z-10 w-full max-w-full overflow-hidden">
         <div className="grid-lines absolute inset-0 opacity-[0.35]" />
         <div className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:py-24">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -134,7 +134,7 @@ function Landing() {
       </section>
 
       {/* 2. Platform introduction */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16">
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div className="min-w-0">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -165,7 +165,7 @@ function Landing() {
       </section>
 
       {/* 3. Markets / trading opportunities */}
-      <section className="w-full max-w-full border-y border-border bg-surface">
+      <section className="relative z-10 w-full max-w-full border-y border-border bg-surface/70 backdrop-blur-sm">
         <div className="mx-auto w-full max-w-6xl px-4 py-16">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Markets you can trade</h2>
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -191,8 +191,7 @@ function Landing() {
       </section>
 
       {/* 4. Trading features */}
-      <section className="relative w-full max-w-full overflow-hidden">
-        <AmbientMarketBackdrop intensity={0.28} />
+      <section className="relative z-10 w-full max-w-full overflow-hidden">
         <div className="relative mx-auto w-full max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Trading features</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -229,13 +228,17 @@ function Landing() {
       </section>
 
       {/* 5. Crypto trading access */}
-      <CaseInPointSection />
+      <div className="relative z-10">
+        <CaseInPointSection />
+      </div>
 
       {/* 6. Global membership */}
-      <GlobalMembershipSection />
+      <div className="relative z-10">
+        <GlobalMembershipSection />
+      </div>
 
       {/* 7. Security & platform features */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16">
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Security & platform</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
@@ -253,7 +256,7 @@ function Landing() {
       </section>
 
       {/* 8. Call to action */}
-      <section className="w-full max-w-full border-t border-border bg-surface">
+      <section className="relative z-10 w-full max-w-full border-t border-border bg-surface/70 backdrop-blur-sm">
         <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Ready to trade the live tape?
@@ -271,7 +274,9 @@ function Landing() {
       </section>
 
       {/* 9. Footer */}
-      <SiteFooter />
+      <div className="relative z-10">
+        <SiteFooter />
+      </div>
     </div>
   );
 }
