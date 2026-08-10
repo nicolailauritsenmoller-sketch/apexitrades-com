@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { MIN_WITHDRAWAL_CREDIT_SCORE } from "@/lib/limits";
 
 const depositInput = z.object({
   coin: z.string().min(1).max(12),
@@ -21,8 +22,6 @@ const swapInput = z.object({
   to: z.string().min(1).max(16),
   amount: z.number().positive().max(100_000_000),
 });
-
-export const MIN_WITHDRAWAL_CREDIT_SCORE = 500;
 
 
 export const getDepositAddresses = createServerFn({ method: "POST" })
