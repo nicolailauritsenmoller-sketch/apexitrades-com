@@ -24,7 +24,12 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { formatMoney } from "@/lib/instruments";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
-import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
+import {
+  CREDIT_SCORE_MAX,
+  CREDIT_SCORE_MIN,
+  MIN_WITHDRAWAL_CREDIT_SCORE,
+  creditScoreBand,
+} from "@/lib/limits";
 import {
   listSessions,
   registerCurrentDevice,
@@ -335,6 +340,34 @@ function ProfilePage() {
             value={`${balances?.wallets.filter((w) => w.balance > 0).length ?? 0} funded`}
             hint={balances?.wallets.map((w) => w.currency).join(" · ")}
           />
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Account credit score
+              </p>
+              <p className={`font-display text-2xl font-bold ${creditBand.tone}`}>
+                {creditScore}{" "}
+                <span className="text-sm font-medium text-muted-foreground">
+                  {creditBand.label}
+                </span>
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Withdrawals require an approved KYC and a score of at least{" "}
+              {MIN_WITHDRAWAL_CREDIT_SCORE}.
+            </p>
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{
+                width: `${Math.min(100, Math.max(0, ((creditScore - CREDIT_SCORE_MIN) / (CREDIT_SCORE_MAX - CREDIT_SCORE_MIN)) * 100))}%`,
+              }}
+            />
+          </div>
         </div>
 
         {/* 2. KYC */}
