@@ -87,6 +87,29 @@ async function notify(supabase: any, userId: string, title: string, body: string
   await supabase.from("notifications").insert({ user_id: userId, title, body, kind });
 }
 
+/** Records a staff action in the immutable admin audit trail. */
+async function writeAudit(
+  context: Ctx,
+  action: string,
+  targetUserId: string | null,
+  details: Record<string, unknown> = {},
+) {
+  const db = await privileged();
+  const { data: me } = await db
+    .from("profiles")
+    .select("display_name")
+    .eq("id", context.userId)
+    .maybeSingle();
+  await db.from("admin_audit_logs").insert({
+    actor_id: context.userId,
+    actor_name: me?.display_name ?? null,
+    action,
+    target_user_id: targetUserId,
+    details,
+  });
+}
+
+
 export const reviewDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInput.parse(input))
