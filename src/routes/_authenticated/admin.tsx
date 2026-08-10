@@ -65,9 +65,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
   }),
   beforeLoad: async () => {
     // Role gate: only users holding the admin role may reach /admin.
+    // Skipped during SSR/prerender, where there is no authenticated session.
+    if (typeof window === "undefined") return;
     const access = await getMyAccess();
     if (!access.isAdmin) throw redirect({ to: "/dashboard" });
   },
+
   component: AdminPage,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-sm text-bear">
