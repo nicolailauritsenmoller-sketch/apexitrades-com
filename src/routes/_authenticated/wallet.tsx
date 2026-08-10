@@ -66,12 +66,6 @@ const TABS = [
   { id: "swap", label: "Swap", icon: Repeat },
 ] as const;
 
-const STATUS_TONE: Record<string, string> = {
-  pending: "text-amber-400",
-  approved: "text-bull",
-  rejected: "text-bear",
-};
-
 function qrUrl(text: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
 }
@@ -248,31 +242,17 @@ function WalletPage() {
   );
 }
 
-function Row({
-  left,
-  sub,
-  right,
-  tone,
-}: {
-  left: string;
-  sub: string;
-  right: string;
-  tone?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm">{left}</div>
-        <div className="truncate text-[11px] text-muted-foreground">{sub}</div>
-      </div>
-      <span className={`text-xs uppercase tracking-wide ${tone ?? ""}`}>{right}</span>
-    </div>
-  );
-}
-
 type Address = { id: string; coin: string; network: string; address: string; memo: string | null };
 
-function DepositTab({ addresses, onDone }: { addresses: Address[]; onDone: () => void }) {
+function DepositTab({
+  addresses,
+  onDone,
+  onSubmitted,
+}: {
+  addresses: Address[];
+  onDone: () => void;
+  onSubmitted: (tx: TransactionRecord) => void;
+}) {
   const [selected, setSelected] = useState(0);
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
@@ -281,8 +261,22 @@ function DepositTab({ addresses, onDone }: { addresses: Address[]; onDone: () =>
   const mutation = useMutation({
     mutationFn: (vars: { coin: string; network: string; amount: number; txHash?: string }) =>
       submit({ data: vars }),
-    onSuccess: () => {
-      toast.success("Deposit submitted — awaiting admin approval.");
+    onSuccess: (res, vars) => {
+      onSubmitted({
+        id: res.id,
+        type: "deposit",
+        status: "pending",
+        rawStatus: "pending",
+        asset: vars.coin,
+        amount: vars.amount,
+        network: vars.network,
+        address: addresses.find((a) => a.coin === vars.coin && a.network === vars.network)?.address ?? null,
+        txHash: vars.txHash ?? null,
+        note: null,
+        createdAt: res.createdAt,
+        title: `Deposit ${vars.amount} ${vars.coin}`,
+        subtitle: vars.network,
+      });
       setAmount("");
       setTxHash("");
       onDone();
@@ -422,9 +416,11 @@ function trimAmount(value: number, decimals = 8) {
 function WithdrawTab({
   balances,
   onDone,
+  onSubmitted,
 }: {
   balances: { currency: string; balance: number }[];
   onDone: () => void;
+  onSubmitted: (tx: TransactionRecord) => void;
 }) {
   const [coin, setCoin] = useState("USDT");
   const [network, setNetwork] = useState("TRC20");
@@ -445,8 +441,22 @@ function WithdrawTab({
       amount: number;
       destinationAddress: string;
     }) => submit({ data: vars }),
-    onSuccess: () => {
-      toast.success("Withdrawal requested — pending admin approval.");
+    onSuccess: (res, vars) => {
+      onSubmitted({
+        id: res.id,
+        type: "withdrawal",
+        status: "pending",
+        rawStatus: "pending",
+        asset: vars.coin,
+        amount: vars.amount,
+        network: vars.network,
+        address: vars.destinationAddress,
+        txHash: null,
+        note: null,
+        createdAt: res.createdAt,
+        title: `Withdrawal ${vars.amount} ${vars.coin}`,
+        subtitle: `${vars.network} · ${shortenAddress(vars.destinationAddress)}`,
+      });
       setAmount("");
       setAddress("");
       onDone();
