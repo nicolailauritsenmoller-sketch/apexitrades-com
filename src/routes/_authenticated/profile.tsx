@@ -24,6 +24,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { formatMoney } from "@/lib/instruments";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
+import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
 import {
   listSessions,
   registerCurrentDevice,
@@ -207,6 +208,8 @@ function ProfilePage() {
   });
 
   const status = kyc.data?.status ?? "unverified";
+  const creditScore = Number((profile as any)?.creditScore ?? 750);
+  const creditBand = creditScoreBand(creditScore);
   const needsResubmit = status === "rejected" || kyc.data?.expired === true;
 
   const referralLink = useMemo(() => {
@@ -259,6 +262,12 @@ function ProfilePage() {
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
                 >
                   {KYC_LABEL[status] ?? status}
+                </span>
+                <span
+                  className={`rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-widest ${creditBand.tone}`}
+                  title="Account credit score"
+                >
+                  Credit {creditScore} · {creditBand.label}
                 </span>
               </div>
               <p className="truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
