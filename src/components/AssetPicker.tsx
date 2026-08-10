@@ -68,7 +68,7 @@ export function AssetPicker({
         }}
         className="mt-1 flex w-full items-center gap-2.5 rounded-md bg-secondary px-3 py-2.5 text-left outline-none focus:ring-2 focus:ring-primary/40"
       >
-        <AssetIcon symbol={INSTRUMENT_MAP[value] ? value : undefined} currency={INSTRUMENT_MAP[value] ? undefined : value} size={26} />
+        <AssetIcon symbol={value} currency={value} size={26} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{current.ticker}</span>
           <span className="block truncate text-[11px] text-muted-foreground">{current.name}</span>
@@ -106,7 +106,7 @@ export function AssetPicker({
                     }}
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-secondary/60"
                   >
-                    <AssetIcon symbol={INSTRUMENT_MAP[code] ? code : undefined} currency={INSTRUMENT_MAP[code] ? undefined : code} size={24} />
+                    <AssetIcon symbol={code} currency={code} size={24} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm">{ticker}</span>
                       <span className="block truncate text-[11px] text-muted-foreground">{name}</span>
