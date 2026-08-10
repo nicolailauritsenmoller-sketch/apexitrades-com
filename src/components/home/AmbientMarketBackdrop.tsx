@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import videoAsset from "@/assets/market-ambient.mp4.asset.json";
+import videoWebm from "@/assets/market-ambient.webm.asset.json";
 import posterImg from "@/assets/market-ambient-poster.jpg";
 
 type Props = {
@@ -52,6 +53,7 @@ export function AmbientMarketBackdrop({
         className="pointer-events-none absolute inset-0 size-full h-full w-full object-cover"
         style={{ opacity: intensity }}
       >
+        <source src={videoWebm.url} type="video/webm" />
         <source src={videoAsset.url} type="video/mp4" />
       </video>
       {/* Contrast mask — keeps headlines legible over the footage */}
