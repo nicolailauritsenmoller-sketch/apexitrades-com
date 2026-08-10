@@ -15,6 +15,9 @@ import {
   Receipt,
   LifeBuoy,
   Settings2,
+  ScrollText,
+  KeySquare,
+  CreditCard,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -27,6 +30,9 @@ import {
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
+import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
+import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
+import { downloadCsv } from "@/lib/csv";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
@@ -34,6 +40,7 @@ import {
   broadcastNotification,
   getAdminAnalytics,
   getAdminOverview,
+  getAuditLogs,
   getKycDocumentUrls,
   getMyAccess,
   getUserWallets,
@@ -45,7 +52,7 @@ import {
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/admin")({
+export const Route = createFileRoute("/_authenticated/desk-management")({
   head: () => ({
     meta: [
       { title: "Admin console | Velocity Trade" },
@@ -64,7 +71,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
     ],
   }),
   beforeLoad: async () => {
-    // Role gate: only users holding the admin role may reach /admin.
+    // Role gate: only users holding the admin role may reach /desk-management.
     // Skipped during SSR/prerender, where there is no authenticated session.
     if (typeof window === "undefined") return;
     const access = await getMyAccess();
@@ -80,23 +87,52 @@ export const Route = createFileRoute("/_authenticated/admin")({
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
 
-const TABS = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "deposits", label: "Deposits", icon: Wallet2 },
-  { id: "withdrawals", label: "Withdrawals", icon: Landmark },
-  { id: "addresses", label: "Addresses", icon: ShieldCheck },
-  { id: "outcomes", label: "Outcomes", icon: Gauge },
-  { id: "users", label: "Users & KYC", icon: Users },
-  { id: "trades", label: "Trades", icon: Gauge },
-  { id: "transactions", label: "Transactions", icon: Receipt },
-  { id: "support", label: "Support desk", icon: LifeBuoy },
-  { id: "tickets", label: "Support tickets", icon: LifeBuoy },
-  { id: "broadcast", label: "Broadcast", icon: Megaphone },
-  { id: "settings", label: "Settings", icon: Settings2 },
-] as const;
+const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
+  {
+    section: "Overview",
+    items: [
+      { id: "overview", label: "Dashboard", icon: LayoutDashboard },
+      { id: "analytics", label: "Analytics & volume", icon: BarChart3 },
+      { id: "trades", label: "Trades & outcomes", icon: Gauge },
+    ],
+  },
+  {
+    section: "People",
+    items: [
+      { id: "users", label: "Users & KYC", icon: Users },
+      { id: "roles", label: "Roles & permissions", icon: KeySquare },
+      { id: "credit", label: "Credit scores", icon: CreditCard },
+    ],
+  },
+  {
+    section: "Money",
+    items: [
+      { id: "deposits", label: "Deposits & approvals", icon: Wallet2 },
+      { id: "withdrawals", label: "Withdrawals", icon: Landmark },
+      { id: "transactions", label: "Transactions", icon: Receipt },
+      { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
+    ],
+  },
+  {
+    section: "Engagement",
+    items: [
+      { id: "support", label: "Support chats", icon: LifeBuoy },
+      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
+      { id: "broadcast", label: "Broadcast", icon: Megaphone },
+    ],
+  },
+  {
+    section: "System",
+    items: [
+      { id: "audit", label: "Audit logs", icon: ScrollText },
+      { id: "settings", label: "Settings", icon: Settings2 },
+    ],
+  },
+];
 
-type TabId = (typeof TABS)[number]["id"];
+const TAB_IDS = NAV.flatMap((g) => g.items.map((i) => i.id));
+
+type TabId = (typeof TAB_IDS)[number];
 
 const STATUS_TONE: Record<string, string> = {
   pending: "text-amber-400",
