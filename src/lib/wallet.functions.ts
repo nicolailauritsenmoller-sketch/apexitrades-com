@@ -182,15 +182,19 @@ export const requestDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => depositInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("deposits").insert({
-      user_id: context.userId,
-      coin: data.coin,
-      network: data.network,
-      amount: data.amount,
-      tx_hash: data.txHash || null,
-    });
+    const { data: row, error } = await context.supabase
+      .from("deposits")
+      .insert({
+        user_id: context.userId,
+        coin: data.coin,
+        network: data.network,
+        amount: data.amount,
+        tx_hash: data.txHash || null,
+      })
+      .select("id,created_at")
+      .single();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, id: row.id as string, createdAt: row.created_at as string };
   });
 
 export const requestWithdrawal = createServerFn({ method: "POST" })
@@ -230,15 +234,19 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     }
 
 
-    const { error } = await supabase.from("withdrawals").insert({
-      user_id: userId,
-      coin: data.coin,
-      network: data.network,
-      amount: data.amount,
-      destination_address: data.destinationAddress,
-    });
+    const { data: row, error } = await supabase
+      .from("withdrawals")
+      .insert({
+        user_id: userId,
+        coin: data.coin,
+        network: data.network,
+        amount: data.amount,
+        destination_address: data.destinationAddress,
+      })
+      .select("id,created_at")
+      .single();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, id: row.id as string, createdAt: row.created_at as string };
   });
 
 export const swapAssets = createServerFn({ method: "POST" })
