@@ -18,43 +18,74 @@ import type { TradeSummary } from "@/lib/trade-summary";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 
+/** Candlestick snapshot of the exact trade window with entry and exit markers. */
 function PnlChart({ summary }: { summary: TradeSummary }) {
-  const { path, entryPrice } = summary;
+  const { path, entryPrice, exitPrice } = summary;
   const w = 640;
-  const h = 180;
-  const min = Math.min(...path, entryPrice);
-  const max = Math.max(...path, entryPrice);
+  const h = 200;
+  const pad = 12;
+
+  const buckets = Math.min(16, Math.max(6, Math.floor(path.length / 3)));
+  const perBucket = Math.max(2, Math.ceil(path.length / buckets));
+  const candles: { o: number; h: number; l: number; c: number }[] = [];
+  for (let i = 0; i < path.length; i += perBucket) {
+    const slice = path.slice(i, i + perBucket);
+    if (slice.length < 2) continue;
+    candles.push({
+      o: slice[0],
+      c: slice[slice.length - 1],
+      h: Math.max(...slice),
+      l: Math.min(...slice),
+    });
+  }
+
+  const min = Math.min(...path, entryPrice, exitPrice);
+  const max = Math.max(...path, entryPrice, exitPrice);
   const span = max - min || 1;
-  const x = (i: number) => (i / (path.length - 1)) * w;
-  const y = (v: number) => h - ((v - min) / span) * (h - 16) - 8;
-  const line = path.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  const area = `${line} L${w},${h} L0,${h} Z`;
+  const y = (v: number) => h - pad - ((v - min) / span) * (h - pad * 2);
+  const step = w / candles.length;
+  const bw = Math.max(3, step * 0.55);
+
   const positive = summary.netPnl >= 0;
   const stroke = positive ? "var(--color-bull)" : "var(--color-bear)";
+  const exitX = w - step / 2;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full" preserveAspectRatio="none" role="img"
-      aria-label="Trade profit and loss trajectory">
-      <defs>
-        <linearGradient id="tradeFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <line
-        x1="0"
-        x2={w}
-        y1={y(entryPrice)}
-        y2={y(entryPrice)}
-        stroke="var(--color-border)"
-        strokeDasharray="4 4"
-      />
-      <path d={area} fill="url(#tradeFill)" />
-      <path d={line} fill="none" stroke={stroke} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-      <circle cx={x(path.length - 1)} cy={y(path[path.length - 1])} r="4" fill={stroke} />
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-52 w-full"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Candlestick chart of the trade window with entry and exit markers"
+    >
+      <line x1="0" x2={w} y1={y(entryPrice)} y2={y(entryPrice)} stroke="var(--color-border)" strokeDasharray="4 4" />
+      <line x1="0" x2={w} y1={y(exitPrice)} y2={y(exitPrice)} stroke={stroke} strokeDasharray="2 5" opacity="0.7" />
+      {candles.map((c, i) => {
+        const x = i * step + step / 2;
+        const up = c.c >= c.o;
+        const color = up ? "var(--color-bull)" : "var(--color-bear)";
+        const top = y(Math.max(c.o, c.c));
+        const bottom = y(Math.min(c.o, c.c));
+        return (
+          <g key={i}>
+            <line x1={x} x2={x} y1={y(c.h)} y2={y(c.l)} stroke={color} strokeWidth="1.5" />
+            <rect
+              x={x - bw / 2}
+              y={top}
+              width={bw}
+              height={Math.max(1.5, bottom - top)}
+              fill={color}
+              rx="1"
+            />
+          </g>
+        );
+      })}
+      <circle cx={step / 2} cy={y(entryPrice)} r="5" fill="var(--color-primary)" stroke="var(--color-background)" strokeWidth="2" />
+      <circle cx={exitX} cy={y(exitPrice)} r="5" fill={stroke} stroke="var(--color-background)" strokeWidth="2" />
     </svg>
   );
 }
+
 
 function toCsv(summary: TradeSummary) {
   const rows: string[] = ["Section,Metric,Value"];
