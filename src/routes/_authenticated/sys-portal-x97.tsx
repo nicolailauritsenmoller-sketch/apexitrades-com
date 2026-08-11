@@ -209,6 +209,11 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<TabId>("overview");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const go = (next: TabId, status?: string) => {
+    setTab(next);
+    setStatusFilter(status ?? null);
+  };
 
   const fetchAccess = useServerFn(getMyAccess);
   const fetchOverview = useServerFn(getAdminOverview);
@@ -272,7 +277,7 @@ function AdminPage() {
                     {group.items.map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
-                        onClick={() => setTab(id)}
+                        onClick={() => go(id)}
                         className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
                           tab === id
                             ? "bg-primary/15 font-medium text-primary"
