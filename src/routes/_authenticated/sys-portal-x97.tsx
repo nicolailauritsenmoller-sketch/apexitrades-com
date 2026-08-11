@@ -156,6 +156,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "System",
     items: [
       { id: "audit", label: "Audit logs", icon: ScrollText },
+      { id: "security", label: "Security reports", icon: ShieldAlert },
       { id: "settings", label: "Settings", icon: Settings2 },
     ],
   },
