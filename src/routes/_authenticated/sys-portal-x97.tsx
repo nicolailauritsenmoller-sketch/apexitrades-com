@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -22,6 +22,8 @@ import {
   Wrench,
   Star,
   IdCard,
+  MessagesSquare,
+  Trash2,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -52,7 +54,9 @@ import {
   getKycDocumentUrls,
   getDepositProofUrl,
   getMyAccess,
+  getSupportThreads,
   getUserWallets,
+  deleteUserAccount,
   reviewDeposit,
   reviewKyc,
   reviewWithdrawal,
@@ -101,6 +105,13 @@ function NotFoundScreen() {
 
 const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
   {
+    section: "Live support",
+    items: [
+      { id: "support", label: "Live Chat", icon: MessagesSquare },
+      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
+    ],
+  },
+  {
     section: "Overview",
     items: [
       { id: "overview", label: "Dashboard", icon: LayoutDashboard },
@@ -130,8 +141,6 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
   {
     section: "Engagement",
     items: [
-      { id: "support", label: "Support chats", icon: LifeBuoy },
-      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
       { id: "ratings", label: "Ratings & reviews", icon: Star },
       { id: "agent", label: "Agent persona", icon: IdCard },
@@ -236,6 +245,29 @@ function AdminPage() {
   const access = useQuery({ queryKey: ["my-access"], queryFn: () => fetchAccess() });
   const isAdmin = access.data?.isAdmin === true;
 
+  // Unread live-chat counter for the sidebar badge.
+  const fetchThreads = useServerFn(getSupportThreads);
+  const threads = useQuery({
+    queryKey: ["desk-unread"],
+    queryFn: () => fetchThreads(),
+    enabled: isAdmin,
+    refetchInterval: 10_000,
+  });
+  const unreadChats = (threads.data ?? []).reduce(
+    (a: number, t: any) => a + Number(t.unread ?? 0),
+    0,
+  );
+
+  useEffect(() => {
+    const bump = () => qc.invalidateQueries({ queryKey: ["desk-unread"] });
+    window.addEventListener("desk:chat-inbound", bump);
+    window.addEventListener("desk:chat-focus", bump);
+    return () => {
+      window.removeEventListener("desk:chat-inbound", bump);
+      window.removeEventListener("desk:chat-focus", bump);
+    };
+  }, [qc]);
+
   const overview = useQuery({
     queryKey: ["admin-overview"],
     queryFn: () => fetchOverview(),
@@ -288,20 +320,38 @@ function AdminPage() {
                     {group.section}
                   </p>
                   <div className="flex gap-1 lg:block lg:space-y-0.5">
-                    {group.items.map(({ id, label, icon: Icon }) => (
-                      <button
-                        key={id}
-                        onClick={() => go(id)}
-                        className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                          tab === id
-                            ? "bg-primary/15 font-medium text-primary"
-                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        }`}
-                      >
-                        <Icon className="size-4 shrink-0" />
-                        {label}
-                      </button>
-                    ))}
+                    {group.items.map(({ id, label, icon: Icon }) => {
+                      const isChat = id === "support";
+                      const alerting = isChat && unreadChats > 0;
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => {
+                            go(id);
+                            if (isChat) window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+                          }}
+                          className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                            tab === id
+                              ? "bg-primary/15 font-medium text-primary"
+                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          } ${
+                            alerting
+                              ? "animate-pulse border border-bear/60 text-foreground shadow-[0_0_0_3px_hsl(var(--bear)/0.12)]"
+                              : isChat
+                                ? "border border-primary/30"
+                                : ""
+                          }`}
+                        >
+                          <Icon className="size-4 shrink-0" />
+                          <span className="truncate">{label}</span>
+                          {isChat && unreadChats > 0 && (
+                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                              {unreadChats}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
