@@ -59,7 +59,7 @@ export function PlatformSettingsPanel() {
 
   async function save() {
     setSaving(true);
-    const value: Record<string, unknown> = { visible: {} as Record<string, boolean> };
+    const value: Record<string, any> = { visible: {} as Record<string, boolean> };
     for (const f of FIELDS) {
       const raw = draft[f.key].trim();
       value[f.key] = raw === "" ? null : Number(raw);
@@ -67,7 +67,7 @@ export function PlatformSettingsPanel() {
     }
     const { error } = await supabase
       .from("platform_settings")
-      .upsert({ key: "membership", value }, { onConflict: "key" });
+      .upsert({ key: "membership", value: value as any }, { onConflict: "key" });
     setSaving(false);
     if (error) toast.error(error.message);
     else {
