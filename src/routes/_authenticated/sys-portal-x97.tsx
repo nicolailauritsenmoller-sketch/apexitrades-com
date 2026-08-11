@@ -1083,7 +1083,9 @@ function UsersTab({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
-
+  const verifiedIds = new Set(
+    kycAll.filter((k) => k.status === "approved").map((k) => k.user_id),
+  );
 
   return (
     <div className="space-y-4">
@@ -1093,9 +1095,12 @@ function UsersTab({
             <li key={p.id} className="rounded-md border border-border p-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div>
-                  <p className="text-sm font-semibold">{p.display_name}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    {p.id} · base {p.base_currency}
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    {p.display_name}
+                    {verifiedIds.has(p.id) && <VerifiedBadge />}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    <UidTag uid={p.uid} /> · base {p.base_currency}
                   </p>
                 </div>
                 <button
