@@ -252,9 +252,9 @@ function ProfilePage() {
               <p className="truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
               <button
                 onClick={() => profile?.uid && copy(profile.uid, "UID")}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-1 font-mono text-xs"
+                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-1 font-mono text-xs font-bold tracking-wide"
               >
-                UID {profile?.uid ?? "—"}
+                UID: #{profile?.uid ?? "—"}
                 <Copy className="size-3" />
               </button>
             </div>
