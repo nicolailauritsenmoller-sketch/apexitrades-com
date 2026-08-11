@@ -98,6 +98,18 @@ export function isChatLooping() {
   return loopTimer !== null;
 }
 
+/**
+ * Hard mute for the chat bell: stops any looping audio right away and tells the
+ * rest of the console (badges, unread counters) that the desk has been focused.
+ * Safe to call repeatedly and during SSR.
+ */
+export function silenceChatAlerts() {
+  stopChatLoop();
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+}
+
+
 /* --------------------------- desktop push --------------------------- */
 
 export async function ensurePushPermission(): Promise<NotificationPermission> {
