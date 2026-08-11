@@ -54,37 +54,48 @@ import {
 export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
   head: () => ({
     meta: [
-      { title: "Admin console | Velocity Trade" },
-      {
-        name: "description",
-        content:
-          "Approve deposits and withdrawals, manage receiving addresses, review KYC, control contract outcomes and broadcast notifications.",
-      },
-      { property: "og:title", content: "Admin console — Velocity Trade" },
-      {
-        property: "og:description",
-        content: "Operations console for deposits, withdrawals, KYC, users and announcements.",
-      },
+      { title: "Not found" },
+      { name: "robots", content: "noindex, nofollow" },
+      { name: "description", content: "This page is not available." },
+      { property: "og:title", content: "Not found" },
+      { property: "og:description", content: "This page is not available." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   beforeLoad: async () => {
     // Role gate: only users holding the admin role may reach this console.
     // Skipped during SSR/prerender, where there is no authenticated session.
     if (typeof window === "undefined") return;
-    const access = await getMyAccess();
-    if (!access.isAdmin) throw redirect({ to: "/", replace: true });
+    try {
+      const access = await getMyAccess();
+      if (!access.isAdmin) throw redirect({ to: "/", replace: true });
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      throw redirect({ to: "/", replace: true });
+    }
   },
 
   component: AdminPage,
-  errorComponent: ({ error }) => (
-    <div role="alert" className="p-8 text-sm text-bear">
-      {error.message}
-    </div>
-  ),
-  notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
+  errorComponent: () => <NotFoundScreen />,
+  notFoundComponent: () => <NotFoundScreen />,
 });
+
+/** Non-admins never learn this path exists. */
+function NotFoundScreen() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-background px-6 text-center">
+      <div>
+        <h1 className="font-display text-4xl font-bold tracking-tight">404</h1>
+        <p className="mt-2 text-sm text-muted-foreground">This page could not be found.</p>
+        <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary">
+          Return home
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 
 const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
   {
