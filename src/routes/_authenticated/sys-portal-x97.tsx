@@ -18,6 +18,10 @@ import {
   ScrollText,
   KeySquare,
   CreditCard,
+  Radio,
+  Wrench,
+  Star,
+  IdCard,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -33,6 +37,10 @@ import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel"
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
+import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
+import { TradeCorrections } from "@/components/admin/TradeCorrections";
+import { RatingsPanel } from "@/components/admin/RatingsPanel";
+import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { downloadCsv } from "@/lib/csv";
 import { AdminShell } from "@/components/AdminShell";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -98,6 +106,8 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "overview", label: "Dashboard", icon: LayoutDashboard },
       { id: "analytics", label: "Analytics & volume", icon: BarChart3 },
       { id: "trades", label: "Trades & outcomes", icon: Gauge },
+      { id: "corrections", label: "Trade corrections", icon: Wrench },
+      { id: "active", label: "Active users now", icon: Radio },
     ],
   },
   {
@@ -123,6 +133,8 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "support", label: "Support chats", icon: LifeBuoy },
       { id: "tickets", label: "Support tickets", icon: LifeBuoy },
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
+      { id: "ratings", label: "Ratings & reviews", icon: Star },
+      { id: "agent", label: "Agent persona", icon: IdCard },
     ],
   },
   {
@@ -313,6 +325,10 @@ function AdminPage() {
             </button>
           </div>
 
+          {tab === "corrections" && <TradeCorrections />}
+          {tab === "active" && <ActiveUsersPanel />}
+          {tab === "ratings" && <RatingsPanel />}
+          {tab === "agent" && <AgentProfilePanel />}
           {tab === "roles" && <RolesPanel />}
           {tab === "credit" && <CreditScorePanel />}
           {tab === "audit" && <AuditLogPanel />}
@@ -327,6 +343,13 @@ function AdminPage() {
                 <div className="space-y-4">
                   {analytics ? (
                     <>
+                      <button
+                        type="button"
+                        onClick={() => go("active")}
+                        className="block w-full text-left transition-transform hover:-translate-y-0.5"
+                      >
+                        <ActiveUsersPanel compact />
+                      </button>
                       <MetricsBar a={analytics} onOpen={go} />
                       <AnalyticsCharts a={analytics} />
                       <KycExpiry a={analytics} />
@@ -354,6 +377,7 @@ function AdminPage() {
                     profiles={data.profiles}
                     onDone={refresh}
                   />
+                  <TradeCorrections />
                 </div>
               )}
               {tab === "transactions" &&

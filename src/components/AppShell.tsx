@@ -20,7 +20,7 @@ import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
-
+import { usePresenceHeartbeat } from "@/lib/use-presence";
 
 const NAV = [
   { to: "/", params: {}, label: "Home", icon: Home, exact: true },
@@ -40,6 +40,8 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  usePresenceHeartbeat();
+
   const fetchAccess = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
@@ -55,7 +57,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     router.navigate({ to: "/auth", replace: true });
   }
 
-
   return (
     <div className="min-h-screen bg-background">
       <AnnouncementBanner />
@@ -69,7 +70,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               height={1024}
               className="size-9 shrink-0 object-contain"
             />
-            <span className="truncate font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
+            <span className="truncate font-display text-sm font-bold tracking-tight">
+              VELOCITY TRADE
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">

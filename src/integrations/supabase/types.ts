@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_profiles: {
+        Row: {
+          agent_role: string
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          staff_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          full_name: string
+          staff_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          staff_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           active: boolean
@@ -79,25 +109,37 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_path: string | null
+          attachment_type: string | null
           body: string
           created_at: string
           id: string
+          read_at: string | null
           sender_id: string
           sender_role: string
           session_id: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_type?: string | null
           body: string
           created_at?: string
           id?: string
+          read_at?: string | null
           sender_id: string
           sender_role?: string
           session_id: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_type?: string | null
           body?: string
           created_at?: string
           id?: string
+          read_at?: string | null
           sender_id?: string
           sender_role?: string
           session_id?: string
@@ -112,8 +154,53 @@ export type Database = {
           },
         ]
       }
+      chat_ratings: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          agent_role: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          session_id: string | null
+          stars: number
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_name?: string | null
+          agent_role?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          session_id?: string | null
+          stars: number
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_name?: string | null
+          agent_role?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          session_id?: string | null
+          stars?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_ratings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_sessions: {
         Row: {
+          active_agent_id: string | null
           agent_last_read_at: string
           created_at: string
           id: string
@@ -124,6 +211,7 @@ export type Database = {
           user_last_read_at: string
         }
         Insert: {
+          active_agent_id?: string | null
           agent_last_read_at?: string
           created_at?: string
           id?: string
@@ -134,6 +222,7 @@ export type Database = {
           user_last_read_at?: string
         }
         Update: {
+          active_agent_id?: string | null
           agent_last_read_at?: string
           created_at?: string
           id?: string
@@ -665,6 +754,7 @@ export type Database = {
           browser: string
           country: string | null
           created_at: string
+          current_path: string | null
           device_id: string
           id: string
           ip_address: string | null
@@ -677,6 +767,7 @@ export type Database = {
           browser?: string
           country?: string | null
           created_at?: string
+          current_path?: string | null
           device_id: string
           id?: string
           ip_address?: string | null
@@ -689,6 +780,7 @@ export type Database = {
           browser?: string
           country?: string | null
           created_at?: string
+          current_path?: string | null
           device_id?: string
           id?: string
           ip_address?: string | null

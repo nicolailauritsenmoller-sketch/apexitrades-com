@@ -2,14 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Inbox, Loader2, Send, Ticket } from "lucide-react";
+import { Check, CheckCheck, Inbox, Loader2, Paperclip, Send, Ticket, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
 import {
   getSupportThreads,
   getSupportTickets,
   getThreadMessages,
   replyToTicket,
-  sendAgentMessage,
   setThreadStatus,
   updateTicketStatus,
 } from "@/lib/admin.functions";
@@ -39,7 +40,9 @@ export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" |
             key={id}
             onClick={() => setView(id)}
             className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-              view === id ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+              view === id
+                ? "bg-secondary text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon className="size-4" />
@@ -58,11 +61,15 @@ function ChatInboxes() {
   const qc = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchThreads = useServerFn(getSupportThreads);
   const fetchMessages = useServerFn(getThreadMessages);
-  const send = useServerFn(sendAgentMessage);
+  const send = useServerFn(sendAgentChat);
+  const markRead = useServerFn(markThreadRead);
   const setStatus = useServerFn(setThreadStatus);
 
   const threads = useQuery({
@@ -78,6 +85,15 @@ function ChatInboxes() {
     refetchInterval: 8_000,
   });
 
+  // Focusing the desk silences the looping alert bell and clears unread ticks.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+    if (!activeId) return;
+    void markRead({ data: { sessionId: activeId } }).then(() => {
+      qc.invalidateQueries({ queryKey: ["support-threads"] });
+    });
+  }, [activeId, markRead, qc]);
+
   // Real-time push for the thread currently open in the right panel.
   useEffect(() => {
     if (!activeId) return;
@@ -85,7 +101,12 @@ function ChatInboxes() {
       .channel(`admin-chat-${activeId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${activeId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `session_id=eq.${activeId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
           qc.invalidateQueries({ queryKey: ["support-threads"] });
@@ -102,9 +123,30 @@ function ChatInboxes() {
   }, [messages.data]);
 
   const reply = useMutation({
-    mutationFn: (body: string) => send({ data: { sessionId: activeId!, body } }),
+    mutationFn: async (body: string) => {
+      let attachment: {
+        attachmentPath?: string;
+        attachmentName?: string;
+        attachmentType?: string;
+      } = {};
+      if (file) {
+        setUploading(true);
+        const { data: me } = await supabase.auth.getUser();
+        const path = `${me.user?.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
+        const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+        setUploading(false);
+        if (error) throw new Error(error.message);
+        attachment = {
+          attachmentPath: path,
+          attachmentName: file.name,
+          attachmentType: file.type,
+        };
+      }
+      return send({ data: { sessionId: activeId!, body, ...attachment } });
+    },
     onSuccess: () => {
       setDraft("");
+      setFile(null);
       qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
       qc.invalidateQueries({ queryKey: ["support-threads"] });
     },
@@ -112,7 +154,8 @@ function ChatInboxes() {
   });
 
   const toggleStatus = useMutation({
-    mutationFn: (status: "open" | "closed") => setStatus({ data: { sessionId: activeId!, status } }),
+    mutationFn: (status: "open" | "closed") =>
+      setStatus({ data: { sessionId: activeId!, status } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["support-threads"] }),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -140,7 +183,9 @@ function ChatInboxes() {
               <p className="truncate text-[11px] text-muted-foreground">
                 UID {t.uid ?? t.userId.slice(0, 8)} · {t.kycStatus}
               </p>
-              <p className="mt-1 truncate text-xs text-muted-foreground">{t.preview ?? "No messages"}</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {t.preview ?? "No messages"}
+              </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               <span className="text-[10px] text-muted-foreground">
@@ -163,7 +208,9 @@ function ChatInboxes() {
           <>
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">{active.legalName ?? active.displayName}</p>
+                <p className="truncate text-sm font-semibold">
+                  {active.legalName ?? active.displayName}
+                </p>
                 <p className="truncate text-[11px] text-muted-foreground">
                   User ID {active.userId}
                 </p>
@@ -187,30 +234,72 @@ function ChatInboxes() {
                   }`}
                 >
                   {m.body}
-                  <span className="mt-1 block text-[10px] opacity-70">
+                  {m.attachment_path && (
+                    <ChatAttachment
+                      messageId={m.id}
+                      name={m.attachment_name}
+                      type={m.attachment_type}
+                    />
+                  )}
+                  <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
                     {new Date(m.created_at).toLocaleString()}
+                    {m.sender_role !== "user" &&
+                      (m.read_at ? (
+                        <CheckCheck className="size-3" />
+                      ) : (
+                        <Check className="size-3" />
+                      ))}
                   </span>
                 </div>
               ))}
               <div ref={endRef} />
             </div>
 
-            <div className="flex items-center gap-2 border-t border-border p-2">
+            <div className="flex flex-wrap items-center gap-2 border-t border-border p-2">
+              {file && (
+                <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
+                  <Paperclip className="size-3" />
+                  <span className="truncate">{file.name}</span>
+                  <button onClick={() => setFile(null)} aria-label="Remove attachment">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,application/pdf"
+                hidden
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <button
+                onClick={() => fileRef.current?.click()}
+                aria-label="Attach a file"
+                className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                <Paperclip className="size-4" />
+              </button>
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && draft.trim() && reply.mutate(draft.trim())}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
+                }
                 placeholder="Reply as support agent…"
                 maxLength={2000}
                 className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
-                onClick={() => draft.trim() && reply.mutate(draft.trim())}
-                disabled={reply.isPending}
+                onClick={() => (draft.trim() || file) && reply.mutate(draft.trim())}
+                disabled={reply.isPending || uploading}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
-                {reply.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {reply.isPending || uploading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </button>
             </div>
           </>
@@ -353,7 +442,8 @@ function TicketsDesk() {
               <div>
                 <p className="text-sm font-semibold">{active.subject}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {active.legalName ?? active.displayName} · {new Date(active.created_at).toLocaleString()}
+                  {active.legalName ?? active.displayName} ·{" "}
+                  {new Date(active.created_at).toLocaleString()}
                 </p>
               </div>
               <div className="max-h-64 space-y-2 overflow-y-auto">
@@ -363,9 +453,7 @@ function TicketsDesk() {
                     <div
                       key={m.id}
                       className={`rounded-lg px-3 py-2 text-xs ${
-                        m.sender_role === "user"
-                          ? "bg-secondary"
-                          : "bg-primary/10 text-primary"
+                        m.sender_role === "user" ? "bg-secondary" : "bg-primary/10 text-primary"
                       }`}
                     >
                       {m.body}
@@ -381,7 +469,9 @@ function TicketsDesk() {
                 className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
-                onClick={() => draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })}
+                onClick={() =>
+                  draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })
+                }
                 disabled={replyMutation.isPending}
                 className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
