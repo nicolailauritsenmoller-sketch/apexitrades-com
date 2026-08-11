@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { formatMoney } from "@/lib/instruments";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
+import { getMyAccess } from "@/lib/admin.functions";
 import {
   CREDIT_SCORE_MAX,
   CREDIT_SCORE_MIN,
@@ -149,6 +150,13 @@ function ProfilePage() {
     refetchInterval: 30_000,
   });
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
+  const fetchAccess = useServerFn(getMyAccess);
+  const access = useQuery({
+    queryKey: ["my-access"],
+    queryFn: () => fetchAccess(),
+    retry: false,
+    staleTime: 60_000,
+  });
 
   const profile = overview.data?.profile;
   const balances = overview.data?.balances;
@@ -502,6 +510,21 @@ function ProfilePage() {
             <LogOut className="size-4" /> Log out all devices
           </button>
         </Section>
+
+        {access.data?.isStaff ? (
+          <Section
+            icon={ShieldCheck}
+            title="Operations Console"
+            description="Staff-only backend administration."
+          >
+            <Link
+              to="/sys-portal-x97"
+              className="inline-flex touch-manipulation items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              <ShieldCheck className="size-4" /> Open Admin Panel
+            </Link>
+          </Section>
+        ) : null}
 
         {/* 7. Support & legal */}
         <div className="grid gap-3 md:grid-cols-2">
