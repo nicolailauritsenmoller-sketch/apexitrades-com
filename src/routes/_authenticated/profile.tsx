@@ -520,14 +520,39 @@ function ProfilePage() {
               >
                 Help center
               </button>
-              <a
-                href="mailto:security@velocity.trade?subject=Security%20report"
-                className="inline-flex items-center gap-2 rounded-md border border-bear/40 px-3 py-2 text-sm text-bear sm:col-span-2"
+              <button
+                onClick={() => setSecurityOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-bear/40 px-3 py-2 text-left text-sm text-bear hover:bg-bear/10 sm:col-span-2"
               >
                 <ShieldAlert className="size-4" /> Report a security issue
-              </a>
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-md border border-emerald-600/30 bg-emerald-600/5 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold">VIP Live Chat</p>
+                  <p className="text-xs text-muted-foreground">
+                    Dedicated specialists — unlocked on request via customer support.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setVipOpen(true)}
+                  className="shrink-0 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Open
+                </button>
+              </div>
+              <ul className="mt-3 grid gap-1 sm:grid-cols-2">
+                {VIP_ROLES.map((r) => (
+                  <li key={r.key} className="text-xs text-muted-foreground">
+                    · {r.label}
+                  </li>
+                ))}
+              </ul>
             </div>
           </Section>
+
 
           <Section icon={ShieldCheck} title="Legal center" description="Policies governing your account.">
             <div className="grid gap-2">
