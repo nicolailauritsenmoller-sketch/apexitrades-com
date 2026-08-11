@@ -39,6 +39,10 @@ import {
 } from "@/lib/sessions";
 import { LEGAL_DOCS, type LegalDoc } from "@/lib/legal-content";
 import { TicketDialog } from "@/components/support/TicketDialog";
+import { SecurityReportDialog } from "@/components/support/SecurityReportDialog";
+import { VipChatDialog } from "@/components/support/VipChatDialog";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { VIP_ROLES } from "@/lib/vip";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
