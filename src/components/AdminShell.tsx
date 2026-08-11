@@ -4,6 +4,7 @@ import { LogOut, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/lib/theme";
+import { AdminAlerts } from "@/components/admin/AdminAlerts";
 
 /**
  * Standalone backend layout. Deliberately shares no chrome with the customer
