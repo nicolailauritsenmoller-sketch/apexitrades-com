@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { UserAvatar } from "@/components/UserAvatar";
+
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
@@ -444,8 +446,10 @@ export function ChatWidget() {
                 (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
             </span>
           </div>
+          {m.sender_role === "user" && <UserAvatar className="size-7" alt="You" />}
         </div>
       ))}
+
       <div ref={endRef} />
     </div>
   );

@@ -18,6 +18,8 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
+import { UserAvatar } from "@/components/UserAvatar";
+
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
@@ -107,7 +109,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               Live account
             </span>
+            <Link to="/profile" aria-label="Profile" className="touch-manipulation">
+              <UserAvatar className="size-8" alt="Your profile avatar" />
+            </Link>
             <button
+
               onClick={signOut}
               className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >

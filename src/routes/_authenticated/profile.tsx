@@ -9,16 +9,16 @@ import {
   Copy,
   Gift,
   LifeBuoy,
-  Loader2,
   LogOut,
   MonitorSmartphone,
   ShieldAlert,
   ShieldCheck,
   Trash2,
-  Upload,
   Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { UserAvatar } from "@/components/UserAvatar";
+
 import { supabase } from "@/integrations/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
 import { formatMoney } from "@/lib/instruments";
@@ -186,22 +186,6 @@ function ProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const avatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!profile?.id) throw new Error("Not signed in.");
-      const path = `${profile.id}/avatar-${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("kyc-documents").upload(path, file);
-      if (error) throw new Error(error.message);
-      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
-      if (!data?.signedUrl) throw new Error("Could not read uploaded image.");
-      return saveProfile({ data: { avatarUrl: data.signedUrl } });
-    },
-    onSuccess: () => {
-      toast.success("Avatar updated");
-      queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const removeDevice = useMutation({
     mutationFn: removeSession,
@@ -237,34 +221,9 @@ function ProfilePage() {
         <section className="rounded-lg border border-border bg-card p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative">
-              {profile?.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={`${profile.displayName} avatar`}
-                  className="size-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="grid size-16 place-items-center rounded-full bg-secondary font-display text-xl font-bold">
-                  {(profile?.displayName ?? "T").slice(0, 1).toUpperCase()}
-                </div>
-              )}
-              <label className="absolute -bottom-1 -right-1 cursor-pointer rounded-full border border-border bg-background p-1.5">
-                {avatarMutation.isPending ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Upload className="size-3" />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) avatarMutation.mutate(file);
-                  }}
-                />
-              </label>
+              <UserAvatar className="size-16" alt="Account avatar" />
             </div>
+
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
