@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, isRedirect, redirect, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel"
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { downloadCsv } from "@/lib/csv";
-import { AppShell } from "@/components/AppShell";
+import { AdminShell } from "@/components/AdminShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
   adjustUserBalance,
@@ -51,40 +51,51 @@ import {
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/desk-management")({
+export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
   head: () => ({
     meta: [
-      { title: "Admin console | Velocity Trade" },
-      {
-        name: "description",
-        content:
-          "Approve deposits and withdrawals, manage receiving addresses, review KYC, control contract outcomes and broadcast notifications.",
-      },
-      { property: "og:title", content: "Admin console — Velocity Trade" },
-      {
-        property: "og:description",
-        content: "Operations console for deposits, withdrawals, KYC, users and announcements.",
-      },
+      { title: "Not found" },
+      { name: "robots", content: "noindex, nofollow" },
+      { name: "description", content: "This page is not available." },
+      { property: "og:title", content: "Not found" },
+      { property: "og:description", content: "This page is not available." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   beforeLoad: async () => {
-    // Role gate: only users holding the admin role may reach /desk-management.
+    // Role gate: only users holding the admin role may reach this console.
     // Skipped during SSR/prerender, where there is no authenticated session.
     if (typeof window === "undefined") return;
-    const access = await getMyAccess();
-    if (!access.isAdmin) throw redirect({ to: "/dashboard" });
+    try {
+      const access = await getMyAccess();
+      if (!access.isAdmin) throw redirect({ to: "/", replace: true });
+    } catch (error) {
+      if (isRedirect(error)) throw error;
+      throw redirect({ to: "/", replace: true });
+    }
   },
 
   component: AdminPage,
-  errorComponent: ({ error }) => (
-    <div role="alert" className="p-8 text-sm text-bear">
-      {error.message}
-    </div>
-  ),
-  notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
+  errorComponent: () => <NotFoundScreen />,
+  notFoundComponent: () => <NotFoundScreen />,
 });
+
+/** Non-admins never learn this path exists. */
+function NotFoundScreen() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-background px-6 text-center">
+      <div>
+        <h1 className="font-display text-4xl font-bold tracking-tight">404</h1>
+        <p className="mt-2 text-sm text-muted-foreground">This page could not be found.</p>
+        <Link to="/" className="mt-4 inline-block text-sm font-semibold text-primary">
+          Return home
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 
 const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
   {
@@ -235,24 +246,13 @@ function AdminPage() {
 
   if (access.isLoading) {
     return (
-      <AppShell>
+      <AdminShell>
         <p className="p-8 text-sm text-muted-foreground">Checking access…</p>
-      </AppShell>
+      </AdminShell>
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <AppShell>
-        <div className="mx-auto max-w-md rounded-lg border border-border bg-card p-8 text-center">
-          <h1 className="font-display text-lg font-semibold">Admin access required</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Your account does not have administrator permissions.
-          </p>
-        </div>
-      </AppShell>
-    );
-  }
+  if (!isAdmin) return <NotFoundScreen />;
 
   const data = overview.data;
   const analytics = analyticsQuery.data as Analytics | undefined;
@@ -261,7 +261,7 @@ function AdminPage() {
     NAV.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
 
   return (
-    <AppShell>
+    <AdminShell>
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Vertical backend sidebar */}
         <aside className="shrink-0 lg:w-60">
@@ -390,7 +390,7 @@ function AdminPage() {
         </div>
       </div>
 
-    </AppShell>
+    </AdminShell>
   );
 }
 
