@@ -419,6 +419,18 @@ function DepositTab({
                 placeholder="Transaction hash (optional)"
                 className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
               />
+              <label className="block cursor-pointer rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground transition-colors hover:border-primary/50">
+                <span className="font-medium text-foreground">
+                  Upload proof of payment / transaction screenshot
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="mt-2 block w-full text-xs"
+                  onChange={(e) => setProof(e.target.files?.[0] ?? null)}
+                />
+                {proof && <span className="mt-1 block truncate text-bull">{proof.name}</span>}
+              </label>
               <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
                 <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
                 <span>
@@ -427,7 +439,7 @@ function DepositTab({
                 </span>
               </div>
               <button
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || uploading}
                 onClick={() => {
                   const value = Number(amount);
                   if (!Number.isFinite(value) || value <= 0) {
