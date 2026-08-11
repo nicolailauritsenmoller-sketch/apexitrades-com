@@ -71,11 +71,34 @@ export async function registerCurrentDevice(userId: string) {
       ip_address: net.ip,
       country: net.country,
       user_agent: navigator.userAgent,
+      current_path: window.location.pathname,
       last_active_at: new Date().toISOString(),
     },
     { onConflict: "user_id,device_id" },
   );
 }
+
+/**
+ * Lightweight presence ping: refreshes `last_active_at` and the page the user is
+ * currently viewing so the operations console can show who is online.
+ */
+export async function heartbeat(userId: string, path: string) {
+  if (typeof window === "undefined") return;
+  const { browser, os } = parseUserAgent(navigator.userAgent);
+  await supabase.from("user_sessions").upsert(
+    {
+      user_id: userId,
+      device_id: currentDeviceId(),
+      browser,
+      os,
+      user_agent: navigator.userAgent,
+      current_path: path,
+      last_active_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,device_id" },
+  );
+}
+
 
 export async function listSessions(): Promise<SessionRow[]> {
   const active = currentDeviceId();
