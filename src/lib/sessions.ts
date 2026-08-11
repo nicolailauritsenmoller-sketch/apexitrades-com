@@ -110,9 +110,16 @@ export async function heartbeat(userId: string, path: string) {
 
 export async function listSessions(): Promise<SessionRow[]> {
   const active = currentDeviceId();
+  const { data: me } = await supabase.auth.getUser();
+  const userId = me.user?.id;
+  if (!userId) return [];
+
+  // Device management only ever shows the signed-in account's own devices,
+  // even for staff accounts that can read the monitoring table.
   const { data, error } = await supabase
     .from("user_sessions")
     .select("*")
+    .eq("user_id", userId)
     .order("last_active_at", { ascending: false });
   if (error) throw new Error(error.message);
 
@@ -129,13 +136,20 @@ export async function listSessions(): Promise<SessionRow[]> {
 }
 
 export async function removeSession(id: string) {
-  const { error } = await supabase.from("user_sessions").delete().eq("id", id);
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) throw new Error("Not signed in.");
+  const { error } = await supabase
+    .from("user_sessions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", me.user.id);
   if (error) throw new Error(error.message);
 }
 
 export async function signOutEverywhere() {
-  const active = currentDeviceId();
-  await supabase.from("user_sessions").delete().neq("device_id", active);
-  await supabase.from("user_sessions").delete().eq("device_id", active);
+  const { data: me } = await supabase.auth.getUser();
+  if (me.user) {
+    await supabase.from("user_sessions").delete().eq("user_id", me.user.id);
+  }
   await supabase.auth.signOut({ scope: "global" });
 }

@@ -400,15 +400,34 @@ export const broadcastNotification = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { error } = await context.supabase.from("notifications").insert({
-      user_id: data.userId ?? null,
-      title: data.title,
-      body: data.body,
-      kind: "announcement",
-    });
+
+    // Every notification row is addressed to exactly one account. A
+    // platform-wide message is fanned out into one explicitly targeted row per
+    // recipient — never a single "everyone" row.
+    let recipients: string[];
+    if (data.userId) {
+      recipients = [data.userId];
+    } else {
+      const { data: profiles, error: listError } = await context.supabase
+        .from("profiles")
+        .select("id");
+      if (listError) throw new Error(listError.message);
+      recipients = (profiles ?? []).map((p) => p.id);
+    }
+    if (recipients.length === 0) return { ok: true, delivered: 0 };
+
+    const { error } = await context.supabase.from("notifications").insert(
+      recipients.map((userId) => ({
+        user_id: userId,
+        title: data.title,
+        body: data.body,
+        kind: "announcement",
+      })),
+    );
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, delivered: recipients.length };
   });
+
 
 export const getSupportInbox = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
