@@ -203,7 +203,11 @@ function ChatInboxes() {
         {list.map((t) => (
           <button
             key={t.id}
-            onClick={() => setActiveId(t.id)}
+            onClick={() => {
+              silenceChatAlerts();
+              setActiveId(t.id);
+            }}
+
             className={`flex w-full items-start gap-2 border-b border-border px-3 py-3 text-left transition-colors ${
               activeId === t.id ? "bg-secondary" : "hover:bg-secondary/60"
             }`}
