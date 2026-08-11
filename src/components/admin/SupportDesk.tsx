@@ -124,27 +124,52 @@ function ChatInboxes() {
   }, [activeId]);
 
 
-  // Real-time push for the thread currently open in the right panel.
+  // Real-time push for the thread currently open in the right panel, with
+  // automatic re-subscription and resync whenever the socket drops.
   useEffect(() => {
     if (!activeId) return;
-    const channel = supabase
-      .channel(`admin-chat-${activeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `session_id=eq.${activeId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
-          qc.invalidateQueries({ queryKey: ["support-threads"] });
-        },
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    let alive = true;
+
+    const resync = () => {
+      qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
+      qc.invalidateQueries({ queryKey: ["support-threads"] });
+    };
+
+    function subscribe() {
+      channel = supabase
+        .channel(`admin-chat-${activeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "chat_messages",
+            filter: `session_id=eq.${activeId}`,
+          },
+          resync,
+        )
+        .subscribe((status) => {
+          if (!alive) return;
+          if (status === "SUBSCRIBED") resync();
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channel) supabase.removeChannel(channel);
+            channel = null;
+            retry = setTimeout(subscribe, 1200);
+          }
+        });
+    }
+    subscribe();
+
+    window.addEventListener("online", resync);
+    window.addEventListener("focus", resync);
     return () => {
-      supabase.removeChannel(channel);
+      alive = false;
+      if (retry) clearTimeout(retry);
+      window.removeEventListener("online", resync);
+      window.removeEventListener("focus", resync);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [activeId, qc]);
 
@@ -174,13 +199,35 @@ function ChatInboxes() {
       }
       return send({ data: { sessionId: activeId!, body, ...attachment } });
     },
+    onMutate: (body: string) => {
+      // Optimistic bubble so the agent sees their reply instantly.
+      setDraft("");
+      const optimistic = {
+        id: `pending-${crypto.randomUUID()}`,
+        session_id: activeId,
+        sender_role: "agent",
+        body,
+        created_at: new Date().toISOString(),
+        read_at: null,
+        pending: true,
+      };
+      qc.setQueryData(["support-thread", activeId], (old: any) => [...(old ?? []), optimistic]);
+      return { optimisticId: optimistic.id };
+    },
     onSuccess: () => {
       setDraft("");
       setFile(null);
       qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
       qc.invalidateQueries({ queryKey: ["support-threads"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, body, ctx) => {
+      // Roll the optimistic bubble back and hand the draft back to the agent.
+      qc.setQueryData(["support-thread", activeId], (old: any) =>
+        (old ?? []).filter((m: any) => m.id !== ctx?.optimisticId),
+      );
+      setDraft(body);
+      toast.error(e.message);
+    },
   });
 
   const toggleStatus = useMutation({

@@ -10,11 +10,11 @@ import {
   Check,
   CheckCheck,
   Star,
-  Headset,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
+import brandLogo from "@/assets/velocity-trade-logo.png";
 
 type Message = {
   id: string;
@@ -26,6 +26,7 @@ type Message = {
   attachment_path: string | null;
   attachment_name: string | null;
   attachment_type: string | null;
+  pending?: boolean;
 };
 
 type Agent = {
@@ -41,6 +42,18 @@ const STORAGE_KEY = "velocity:chat-position";
 const RATED_KEY = "velocity:chat-rated";
 const BUTTON_SIZE = 52;
 const MARGIN = 12;
+
+/** Platform logo used as the default face of every support agent. */
+function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
+  return (
+    <img
+      src={src || brandLogo}
+      alt="Velocity Trade support"
+      className={`${className} shrink-0 rounded-full border border-border bg-background object-cover p-0.5`}
+    />
+  );
+}
+
 
 function clampToViewport(p: Point, w: number, h: number): Point {
   const maxX = Math.max(MARGIN, window.innerWidth - w - MARGIN);
@@ -180,23 +193,62 @@ export function ChatWidget() {
     }
     load();
 
-    const channel = supabase
-      .channel(`chat-${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => setMessages((prev) => [...prev, payload.new as Message]),
-      )
-      .subscribe();
+    // Live socket with automatic re-subscription: if the connection drops we
+    // rebuild the channel and re-pull the thread so nothing is missed.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+
+    function merge(row: Message) {
+      setMessages((prev) => {
+        const withoutOptimistic = prev.filter(
+          (m) => !(m.pending && m.body === row.body && m.sender_role === row.sender_role),
+        );
+        if (withoutOptimistic.some((m) => m.id === row.id)) {
+          return withoutOptimistic.map((m) => (m.id === row.id ? { ...m, ...row } : m));
+        }
+        return [...withoutOptimistic, row];
+      });
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`chat-${sessionId}`, { config: { broadcast: { ack: false } } })
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "chat_messages",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          (payload) => {
+            const row = payload.new as Message;
+            if (row?.id) merge(row);
+          },
+        )
+        .subscribe((status) => {
+          if (!active) return;
+          if (status === "SUBSCRIBED") void load();
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channel) supabase.removeChannel(channel);
+            channel = null;
+            retry = setTimeout(subscribe, 1200);
+          }
+        });
+    }
+    subscribe();
+
+    // Coming back online or refocusing the tab immediately resyncs the thread.
+    const resync = () => void load();
+    window.addEventListener("online", resync);
+    window.addEventListener("focus", resync);
 
     return () => {
       active = false;
-      supabase.removeChannel(channel);
+      if (retry) clearTimeout(retry);
+      window.removeEventListener("online", resync);
+      window.removeEventListener("focus", resync);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [sessionId]);
 
@@ -229,8 +281,27 @@ export function ChatWidget() {
     if ((!body && !file) || !sessionId || sending) return;
     setSending(true);
     setDraft("");
+    const tempId = `pending-${crypto.randomUUID()}`;
+    // Optimistic bubble — the message shows instantly, before the round trip.
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        session_id: sessionId,
+        sender_role: "user",
+        body: body || file?.name || "Attachment",
+        created_at: new Date().toISOString(),
+        read_at: null,
+        attachment_path: null,
+        attachment_name: null,
+        attachment_type: null,
+        pending: true,
+      },
+    ]);
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setDraft(body);
       setSending(false);
       return;
     }
@@ -249,13 +320,31 @@ export function ChatWidget() {
       setFile(null);
     }
 
-    await supabase.from("chat_messages").insert({
-      session_id: sessionId,
-      sender_id: user.user.id,
-      sender_role: "user",
-      body: body || (attachment["attachment_name"] ?? "Attachment"),
-      ...attachment,
-    });
+    const { data: inserted, error: insertError } = await supabase
+      .from("chat_messages")
+      .insert({
+        session_id: sessionId,
+        sender_id: user.user.id,
+        sender_role: "user",
+        body: body || (attachment["attachment_name"] ?? "Attachment"),
+        ...attachment,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      // Failed delivery: drop the optimistic bubble and give the text back.
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setDraft(body);
+      setSending(false);
+      return;
+    }
+    if (inserted) {
+      setMessages((prev) => {
+        const rest = prev.filter((m) => m.id !== tempId && m.id !== inserted.id);
+        return [...rest, inserted as Message];
+      });
+    }
     await supabase
       .from("chat_sessions")
       .update({ last_message_at: new Date().toISOString(), status: "open" })
@@ -283,13 +372,7 @@ export function ChatWidget() {
   const header = (
     <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
       <div className="flex min-w-0 items-center gap-2">
-        {agent?.avatarUrl ? (
-          <img src={agent.avatarUrl} alt="" className="size-8 shrink-0 rounded-full object-cover" />
-        ) : (
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-            <Headset className="size-4" />
-          </span>
-        )}
+        <AgentAvatar src={agent?.avatarUrl} />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{agent?.name ?? "Customer support"}</p>
           <p className="truncate text-[11px] text-muted-foreground">
@@ -333,24 +416,34 @@ export function ChatWidget() {
       {messages.map((m) => (
         <div
           key={m.id}
-          className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-            m.sender_role === "user"
-              ? "ml-auto bg-primary text-primary-foreground"
-              : "bg-secondary text-foreground"
-          }`}
+          className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
         >
-          {m.body}
-          {m.attachment_path && (
-            <ChatAttachment messageId={m.id} name={m.attachment_name} type={m.attachment_type} />
-          )}
-          <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
-            {new Date(m.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-            {m.sender_role === "user" &&
-              (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
-          </span>
+          {m.sender_role !== "user" && <AgentAvatar src={agent?.avatarUrl} className="size-7" />}
+          <div
+            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+              m.sender_role === "user"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-foreground"
+            } ${m.pending ? "opacity-70" : ""}`}
+          >
+            {m.sender_role !== "user" && agent && (
+              <p className="mb-0.5 text-[10px] font-semibold text-muted-foreground">
+                {agent.name} — {agent.role}
+              </p>
+            )}
+            {m.body}
+            {m.attachment_path && (
+              <ChatAttachment messageId={m.id} name={m.attachment_name} type={m.attachment_type} />
+            )}
+            <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
+              {new Date(m.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              {m.sender_role === "user" &&
+                (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
+            </span>
+          </div>
         </div>
       ))}
       <div ref={endRef} />
