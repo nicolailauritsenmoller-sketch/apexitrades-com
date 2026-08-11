@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -18,38 +19,70 @@ type Notification = {
 
 export function NotificationBell() {
   const [items, setItems] = useState<Notification[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  async function load() {
+  // Every read is scoped to the signed-in account, on top of the owner-only
+  // RLS policy — a notification belongs to exactly one user.
+  const load = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from("notifications")
       .select("*")
+      .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(30);
     setItems((data ?? []) as Notification[]);
-  }
+  }, []);
 
   useEffect(() => {
-    load();
-    const channel = supabase
-      .channel("notifications-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, () => load())
-      .subscribe();
+    let channel: RealtimeChannel | null = null;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid || cancelled) return;
+      setUserId(uid);
+      load(uid);
+
+      // Private per-user stream: the subscription filters on user_id so no
+      // other account's notification events ever reach this client.
+      channel = supabase
+        .channel(`notifications-${uid}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${uid}`,
+          },
+          () => load(uid),
+        )
+        .subscribe();
+    })();
+
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [load]);
 
   const unread = items.filter((n) => !n.read_at).length;
 
   async function markAllRead() {
+    if (!userId) return;
     const ids = items.filter((n) => !n.read_at).map((n) => n.id);
     if (ids.length === 0) return;
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", ids);
-    load();
+    await supabase
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .in("id", ids);
+    load(userId);
   }
 
   return (
-    <DropdownMenu onOpenChange={(open) => open && load()}>
+    <DropdownMenu onOpenChange={(open) => open && userId && load(userId)}>
       <DropdownMenuTrigger asChild>
         <button
           aria-label="Notifications"
