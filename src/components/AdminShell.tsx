@@ -38,7 +38,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <AdminAlerts />
             <ThemeToggle />
+
             <button
               onClick={signOut}
               className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
