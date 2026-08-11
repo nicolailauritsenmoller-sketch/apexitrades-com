@@ -285,6 +285,33 @@ function AdminPage() {
     refetchInterval: 30_000,
   });
 
+  // Live pending counters — refresh instantly on any queue change.
+  useEffect(() => {
+    if (!isAdmin) return;
+    const bump = () => {
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["admin-analytics"] });
+    };
+    const channel = supabase.channel("admin-pending-queues");
+    for (const table of ["deposits", "withdrawals", "kyc_submissions", "support_tickets"]) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, bump);
+    }
+    channel.subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, qc]);
+
+  const pendingCounts = {
+    deposits: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.pendingDeposits ?? 0),
+    withdrawals: Number(
+      (analyticsQuery.data as Analytics | undefined)?.metrics?.pendingWithdrawals ?? 0,
+    ),
+    users: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.pendingKyc ?? 0),
+    tickets: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.openTickets ?? 0),
+  } as Record<string, number>;
+
+
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["admin-overview"] });
     qc.invalidateQueries({ queryKey: ["admin-analytics"] });
