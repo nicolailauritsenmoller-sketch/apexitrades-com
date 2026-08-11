@@ -188,22 +188,6 @@ function ProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const avatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!profile?.id) throw new Error("Not signed in.");
-      const path = `${profile.id}/avatar-${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("kyc-documents").upload(path, file);
-      if (error) throw new Error(error.message);
-      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
-      if (!data?.signedUrl) throw new Error("Could not read uploaded image.");
-      return saveProfile({ data: { avatarUrl: data.signedUrl } });
-    },
-    onSuccess: () => {
-      toast.success("Avatar updated");
-      queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const removeDevice = useMutation({
     mutationFn: removeSession,
