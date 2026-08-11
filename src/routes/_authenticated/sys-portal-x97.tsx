@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, isRedirect, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -63,18 +63,10 @@ export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  beforeLoad: async () => {
-    // Role gate: only users holding the admin role may reach this console.
-    // Skipped during SSR/prerender, where there is no authenticated session.
-    if (typeof window === "undefined") return;
-    try {
-      const access = await getMyAccess();
-      if (!access.isAdmin) throw redirect({ to: "/", replace: true });
-    } catch (error) {
-      if (isRedirect(error)) throw error;
-      throw redirect({ to: "/", replace: true });
-    }
-  },
+  // Role gating happens in the component (see `access` query below): the parent
+  // `_authenticated` layout only resolves the Supabase session after mount, so a
+  // beforeLoad role check races session hydration and bounces real admins home.
+
 
   component: AdminPage,
   errorComponent: () => <NotFoundScreen />,
