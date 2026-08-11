@@ -106,17 +106,17 @@ export function TradeCorrections() {
         {rows.map((r) =>
           view === "contracts" ? (
             <ContractRow
-              key={r['id']}
+              key={r["id"]}
               row={r}
               pending={contractMutation.isPending}
-              onSubmit={(v) => contractMutation.mutate({ id: r['id'], ...v })}
+              onSubmit={(v) => contractMutation.mutate({ id: r["id"], ...v })}
             />
           ) : (
             <PositionRow
-              key={r['id']}
+              key={r["id"]}
               row={r}
               pending={positionMutation.isPending}
-              onSubmit={(v) => positionMutation.mutate({ id: r['id'], ...v })}
+              onSubmit={(v) => positionMutation.mutate({ id: r["id"], ...v })}
             />
           ),
         )}
@@ -130,14 +130,14 @@ function RowHead({ row, right }: { row: Row; right: string }) {
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
         <p className="text-sm font-semibold">
-          {row['display_symbol']}{" "}
+          {row["display_symbol"]}{" "}
           <span className="text-xs font-normal text-muted-foreground">
-            {row['direction'] ?? row['side']}
+            {row["direction"] ?? row["side"]}
           </span>
         </p>
         <p className="text-[11px] text-muted-foreground">
-          {row['userName']} · UID {row['userUid']} · opened{" "}
-          {new Date(row['opened_at']).toLocaleString()}
+          {row["userName"]} · UID {row["userUid"]} · opened{" "}
+          {new Date(row["opened_at"]).toLocaleString()}
         </p>
       </div>
       <span className="text-xs text-muted-foreground">{right}</span>
@@ -171,26 +171,26 @@ function ContractRow({
     <div className="space-y-3 p-4">
       <RowHead
         row={row}
-        right={`${row['status']}${row['result'] ? ` · ${row['result']}` : ""} · stake ${Number(row['stake']).toFixed(2)} ${row['currency']}`}
+        right={`${row["status"]}${row["result"] ? ` · ${row["result"]}` : ""} · stake ${Number(row["stake"]).toFixed(2)} ${row["currency"]}`}
       />
       <div className="grid gap-2 sm:grid-cols-4">
         <Field
           label="Entry price"
           value={entry}
           onChange={setEntry}
-          placeholder={String(row['entry_price'])}
+          placeholder={String(row["entry_price"])}
         />
         <Field
           label="Exit price"
           value={exit}
           onChange={setExit}
-          placeholder={row['exit_price'] ? String(row['exit_price']) : "—"}
+          placeholder={row["exit_price"] ? String(row["exit_price"]) : "—"}
         />
         <Field
           label="Payout override"
           value={payout}
           onChange={setPayout}
-          placeholder={row['payout'] ? String(row['payout']) : "auto"}
+          placeholder={row["payout"] ? String(row["payout"]) : "auto"}
         />
         <label className="space-y-1 text-[11px]">
           <span className="text-muted-foreground">Outcome</span>
@@ -251,26 +251,26 @@ function PositionRow({
     <div className="space-y-3 p-4">
       <RowHead
         row={row}
-        right={`${row['status']} · qty ${row['quantity']} · ${row['leverage']}x ${row['currency']}`}
+        right={`${row["status"]} · qty ${row["quantity"]} · ${row["leverage"]}x ${row["currency"]}`}
       />
       <div className="grid gap-2 sm:grid-cols-3">
         <Field
           label="Entry price"
           value={entry}
           onChange={setEntry}
-          placeholder={String(row['entry_price'])}
+          placeholder={String(row["entry_price"])}
         />
         <Field
           label="Exit price"
           value={exit}
           onChange={setExit}
-          placeholder={row['exit_price'] ? String(row['exit_price']) : "—"}
+          placeholder={row["exit_price"] ? String(row["exit_price"]) : "—"}
         />
         <Field
           label="Realised P/L override"
           value={pnl}
           onChange={setPnl}
-          placeholder={row['realized_pnl'] ? String(row['realized_pnl']) : "auto"}
+          placeholder={row["realized_pnl"] ? String(row["realized_pnl"]) : "auto"}
         />
       </div>
       <div className="flex flex-wrap gap-2">

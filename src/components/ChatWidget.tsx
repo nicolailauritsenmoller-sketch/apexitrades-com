@@ -87,8 +87,7 @@ export function ChatWidget() {
   }, []);
 
   useEffect(() => {
-    const onResize = () =>
-      setPos((p) => (p ? clampToViewport(p, BUTTON_SIZE, BUTTON_SIZE) : p));
+    const onResize = () => setPos((p) => (p ? clampToViewport(p, BUTTON_SIZE, BUTTON_SIZE) : p));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -107,7 +106,9 @@ export function ChatWidget() {
     const st = dragState.current;
     if (!st) return;
     st.moved = true;
-    setPos(clampToViewport({ x: e.clientX - st.dx, y: e.clientY - st.dy }, BUTTON_SIZE, BUTTON_SIZE));
+    setPos(
+      clampToViewport({ x: e.clientX - st.dx, y: e.clientY - st.dy }, BUTTON_SIZE, BUTTON_SIZE),
+    );
   }, []);
 
   const endDrag = useCallback(() => {
@@ -183,7 +184,12 @@ export function ChatWidget() {
       .channel(`chat-${sessionId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${sessionId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `session_id=eq.${sessionId}`,
+        },
         (payload) => setMessages((prev) => [...prev, payload.new as Message]),
       )
       .subscribe();
@@ -247,7 +253,7 @@ export function ChatWidget() {
       session_id: sessionId,
       sender_id: user.user.id,
       sender_role: "user",
-      body: body || (attachment['attachment_name'] ?? "Attachment"),
+      body: body || (attachment["attachment_name"] ?? "Attachment"),
       ...attachment,
     });
     await supabase
@@ -263,7 +269,13 @@ export function ChatWidget() {
     ? {}
     : pos
       ? {
-          left: Math.min(Math.max(MARGIN, pos.x + BUTTON_SIZE / 2 - 176), Math.max(MARGIN, (typeof window !== "undefined" ? window.innerWidth : 400) - 352 - MARGIN)),
+          left: Math.min(
+            Math.max(MARGIN, pos.x + BUTTON_SIZE / 2 - 176),
+            Math.max(
+              MARGIN,
+              (typeof window !== "undefined" ? window.innerWidth : 400) - 352 - MARGIN,
+            ),
+          ),
           top: Math.max(MARGIN, pos.y - 432),
         }
       : { right: 16, bottom: 96 };
@@ -272,11 +284,7 @@ export function ChatWidget() {
     <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
       <div className="flex min-w-0 items-center gap-2">
         {agent?.avatarUrl ? (
-          <img
-            src={agent.avatarUrl}
-            alt=""
-            className="size-8 shrink-0 rounded-full object-cover"
-          />
+          <img src={agent.avatarUrl} alt="" className="size-8 shrink-0 rounded-full object-cover" />
         ) : (
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
             <Headset className="size-4" />
@@ -333,11 +341,7 @@ export function ChatWidget() {
         >
           {m.body}
           {m.attachment_path && (
-            <ChatAttachment
-              messageId={m.id}
-              name={m.attachment_name}
-              type={m.attachment_type}
-            />
+            <ChatAttachment messageId={m.id} name={m.attachment_name} type={m.attachment_type} />
           )}
           <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
             {new Date(m.created_at).toLocaleTimeString([], {

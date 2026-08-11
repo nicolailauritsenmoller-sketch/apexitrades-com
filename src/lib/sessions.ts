@@ -13,22 +13,31 @@ export function currentDeviceId(): string {
 }
 
 export function parseUserAgent(ua: string) {
-  const browser =
-    /Edg\//.test(ua) ? "Edge"
-    : /OPR\//.test(ua) ? "Opera"
-    : /Chrome\//.test(ua) ? "Chrome"
-    : /Safari\//.test(ua) ? "Safari"
-    : /Firefox\//.test(ua) ? "Firefox"
-    : "Unknown browser";
+  const browser = /Edg\//.test(ua)
+    ? "Edge"
+    : /OPR\//.test(ua)
+      ? "Opera"
+      : /Chrome\//.test(ua)
+        ? "Chrome"
+        : /Safari\//.test(ua)
+          ? "Safari"
+          : /Firefox\//.test(ua)
+            ? "Firefox"
+            : "Unknown browser";
 
-  const os =
-    /Windows NT 10/.test(ua) ? "Windows"
-    : /Windows/.test(ua) ? "Windows"
-    : /iPhone|iPad|iPod/.test(ua) ? "iOS"
-    : /Android/.test(ua) ? "Android"
-    : /Mac OS X/.test(ua) ? "macOS"
-    : /Linux/.test(ua) ? "Linux"
-    : "Unknown OS";
+  const os = /Windows NT 10/.test(ua)
+    ? "Windows"
+    : /Windows/.test(ua)
+      ? "Windows"
+      : /iPhone|iPad|iPod/.test(ua)
+        ? "iOS"
+        : /Android/.test(ua)
+          ? "Android"
+          : /Mac OS X/.test(ua)
+            ? "macOS"
+            : /Linux/.test(ua)
+              ? "Linux"
+              : "Unknown OS";
 
   return { browser, os };
 }
@@ -98,7 +107,6 @@ export async function heartbeat(userId: string, path: string) {
     { onConflict: "user_id,device_id" },
   );
 }
-
 
 export async function listSessions(): Promise<SessionRow[]> {
   const active = currentDeviceId();

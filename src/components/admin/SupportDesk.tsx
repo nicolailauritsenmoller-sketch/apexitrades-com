@@ -40,7 +40,9 @@ export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" |
             key={id}
             onClick={() => setView(id)}
             className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-              view === id ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+              view === id
+                ? "bg-secondary text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon className="size-4" />
@@ -99,7 +101,12 @@ function ChatInboxes() {
       .channel(`admin-chat-${activeId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${activeId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `session_id=eq.${activeId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
           qc.invalidateQueries({ queryKey: ["support-threads"] });
@@ -147,7 +154,8 @@ function ChatInboxes() {
   });
 
   const toggleStatus = useMutation({
-    mutationFn: (status: "open" | "closed") => setStatus({ data: { sessionId: activeId!, status } }),
+    mutationFn: (status: "open" | "closed") =>
+      setStatus({ data: { sessionId: activeId!, status } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["support-threads"] }),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -175,7 +183,9 @@ function ChatInboxes() {
               <p className="truncate text-[11px] text-muted-foreground">
                 UID {t.uid ?? t.userId.slice(0, 8)} · {t.kycStatus}
               </p>
-              <p className="mt-1 truncate text-xs text-muted-foreground">{t.preview ?? "No messages"}</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {t.preview ?? "No messages"}
+              </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               <span className="text-[10px] text-muted-foreground">
@@ -198,7 +208,9 @@ function ChatInboxes() {
           <>
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">{active.legalName ?? active.displayName}</p>
+                <p className="truncate text-sm font-semibold">
+                  {active.legalName ?? active.displayName}
+                </p>
                 <p className="truncate text-[11px] text-muted-foreground">
                   User ID {active.userId}
                 </p>
@@ -283,7 +295,11 @@ function ChatInboxes() {
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
-                {reply.isPending || uploading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {reply.isPending || uploading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </button>
             </div>
           </>
@@ -426,7 +442,8 @@ function TicketsDesk() {
               <div>
                 <p className="text-sm font-semibold">{active.subject}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {active.legalName ?? active.displayName} · {new Date(active.created_at).toLocaleString()}
+                  {active.legalName ?? active.displayName} ·{" "}
+                  {new Date(active.created_at).toLocaleString()}
                 </p>
               </div>
               <div className="max-h-64 space-y-2 overflow-y-auto">
@@ -436,9 +453,7 @@ function TicketsDesk() {
                     <div
                       key={m.id}
                       className={`rounded-lg px-3 py-2 text-xs ${
-                        m.sender_role === "user"
-                          ? "bg-secondary"
-                          : "bg-primary/10 text-primary"
+                        m.sender_role === "user" ? "bg-secondary" : "bg-primary/10 text-primary"
                       }`}
                     >
                       {m.body}
@@ -454,7 +469,9 @@ function TicketsDesk() {
                 className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
-                onClick={() => draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })}
+                onClick={() =>
+                  draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })
+                }
                 disabled={replyMutation.isPending}
                 className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >

@@ -258,9 +258,7 @@ export const getChatRatings = createServerFn({ method: "POST" })
       ? await db.from("profiles").select("id,display_name,uid").in("id", ids)
       : { data: [] };
     const map = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-    const average = list.length
-      ? list.reduce((a, r) => a + Number(r.stars), 0) / list.length
-      : 0;
+    const average = list.length ? list.reduce((a, r) => a + Number(r.stars), 0) / list.length : 0;
     return {
       average,
       total: list.length,
@@ -380,9 +378,9 @@ export const correctContract = createServerFn({ method: "POST" })
     if (!contract) throw new Error("Contract not found.");
 
     const patch: Record<string, unknown> = {};
-    if (data.entryPrice !== undefined) patch['entry_price'] = data.entryPrice;
-    if (data.exitPrice !== undefined) patch['exit_price'] = data.exitPrice;
-    if (data.result !== undefined) patch['result'] = data.result;
+    if (data.entryPrice !== undefined) patch["entry_price"] = data.entryPrice;
+    if (data.exitPrice !== undefined) patch["exit_price"] = data.exitPrice;
+    if (data.result !== undefined) patch["result"] = data.result;
 
     const previousPayout = Number(contract.payout ?? 0);
     let nextPayout = previousPayout;
@@ -399,12 +397,12 @@ export const correctContract = createServerFn({ method: "POST" })
             : result === "draw"
               ? stake
               : 0;
-      patch['payout'] = nextPayout;
-      patch['result'] = result;
-      patch['status'] = "settled";
-      patch['settled_at'] = new Date().toISOString();
+      patch["payout"] = nextPayout;
+      patch["result"] = result;
+      patch["status"] = "settled";
+      patch["settled_at"] = new Date().toISOString();
       if (data.exitPrice === undefined && contract.exit_price == null) {
-        patch['exit_price'] = Number(contract.entry_price);
+        patch["exit_price"] = Number(contract.entry_price);
       }
     }
 
@@ -413,7 +411,7 @@ export const correctContract = createServerFn({ method: "POST" })
 
     const wasSettled = contract.status === "settled";
     const delta = nextPayout - (wasSettled ? previousPayout : 0);
-    if (patch['status'] === "settled" || wasSettled) {
+    if (patch["status"] === "settled" || wasSettled) {
       await creditWallet(db, contract.user_id, contract.currency, delta);
     }
 
@@ -458,8 +456,8 @@ export const correctPosition = createServerFn({ method: "POST" })
     if (!position) throw new Error("Position not found.");
 
     const patch: Record<string, unknown> = {};
-    if (data.entryPrice !== undefined) patch['entry_price'] = data.entryPrice;
-    if (data.exitPrice !== undefined) patch['exit_price'] = data.exitPrice;
+    if (data.entryPrice !== undefined) patch["entry_price"] = data.entryPrice;
+    if (data.exitPrice !== undefined) patch["exit_price"] = data.exitPrice;
 
     const previousPnl = Number(position.realized_pnl ?? 0);
     let nextPnl = previousPnl;
@@ -471,10 +469,10 @@ export const correctPosition = createServerFn({ method: "POST" })
       const direction = position.side === "long" ? 1 : -1;
       nextPnl =
         data.realizedPnl !== undefined ? data.realizedPnl : (exit - entry) * qty * direction;
-      patch['realized_pnl'] = nextPnl;
-      patch['exit_price'] = exit;
-      patch['status'] = "closed";
-      patch['closed_at'] = new Date().toISOString();
+      patch["realized_pnl"] = nextPnl;
+      patch["exit_price"] = exit;
+      patch["status"] = "closed";
+      patch["closed_at"] = new Date().toISOString();
     }
 
     const { error } = await db.from("positions").update(patch).eq("id", data.id);
@@ -482,7 +480,7 @@ export const correctPosition = createServerFn({ method: "POST" })
 
     const wasClosed = position.status === "closed";
     const delta = nextPnl - (wasClosed ? previousPnl : 0);
-    if (patch['status'] === "closed" || wasClosed) {
+    if (patch["status"] === "closed" || wasClosed) {
       await creditWallet(db, position.user_id, position.currency, delta);
     }
 
