@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       {
         name: "description",
         content:
-          "Track multi-currency paper wallets, open positions and realized P&L across crypto, stocks, futures, forex and gold.",
+          "Track multi-currency wallets, open positions and realized P&L across crypto, stocks, futures, forex and gold.",
       },
       { property: "og:title", content: "Portfolio — Velocity Trade" },
       {
@@ -84,7 +84,7 @@ function Dashboard() {
             {data?.profile?.display_name ?? "Trader"}'s portfolio
           </h1>
           <p className="text-sm text-muted-foreground">
-            Multi-currency paper balances settled per instrument currency.
+            Multi-currency balances settled per instrument currency.
           </p>
         </div>
       </div>

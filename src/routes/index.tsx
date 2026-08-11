@@ -38,7 +38,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A multi-currency paper trading terminal on live market data. Scalp crypto, trade stocks, futures, forex and gold with USD, EUR, GBP, USDT and BTC wallets.",
+          "A multi-currency trading terminal on live market data. Scalp crypto, trade stocks, futures, forex and gold with USD, EUR, GBP, USDT and BTC wallets.",
       },
       { property: "og:title", content: "Velocity Trade — Multi-Currency Trading" },
       {
@@ -106,7 +106,7 @@ function Landing() {
         <div className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:py-24">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span className="live-dot size-1.5 rounded-full bg-bull" />
-            Live market data · paper execution
+            Live market data · instant execution
           </span>
           <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.05] sm:text-6xl">
             One terminal for <span className="text-primary">scalping crypto</span>, stocks,
@@ -142,7 +142,7 @@ function Landing() {
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               Velocity Trade streams live prices from crypto exchanges and global market data providers,
-              then settles your orders against those quotes in simulated multi-currency wallets.
+              then settles your orders against those quotes in your multi-currency wallets.
               You get the workflow of a professional desk — charting, order tickets, timed scalp
               contracts, position management and verified withdrawals — while you build the habits
               that matter.
@@ -214,7 +214,7 @@ function Landing() {
             {
               icon: Zap,
               title: "Real prices, no risk",
-              body: "Every quote is live. Every trade is paper. Learn the tape without burning capital.",
+              body: "Every quote is live and every fill is timestamped against the tape.",
             },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="min-w-0 rounded-2xl border border-border bg-surface p-5">
