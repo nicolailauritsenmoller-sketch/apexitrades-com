@@ -24,6 +24,8 @@ import {
   IdCard,
   MessagesSquare,
   Trash2,
+  BadgeCheck,
+  ShieldAlert,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -43,6 +45,9 @@ import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
+import { VipDesk } from "@/components/admin/VipDesk";
+import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
+import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
@@ -111,6 +116,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "Live support",
     items: [
       { id: "support", label: "Live Chat", icon: MessagesSquare },
+      { id: "vip", label: "VIP Live Chat", icon: BadgeCheck },
       { id: "tickets", label: "Support tickets", icon: LifeBuoy },
     ],
   },
@@ -153,6 +159,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "System",
     items: [
       { id: "audit", label: "Audit logs", icon: ScrollText },
+      { id: "security", label: "Security reports", icon: ShieldAlert },
       { id: "settings", label: "Settings", icon: Settings2 },
     ],
   },
@@ -415,6 +422,8 @@ function AdminPage() {
           {tab === "active" && <ActiveUsersPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
+          {tab === "vip" && <VipDesk />}
+          {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
           {tab === "credit" && <CreditScorePanel />}
           {tab === "audit" && <AuditLogPanel />}
@@ -1075,7 +1084,9 @@ function UsersTab({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
-
+  const verifiedIds = new Set(
+    kycAll.filter((k) => k.status === "approved").map((k) => k.user_id),
+  );
 
   return (
     <div className="space-y-4">
@@ -1085,9 +1096,12 @@ function UsersTab({
             <li key={p.id} className="rounded-md border border-border p-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div>
-                  <p className="text-sm font-semibold">{p.display_name}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    {p.id} · base {p.base_currency}
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    {p.display_name}
+                    {verifiedIds.has(p.id) && <VerifiedBadge />}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    <UidTag uid={p.uid} /> · base {p.base_currency}
                   </p>
                 </div>
                 <button

@@ -39,6 +39,10 @@ import {
 } from "@/lib/sessions";
 import { LEGAL_DOCS, type LegalDoc } from "@/lib/legal-content";
 import { TicketDialog } from "@/components/support/TicketDialog";
+import { SecurityReportDialog } from "@/components/support/SecurityReportDialog";
+import { VipChatDialog } from "@/components/support/VipChatDialog";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { VIP_ROLES } from "@/lib/vip";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -143,6 +147,8 @@ function ProfilePage() {
   const sendKyc = useServerFn(submitKyc);
   const [legal, setLegal] = useState<LegalDoc | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
+  const [vipOpen, setVipOpen] = useState(false);
 
   const overview = useQuery({
     queryKey: ["profile-overview"],
@@ -230,6 +236,7 @@ function ProfilePage() {
                 <h1 className="font-display text-xl font-bold tracking-tight">
                   {profile?.displayName ?? "Trader"}
                 </h1>
+                {status === "approved" && <VerifiedBadge />}
                 <span
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
                 >
@@ -245,9 +252,9 @@ function ProfilePage() {
               <p className="truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
               <button
                 onClick={() => profile?.uid && copy(profile.uid, "UID")}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-1 font-mono text-xs"
+                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-1 font-mono text-xs font-bold tracking-wide"
               >
-                UID {profile?.uid ?? "—"}
+                UID: #{profile?.uid ?? "—"}
                 <Copy className="size-3" />
               </button>
             </div>
@@ -513,14 +520,39 @@ function ProfilePage() {
               >
                 Help center
               </button>
-              <a
-                href="mailto:security@velocity.trade?subject=Security%20report"
-                className="inline-flex items-center gap-2 rounded-md border border-bear/40 px-3 py-2 text-sm text-bear sm:col-span-2"
+              <button
+                onClick={() => setSecurityOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-bear/40 px-3 py-2 text-left text-sm text-bear hover:bg-bear/10 sm:col-span-2"
               >
                 <ShieldAlert className="size-4" /> Report a security issue
-              </a>
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-md border border-emerald-600/30 bg-emerald-600/5 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold">VIP Live Chat</p>
+                  <p className="text-xs text-muted-foreground">
+                    Dedicated specialists — unlocked on request via customer support.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setVipOpen(true)}
+                  className="shrink-0 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Open
+                </button>
+              </div>
+              <ul className="mt-3 grid gap-1 sm:grid-cols-2">
+                {VIP_ROLES.map((r) => (
+                  <li key={r.key} className="text-xs text-muted-foreground">
+                    · {r.label}
+                  </li>
+                ))}
+              </ul>
             </div>
           </Section>
+
 
           <Section icon={ShieldCheck} title="Legal center" description="Policies governing your account.">
             <div className="grid gap-2">
@@ -566,6 +598,8 @@ function ProfilePage() {
       )}
 
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
+      <SecurityReportDialog open={securityOpen} onOpenChange={setSecurityOpen} />
+      <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
     </AppShell>
 
   );
