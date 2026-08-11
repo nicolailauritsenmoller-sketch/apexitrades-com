@@ -63,15 +63,18 @@ function Stat({
   icon: Icon,
   tone = "default",
   onClick,
+  alert = false,
 }: {
   label: string;
   value: string;
   icon: React.ElementType;
   tone?: "default" | "bull" | "bear" | "warn";
   onClick?: () => void;
+  alert?: boolean;
 }) {
-  const toneClass =
-    tone === "bull"
+  const toneClass = alert
+    ? "text-red-500"
+    : tone === "bull"
       ? "text-bull"
       : tone === "bear"
         ? "text-bear"
@@ -82,13 +85,23 @@ function Stat({
   return (
     <Tag
       {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={`w-full touch-manipulation rounded-xl border border-border bg-card p-3 text-left transition-all sm:p-4 ${
+      className={`w-full touch-manipulation rounded-xl border bg-card p-3 text-left transition-all sm:p-4 ${
+        alert
+          ? "border-2 border-red-500 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
+          : "border-border"
+      } ${
         onClick
-          ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
+          ? alert
+            ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.7)] active:scale-[0.99]"
+            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
           : ""
       }`}
     >
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+      <div
+        className={`flex items-center gap-2 text-[11px] uppercase tracking-wider ${
+          alert ? "text-red-500" : "text-muted-foreground"
+        }`}
+      >
         <Icon className="size-3.5 shrink-0" />
         <span className="truncate">{label}</span>
       </div>
@@ -96,6 +109,7 @@ function Stat({
     </Tag>
   );
 }
+
 
 export function MetricsBar({
   a,
