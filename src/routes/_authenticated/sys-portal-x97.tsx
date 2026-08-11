@@ -352,12 +352,13 @@ function AdminPage() {
                   <div className="flex gap-1 lg:block lg:space-y-0.5">
                     {group.items.map(({ id, label, icon: Icon }) => {
                       const isChat = id === "support";
-                      const alerting = isChat && unreadChats > 0;
+                      const pending = isChat ? unreadChats : (pendingCounts[id] ?? 0);
+                      const alerting = pending > 0;
                       return (
                         <button
                           key={id}
                           onClick={() => {
-                            go(id);
+                            go(id, alerting && !isChat ? "pending" : undefined);
                             if (isChat) silenceChatAlerts();
                           }}
                           className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -366,20 +367,25 @@ function AdminPage() {
                               : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                           } ${
                             alerting
-                              ? "animate-pulse border border-bear/60 text-foreground ring-2 ring-bear/30"
+                              ? isChat
+                                ? "animate-pulse border border-bear/60 text-foreground ring-2 ring-bear/30"
+                                : "border border-red-500/70 text-foreground"
                               : isChat
                                 ? "border border-primary/30"
                                 : ""
                           }`}
                         >
-                          <Icon className="size-4 shrink-0" />
+                          <Icon
+                            className={`size-4 shrink-0 ${alerting && !isChat ? "text-red-500" : ""}`}
+                          />
                           <span className="truncate">{label}</span>
-                          {isChat && unreadChats > 0 && (
+                          {pending > 0 && (
                             <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                              {unreadChats}
+                              {pending}
                             </span>
                           )}
                         </button>
+
                       );
                     })}
                   </div>
