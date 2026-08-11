@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircle, Send, X, Maximize2, Minimize2, GripVertical } from "lucide-react";
+import {
+  MessageCircle,
+  Send,
+  X,
+  Maximize2,
+  Minimize2,
+  GripVertical,
+  Paperclip,
+  Check,
+  CheckCheck,
+  Star,
+  Headset,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
 
 type Message = {
   id: string;
@@ -8,11 +22,23 @@ type Message = {
   sender_role: string;
   body: string;
   created_at: string;
+  read_at: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
 };
+
+type Agent = {
+  name: string;
+  role: string;
+  staffId: string;
+  avatarUrl: string | null;
+} | null;
 
 type Point = { x: number; y: number };
 
 const STORAGE_KEY = "velocity:chat-position";
+const RATED_KEY = "velocity:chat-rated";
 const BUTTON_SIZE = 52;
 const MARGIN = 12;
 
@@ -35,7 +61,11 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [agent, setAgent] = useState<Agent>(null);
+  const [rating, setRating] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const dragState = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
 
   /* ---------------- positioning ---------------- */
@@ -164,13 +194,33 @@ export function ChatWidget() {
     };
   }, [sessionId]);
 
+  // Agent persona + read receipts for the messages the user has now seen.
+  useEffect(() => {
+    if (!sessionId || !open) return;
+    let active = true;
+    const sync = async () => {
+      try {
+        const res = await getMyChatContext({ data: { sessionId } });
+        if (active) setAgent(res.agent as Agent);
+      } catch {
+        /* not signed in yet */
+      }
+    };
+    sync();
+    const timer = setInterval(sync, 20_000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [sessionId, open, messages.length]);
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, full]);
 
   async function send() {
     const body = draft.trim();
-    if (!body || !sessionId || sending) return;
+    if ((!body && !file) || !sessionId || sending) return;
     setSending(true);
     setDraft("");
     const { data: user } = await supabase.auth.getUser();
@@ -178,11 +228,27 @@ export function ChatWidget() {
       setSending(false);
       return;
     }
+
+    let attachment: Record<string, string | null> = {};
+    if (file) {
+      const path = `${user.user.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
+      const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+      if (!error) {
+        attachment = {
+          attachment_path: path,
+          attachment_name: file.name,
+          attachment_type: file.type,
+        };
+      }
+      setFile(null);
+    }
+
     await supabase.from("chat_messages").insert({
       session_id: sessionId,
       sender_id: user.user.id,
       sender_role: "user",
-      body,
+      body: body || (attachment['attachment_name'] ?? "Attachment"),
+      ...attachment,
     });
     await supabase
       .from("chat_sessions")
@@ -204,9 +270,24 @@ export function ChatWidget() {
 
   const header = (
     <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">Customer support</p>
-        <p className="text-[11px] text-muted-foreground">We typically reply in minutes</p>
+      <div className="flex min-w-0 items-center gap-2">
+        {agent?.avatarUrl ? (
+          <img
+            src={agent.avatarUrl}
+            alt=""
+            className="size-8 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            <Headset className="size-4" />
+          </span>
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{agent?.name ?? "Customer support"}</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {agent ? `${agent.role} · ID ${agent.staffId}` : "We typically reply in minutes"}
+          </p>
+        </div>
       </div>
       <div className="flex items-center gap-1">
         <button
@@ -221,6 +302,9 @@ export function ChatWidget() {
           onClick={() => {
             setOpen(false);
             setFull(false);
+            if (messages.length > 0 && localStorage.getItem(RATED_KEY) !== sessionId) {
+              setRating(true);
+            }
           }}
           aria-label="Close chat"
           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -248,6 +332,21 @@ export function ChatWidget() {
           }`}
         >
           {m.body}
+          {m.attachment_path && (
+            <ChatAttachment
+              messageId={m.id}
+              name={m.attachment_name}
+              type={m.attachment_type}
+            />
+          )}
+          <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
+            {new Date(m.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+            {m.sender_role === "user" &&
+              (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
+          </span>
         </div>
       ))}
       <div ref={endRef} />
@@ -255,7 +354,30 @@ export function ChatWidget() {
   );
 
   const composer = (
-    <div className="flex items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    <div className="flex flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      {file && (
+        <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
+          <Paperclip className="size-3" />
+          <span className="truncate">{file.name}</span>
+          <button onClick={() => setFile(null)} aria-label="Remove attachment">
+            <X className="size-3" />
+          </button>
+        </span>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,application/pdf"
+        hidden
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+      />
+      <button
+        onClick={() => fileRef.current?.click()}
+        aria-label="Attach a photo or document"
+        className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+      >
+        <Paperclip className="size-4" />
+      </button>
       <textarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -283,6 +405,16 @@ export function ChatWidget() {
 
   return (
     <>
+      {rating && sessionId && (
+        <RatingModal
+          sessionId={sessionId}
+          onClose={() => {
+            localStorage.setItem(RATED_KEY, sessionId);
+            setRating(false);
+          }}
+        />
+      )}
+
       {open && full && (
         <div className="fixed inset-0 z-[80] flex flex-col bg-background sm:p-6">
           <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden border-border bg-card sm:rounded-2xl sm:border sm:shadow-2xl">
@@ -329,5 +461,74 @@ export function ChatWidget() {
         </div>
       )}
     </>
+  );
+}
+
+/** Post-session 5-star rating and feedback prompt. */
+function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () => void }) {
+  const [stars, setStars] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!stars || busy) return;
+    setBusy(true);
+    try {
+      await submitChatRating({
+        data: { sessionId, stars, feedback: feedback.trim() || undefined },
+      });
+    } catch {
+      /* ignore — never block the user on feedback */
+    }
+    setBusy(false);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
+        <h3 className="font-display text-base font-bold tracking-tight">How did we do?</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Rate your support experience — it helps us improve.
+        </p>
+        <div className="mt-4 flex justify-center gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => setStars(n)}
+              aria-label={`${n} star${n > 1 ? "s" : ""}`}
+              className="touch-manipulation p-1"
+            >
+              <Star
+                className={`size-7 ${n <= stars ? "fill-warning text-warning" : "text-muted-foreground"}`}
+              />
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          rows={3}
+          maxLength={1000}
+          placeholder="Anything else you'd like to tell us? (optional)"
+          className="mt-4 w-full resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+        />
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 touch-manipulation rounded-md border border-border py-2 text-sm"
+          >
+            Not now
+          </button>
+          <button
+            onClick={submit}
+            disabled={!stars || busy}
+            className="flex-1 touch-manipulation rounded-md bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
