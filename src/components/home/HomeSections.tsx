@@ -77,6 +77,7 @@ type Membership = {
   countries: number | null;
   activeMembers: number | null;
   supportedMarkets: number | null;
+  visible?: Partial<Record<"totalMembers" | "countries" | "activeMembers" | "supportedMarkets", boolean>>;
   verified?: boolean;
 };
 
@@ -106,12 +107,18 @@ const BENEFITS = [
 
 export function GlobalMembershipSection() {
   const { data } = useMembershipStats();
-  const stats = [
-    { label: "Total members", value: data?.totalMembers },
-    { label: "Countries represented", value: data?.countries },
-    { label: "Active members", value: data?.activeMembers },
-    { label: "Supported markets", value: data?.supportedMarkets },
-  ].filter((s) => typeof s.value === "number" && s.value !== null);
+  const vis = data?.visible ?? {};
+  const stats = (
+    [
+      { key: "totalMembers", label: "Total members", value: data?.totalMembers },
+      { key: "countries", label: "Countries represented", value: data?.countries },
+      { key: "activeMembers", label: "Active members", value: data?.activeMembers },
+      { key: "supportedMarkets", label: "Supported markets", value: data?.supportedMarkets },
+    ] as const
+  ).filter(
+    (s) => vis[s.key] !== false && typeof s.value === "number" && s.value !== null,
+  );
+
 
   return (
     <section className="w-full max-w-full border-y border-border bg-surface/70 backdrop-blur-sm">
