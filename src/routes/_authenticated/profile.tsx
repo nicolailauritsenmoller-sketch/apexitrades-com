@@ -9,13 +9,11 @@ import {
   Copy,
   Gift,
   LifeBuoy,
-  Loader2,
   LogOut,
   MonitorSmartphone,
   ShieldAlert,
   ShieldCheck,
   Trash2,
-  Upload,
   Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
