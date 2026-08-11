@@ -449,6 +449,43 @@ function ReviewButtons({
   );
 }
 
+/** Thumbnail + lightbox for a deposit's uploaded proof of payment. */
+function DepositProof({ id }: { id: string }) {
+  const fetchUrl = useServerFn(getDepositProofUrl);
+  const [open, setOpen] = useState(false);
+  const proof = useQuery({
+    queryKey: ["deposit-proof", id],
+    queryFn: () => fetchUrl({ data: { id } }),
+    staleTime: 300_000,
+  });
+  const url = proof.data?.url ?? null;
+  if (!url) {
+    return <p className="mt-2 text-[11px] text-muted-foreground">Loading payment proof…</p>;
+  }
+  return (
+    <div className="mt-2">
+      <button onClick={() => setOpen(true)} className="block">
+        <img
+          src={url}
+          alt="Proof of payment"
+          className="h-24 w-auto rounded-md border border-border object-cover transition-opacity hover:opacity-80"
+        />
+      </button>
+      <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+        Proof of payment — click to enlarge
+      </p>
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-6"
+        >
+          <img src={url} alt="Proof of payment full size" className="max-h-full max-w-full rounded-lg" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DepositsTab({
   rows: allRows,
   onDone,
