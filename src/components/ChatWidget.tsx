@@ -10,11 +10,11 @@ import {
   Check,
   CheckCheck,
   Star,
-  Headset,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
+import brandLogo from "@/assets/velocity-trade-logo.png";
 
 type Message = {
   id: string;
@@ -26,6 +26,7 @@ type Message = {
   attachment_path: string | null;
   attachment_name: string | null;
   attachment_type: string | null;
+  pending?: boolean;
 };
 
 type Agent = {
@@ -41,6 +42,18 @@ const STORAGE_KEY = "velocity:chat-position";
 const RATED_KEY = "velocity:chat-rated";
 const BUTTON_SIZE = 52;
 const MARGIN = 12;
+
+/** Platform logo used as the default face of every support agent. */
+function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
+  return (
+    <img
+      src={src || brandLogo}
+      alt="Velocity Trade support"
+      className={`${className} shrink-0 rounded-full border border-border bg-background object-cover p-0.5`}
+    />
+  );
+}
+
 
 function clampToViewport(p: Point, w: number, h: number): Point {
   const maxX = Math.max(MARGIN, window.innerWidth - w - MARGIN);
