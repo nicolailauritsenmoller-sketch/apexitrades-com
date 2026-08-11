@@ -421,6 +421,8 @@ function AdminPage() {
           {tab === "active" && <ActiveUsersPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
+          {tab === "vip" && <VipDesk />}
+          {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
           {tab === "credit" && <CreditScorePanel />}
           {tab === "audit" && <AuditLogPanel />}
