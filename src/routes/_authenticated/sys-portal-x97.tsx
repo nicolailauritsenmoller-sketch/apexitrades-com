@@ -516,11 +516,7 @@ function DepositsTab({
                   tx: {d.tx_hash}
                 </p>
               )}
-              {d.receipt_path && (
-                <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
-                  receipt: {d.receipt_path}
-                </p>
-              )}
+              {d.receipt_path && <DepositProof id={d.id} />}
               {d.admin_note && (
                 <p className="mt-1 text-[11px] text-muted-foreground">note: {d.admin_note}</p>
               )}
