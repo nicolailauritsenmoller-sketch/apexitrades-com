@@ -1,6 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   LineChart,
   LayoutDashboard,
@@ -8,12 +7,10 @@ import {
   LogOut,
   Home,
   Wallet,
-  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
@@ -39,14 +36,6 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const fetchAccess = useServerFn(getMyAccess);
-  const access = useQuery({
-    queryKey: ["my-access"],
-    queryFn: () => fetchAccess(),
-    staleTime: 5 * 60_000,
-  });
-  const isAdmin = access.data?.isAdmin === true;
-
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -87,17 +76,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
-            {isAdmin && (
-              <Link
-                to="/desk-management"
-                className="flex items-center gap-2 rounded-md border border-primary/40 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/10"
-                activeProps={{ className: "bg-primary/10" }}
-              >
-                <ShieldCheck className="size-4" />
-                <span className="hidden sm:inline">Admin Panel</span>
-              </Link>
-            )}
-
             <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
