@@ -485,7 +485,7 @@ export type Database = {
           kind: string
           read_at: string | null
           title: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           body: string
@@ -494,7 +494,7 @@ export type Database = {
           kind?: string
           read_at?: string | null
           title: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           body?: string
@@ -503,7 +503,7 @@ export type Database = {
           kind?: string
           read_at?: string | null
           title?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
