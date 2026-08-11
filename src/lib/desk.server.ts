@@ -1,0 +1,54 @@
+/** Server-only helpers for the operations desk server functions. */
+
+type Ctx = { supabase: any; userId: string };
+
+export async function myRoles(context: Ctx): Promise<string[]> {
+  const { data } = await context.supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", context.userId);
+  return (data ?? []).map((r: { role: string }) => r.role);
+}
+
+export async function assertStaff(context: Ctx) {
+  const roles = await myRoles(context);
+  if (!roles.includes("admin") && !roles.includes("agent")) {
+    throw new Error("Forbidden: staff access required.");
+  }
+}
+
+export async function assertAdmin(context: Ctx) {
+  const roles = await myRoles(context);
+  if (!roles.includes("admin")) throw new Error("Forbidden: admin access required.");
+}
+
+/** Service-role client — the only way privileged tables can be written. */
+export async function privileged() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin as any;
+}
+
+export const AGENT_ROLES = [
+  "Compliance/KYC Officer",
+  "Risk Manager",
+  "Support Agent",
+  "IT/DevOps Support",
+  "Finance/Billing Agent",
+  "Account Manager",
+  "Auditor",
+] as const;
+
+export async function logAudit(
+  db: any,
+  actorId: string,
+  action: string,
+  targetUserId: string | null,
+  details: Record<string, unknown>,
+) {
+  await db.from("admin_audit_logs").insert({
+    actor_id: actorId,
+    action,
+    target_user_id: targetUserId,
+    details,
+  });
+}
