@@ -147,6 +147,8 @@ function ProfilePage() {
   const sendKyc = useServerFn(submitKyc);
   const [legal, setLegal] = useState<LegalDoc | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
+  const [vipOpen, setVipOpen] = useState(false);
 
   const overview = useQuery({
     queryKey: ["profile-overview"],
