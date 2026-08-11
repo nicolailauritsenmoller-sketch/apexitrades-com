@@ -6,6 +6,8 @@ import { Check, CheckCheck, Inbox, Loader2, Paperclip, Send, Ticket, X } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
+import { silenceChatAlerts } from "@/lib/alerts";
+
 import {
   getSupportThreads,
   getSupportTickets,
