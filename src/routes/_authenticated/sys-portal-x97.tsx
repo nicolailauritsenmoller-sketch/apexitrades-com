@@ -336,7 +336,7 @@ function AdminPage() {
                               : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                           } ${
                             alerting
-                              ? "animate-pulse border border-bear/60 text-foreground shadow-[0_0_0_3px_hsl(var(--bear)/0.12)]"
+                              ? "animate-pulse border border-bear/60 text-foreground ring-2 ring-bear/30"
                               : isChat
                                 ? "border border-primary/30"
                                 : ""
@@ -391,6 +391,33 @@ function AdminPage() {
             <>
               {tab === "overview" && (
                 <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      go("support");
+                      window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-transform hover:-translate-y-0.5 ${
+                      unreadChats > 0
+                        ? "animate-pulse border-bear/60 bg-bear/10 ring-2 ring-bear/25"
+                        : "border-primary/30 bg-primary/5"
+                    }`}
+                  >
+                    <MessagesSquare className="size-5 text-primary" />
+                    <div className="min-w-0">
+                      <p className="font-display text-sm font-bold tracking-tight">Live Chat</p>
+                      <p className="text-xs text-muted-foreground">
+                        {unreadChats > 0
+                          ? `${unreadChats} unread user message${unreadChats === 1 ? "" : "s"} waiting`
+                          : "No unread messages — inbox clear"}
+                      </p>
+                    </div>
+                    {unreadChats > 0 && (
+                      <span className="ml-auto grid min-w-6 place-items-center rounded-full bg-red-600 px-2 py-1 text-xs font-bold leading-none text-white">
+                        {unreadChats}
+                      </span>
+                    )}
+                  </button>
                   {analytics ? (
                     <>
                       <button
@@ -1033,6 +1060,11 @@ function UsersTab({
                 >
                   {selected === p.id ? "Hide balances" : "Manage balances"}
                 </button>
+                <DeleteUserButton
+                  userId={p.id}
+                  name={p.display_name}
+                  onDone={onDone}
+                />
               </div>
               {selected === p.id && <BalanceEditor userId={p.id} onDone={onDone} />}
             </li>
@@ -1052,6 +1084,59 @@ function UsersTab({
         )}
       </Card>
     </div>
+  );
+}
+
+/** Permanent cascade removal of a user and all of their data. */
+function DeleteUserButton({
+  userId,
+  name,
+  onDone,
+}: {
+  userId: string;
+  name: string;
+  onDone: () => void;
+}) {
+  const call = useServerFn(deleteUserAccount);
+  const [confirming, setConfirming] = useState(false);
+  const mutation = useMutation({
+    mutationFn: () => call({ data: { userId } }),
+    onSuccess: () => {
+      toast.success(`${name} and all associated records were permanently deleted.`);
+      setConfirming(false);
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] text-bear">Permanently delete everything?</span>
+        <button
+          disabled={mutation.isPending}
+          onClick={() => mutation.mutate()}
+          className="rounded-md bg-bear px-3 py-1.5 text-xs font-semibold text-bear-foreground disabled:opacity-50"
+        >
+          {mutation.isPending ? "Deleting…" : "Yes, delete"}
+        </button>
+        <button
+          onClick={() => setConfirming(false)}
+          className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setConfirming(true)}
+      className="flex items-center gap-1.5 rounded-md border border-bear/40 px-3 py-1.5 text-xs font-semibold text-bear hover:bg-bear/10"
+    >
+      <Trash2 className="size-3.5" /> Delete user
+    </button>
   );
 }
 
