@@ -624,6 +624,54 @@ export type Database = {
         }
         Relationships: []
       }
+      security_reports: {
+        Row: {
+          admin_note: string | null
+          attachment_name: string | null
+          attachment_path: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_ticket_messages: {
         Row: {
           body: string
@@ -788,6 +836,108 @@ export type Database = {
           os?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      vip_access: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          role_key: string
+          unlocked: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role_key: string
+          unlocked?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role_key?: string
+          unlocked?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vip_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          role_key: string
+          sender_id: string | null
+          sender_role: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          role_key: string
+          sender_id?: string | null
+          sender_role: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          role_key?: string
+          sender_id?: string | null
+          sender_role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vip_specialists: {
+        Row: {
+          active: boolean
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          id: string
+          role_key: string
+          role_label: string
+          staff_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          role_key: string
+          role_label: string
+          staff_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          role_key?: string
+          role_label?: string
+          staff_id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
