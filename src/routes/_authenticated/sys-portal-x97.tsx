@@ -32,6 +32,7 @@ import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
+import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { downloadCsv } from "@/lib/csv";
 import { AdminShell } from "@/components/AdminShell";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -41,6 +42,7 @@ import {
   getAdminAnalytics,
   getAdminOverview,
   getKycDocumentUrls,
+  getDepositProofUrl,
   getMyAccess,
   getUserWallets,
   reviewDeposit,
@@ -325,7 +327,7 @@ function AdminPage() {
                 <div className="space-y-4">
                   {analytics ? (
                     <>
-                      <MetricsBar a={analytics} />
+                      <MetricsBar a={analytics} onOpen={go} />
                       <AnalyticsCharts a={analytics} />
                       <KycExpiry a={analytics} />
                       <SystemActivity a={analytics} />
@@ -373,15 +375,31 @@ function AdminPage() {
                   />
                 </div>
               )}
-              {tab === "deposits" && <DepositsTab rows={data.deposits} onDone={refresh} />}
+              {tab === "deposits" && (
+                <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} />
+              )}
               {tab === "withdrawals" && (
-                <WithdrawalsTab rows={data.withdrawals} onDone={refresh} />
+                <WithdrawalsTab
+                  rows={data.withdrawals}
+                  onDone={refresh}
+                  statusFilter={statusFilter}
+                />
               )}
               {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
               {tab === "users" && (
-                <UsersTab profiles={data.profiles} kyc={data.kyc} onDone={refresh} />
+                <UsersTab
+                  profiles={data.profiles}
+                  kyc={data.kyc}
+                  onDone={refresh}
+                  statusFilter={statusFilter}
+                />
               )}
-              {tab === "broadcast" && <BroadcastTab profiles={data.profiles} />}
+              {tab === "broadcast" && (
+                <div className="space-y-4">
+                  <AnnouncementsPanel />
+                  <BroadcastTab profiles={data.profiles} />
+                </div>
+              )}
             </>
           )}
         </div>
