@@ -6,6 +6,8 @@ import { Check, CheckCheck, Inbox, Loader2, Paperclip, Send, Ticket, X } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
+import { silenceChatAlerts } from "@/lib/alerts";
+
 import {
   getSupportThreads,
   getSupportTickets,
@@ -85,14 +87,42 @@ function ChatInboxes() {
     refetchInterval: 8_000,
   });
 
-  // Focusing the desk silences the looping alert bell and clears unread ticks.
+  // Opening the desk (or switching threads) hard-mutes the looping bell and
+  // clears unread ticks for the selected conversation.
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+    silenceChatAlerts();
     if (!activeId) return;
     void markRead({ data: { sessionId: activeId } }).then(() => {
       qc.invalidateQueries({ queryKey: ["support-threads"] });
+      qc.invalidateQueries({ queryKey: ["desk-unread"] });
+      silenceChatAlerts();
     });
   }, [activeId, markRead, qc]);
+
+  // Any new message that lands while the thread is open counts as seen.
+  useEffect(() => {
+    if (!activeId || !messages.data) return;
+    silenceChatAlerts();
+    void markRead({ data: { sessionId: activeId } }).then(() => {
+      qc.invalidateQueries({ queryKey: ["support-threads"] });
+      qc.invalidateQueries({ queryKey: ["desk-unread"] });
+    });
+  }, [messages.data, activeId, markRead, qc]);
+
+  // Mute as soon as the live message bubbles actually enter the viewport.
+  useEffect(() => {
+    const node = endRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) silenceChatAlerts();
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [activeId]);
+
 
   // Real-time push for the thread currently open in the right panel.
   useEffect(() => {
@@ -173,7 +203,11 @@ function ChatInboxes() {
         {list.map((t) => (
           <button
             key={t.id}
-            onClick={() => setActiveId(t.id)}
+            onClick={() => {
+              silenceChatAlerts();
+              setActiveId(t.id);
+            }}
+
             className={`flex w-full items-start gap-2 border-b border-border px-3 py-3 text-left transition-colors ${
               activeId === t.id ? "bg-secondary" : "hover:bg-secondary/60"
             }`}

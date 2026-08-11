@@ -44,6 +44,7 @@ import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { downloadCsv } from "@/lib/csv";
+import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import {
@@ -328,7 +329,7 @@ function AdminPage() {
                           key={id}
                           onClick={() => {
                             go(id);
-                            if (isChat) window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+                            if (isChat) silenceChatAlerts();
                           }}
                           className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
                             tab === id
@@ -395,7 +396,7 @@ function AdminPage() {
                     type="button"
                     onClick={() => {
                       go("support");
-                      window.dispatchEvent(new CustomEvent("desk:chat-focus"));
+                      silenceChatAlerts();
                     }}
                     className={`flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-transform hover:-translate-y-0.5 ${
                       unreadChats > 0
