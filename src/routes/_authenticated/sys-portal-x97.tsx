@@ -47,6 +47,7 @@ import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { VipDesk } from "@/components/admin/VipDesk";
 import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
+import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
