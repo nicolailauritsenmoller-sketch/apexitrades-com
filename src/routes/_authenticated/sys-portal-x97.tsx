@@ -46,6 +46,8 @@ import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
+import { supabase } from "@/integrations/supabase/client";
+
 import { AssetIcon } from "@/lib/asset-icons";
 import {
   adjustUserBalance,
