@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { UserAvatar } from "@/components/UserAvatar";
+
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
