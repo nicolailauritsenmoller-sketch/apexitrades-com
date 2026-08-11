@@ -284,11 +284,30 @@ function DepositTab({
   const [selected, setSelected] = useState(0);
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [proof, setProof] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const submit = useServerFn(requestDeposit);
 
   const mutation = useMutation({
-    mutationFn: (vars: { coin: string; network: string; amount: number; txHash?: string }) =>
-      submit({ data: vars }),
+    mutationFn: async (vars: { coin: string; network: string; amount: number; txHash?: string }) => {
+      let receiptPath: string | undefined;
+      if (proof) {
+        setUploading(true);
+        try {
+          const { data: auth } = await supabase.auth.getUser();
+          const uid = auth.user?.id;
+          if (!uid) throw new Error("Session expired. Please sign in again.");
+          const ext = proof.name.split(".").pop()?.toLowerCase() ?? "png";
+          const path = `${uid}/${Date.now()}.${ext}`;
+          const { error } = await supabase.storage.from("deposit-proofs").upload(path, proof);
+          if (error) throw new Error(error.message);
+          receiptPath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return submit({ data: { ...vars, ...(receiptPath ? { receiptPath } : {}) } });
+    },
     onSuccess: (res, vars) => {
       onSubmitted({
         id: res.id,
@@ -307,10 +326,12 @@ function DepositTab({
       });
       setAmount("");
       setTxHash("");
+      setProof(null);
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const addr = addresses[selected];
 
