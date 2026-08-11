@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   LineChart,
   LayoutDashboard,
@@ -8,6 +9,7 @@ import {
   Home,
   Wallet,
   UserRound,
+  ShieldCheck,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,7 @@ import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
 import brandLogo from "@/assets/velocity-trade-logo.png";
+import { getMyAccess } from "@/lib/admin.functions";
 
 
 const NAV = [
@@ -36,6 +39,14 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const fetchAccess = useServerFn(getMyAccess);
+  const access = useQuery({
+    queryKey: ["my-access"],
+    queryFn: () => fetchAccess(),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const isStaff = Boolean(access.data?.isStaff);
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -76,6 +87,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
+            {isStaff ? (
+              <Link
+                to="/sys-portal-x97"
+                className="hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
+              >
+                <ShieldCheck className="size-4" />
+                Admin Panel
+              </Link>
+            ) : null}
             <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
