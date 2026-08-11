@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/assets")({
       {
         name: "description",
         content:
-          "Track multi-currency paper balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
+          "Track multi-currency balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
       },
       { property: "og:title", content: "Assets & wallets — Velocity Trade" },
       {

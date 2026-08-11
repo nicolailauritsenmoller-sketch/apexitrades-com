@@ -47,7 +47,7 @@ export function SiteFooter() {
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             A multi-currency trading terminal for crypto, stocks, futures, forex and gold. Live
-            market data with simulated execution.
+            market data with instant execution.
           </p>
         </div>
 

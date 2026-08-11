@@ -14,6 +14,7 @@ import {
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -57,6 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <AnnouncementBanner />
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
@@ -100,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
-              Paper account
+              Live account
             </span>
             <button
               onClick={signOut}

@@ -32,6 +32,7 @@ import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
+import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { downloadCsv } from "@/lib/csv";
 import { AdminShell } from "@/components/AdminShell";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -41,6 +42,7 @@ import {
   getAdminAnalytics,
   getAdminOverview,
   getKycDocumentUrls,
+  getDepositProofUrl,
   getMyAccess,
   getUserWallets,
   reviewDeposit,
@@ -209,6 +211,11 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<TabId>("overview");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const go = (next: TabId, status?: string) => {
+    setTab(next);
+    setStatusFilter(status ?? null);
+  };
 
   const fetchAccess = useServerFn(getMyAccess);
   const fetchOverview = useServerFn(getAdminOverview);
@@ -272,7 +279,7 @@ function AdminPage() {
                     {group.items.map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
-                        onClick={() => setTab(id)}
+                        onClick={() => go(id)}
                         className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
                           tab === id
                             ? "bg-primary/15 font-medium text-primary"
@@ -320,7 +327,7 @@ function AdminPage() {
                 <div className="space-y-4">
                   {analytics ? (
                     <>
-                      <MetricsBar a={analytics} />
+                      <MetricsBar a={analytics} onOpen={go} />
                       <AnalyticsCharts a={analytics} />
                       <KycExpiry a={analytics} />
                       <SystemActivity a={analytics} />
@@ -368,15 +375,31 @@ function AdminPage() {
                   />
                 </div>
               )}
-              {tab === "deposits" && <DepositsTab rows={data.deposits} onDone={refresh} />}
+              {tab === "deposits" && (
+                <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} />
+              )}
               {tab === "withdrawals" && (
-                <WithdrawalsTab rows={data.withdrawals} onDone={refresh} />
+                <WithdrawalsTab
+                  rows={data.withdrawals}
+                  onDone={refresh}
+                  statusFilter={statusFilter}
+                />
               )}
               {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
               {tab === "users" && (
-                <UsersTab profiles={data.profiles} kyc={data.kyc} onDone={refresh} />
+                <UsersTab
+                  profiles={data.profiles}
+                  kyc={data.kyc}
+                  onDone={refresh}
+                  statusFilter={statusFilter}
+                />
               )}
-              {tab === "broadcast" && <BroadcastTab profiles={data.profiles} />}
+              {tab === "broadcast" && (
+                <div className="space-y-4">
+                  <AnnouncementsPanel />
+                  <BroadcastTab profiles={data.profiles} />
+                </div>
+              )}
             </>
           )}
         </div>
@@ -426,9 +449,56 @@ function ReviewButtons({
   );
 }
 
-function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
+/** Thumbnail + lightbox for a deposit's uploaded proof of payment. */
+function DepositProof({ id }: { id: string }) {
+  const fetchUrl = useServerFn(getDepositProofUrl);
+  const [open, setOpen] = useState(false);
+  const proof = useQuery({
+    queryKey: ["deposit-proof", id],
+    queryFn: () => fetchUrl({ data: { id } }),
+    staleTime: 300_000,
+  });
+  const url = proof.data?.url ?? null;
+  if (!url) {
+    return <p className="mt-2 text-[11px] text-muted-foreground">Loading payment proof…</p>;
+  }
+  return (
+    <div className="mt-2">
+      <button onClick={() => setOpen(true)} className="block">
+        <img
+          src={url}
+          alt="Proof of payment"
+          className="h-24 w-auto rounded-md border border-border object-cover transition-opacity hover:opacity-80"
+        />
+      </button>
+      <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+        Proof of payment — click to enlarge
+      </p>
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-6"
+        >
+          <img src={url} alt="Proof of payment full size" className="max-h-full max-w-full rounded-lg" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DepositsTab({
+  rows: allRows,
+  onDone,
+  statusFilter,
+}: {
+  rows: any[];
+  onDone: () => void;
+  statusFilter?: string | null;
+}) {
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
+  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+
 
   return (
     <Card
@@ -483,11 +553,7 @@ function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
                   tx: {d.tx_hash}
                 </p>
               )}
-              {d.receipt_path && (
-                <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
-                  receipt: {d.receipt_path}
-                </p>
-              )}
+              {d.receipt_path && <DepositProof id={d.id} />}
               {d.admin_note && (
                 <p className="mt-1 text-[11px] text-muted-foreground">note: {d.admin_note}</p>
               )}
@@ -516,9 +582,19 @@ function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   );
 }
 
-function WithdrawalsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
+function WithdrawalsTab({
+  rows: allRows,
+  onDone,
+  statusFilter,
+}: {
+  rows: any[];
+  onDone: () => void;
+  statusFilter?: string | null;
+}) {
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
   const [note, setNote] = useState<Record<string, string>>({});
+  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+
 
   return (
     <Card
@@ -851,14 +927,18 @@ function OutcomesTab({
 
 function UsersTab({
   profiles,
-  kyc,
+  kyc: kycAll,
   onDone,
+  statusFilter,
 }: {
   profiles: any[];
   kyc: any[];
   onDone: () => void;
+  statusFilter?: string | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
+
 
   return (
     <div className="space-y-4">

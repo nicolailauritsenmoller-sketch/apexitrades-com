@@ -8,6 +8,7 @@ const depositInput = z.object({
   network: z.string().min(1).max(24),
   amount: z.number().positive().max(100_000_000),
   txHash: z.string().trim().max(200).optional(),
+  receiptPath: z.string().trim().max(400).optional(),
 });
 
 const withdrawInput = z.object({
@@ -190,6 +191,7 @@ export const requestDeposit = createServerFn({ method: "POST" })
         network: data.network,
         amount: data.amount,
         tx_hash: data.txHash || null,
+        receipt_path: data.receiptPath || null,
       })
       .select("id,created_at")
       .single();

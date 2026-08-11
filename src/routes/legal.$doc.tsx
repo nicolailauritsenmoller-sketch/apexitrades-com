@@ -21,7 +21,7 @@ const EXTRA_DOCS: Record<string, { title: string; body: string[] }> = {
     body: [
       "Velocity Trade is a multi-currency trading environment covering crypto, equities, futures, forex and precious metals on live market data.",
       "The platform combines a professional charting terminal, timed scalp contracts, multi-currency wallets and a full compliance workflow for identity verification.",
-      "Positions are simulated. Prices are real, so you can learn market structure and execution without risking capital.",
+      "Prices are sourced live from public market venues so execution reflects real market structure.",
     ],
   },
   contact: {

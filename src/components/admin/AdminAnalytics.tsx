@@ -62,11 +62,13 @@ function Stat({
   value,
   icon: Icon,
   tone = "default",
+  onClick,
 }: {
   label: string;
   value: string;
   icon: React.ElementType;
   tone?: "default" | "bull" | "bear" | "warn";
+  onClick?: () => void;
 }) {
   const toneClass =
     tone === "bull"
@@ -76,46 +78,96 @@ function Stat({
         : tone === "warn"
           ? "text-warning"
           : "text-foreground";
+  const Tag = onClick ? "button" : "div";
   return (
-    <div className="touch-manipulation rounded-xl border border-border bg-card p-3 sm:p-4">
+    <Tag
+      {...(onClick ? { onClick, type: "button" as const } : {})}
+      className={`w-full touch-manipulation rounded-xl border border-border bg-card p-3 text-left transition-all sm:p-4 ${
+        onClick
+          ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
+          : ""
+      }`}
+    >
       <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
         <Icon className="size-3.5 shrink-0" />
         <span className="truncate">{label}</span>
       </div>
       <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${toneClass}`}>{value}</p>
-    </div>
+    </Tag>
   );
 }
 
-export function MetricsBar({ a }: { a: Analytics }) {
+export function MetricsBar({
+  a,
+  onOpen,
+}: {
+  a: Analytics;
+  onOpen?: (tab: string, status?: string) => void;
+}) {
   const m = a.metrics;
+  const go = (tab: string, status?: string) => (onOpen ? () => onOpen(tab, status) : undefined);
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Total users" value={String(m.totalUsers)} icon={Users} />
-        <Stat label="New today" value={String(m.newUsersToday)} icon={UserPlus} />
-        <Stat label="Weekly sign-ups" value={String(m.signupsWeek)} icon={UserPlus} />
-        <Stat label="Monthly sign-ups" value={String(m.signupsMonth)} icon={UserPlus} />
-        <Stat label="Referred users" value={String(a.referrals)} icon={BadgeCheck} />
+        <Stat label="Total users" value={String(m.totalUsers)} icon={Users} onClick={go("users")} />
+        <Stat label="New today" value={String(m.newUsersToday)} icon={UserPlus} onClick={go("users")} />
+        <Stat label="Weekly sign-ups" value={String(m.signupsWeek)} icon={UserPlus} onClick={go("users")} />
+        <Stat label="Monthly sign-ups" value={String(m.signupsMonth)} icon={UserPlus} onClick={go("users")} />
+        <Stat label="Referred users" value={String(a.referrals)} icon={BadgeCheck} onClick={go("users")} />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Total deposits" value={money(m.totalDeposits)} icon={ArrowDownToLine} tone="bull" />
-        <Stat label="Pending deposits" value={String(m.pendingDeposits)} icon={ArrowDownToLine} tone="warn" />
-        <Stat label="Pending withdrawals" value={String(m.pendingWithdrawals)} icon={ArrowUpFromLine} tone="warn" />
+        <Stat
+          label="Total deposits"
+          value={money(m.totalDeposits)}
+          icon={ArrowDownToLine}
+          tone="bull"
+          onClick={go("deposits")}
+        />
+        <Stat
+          label="Pending deposits"
+          value={String(m.pendingDeposits)}
+          icon={ArrowDownToLine}
+          tone="warn"
+          onClick={go("deposits", "pending")}
+        />
+        <Stat
+          label="Pending withdrawals"
+          value={String(m.pendingWithdrawals)}
+          icon={ArrowUpFromLine}
+          tone="warn"
+          onClick={go("withdrawals", "pending")}
+        />
         <Stat
           label="Revenue"
           value={money(m.revenue)}
           icon={CircleDollarSign}
           tone={m.revenue >= 0 ? "bull" : "bear"}
+          onClick={go("transactions")}
         />
-        <Stat label="Active trades" value={String(m.activeTrades)} icon={TrendingUp} />
-        <Stat label="Pending KYC" value={String(m.pendingKyc)} icon={ShieldAlert} tone="warn" />
+        <Stat
+          label="Active trades"
+          value={String(m.activeTrades)}
+          icon={TrendingUp}
+          onClick={go("trades")}
+        />
+        <Stat
+          label="Pending KYC"
+          value={String(m.pendingKyc)}
+          icon={ShieldAlert}
+          tone="warn"
+          onClick={go("users", "pending")}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="Open tickets" value={String(m.openTickets)} icon={LifeBuoy} />
-        <Stat label="Total withdrawals" value={money(m.totalWithdrawals)} icon={ArrowUpFromLine} />
-        <Stat label="Referral rewards" value={money(a.referralRewards)} icon={BadgeCheck} />
-        <Stat label="Active devices" value={String(a.sessions.length)} icon={Eye} />
+        <Stat label="Open tickets" value={String(m.openTickets)} icon={LifeBuoy} onClick={go("tickets")} />
+        <Stat
+          label="Total withdrawals"
+          value={money(m.totalWithdrawals)}
+          icon={ArrowUpFromLine}
+          onClick={go("withdrawals")}
+        />
+        <Stat label="Referral rewards" value={money(a.referralRewards)} icon={BadgeCheck} onClick={go("users")} />
+        <Stat label="Active devices" value={String(a.sessions.length)} icon={Eye} onClick={go("analytics")} />
       </div>
     </div>
   );

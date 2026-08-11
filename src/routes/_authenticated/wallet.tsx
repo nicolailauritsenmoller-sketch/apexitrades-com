@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
 import { AssetsOverview } from "@/components/AssetsOverview";
@@ -284,11 +285,30 @@ function DepositTab({
   const [selected, setSelected] = useState(0);
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [proof, setProof] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const submit = useServerFn(requestDeposit);
 
   const mutation = useMutation({
-    mutationFn: (vars: { coin: string; network: string; amount: number; txHash?: string }) =>
-      submit({ data: vars }),
+    mutationFn: async (vars: { coin: string; network: string; amount: number; txHash?: string }) => {
+      let receiptPath: string | undefined;
+      if (proof) {
+        setUploading(true);
+        try {
+          const { data: auth } = await supabase.auth.getUser();
+          const uid = auth.user?.id;
+          if (!uid) throw new Error("Session expired. Please sign in again.");
+          const ext = proof.name.split(".").pop()?.toLowerCase() ?? "png";
+          const path = `${uid}/${Date.now()}.${ext}`;
+          const { error } = await supabase.storage.from("deposit-proofs").upload(path, proof);
+          if (error) throw new Error(error.message);
+          receiptPath = path;
+        } finally {
+          setUploading(false);
+        }
+      }
+      return submit({ data: { ...vars, ...(receiptPath ? { receiptPath } : {}) } });
+    },
     onSuccess: (res, vars) => {
       onSubmitted({
         id: res.id,
@@ -307,10 +327,12 @@ function DepositTab({
       });
       setAmount("");
       setTxHash("");
+      setProof(null);
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const addr = addresses[selected];
 
@@ -397,6 +419,18 @@ function DepositTab({
                 placeholder="Transaction hash (optional)"
                 className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
               />
+              <label className="block cursor-pointer rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground transition-colors hover:border-primary/50">
+                <span className="font-medium text-foreground">
+                  Upload proof of payment / transaction screenshot
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="mt-2 block w-full text-xs"
+                  onChange={(e) => setProof(e.target.files?.[0] ?? null)}
+                />
+                {proof && <span className="mt-1 block truncate text-bull">{proof.name}</span>}
+              </label>
               <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
                 <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
                 <span>
@@ -405,7 +439,7 @@ function DepositTab({
                 </span>
               </div>
               <button
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || uploading}
                 onClick={() => {
                   const value = Number(amount);
                   if (!Number.isFinite(value) || value <= 0) {

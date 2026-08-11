@@ -298,6 +298,25 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     return { document: await sign(row.document_path), selfie: await sign(row.selfie_path) };
   });
 
+/** Signed URL for a deposit's proof-of-payment screenshot. */
+export const getDepositProofUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: row } = await context.supabase
+      .from("deposits")
+      .select("receipt_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!row?.receipt_path) return { url: null };
+    const { data: signed } = await context.supabase.storage
+      .from("deposit-proofs")
+      .createSignedUrl(row.receipt_path, 600);
+    return { url: signed?.signedUrl ?? null };
+  });
+
+
 const addressInput = z.object({
   id: z.string().uuid().optional(),
   coin: z.string().trim().min(1).max(12),
