@@ -153,4 +153,3 @@ export async function signOutEverywhere() {
   }
   await supabase.auth.signOut({ scope: "global" });
 }
-
