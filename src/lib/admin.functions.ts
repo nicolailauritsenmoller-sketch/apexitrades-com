@@ -1041,3 +1041,95 @@ export const getAuditLogs = createServerFn({ method: "POST" })
       .limit(200);
     return data ?? [];
   });
+
+/* ------------------------------------------------------------------ */
+/* Permanent user deletion (cascade purge)                             */
+/* ------------------------------------------------------------------ */
+
+const USER_TABLES = [
+  "contracts",
+  "positions",
+  "swaps",
+  "watchlist",
+  "deposits",
+  "withdrawals",
+  "kyc_submissions",
+  "notifications",
+  "user_sessions",
+  "consent_records",
+  "chat_ratings",
+  "user_roles",
+  "agent_profiles",
+  "wallets",
+] as const;
+
+async function purgeBucket(db: any, bucket: string, prefix: string) {
+  const { data } = await db.storage.from(bucket).list(prefix, { limit: 1000 });
+  const paths = (data ?? []).map((f: any) => `${prefix}/${f.name}`);
+  if (paths.length) await db.storage.from(bucket).remove(paths);
+}
+
+/** Irreversibly removes a user and every record attached to them. */
+export const deleteUserAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (data.userId === context.userId) throw new Error("You cannot delete your own account.");
+    const db = await privileged();
+
+    const { data: profile } = await db
+      .from("profiles")
+      .select("display_name")
+      .eq("id", data.userId)
+      .maybeSingle();
+
+    // Conversations and tickets carry child message rows.
+    const { data: sessions } = await db
+      .from("chat_sessions")
+      .select("id")
+      .eq("user_id", data.userId);
+    const sessionIds = (sessions ?? []).map((s: any) => s.id);
+    if (sessionIds.length) {
+      await db.from("chat_messages").delete().in("session_id", sessionIds);
+      await db.from("chat_sessions").delete().in("id", sessionIds);
+    }
+
+    const { data: tickets } = await db
+      .from("support_tickets")
+      .select("id")
+      .eq("user_id", data.userId);
+    const ticketIds = (tickets ?? []).map((t: any) => t.id);
+    if (ticketIds.length) {
+      await db.from("support_ticket_messages").delete().in("ticket_id", ticketIds);
+      await db.from("support_tickets").delete().in("id", ticketIds);
+    }
+
+    for (const table of USER_TABLES) {
+      await db.from(table).delete().eq("user_id", data.userId);
+    }
+
+    // Uploaded documents are stored under a per-user folder in each bucket.
+    for (const bucket of ["kyc-documents", "deposit-proofs", "chat-attachments"]) {
+      try {
+        await purgeBucket(db, bucket, data.userId);
+      } catch {
+        /* bucket may not contain a folder for this user */
+      }
+    }
+
+    await db.from("profiles").update({ referred_by: null }).eq("referred_by", data.userId);
+    await db.from("profiles").delete().eq("id", data.userId);
+
+    const { error } = await db.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+
+    await db.from("admin_audit_logs").insert({
+      actor_id: context.userId,
+      action: "user.delete",
+      target_user_id: null,
+      details: { userId: data.userId, displayName: profile?.display_name ?? null },
+    });
+
+    return { ok: true };
+  });
