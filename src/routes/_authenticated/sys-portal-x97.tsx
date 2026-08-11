@@ -24,6 +24,8 @@ import {
   IdCard,
   MessagesSquare,
   Trash2,
+  BadgeCheck,
+  ShieldAlert,
 } from "lucide-react";
 import {
   MetricsBar,
