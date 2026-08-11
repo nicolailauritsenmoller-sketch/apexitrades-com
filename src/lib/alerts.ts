@@ -85,7 +85,7 @@ let loopTimer: ReturnType<typeof setInterval> | null = null;
 export function startChatLoop() {
   if (loopTimer) return;
   playChime("chat");
-  loopTimer = setInterval(() => playChime("chat"), 2500);
+  loopTimer = setInterval(() => playChime("chat"), 1800);
 }
 
 export function stopChatLoop() {

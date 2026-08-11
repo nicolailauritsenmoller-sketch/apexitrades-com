@@ -73,15 +73,29 @@ export function AdminAlerts() {
           );
         },
       )
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "deposits" }, (p) => {
-        const r = p.new as any;
-        alert("money", "New deposit request", `${money(r.amount)} ${r.coin} awaiting approval`);
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "withdrawals" }, (p) => {
-        const r = p.new as any;
+      .on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        if (!r.id) return;
         alert(
           "money",
-          "New withdrawal request",
+          p.eventType === "INSERT" ? "New deposit request" : "Deposit request updated",
+          `${money(r.amount)} ${r.coin} · ${r.status}`,
+        );
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "contracts" }, (p) => {
+        const r = p.new as any;
+        alert(
+          "trade",
+          "Trade executed",
+          `${r.display_symbol ?? r.symbol} · ${r.direction} · ${money(r.stake)} ${r.currency}`,
+        );
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        if (!r.id) return;
+        alert(
+          "money",
+          p.eventType === "INSERT" ? "New withdrawal request" : "Withdrawal request updated",
           `${money(r.amount)} ${r.coin} from user ${String(r.user_id).slice(0, 8)}`,
         );
       })
@@ -104,6 +118,7 @@ export function AdminAlerts() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (p) => {
         const r = p.new as any;
         if (r.sender_role !== "user") return;
+        window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
         alert("chat", "New live chat message", String(r.body).slice(0, 120), true);
       })
       .subscribe();
