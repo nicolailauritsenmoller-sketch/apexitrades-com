@@ -444,8 +444,10 @@ export function ChatWidget() {
                 (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
             </span>
           </div>
+          {m.sender_role === "user" && <UserAvatar className="size-7" alt="You" />}
         </div>
       ))}
+
       <div ref={endRef} />
     </div>
   );
