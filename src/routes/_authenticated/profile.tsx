@@ -598,6 +598,8 @@ function ProfilePage() {
       )}
 
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
+      <SecurityReportDialog open={securityOpen} onOpenChange={setSecurityOpen} />
+      <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
     </AppShell>
 
   );
