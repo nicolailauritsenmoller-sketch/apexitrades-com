@@ -18,6 +18,8 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
+import { UserAvatar } from "@/components/UserAvatar";
+
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
