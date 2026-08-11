@@ -42,6 +42,8 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  usePresenceHeartbeat();
+
   const fetchAccess = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
