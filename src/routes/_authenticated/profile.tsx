@@ -237,34 +237,9 @@ function ProfilePage() {
         <section className="rounded-lg border border-border bg-card p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative">
-              {profile?.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={`${profile.displayName} avatar`}
-                  className="size-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="grid size-16 place-items-center rounded-full bg-secondary font-display text-xl font-bold">
-                  {(profile?.displayName ?? "T").slice(0, 1).toUpperCase()}
-                </div>
-              )}
-              <label className="absolute -bottom-1 -right-1 cursor-pointer rounded-full border border-border bg-background p-1.5">
-                {avatarMutation.isPending ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Upload className="size-3" />
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) avatarMutation.mutate(file);
-                  }}
-                />
-              </label>
+              <UserAvatar className="size-16" alt="Account avatar" />
             </div>
+
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
