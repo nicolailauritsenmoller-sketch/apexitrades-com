@@ -449,9 +449,19 @@ function ReviewButtons({
   );
 }
 
-function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
+function DepositsTab({
+  rows: allRows,
+  onDone,
+  statusFilter,
+}: {
+  rows: any[];
+  onDone: () => void;
+  statusFilter?: string | null;
+}) {
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
+  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+
 
   return (
     <Card
@@ -539,9 +549,19 @@ function DepositsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   );
 }
 
-function WithdrawalsTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
+function WithdrawalsTab({
+  rows: allRows,
+  onDone,
+  statusFilter,
+}: {
+  rows: any[];
+  onDone: () => void;
+  statusFilter?: string | null;
+}) {
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
   const [note, setNote] = useState<Record<string, string>>({});
+  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+
 
   return (
     <Card
@@ -874,14 +894,18 @@ function OutcomesTab({
 
 function UsersTab({
   profiles,
-  kyc,
+  kyc: kycAll,
   onDone,
+  statusFilter,
 }: {
   profiles: any[];
   kyc: any[];
   onDone: () => void;
+  statusFilter?: string | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
+
 
   return (
     <div className="space-y-4">
