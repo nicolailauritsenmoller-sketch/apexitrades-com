@@ -142,6 +142,7 @@ export function MetricsBar({
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
           tone="warn"
+          alert={Number(m.pendingDeposits) > 0}
           onClick={go("deposits", "pending")}
         />
         <Stat
@@ -149,6 +150,7 @@ export function MetricsBar({
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
           tone="warn"
+          alert={Number(m.pendingWithdrawals) > 0}
           onClick={go("withdrawals", "pending")}
         />
         <Stat
@@ -169,11 +171,19 @@ export function MetricsBar({
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
           tone="warn"
+          alert={Number(m.pendingKyc) > 0}
           onClick={go("users", "pending")}
         />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="Open tickets" value={String(m.openTickets)} icon={LifeBuoy} onClick={go("tickets")} />
+        <Stat
+          label="Open tickets"
+          value={String(m.openTickets)}
+          icon={LifeBuoy}
+          alert={Number(m.openTickets) > 0}
+          onClick={go("tickets")}
+        />
+
         <Stat
           label="Total withdrawals"
           value={money(m.totalWithdrawals)}
