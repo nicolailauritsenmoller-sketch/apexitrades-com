@@ -236,6 +236,7 @@ function ProfilePage() {
                 <h1 className="font-display text-xl font-bold tracking-tight">
                   {profile?.displayName ?? "Trader"}
                 </h1>
+                {status === "approved" && <VerifiedBadge />}
                 <span
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
                 >
