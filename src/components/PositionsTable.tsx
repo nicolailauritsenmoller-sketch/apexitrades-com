@@ -9,6 +9,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import type { Quote } from "@/lib/market-types";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildPositionSummary, type TradeSummary } from "@/lib/trade-summary";
+import { LivePnl } from "@/components/LivePnl";
 
 export type PositionRow = {
   id: string;
@@ -101,7 +102,6 @@ export function PositionsTable({
             const mark = quotes[p.symbol]?.price;
             const pnl =
               p.status === "open" ? unrealizedPnl(p, mark) : (p.realizedPnl ?? 0);
-            const positive = (pnl ?? 0) >= 0;
             return (
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-4 py-3">
@@ -143,15 +143,10 @@ export function PositionsTable({
                       : "—"
                     : formatPrice(p.exitPrice ?? 0, p.symbol)}
                 </td>
-                <td
-                  className={`num px-4 py-3 text-right font-medium ${
-                    pnl == null ? "text-muted-foreground" : positive ? "text-bull" : "text-bear"
-                  }`}
-                >
-                  {pnl == null
-                    ? "—"
-                    : `${positive ? "+" : ""}${formatMoney(pnl, p.currency)}`}
+                <td className="px-4 py-3 text-right font-medium">
+                  <LivePnl value={pnl} currency={p.currency} live={p.status === "open"} />
                 </td>
+
                 <td className="px-4 py-3 text-right">
                   {p.status === "open" && (
                     <button

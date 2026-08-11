@@ -377,13 +377,19 @@ function DepositTab({
             </div>
 
             <div className="mt-5 space-y-3">
-              <input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputMode="decimal"
-                placeholder={`Amount in ${addr.coin}`}
-                className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-              />
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+                  <AssetIcon currency={addr.coin} symbol={addr.coin} size={22} />
+                  <span className="text-xs font-semibold text-muted-foreground">{addr.coin}</span>
+                </span>
+                <input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  inputMode="decimal"
+                  placeholder={`Amount in ${addr.coin}`}
+                  className="w-full rounded-md bg-secondary py-2.5 pl-24 pr-3 text-sm outline-none"
+                />
+              </div>
               <input
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
@@ -391,6 +397,13 @@ function DepositTab({
                 placeholder="Transaction hash (optional)"
                 className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
               />
+              <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
+                <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
+                <span>
+                  Depositing <span className="num font-semibold">{amount || "0.00"}</span>{" "}
+                  {addr.coin} via {addr.network}
+                </span>
+              </div>
               <button
                 disabled={mutation.isPending}
                 onClick={() => {
@@ -406,8 +419,9 @@ function DepositTab({
                     txHash: txHash.trim() || undefined,
                   });
                 }}
-                className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
               >
+                <ArrowDownToLine className="size-4" strokeWidth={2.8} />
                 Submit deposit for approval
               </button>
               <p className="text-[11px] text-muted-foreground">
@@ -519,20 +533,12 @@ function WithdrawTab({
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="block">
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Asset</span>
-          <select
-            value={coin}
-            onChange={(e) => setCoin(e.target.value)}
-            className="mt-1 w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-          >
-            {balances.map((b) => (
-              <option key={b.currency} value={b.currency}>
-                {b.currency}
-              </option>
-            ))}
-          </select>
-        </label>
+        <AssetPicker
+          value={coin}
+          onChange={setCoin}
+          label="Asset"
+          options={balances.map((b) => ({ code: b.currency, group: "Your wallets" }))}
+        />
         <label className="block">
           <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
             Network
@@ -556,12 +562,16 @@ function WithdrawTab({
       </div>
 
       <div className="relative">
+        <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+          <AssetIcon currency={coin} symbol={coin} size={22} />
+          <span className="text-xs font-semibold text-muted-foreground">{coin}</span>
+        </span>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           inputMode="decimal"
           placeholder="Amount"
-          className="w-full rounded-md bg-secondary px-3 py-2 pr-16 text-sm outline-none"
+          className="w-full rounded-md bg-secondary py-2.5 pl-24 pr-16 text-sm outline-none"
         />
         <MaxButton onClick={() => setAmount(trimAmount(available))} />
       </div>
@@ -570,13 +580,25 @@ function WithdrawTab({
           Amount exceeds your available {coin} balance.
         </p>
       )}
-      <input
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        maxLength={200}
-        placeholder="Destination wallet address"
-        className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none"
-      />
+      <div className="relative">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+          <AssetIcon currency={coin} symbol={coin} size={22} />
+        </span>
+        <input
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          maxLength={200}
+          placeholder={`Destination ${coin} address (${network})`}
+          className="w-full rounded-md bg-secondary py-2.5 pl-11 pr-3 text-sm outline-none"
+        />
+      </div>
+      <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
+        <AssetIcon currency={coin} symbol={coin} size={24} />
+        <span className="min-w-0 truncate">
+          Sending <span className="num font-semibold">{amount || "0.00"}</span> {coin} to{" "}
+          {address.trim() ? shortenAddress(address.trim()) : "—"}
+        </span>
+      </div>
       <button
         disabled={mutation.isPending || blocked || overBalance}
         onClick={() => {
