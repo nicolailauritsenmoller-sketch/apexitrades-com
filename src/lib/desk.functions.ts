@@ -150,6 +150,49 @@ export const getChatAttachmentUrl = createServerFn({ method: "POST" })
     return { url: signed?.signedUrl ?? null };
   });
 
+/**
+ * User-side companion: returns the agent persona assigned to the caller's chat
+ * session and marks the agent's messages as read for delivery receipts.
+ */
+export const getMyChatContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const db = await privileged();
+    const { data: session } = await db
+      .from("chat_sessions")
+      .select("id,user_id,active_agent_id")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
+
+    const now = new Date().toISOString();
+    await db
+      .from("chat_messages")
+      .update({ read_at: now })
+      .eq("session_id", data.sessionId)
+      .neq("sender_role", "user")
+      .is("read_at", null);
+    await db.from("chat_sessions").update({ user_last_read_at: now }).eq("id", data.sessionId);
+
+    if (!session.active_agent_id) return { agent: null };
+    const { data: agent } = await db
+      .from("agent_profiles")
+      .select("full_name,agent_role,staff_id,avatar_url")
+      .eq("user_id", session.active_agent_id)
+      .maybeSingle();
+    return {
+      agent: agent
+        ? {
+            name: agent.full_name,
+            role: agent.agent_role,
+            staffId: agent.staff_id,
+            avatarUrl: agent.avatar_url,
+          }
+        : null,
+    };
+  });
+
 /* -------------------------------- ratings -------------------------------- */
 
 export const submitChatRating = createServerFn({ method: "POST" })
