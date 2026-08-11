@@ -20,6 +20,8 @@ import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
+import { usePresenceHeartbeat } from "@/lib/use-presence";
+
 
 
 const NAV = [
