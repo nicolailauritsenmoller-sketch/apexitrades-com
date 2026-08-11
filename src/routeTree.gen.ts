@@ -18,9 +18,9 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TradeRouteImport } from './routes/trade'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedDeskManagementRouteImport } from './routes/_authenticated/desk-management'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authenticated/sys-portal-x97'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
@@ -69,12 +69,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDeskManagementRoute =
-  AuthenticatedDeskManagementRouteImport.update({
-    id: '/desk-management',
-    path: '/desk-management',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
@@ -85,6 +79,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSysPortalX97Route =
+  AuthenticatedSysPortalX97RouteImport.update({
+    id: '/sys-portal-x97',
+    path: '/sys-portal-x97',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -111,9 +111,9 @@ export interface FileRoutesByFullPath {
   '/trade': typeof TradeRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/desk-management': typeof AuthenticatedDeskManagementRoute
   '/markets': typeof AuthenticatedMarketsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
@@ -127,9 +127,9 @@ export interface FileRoutesByTo {
   '/trade': typeof TradeRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/desk-management': typeof AuthenticatedDeskManagementRoute
   '/markets': typeof AuthenticatedMarketsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
@@ -145,9 +145,9 @@ export interface FileRoutesById {
   '/trade': typeof TradeRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/desk-management': typeof AuthenticatedDeskManagementRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
@@ -163,9 +163,9 @@ export interface FileRouteTypes {
     | '/trade'
     | '/assets'
     | '/dashboard'
-    | '/desk-management'
     | '/markets'
     | '/profile'
+    | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
     | '/terminal/$symbol'
@@ -179,9 +179,9 @@ export interface FileRouteTypes {
     | '/trade'
     | '/assets'
     | '/dashboard'
-    | '/desk-management'
     | '/markets'
     | '/profile'
+    | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
     | '/terminal/$symbol'
@@ -196,9 +196,9 @@ export interface FileRouteTypes {
     | '/trade'
     | '/_authenticated/assets'
     | '/_authenticated/dashboard'
-    | '/_authenticated/desk-management'
     | '/_authenticated/markets'
     | '/_authenticated/profile'
+    | '/_authenticated/sys-portal-x97'
     | '/_authenticated/wallet'
     | '/legal/$doc'
     | '/_authenticated/terminal/$symbol'
@@ -280,13 +280,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/desk-management': {
-      id: '/_authenticated/desk-management'
-      path: '/desk-management'
-      fullPath: '/desk-management'
-      preLoaderRoute: typeof AuthenticatedDeskManagementRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/markets': {
       id: '/_authenticated/markets'
       path: '/markets'
@@ -299,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sys-portal-x97': {
+      id: '/_authenticated/sys-portal-x97'
+      path: '/sys-portal-x97'
+      fullPath: '/sys-portal-x97'
+      preLoaderRoute: typeof AuthenticatedSysPortalX97RouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/wallet': {
@@ -328,9 +328,9 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedDeskManagementRoute: typeof AuthenticatedDeskManagementRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSysPortalX97Route: typeof AuthenticatedSysPortalX97Route
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
 }
@@ -338,9 +338,9 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedDeskManagementRoute: AuthenticatedDeskManagementRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSysPortalX97Route: AuthenticatedSysPortalX97Route,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
 }
@@ -361,3 +361,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

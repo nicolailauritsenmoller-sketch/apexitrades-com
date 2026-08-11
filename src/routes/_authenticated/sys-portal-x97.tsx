@@ -51,7 +51,7 @@ import {
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/desk-management")({
+export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
   head: () => ({
     meta: [
       { title: "Admin console | Velocity Trade" },
