@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { LineChart } from "lucide-react";
 import { openCookieSettings } from "@/lib/consent";
+import { TrustCertificates } from "@/components/TrustBadges";
 
 const NAV_GROUPS = [
   {
@@ -37,6 +38,7 @@ export function SiteFooter() {
 
   return (
     <footer className="w-full max-w-full border-t border-border bg-surface/80 backdrop-blur-sm">
+      <TrustCertificates />
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
