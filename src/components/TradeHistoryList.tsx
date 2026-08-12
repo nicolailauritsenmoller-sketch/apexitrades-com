@@ -3,6 +3,8 @@ import { Clock } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { ShareCardButton } from "@/components/TradePnlCard";
+
 import {
   buildContractSummary,
   buildPositionSummary,
