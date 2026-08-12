@@ -16,6 +16,7 @@ import {
   type ContractTier,
 } from "@/lib/contract-tiers";
 import { formatMoney, formatPrice } from "@/lib/instruments";
+import { AssetIcon } from "@/lib/asset-icons";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { LivePnl } from "@/components/LivePnl";
