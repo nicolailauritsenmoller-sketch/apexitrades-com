@@ -1133,3 +1133,76 @@ export const deleteUserAccount = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ */
+/* KYC reversal and platform settings hub                              */
+/* ------------------------------------------------------------------ */
+
+/** Reverts an approved identity verification back to pending. */
+export const unverifyKyc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), note: z.string().trim().max(300).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { data: row, error } = await db
+      .from("kyc_submissions")
+      .update({
+        status: "pending",
+        admin_note: data.note ?? "Verification revoked — re-review required.",
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (row) {
+      await writeAudit(context, "kyc.unverify", row.user_id, { note: data.note ?? null });
+      await notify(
+        db,
+        row.user_id,
+        "Identity verification revoked",
+        data.note ?? "Your verified status was reverted to pending. Please re-submit if requested.",
+        "warning",
+      );
+    }
+    return { ok: true };
+  });
+
+/** Reads one or more platform settings blobs (admin only). */
+export const getPlatformSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ keys: z.array(z.string().min(1).max(60)).min(1).max(20) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { data: rows } = await db
+      .from("platform_settings")
+      .select("key,value")
+      .in("key", data.keys);
+    const out: Record<string, any> = {};
+    for (const r of (rows ?? []) as any[]) out[r.key] = r.value ?? {};
+    return out;
+  });
+
+/** Persists a platform settings blob (admin only). */
+export const savePlatformSetting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ key: z.string().min(1).max(60), value: z.record(z.any()) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { error } = await db
+      .from("platform_settings")
+      .upsert({ key: data.key, value: data.value }, { onConflict: "key" });
+    if (error) throw new Error(error.message);
+    await writeAudit(context, "settings.update", null, { key: data.key });
+    return { ok: true };
+  });
