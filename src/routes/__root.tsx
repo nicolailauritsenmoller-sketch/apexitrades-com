@@ -18,6 +18,8 @@ import { ConsentProvider } from "@/lib/consent";
 import { CookieConsent } from "@/components/CookieConsent";
 import { restoreAccountPreferences } from "@/lib/preferences";
 import { useServiceWorker } from "@/components/PwaInstall";
+import { EntryChime } from "@/components/EntryChime";
+
 
 function NotFoundComponent() {
   return (
@@ -179,6 +181,8 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <CookieConsent />
+        <EntryChime />
+
         <Toaster theme={theme} position="top-right" richColors />
       </ConsentProvider>
     </QueryClientProvider>
