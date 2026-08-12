@@ -86,7 +86,7 @@ export const ASSET_CLASS_LABEL: Record<AssetClass, string> = {
   metal: "Gold & Metals",
 };
 
-export const CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC"] as const;
+export const CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC", "ETH"] as const;
 
 /** Human-facing ticker, e.g. BTCUSDT -> BTC/USDT, EURUSD=X -> EUR/USD. */
 export function displaySymbol(symbol: string): string {

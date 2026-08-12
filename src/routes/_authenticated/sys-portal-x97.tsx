@@ -38,6 +38,7 @@ import {
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
+import { CertificatesPanel } from "@/components/admin/CertificatesPanel";
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
@@ -541,6 +542,7 @@ function AdminPage() {
               {tab === "settings" && (
                 <div className="space-y-4">
                   <PlatformSettingsPanel />
+                  <CertificatesPanel />
                   <AddressesTab rows={data.addresses} onDone={refresh} />
                   <OutcomesTab
                     contracts={data.openContracts}
