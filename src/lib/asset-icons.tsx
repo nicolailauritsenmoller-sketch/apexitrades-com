@@ -66,6 +66,10 @@ const CRYPTO_ICON: Record<string, string> = {
   PEPE: pepeIcon,
 };
 
+/** Remote fallback for tokens without a bundled mark. */
+const cryptoCdn = (base: string) =>
+  `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/${base.toLowerCase()}.png`;
+
 const FLAG_ICON: Record<string, string> = {
   USD: usFlag,
   EUR: euFlag,
@@ -77,23 +81,59 @@ const FLAG_ICON: Record<string, string> = {
   NZD: nzFlag,
 };
 
+/** ISO country for currencies without a bundled flag. */
+const CURRENCY_COUNTRY: Record<string, string> = {
+  SEK: "se",
+  NOK: "no",
+  MXN: "mx",
+  ZAR: "za",
+  SGD: "sg",
+  HKD: "hk",
+  TRY: "tr",
+  CNY: "cn",
+  DKK: "dk",
+  PLN: "pl",
+  INR: "in",
+  BRL: "br",
+};
+
+function flagFor(code: string): string {
+  const upper = code.toUpperCase();
+  if (FLAG_ICON[upper]) return FLAG_ICON[upper];
+  const cc = CURRENCY_COUNTRY[upper];
+  return cc ? `https://flagcdn.com/w80/${cc}.png` : usFlag;
+}
+
 const FUTURE_ICON: Record<string, string> = {
   "ES=F": indexIcon,
   "NQ=F": indexIcon,
   "YM=F": indexIcon,
   "RTY=F": indexIcon,
+  "MES=F": indexIcon,
+  "MNQ=F": indexIcon,
+  "VX=F": indexIcon,
+  "BTC=F": btcIcon,
   "CL=F": oilIcon,
   "BZ=F": brentIcon,
   "NG=F": gasIcon,
+  "HO=F": oilIcon,
+  "RB=F": oilIcon,
   "ZB=F": bondIcon,
+  "ZN=F": bondIcon,
+  "ZF=F": bondIcon,
 };
 
 const METAL_ICON: Record<string, string> = {
   "GC=F": goldIcon,
+  "MGC=F": goldIcon,
+  "XAUUSD=X": goldIcon,
   "SI=F": silverIcon,
+  "SIL=F": silverIcon,
+  "XAGUSD=X": silverIcon,
   "PL=F": platinumIcon,
   "PA=F": palladiumIcon,
   "HG=F": copperIcon,
+  "ALI=F": copperIcon,
   XAU: goldIcon,
   XAG: silverIcon,
 };
@@ -107,7 +147,68 @@ const STOCK_DOMAIN: Record<string, string> = {
   META: "meta.com",
   AMD: "amd.com",
   COIN: "coinbase.com",
+  GOOGL: "abc.xyz",
+  NFLX: "netflix.com",
+  INTC: "intel.com",
+  MU: "micron.com",
+  QCOM: "qualcomm.com",
+  AVGO: "broadcom.com",
+  ORCL: "oracle.com",
+  CRM: "salesforce.com",
+  ADBE: "adobe.com",
+  PLTR: "palantir.com",
+  UBER: "uber.com",
+  ABNB: "airbnb.com",
+  SHOP: "shopify.com",
+  SQ: "block.xyz",
+  PYPL: "paypal.com",
+  MSTR: "strategy.com",
+  MARA: "mara.com",
+  RIOT: "riotplatforms.com",
+  HOOD: "robinhood.com",
+  BABA: "alibabagroup.com",
+  JPM: "jpmorganchase.com",
+  GS: "goldmansachs.com",
+  BAC: "bankofamerica.com",
+  MS: "morganstanley.com",
+  V: "visa.com",
+  MA: "mastercard.com",
+  "BRK-B": "berkshirehathaway.com",
+  WMT: "walmart.com",
+  COST: "costco.com",
+  KO: "coca-colacompany.com",
+  PEP: "pepsico.com",
+  MCD: "mcdonalds.com",
+  NKE: "nike.com",
+  SBUX: "starbucks.com",
+  DIS: "thewaltdisneycompany.com",
+  BA: "boeing.com",
+  CAT: "caterpillar.com",
+  GE: "ge.com",
+  F: "ford.com",
+  GM: "gm.com",
+  XOM: "exxonmobil.com",
+  CVX: "chevron.com",
+  PFE: "pfizer.com",
+  JNJ: "jnj.com",
+  MRK: "merck.com",
+  LLY: "lilly.com",
+  UNH: "unitedhealthgroup.com",
+  T: "att.com",
+  VZ: "verizon.com",
+  CSCO: "cisco.com",
+  IBM: "ibm.com",
+  TSM: "tsmc.com",
+  ASML: "asml.com",
+  SNOW: "snowflake.com",
+  CRWD: "crowdstrike.com",
+  NET: "cloudflare.com",
+  SPOT: "spotify.com",
+  RIVN: "rivian.com",
+  LCID: "lucidmotors.com",
+  SOFI: "sofi.com",
 };
+
 
 type IconInfo = {
   src: string;
