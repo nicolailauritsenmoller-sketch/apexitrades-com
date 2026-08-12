@@ -66,9 +66,15 @@ const CRYPTO_ICON: Record<string, string> = {
   PEPE: pepeIcon,
 };
 
-/** Remote fallback for tokens without a bundled mark. */
-const cryptoCdn = (base: string) =>
-  `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/${base.toLowerCase()}.png`;
+/** Remote fallback chain for tokens without a bundled mark. */
+const cryptoCdns = (base: string): string[] => {
+  const b = base.toLowerCase();
+  return [
+    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/${b}.png`,
+    `https://assets.coincap.io/assets/icons/${b}@2x.png`,
+    `https://cryptoicon-api.pages.dev/api/icon/${b}`,
+  ];
+};
 
 const FLAG_ICON: Record<string, string> = {
   USD: usFlag,
