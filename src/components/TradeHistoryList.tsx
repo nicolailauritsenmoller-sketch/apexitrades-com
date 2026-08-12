@@ -3,6 +3,8 @@ import { Clock } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { ShareCardButton } from "@/components/TradePnlCard";
+
 import {
   buildContractSummary,
   buildPositionSummary,
@@ -145,55 +147,61 @@ export function TradeHistoryList({
       {entries.map((e) => {
         const positive = e.pnl >= 0;
         return (
-          <button
+          <div
             key={e.key}
-            onClick={() => setActive(e.summary)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
+            className="flex w-full items-center gap-2 pr-3 transition-colors hover:bg-secondary/40"
           >
-            <AssetIcon symbol={e.symbol} currency={e.symbol} size={30} />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="truncate text-sm font-semibold">{e.displaySymbol}</span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                    e.isLong ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
+            <button
+              onClick={() => setActive(e.summary)}
+              className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+            >
+              <AssetIcon symbol={e.symbol} currency={e.symbol} size={30} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="truncate text-sm font-semibold">{e.displaySymbol}</span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                      e.isLong ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
+                    }`}
+                  >
+                    {e.sideLabel}
+                  </span>
+                  {e.leverage > 1 && (
+                    <span className="num rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
+                      {e.leverage}x
+                    </span>
+                  )}
+                  <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {e.kind === "contract" ? "Scalp contract" : "Position"}
+                  </span>
+                </div>
+                <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">
+                  {formatPrice(e.entryPrice, e.symbol)} → {formatPrice(e.exitPrice, e.symbol)} ·{" "}
+                  {formatMoney(e.size, e.currency)} ·{" "}
+                  <Clock className="inline size-3 -translate-y-px" />{" "}
+                  {durationLabel(e.openedAt, e.closedAt)} · {new Date(e.closedAt).toLocaleString()}
+                </div>
+              </div>
+              <div className="shrink-0 text-right">
+                <div
+                  className={`num rounded-md px-2 py-1 text-sm font-bold ${
+                    positive ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
                   }`}
                 >
-                  {e.sideLabel}
-                </span>
-                {e.leverage > 1 && (
-                  <span className="num rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
-                    {e.leverage}x
-                  </span>
-                )}
-                <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {e.kind === "contract" ? "Scalp contract" : "Position"}
-                </span>
+                  {positive ? "+" : ""}
+                  {formatMoney(e.pnl, e.currency)}
+                </div>
+                <div className={`num text-[11px] ${positive ? "text-bull" : "text-bear"}`}>
+                  {positive ? "+" : ""}
+                  {e.pnlPct.toFixed(2)}%
+                </div>
               </div>
-              <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">
-                {formatPrice(e.entryPrice, e.symbol)} → {formatPrice(e.exitPrice, e.symbol)} ·{" "}
-                {formatMoney(e.size, e.currency)} ·{" "}
-                <Clock className="inline size-3 -translate-y-px" />{" "}
-                {durationLabel(e.openedAt, e.closedAt)} · {new Date(e.closedAt).toLocaleString()}
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-              <div
-                className={`num rounded-md px-2 py-1 text-sm font-bold ${
-                  positive ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-                }`}
-              >
-                {positive ? "+" : ""}
-                {formatMoney(e.pnl, e.currency)}
-              </div>
-              <div className={`num text-[11px] ${positive ? "text-bull" : "text-bear"}`}>
-                {positive ? "+" : ""}
-                {e.pnlPct.toFixed(2)}%
-              </div>
-            </div>
-          </button>
+            </button>
+            <ShareCardButton summary={e.summary} />
+          </div>
         );
       })}
+
     </div>
   );
 }
