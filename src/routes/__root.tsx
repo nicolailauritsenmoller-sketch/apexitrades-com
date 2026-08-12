@@ -18,6 +18,8 @@ import { ConsentProvider } from "@/lib/consent";
 import { CookieConsent } from "@/components/CookieConsent";
 import { restoreAccountPreferences } from "@/lib/preferences";
 import { useServiceWorker } from "@/components/PwaInstall";
+import { EntryChime } from "@/components/EntryChime";
+
 
 function NotFoundComponent() {
   return (
