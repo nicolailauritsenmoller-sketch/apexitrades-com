@@ -1,7 +1,7 @@
 import { fetchPrice } from "./market.server";
 import { INSTRUMENT_MAP } from "./instruments";
 
-export const SWAP_CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC"] as const;
+export const SWAP_CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC", "ETH"] as const;
 export type SwapCurrency = (typeof SWAP_CURRENCIES)[number];
 
 /**
@@ -11,15 +11,17 @@ export type SwapCurrency = (typeof SWAP_CURRENCIES)[number];
 export async function usdtRates(): Promise<Record<string, number>> {
   const rates: Record<string, number> = { USD: 1, USDT: 1 };
 
-  const [eur, gbp, btc] = await Promise.all([
+  const [eur, gbp, btc, eth] = await Promise.all([
     fetchPrice("EURUSD=X").catch(() => 1.08),
     fetchPrice("GBPUSD=X").catch(() => 1.27),
     fetchPrice("BTCUSDT").catch(() => 0),
+    fetchPrice("ETHUSDT").catch(() => 0),
   ]);
 
   rates["EUR"] = eur;
   rates["GBP"] = gbp;
   rates["BTC"] = btc;
+  rates["ETH"] = eth;
   return rates;
 }
 
