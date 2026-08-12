@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getActiveUsers } from "@/lib/desk.functions";
+import { UidTag, VerifiedBadge } from "@/components/VerifiedBadge";
+
 
 /** Live list of users currently connected, with device, network and page. */
 export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
