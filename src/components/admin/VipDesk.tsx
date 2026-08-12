@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, CheckCheck, Loader2, Lock, LockOpen, Send, UserCog } from "lucide-react";
+import { Check, CheckCheck, Loader2, Lock, LockOpen, Paperclip, Send, UserCog, X } from "lucide-react";
+import { VipAttachment, formatBytes } from "@/components/chat/VipAttachment";
+import { supabase } from "@/integrations/supabase/client";
 import { UidTag } from "@/components/VerifiedBadge";
 import { VIP_ROLES } from "@/lib/vip";
 import {
@@ -28,6 +30,8 @@ export function VipDesk() {
 
   const [active, setActive] = useState<{ userId: string; roleKey: string } | null>(null);
   const [draft, setDraft] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [edits, setEdits] = useState<Record<string, any>>({});
   const [grantRef, setGrantRef] = useState("");
   const [grantRole, setGrantRole] = useState<string>(VIP_ROLES[0].key);
@@ -51,6 +55,20 @@ export function VipDesk() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [thread.data]);
 
+  // Realtime unread sync across specialist inboxes.
+  useEffect(() => {
+    const channel = supabase
+      .channel("vip-messages-desk")
+      .on("postgres_changes", { event: "*", schema: "public", table: "vip_messages" }, () => {
+        qc.invalidateQueries({ queryKey: ["vip-desk"] });
+        qc.invalidateQueries({ queryKey: ["vip-desk-thread"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const specialists = desk.data?.specialists ?? [];
   const threads = desk.data?.threads ?? [];
 
@@ -64,10 +82,26 @@ export function VipDesk() {
   );
 
   const sendMutation = useMutation({
-    mutationFn: (body: string) =>
-      send({ data: { userId: active!.userId, roleKey: active!.roleKey as any, body } }),
+    mutationFn: async (body: string) => {
+      let attach: Record<string, unknown> = {};
+      if (file) {
+        const path = `vip-staff/${active!.userId}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
+        const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+        if (error) throw new Error(error.message);
+        attach = {
+          attachmentPath: path,
+          attachmentName: file.name,
+          attachmentType: file.type,
+          attachmentSize: file.size,
+        };
+      }
+      return send({
+        data: { userId: active!.userId, roleKey: active!.roleKey as any, body, ...attach } as any,
+      });
+    },
     onSuccess: () => {
       setDraft("");
+      setFile(null);
       qc.invalidateQueries({ queryKey: ["vip-desk-thread", active?.userId, active?.roleKey] });
       qc.invalidateQueries({ queryKey: ["vip-desk"] });
     },
@@ -180,7 +214,7 @@ export function VipDesk() {
                       <Lock className="size-3 text-muted-foreground" />
                     )}
                     {t.unread > 0 && (
-                      <span className="ml-auto grid size-5 place-items-center rounded-full bg-bear text-[10px] font-bold text-white">
+                      <span className="ml-auto grid size-5 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white">
                         {t.unread}
                       </span>
                     )}
@@ -235,6 +269,14 @@ export function VipDesk() {
                           staff ? "bg-emerald-800" : "bg-[#202c33]"
                         }`}
                       >
+                        {m.attachmentPath && (
+                          <VipAttachment
+                            messageId={m.id}
+                            name={m.attachmentName}
+                            type={m.attachmentType}
+                            size={m.attachmentSize}
+                          />
+                        )}
                         <p className="whitespace-pre-wrap break-words">{m.body}</p>
                         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/50">
                           {time(m.createdAt)}
@@ -255,10 +297,36 @@ export function VipDesk() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (draft.trim()) sendMutation.mutate(draft.trim());
+                  if (draft.trim() || file) sendMutation.mutate(draft.trim());
                 }}
-                className="flex items-center gap-2 bg-[#202c33] px-3 py-2"
+                className="flex flex-col gap-2 bg-[#202c33] px-3 py-2"
               >
+                {file && (
+                  <div className="flex items-center gap-2 rounded-md bg-black/30 px-2 py-1 text-[11px] text-white/80">
+                    <Paperclip className="size-3" />
+                    <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                    <span className="opacity-70">{formatBytes(file.size)}</span>
+                    <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  hidden
+                  accept="image/png,image/jpeg,image/webp,application/pdf,.doc,.docx,.txt"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="grid size-9 place-items-center rounded-full text-white/70 hover:text-white"
+                  aria-label="Attach a file"
+                >
+                  <Paperclip className="size-5" />
+                </button>
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -267,12 +335,17 @@ export function VipDesk() {
                 />
                 <button
                   type="submit"
-                  disabled={!draft.trim() || sendMutation.isPending}
+                  disabled={(!draft.trim() && !file) || sendMutation.isPending}
                   className="grid size-9 place-items-center rounded-full bg-emerald-600 text-white disabled:opacity-50"
                   aria-label="Send"
                 >
-                  <Send className="size-4" />
+                  {sendMutation.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
                 </button>
+                </div>
               </form>
             </>
           )}

@@ -871,6 +871,10 @@ export type Database = {
       }
       vip_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_path: string | null
+          attachment_size: number | null
+          attachment_type: string | null
           body: string
           created_at: string
           id: string
@@ -881,6 +885,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
+          attachment_type?: string | null
           body: string
           created_at?: string
           id?: string
@@ -891,6 +899,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
+          attachment_type?: string | null
           body?: string
           created_at?: string
           id?: string

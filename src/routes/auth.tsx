@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Zap } from "lucide-react";
+import brandLogo from "@/assets/velocity-trade-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -91,16 +91,18 @@ function AuthPage() {
 
   return (
     <div className="hero-glow flex min-h-screen items-center justify-center px-4">
-      <div className="panel w-full max-w-sm p-7">
-        <div className="flex items-center gap-2">
-          <span className="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Zap className="size-4" strokeWidth={2.8} />
-          </span>
+      <div className="panel relative w-full max-w-sm p-7 pt-16">
+        <div className="absolute left-7 top-6 flex items-center gap-2">
+          <img
+            src={brandLogo}
+            alt="Velocity Trade logo"
+            className="size-7 rounded-lg object-contain"
+          />
           <span className="font-display text-sm font-bold">VELOCITY TRADE</span>
-          <ThemeToggle className="ml-auto" />
         </div>
+        <ThemeToggle className="absolute right-7 top-6" />
 
-        <h1 className="mt-6 text-2xl font-bold">
+        <h1 className="mt-0 text-2xl font-bold">
           {mode === "signup"
             ? "Create your account"
             : mode === "signin"
@@ -119,7 +121,7 @@ function AuthPage() {
           <>
             <button
               onClick={onGoogle}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary"
             >
               Continue with Google
             </button>
@@ -189,11 +191,18 @@ function AuthPage() {
           onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
           className="mt-4 w-full text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          {mode === "signup"
-            ? "Already have an account? Sign in"
-            : mode === "signin"
-              ? "New here? Create an account"
-              : "Back to sign in"}
+          {mode === "signup" ? (
+            <>
+              Already have an account?{" "}
+              <span className="font-bold text-[#22C55E]">Sign in</span>
+            </>
+          ) : mode === "signin" ? (
+            <>
+              New here? <span className="font-bold text-[#22C55E]">Create an account</span>
+            </>
+          ) : (
+            "Back to sign in"
+          )}
         </button>
       </div>
     </div>
