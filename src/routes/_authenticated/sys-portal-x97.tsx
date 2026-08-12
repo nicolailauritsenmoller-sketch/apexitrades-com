@@ -46,6 +46,7 @@ import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { VipDesk } from "@/components/admin/VipDesk";
+import { getVipDesk } from "@/lib/vip.functions";
 import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
 import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
@@ -268,6 +269,32 @@ function AdminPage() {
     0,
   );
 
+  // VIP specialist inbox unread counter (shares the VIP desk query cache).
+  const fetchVipDesk = useServerFn(getVipDesk);
+  const vipDesk = useQuery({
+    queryKey: ["vip-desk"],
+    queryFn: () => fetchVipDesk(),
+    enabled: isAdmin,
+    refetchInterval: 15_000,
+  });
+  const unreadVip = ((vipDesk.data as any)?.threads ?? []).reduce(
+    (a: number, t: any) => a + Number(t.unread ?? 0),
+    0,
+  );
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-vip-unread")
+      .on("postgres_changes", { event: "*", schema: "public", table: "vip_messages" }, () => {
+        qc.invalidateQueries({ queryKey: ["vip-desk"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, qc]);
+
   useEffect(() => {
     const bump = () => qc.invalidateQueries({ queryKey: ["desk-unread"] });
     window.addEventListener("desk:chat-inbound", bump);
@@ -359,7 +386,8 @@ function AdminPage() {
                   <div className="flex gap-1 lg:block lg:space-y-0.5">
                     {group.items.map(({ id, label, icon: Icon }) => {
                       const isChat = id === "support";
-                      const pending = isChat ? unreadChats : (pendingCounts[id] ?? 0);
+                      const pending =
+                        isChat ? unreadChats : id === "vip" ? unreadVip : (pendingCounts[id] ?? 0);
                       const alerting = pending > 0;
                       return (
                         <button
