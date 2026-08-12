@@ -629,6 +629,7 @@ function ReviewButtons({
 function DepositProof({ id }: { id: string }) {
   const fetchUrl = useServerFn(getDepositProofUrl);
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
   const proof = useQuery({
     queryKey: ["deposit-proof", id],
     queryFn: () => fetchUrl({ data: { id } }),
@@ -638,8 +639,24 @@ function DepositProof({ id }: { id: string }) {
   if (!url) {
     return <p className="mt-2 text-[11px] text-muted-foreground">Loading payment proof…</p>;
   }
+  if (!shown) {
+    return (
+      <button
+        onClick={() => setShown(true)}
+        className="mt-2 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        View proof receipt
+      </button>
+    );
+  }
   return (
     <div className="mt-2">
+      <button
+        onClick={() => setShown(false)}
+        className="mb-2 block rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        Hide receipt
+      </button>
       <button onClick={() => setOpen(true)} className="block">
         <img
           src={url}
@@ -1284,6 +1301,16 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
 function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const review = useReview(reviewKyc, onDone, "KYC");
   const fetchDocs = useServerFn(getKycDocumentUrls);
+  const revoke = useServerFn(unverifyKyc);
+  const [docsVisible, setDocsVisible] = useState(false);
+  const unverify = useMutation({
+    mutationFn: (input: { id: string; note?: string }) => revoke({ data: input }),
+    onSuccess: () => {
+      toast.success("User reverted to pending verification.");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [docs, setDocs] = useState<{ document: string | null; selfie: string | null } | null>(null);
   const [note, setNote] = useState("");
 
@@ -1308,11 +1335,27 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           disabled={load.isPending}
-          onClick={() => load.mutate()}
+          onClick={() => {
+            if (docsVisible) {
+              setDocsVisible(false);
+              return;
+            }
+            setDocsVisible(true);
+            if (!docs) load.mutate();
+          }}
           className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
-          View documents
+          {docsVisible ? "Hide ID document" : "View ID document"}
         </button>
+        {row.status === "approved" && (
+          <button
+            disabled={unverify.isPending}
+            onClick={() => unverify.mutate({ id: row.id, note: note || undefined })}
+            className="rounded-md border border-amber-500/50 px-3 py-1.5 text-xs font-semibold text-amber-500 hover:bg-amber-500/10 disabled:opacity-50"
+          >
+            Unverify user
+          </button>
+        )}
         {row.status === "pending" && (
           <>
             <input
@@ -1329,7 +1372,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
         )}
       </div>
 
-      {docs && (
+      {docsVisible && docs && (
         <div className="mt-3 flex flex-wrap gap-3">
           {docs.document && (
             <img
