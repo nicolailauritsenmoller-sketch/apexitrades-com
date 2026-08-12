@@ -107,6 +107,57 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          badge_key: string
+          badge_url: string | null
+          category: string
+          created_at: string
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          is_active: boolean
+          issue_date: string | null
+          issuer: string
+          sort_order: number
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge_key?: string
+          badge_url?: string | null
+          category?: string
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          issue_date?: string | null
+          issuer?: string
+          sort_order?: number
+          summary?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge_key?: string
+          badge_url?: string | null
+          category?: string
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          issue_date?: string | null
+          issuer?: string
+          sort_order?: number
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           attachment_name: string | null
