@@ -77,18 +77,109 @@ export function playChime(kind: AlertKind, volume = 0.95) {
 }
 
 
+/**
+ * Soft, elegant iPhone "Aurora"-style entry chime — a gentle bell arpeggio with
+ * a long shimmering tail. Used for first visits and successful logins.
+ */
+export function playAurora(volume = 0.35) {
+  const ac = audio();
+  if (!ac) return;
+  const now = ac.currentTime;
+  const notes = [
+    { f: 880, at: 0 },
+    { f: 1174.7, at: 0.16 },
+    { f: 1567.98, at: 0.32 },
+    { f: 2093, at: 0.48 },
+  ];
+  for (const n of notes) {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(n.f, now + n.at);
+    gain.gain.setValueAtTime(0.0001, now + n.at);
+    gain.gain.exponentialRampToValueAtTime(volume, now + n.at + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + n.at + 1.1);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now + n.at);
+    osc.stop(now + n.at + 1.2);
+  }
+}
+
+/* ---------------------- speech synthesis announcements -------------------- */
+
+const SIRI_VOICES = ["Samantha", "Karen", "Victoria", "Ava", "Serena", "Google US English"];
+
+function pickVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  for (const name of SIRI_VOICES) {
+    const hit = voices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+    if (hit) return hit;
+  }
+  return (
+    voices.find((v) => /female|woman|zira|susan/i.test(v.name) && v.lang.startsWith("en")) ??
+    voices.find((v) => v.lang.startsWith("en")) ??
+    voices[0] ??
+    null
+  );
+}
+
+/** Speaks a phrase once in a crisp Siri-like female voice. */
+export function speak(text: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    const voice = pickVoice();
+    if (voice) u.voice = voice;
+    u.lang = voice?.lang ?? "en-US";
+    u.pitch = 1.1;
+    u.rate = 1.02;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  } catch {
+    /* speech synthesis unavailable */
+  }
+}
+
+let speechTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Repeats a spoken announcement every 3.5s until {@link stopSpeechLoop}. */
+export function startSpeechLoop(text = "New message from a customer.") {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  if (speechTimer) return;
+  speak(text);
+  speechTimer = setInterval(() => speak(text), 3500);
+}
+
+export function stopSpeechLoop() {
+  if (speechTimer) {
+    clearInterval(speechTimer);
+    speechTimer = null;
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 /* ------------------------- looping chat alert ------------------------- */
 
 let loopTimer: ReturnType<typeof setInterval> | null = null;
 
-/** Repeats the chat bell until {@link stopChatLoop} is called. */
+/** Repeats the chat bell + spoken alert until {@link stopChatLoop} is called. */
 export function startChatLoop() {
+  startSpeechLoop();
   if (loopTimer) return;
   playChime("chat");
   loopTimer = setInterval(() => playChime("chat"), 1800);
 }
 
 export function stopChatLoop() {
+  stopSpeechLoop();
   if (!loopTimer) return;
   clearInterval(loopTimer);
   loopTimer = null;
@@ -105,9 +196,11 @@ export function isChatLooping() {
  */
 export function silenceChatAlerts() {
   stopChatLoop();
+  stopSpeechLoop();
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("desk:chat-focus"));
 }
+
 
 
 /* --------------------------- desktop push --------------------------- */
