@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { CertificateRecord } from "@/lib/certificates.server";
 import {
   listCertificates,
   upsertCertificate,
@@ -51,7 +52,10 @@ export function CertificatesPanel() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [uploading, setUploading] = useState(false);
 
-  const list = useQuery({ queryKey: ["admin-certificates"], queryFn: () => fetchAll() });
+  const list = useQuery({
+    queryKey: ["admin-certificates"],
+    queryFn: async () => (await fetchAll()) as CertificateRecord[],
+  });
 
   const saveMutation = useMutation({
     mutationFn: (d: Draft) =>
