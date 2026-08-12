@@ -82,6 +82,7 @@ export type Database = {
           created_by: string | null
           id: string
           severity: string
+          target_user_id: string | null
           title: string
           updated_at: string
         }
@@ -92,6 +93,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           severity?: string
+          target_user_id?: string | null
           title: string
           updated_at?: string
         }
@@ -102,6 +104,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           severity?: string
+          target_user_id?: string | null
           title?: string
           updated_at?: string
         }
@@ -637,6 +640,7 @@ export type Database = {
           created_at: string
           credit_score: number
           display_name: string
+          display_name_updated_at: string | null
           id: string
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
           preferences: Json
@@ -651,6 +655,7 @@ export type Database = {
           created_at?: string
           credit_score?: number
           display_name?: string
+          display_name_updated_at?: string | null
           id: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
@@ -665,6 +670,7 @@ export type Database = {
           created_at?: string
           credit_score?: number
           display_name?: string
+          display_name_updated_at?: string | null
           id?: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
