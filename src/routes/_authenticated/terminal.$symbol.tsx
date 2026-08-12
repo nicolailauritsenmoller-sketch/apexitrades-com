@@ -197,7 +197,8 @@ function Terminal() {
         <div className="panel min-w-0 max-w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-9rem)]">
 
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+            <h2 className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+              <AssetIcon symbol={symbol} size={18} />
               Order ticket
             </h2>
             <span className="num text-xs text-muted-foreground">

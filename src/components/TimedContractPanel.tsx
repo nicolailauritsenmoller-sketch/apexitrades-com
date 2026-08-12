@@ -16,6 +16,7 @@ import {
   type ContractTier,
 } from "@/lib/contract-tiers";
 import { formatMoney, formatPrice } from "@/lib/instruments";
+import { AssetIcon } from "@/lib/asset-icons";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { LivePnl } from "@/components/LivePnl";
@@ -326,8 +327,9 @@ function ContractCard({
   return (
     <li className="rounded-md border border-border bg-surface p-2.5">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium">
-          {contract.displaySymbol}{" "}
+        <span className="flex min-w-0 items-center gap-1.5 font-medium">
+          <AssetIcon symbol={contract.symbol} size={18} />
+          <span className="truncate">{contract.displaySymbol}</span>{" "}
           <span className={contract.direction === "up" ? "text-bull" : "text-bear"}>
             {contract.direction === "up" ? "Buy Long" : "Sell Short"}
           </span>
