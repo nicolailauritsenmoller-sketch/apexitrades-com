@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
 import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -458,6 +459,7 @@ function DepositTab({
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
                 Submit deposit for approval
               </button>
+              <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
                 Balances are credited only after an administrator confirms your transfer on-chain.
               </p>
@@ -652,6 +654,7 @@ function WithdrawTab({
         <ArrowUpFromLine className="size-4" strokeWidth={2.8} />
         Request withdrawal
       </button>
+      <TrustStrip />
     </div>
   );
 }

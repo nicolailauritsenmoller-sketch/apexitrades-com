@@ -164,6 +164,7 @@ function AuthPage() {
                   ? "Sign in"
                   : "Send reset code"}
           </button>
+          <TrustStrip className="pt-1" />
         </form>
 
         {mode === "forgot" && sent && (
