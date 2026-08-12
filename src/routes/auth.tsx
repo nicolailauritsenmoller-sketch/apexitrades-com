@@ -77,9 +77,7 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
         setCode("");
         setPassword("");
@@ -100,7 +98,6 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
             data: referral.trim() ? { referral_code: referral.trim().toUpperCase() } : {},
           },
         });
@@ -117,12 +114,17 @@ function AuthPage() {
       }
 
       if (mode === "verify") {
-        const { error } = await supabase.auth.verifyOtp({
-          email,
-          token: code.trim(),
-          type: "signup",
-        });
-        if (error) throw error;
+        const token = code.trim();
+        const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+        if (error) {
+          // Some projects issue the code as an "email" OTP instead of "signup".
+          const { error: fallbackError } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            type: "email",
+          });
+          if (fallbackError) throw error;
+        }
         toast.success("Email verified — welcome to Velocity Trade.");
         navigate({ to: "/dashboard", replace: true });
         return;
@@ -168,9 +170,7 @@ function AuthPage() {
         const { error } = await supabase.auth.resend({ type: "signup", email });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
       }
       setCooldown(RESEND_SECONDS);
