@@ -72,6 +72,9 @@ import {
   reviewWithdrawal,
   setContractOutcomeMode,
   setUserOutcomeMode,
+  unverifyKyc,
+  getPlatformSettings,
+  savePlatformSetting,
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
@@ -1030,6 +1033,43 @@ function OutcomesTab({
 }) {
   const setUser = useServerFn(setUserOutcomeMode);
   const setContract = useServerFn(setContractOutcomeMode);
+  const readSettings = useServerFn(getPlatformSettings);
+  const writeSetting = useServerFn(savePlatformSetting);
+  const [query, setQuery] = useState("");
+
+  const settings = useQuery({
+    queryKey: ["platform-settings", "trading"],
+    queryFn: () => readSettings({ data: { keys: ["trading"] } }),
+  });
+  const globalMode = ((settings.data as any)?.trading?.defaultOutcome ?? "normal") as
+    | "normal"
+    | "force_win"
+    | "force_loss";
+
+  const globalMutation = useMutation({
+    mutationFn: (mode: string) =>
+      writeSetting({
+        data: {
+          key: "trading",
+          value: { ...(((settings.data as any)?.trading ?? {}) as object), defaultOutcome: mode },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Global trade outcome updated.");
+      void settings.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const q = query.trim().toLowerCase();
+  const filteredProfiles = q
+    ? profiles.filter(
+        (p) =>
+          String(p.display_name ?? "").toLowerCase().includes(q) ||
+          String(p.uid ?? "").toLowerCase().includes(q) ||
+          String(p.id).toLowerCase().includes(q),
+      )
+    : profiles;
 
   const userMutation = useMutation({
     mutationFn: (input: any) => setUser({ data: input }),
@@ -1051,6 +1091,21 @@ function OutcomesTab({
 
   return (
     <div className="space-y-4">
+      <Card title="Global default trade outcome">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs text-muted-foreground">
+            Applied to every settlement unless a per-user or per-contract override exists.
+          </p>
+          <div className="ml-auto">
+            <ModeToggle
+              value={globalMode}
+              disabled={globalMutation.isPending}
+              onChange={(mode) => globalMutation.mutate(mode)}
+            />
+          </div>
+        </div>
+      </Card>
+
       <Card title={`Open contracts (${contracts.length})`}>
         {contracts.length === 0 ? (
           <Empty label="No open contracts right now." />
@@ -1090,9 +1145,15 @@ function OutcomesTab({
         )}
       </Card>
 
-      <Card title={`Account-level outcome control (${profiles.length})`}>
+      <Card title={`Account-level outcome control (${filteredProfiles.length})`}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by UID, name or account id"
+          className="mb-3 h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+        />
         <ul className="space-y-2">
-          {profiles.map((p) => (
+          {filteredProfiles.map((p) => (
             <li
               key={p.id}
               className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3"
@@ -1100,6 +1161,7 @@ function OutcomesTab({
               <div className="min-w-[180px]">
                 <p className="text-sm font-semibold">{p.display_name}</p>
                 <p className="font-mono text-[11px] text-muted-foreground">
+                  {p.uid ? `#${p.uid} · ` : ""}
                   {String(p.id).slice(0, 8)}…
                 </p>
               </div>
