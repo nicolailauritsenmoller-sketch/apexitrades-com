@@ -13,12 +13,10 @@ import {
   Star,
   FileText,
   Flag,
-  Camera,
 } from "lucide-react";
 import type { TradeSummary } from "@/lib/trade-summary";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
-import { TradePnlCard } from "@/components/TradePnlCard";
 
 /** Candlestick snapshot of the exact trade window with entry and exit markers. */
 function PnlChart({ summary }: { summary: TradeSummary }) {
@@ -136,7 +134,6 @@ export function TradeCloseSummary({
 }) {
   const navigate = useNavigate();
   const [showRaw, setShowRaw] = useState(false);
-  const [showCard, setShowCard] = useState(false);
   const positive = summary.netPnl >= 0;
 
   const badge = useMemo(() => {
@@ -286,14 +283,9 @@ export function TradeCloseSummary({
         <div className="space-y-2 border-t border-border bg-background px-5 py-4">
           <div className="flex flex-wrap gap-2">
             <ActionButton
-              icon={Camera}
-              label="Share P&L card"
-              primary
-              onClick={() => setShowCard(true)}
-            />
-            <ActionButton
               icon={Share2}
               label="Share trade"
+              primary
               onClick={async () => {
                 const text = `${summary.pair} ${summary.side} · ${summary.netPnl >= 0 ? "+" : "-"}${formatMoney(Math.abs(summary.netPnl), summary.currency)} (${summary.profitPct.toFixed(2)}%)`;
                 if (navigator.share) {
@@ -364,12 +356,6 @@ export function TradeCloseSummary({
           </div>
         </div>
       </div>
-      {showCard && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <TradePnlCard summary={summary} onClose={() => setShowCard(false)} />
-        </div>
-      )}
-
     </div>
   );
 }
