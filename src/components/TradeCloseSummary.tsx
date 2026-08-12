@@ -364,7 +364,12 @@ export function TradeCloseSummary({
           </div>
         </div>
       </div>
-      {showCard && <TradePnlCard summary={summary} onClose={() => setShowCard(false)} />}
+      {showCard && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <TradePnlCard summary={summary} onClose={() => setShowCard(false)} />
+        </div>
+      )}
+
     </div>
   );
 }
