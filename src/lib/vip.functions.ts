@@ -6,6 +6,27 @@ import { VIP_ROLE_KEYS } from "@/lib/vip";
 
 const roleKey = z.enum(VIP_ROLE_KEYS);
 
+const attachment = {
+  attachmentPath: z.string().trim().max(400).nullable().optional(),
+  attachmentName: z.string().trim().max(200).nullable().optional(),
+  attachmentType: z.string().trim().max(120).nullable().optional(),
+  attachmentSize: z.number().int().nonnegative().nullable().optional(),
+};
+
+function mapMessage(m: any) {
+  return {
+    id: m.id,
+    body: m.body,
+    senderRole: m.sender_role,
+    createdAt: m.created_at,
+    readAt: m.read_at,
+    attachmentPath: m.attachment_path ?? null,
+    attachmentName: m.attachment_name ?? null,
+    attachmentType: m.attachment_type ?? null,
+    attachmentSize: m.attachment_size ?? null,
+  };
+}
+
 /* ------------------------------ user surface ----------------------------- */
 
 /** Specialist directory with the caller's unlock state and unread counters. */
@@ -66,13 +87,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .neq("sender_role", "user")
       .is("read_at", null);
 
-    return (rows ?? []).map((m: any) => ({
-      id: m.id,
-      body: m.body,
-      senderRole: m.sender_role,
-      createdAt: m.created_at,
-      readAt: m.read_at,
-    }));
+    return (rows ?? []).map(mapMessage);
   });
 
 /** Asks support to unlock a locked specialist thread. */
@@ -100,7 +115,12 @@ export const requestVipAccess = createServerFn({ method: "POST" })
 export const sendVipMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ roleKey, body: z.string().trim().min(1).max(2000) }).parse(input),
+    z
+      .object({ roleKey, body: z.string().trim().max(2000).default(""), ...attachment })
+      .refine((v) => v.body.length > 0 || !!v.attachmentPath, {
+        message: "Message or attachment required.",
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const db = await privileged();
@@ -117,7 +137,11 @@ export const sendVipMessage = createServerFn({ method: "POST" })
       role_key: data.roleKey,
       sender_role: "user",
       sender_id: context.userId,
-      body: data.body,
+      body: data.body || (data.attachmentName ?? "Attachment"),
+      attachment_path: data.attachmentPath ?? null,
+      attachment_name: data.attachmentName ?? null,
+      attachment_type: data.attachmentType ?? null,
+      attachment_size: data.attachmentSize ?? null,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -191,20 +215,22 @@ export const getVipDeskThread = createServerFn({ method: "POST" })
       .eq("role_key", data.roleKey)
       .eq("sender_role", "user")
       .is("read_at", null);
-    return (rows ?? []).map((m: any) => ({
-      id: m.id,
-      body: m.body,
-      senderRole: m.sender_role,
-      createdAt: m.created_at,
-      readAt: m.read_at,
-    }));
+    return (rows ?? []).map(mapMessage);
   });
 
 export const sendVipDeskMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ userId: z.string().uuid(), roleKey, body: z.string().trim().min(1).max(2000) })
+      .object({
+        userId: z.string().uuid(),
+        roleKey,
+        body: z.string().trim().max(2000).default(""),
+        ...attachment,
+      })
+      .refine((v) => v.body.length > 0 || !!v.attachmentPath, {
+        message: "Message or attachment required.",
+      })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -215,7 +241,11 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
       role_key: data.roleKey,
       sender_role: "specialist",
       sender_id: context.userId,
-      body: data.body,
+      body: data.body || (data.attachmentName ?? "Attachment"),
+      attachment_path: data.attachmentPath ?? null,
+      attachment_name: data.attachmentName ?? null,
+      attachment_type: data.attachmentType ?? null,
+      attachment_size: data.attachmentSize ?? null,
     });
     if (error) throw new Error(error.message);
 
@@ -324,4 +354,27 @@ export const setVipAccess = createServerFn({ method: "POST" })
       unlocked: data.unlocked,
     });
     return { ok: true };
+  });
+
+/** Signed URL for a VIP chat attachment — staff for any thread, users for their own. */
+export const getVipAttachmentUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ messageId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const db = await privileged();
+    const { data: message } = await db
+      .from("vip_messages")
+      .select("id,user_id,attachment_path")
+      .eq("id", data.messageId)
+      .maybeSingle();
+    if (!message?.attachment_path) return { url: null };
+
+    if (message.user_id !== context.userId) {
+      await assertStaff(context);
+    }
+
+    const { data: signed } = await db.storage
+      .from("chat-attachments")
+      .createSignedUrl(message.attachment_path, 900);
+    return { url: signed?.signedUrl ?? null };
   });
