@@ -7,6 +7,9 @@ const profileInput = z.object({
   avatarUrl: z.string().trim().url().max(500).nullable().optional(),
 });
 
+/** A display name may only be changed once every 60 days. */
+const NAME_COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
+
 function startOfTodayIso() {
   const d = new Date();
   d.setUTCHours(0, 0, 0, 0);
@@ -91,6 +94,12 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
         creditScore: Number((profile as any)?.credit_score ?? 750),
         createdAt: profile?.created_at ?? null,
+        nameUpdatedAt: (profile as any)?.display_name_updated_at ?? null,
+        nameLockedUntil: (profile as any)?.display_name_updated_at
+          ? new Date(
+              new Date((profile as any).display_name_updated_at).getTime() + NAME_COOLDOWN_MS,
+            ).toISOString()
+          : null,
       },
       balances: {
         totalUsdt,
@@ -117,8 +126,35 @@ export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => profileInput.parse(input))
   .handler(async ({ data, context }) => {
-    const patch: { display_name?: string; avatar_url?: string | null } = {};
-    if (data.displayName !== undefined) patch.display_name = data.displayName;
+    const patch: {
+      display_name?: string;
+      avatar_url?: string | null;
+      display_name_updated_at?: string;
+    } = {};
+
+    if (data.displayName !== undefined) {
+      const { data: current } = await context.supabase
+        .from("profiles")
+        .select("display_name, display_name_updated_at")
+        .eq("id", context.userId)
+        .maybeSingle();
+
+      const changed = (current as any)?.display_name !== data.displayName;
+      const last = (current as any)?.display_name_updated_at;
+      if (changed && last) {
+        const unlocksAt = new Date(last).getTime() + NAME_COOLDOWN_MS;
+        if (unlocksAt > Date.now()) {
+          const days = Math.ceil((unlocksAt - Date.now()) / 86_400_000);
+          throw new Error(
+            `Your name can only be changed once every 60 days. Try again in ${days} day${days === 1 ? "" : "s"}.`,
+          );
+        }
+      }
+      if (changed) {
+        patch.display_name = data.displayName;
+        patch.display_name_updated_at = new Date().toISOString();
+      }
+    }
     if (data.avatarUrl !== undefined) patch.avatar_url = data.avatarUrl;
     if (Object.keys(patch).length === 0) return { ok: true };
 
