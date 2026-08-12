@@ -10,6 +10,7 @@ export type Announcement = {
   body: string;
   severity: AnnouncementSeverity;
   active: boolean;
+  targetUserId: string | null;
   createdAt: string;
 };
 
@@ -19,6 +20,7 @@ const upsertInput = z.object({
   body: z.string().trim().min(2).max(1000),
   severity: z.enum(["info", "warning", "critical"]),
   active: z.boolean().default(true),
+  targetUserId: z.string().uuid().nullable().optional(),
 });
 
 function map(row: any): Announcement {
@@ -28,6 +30,7 @@ function map(row: any): Announcement {
     body: row.body,
     severity: (row.severity ?? "info") as AnnouncementSeverity,
     active: Boolean(row.active),
+    targetUserId: row.target_user_id ?? null,
     createdAt: row.created_at,
   };
 }
@@ -49,6 +52,7 @@ export const getActiveAnnouncements = createServerFn({ method: "POST" })
       .from("announcements")
       .select("*")
       .eq("active", true)
+      .or(`target_user_id.is.null,target_user_id.eq.${context.userId}`)
       .order("created_at", { ascending: false })
       .limit(10);
     return (data ?? []).map(map);
@@ -78,6 +82,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
       body: data.body,
       severity: data.severity,
       active: data.active,
+      target_user_id: data.targetUserId ?? null,
       created_by: context.userId,
     };
     const query = data.id

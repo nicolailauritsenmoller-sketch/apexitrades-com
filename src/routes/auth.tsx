@@ -38,6 +38,15 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [referral, setReferral] = useState("");
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("ref");
+    if (code) {
+      setReferral(code.toUpperCase());
+      setMode("signup");
+    }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -62,7 +71,10 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: referral.trim() ? { referral_code: referral.trim().toUpperCase() } : {},
+          },
         });
         if (error) throw error;
         toast.success("Account created — fund your wallet to start trading.");
@@ -150,6 +162,15 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
+            />
+          )}
+          {mode === "signup" && (
+            <input
+              value={referral}
+              onChange={(e) => setReferral(e.target.value.toUpperCase())}
+              maxLength={16}
+              placeholder="Referral code (optional)"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm uppercase tracking-wider outline-none transition-colors focus:border-ring"
             />
           )}
           <button

@@ -38,6 +38,7 @@ import {
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
+import { PlatformSettingsHub } from "@/components/admin/PlatformSettingsHub";
 import { CertificatesPanel } from "@/components/admin/CertificatesPanel";
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
@@ -72,6 +73,9 @@ import {
   reviewWithdrawal,
   setContractOutcomeMode,
   setUserOutcomeMode,
+  unverifyKyc,
+  getPlatformSettings,
+  savePlatformSetting,
   upsertDepositAddress,
 } from "@/lib/admin.functions";
 
@@ -541,6 +545,7 @@ function AdminPage() {
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && (
                 <div className="space-y-4">
+                  <PlatformSettingsHub />
                   <PlatformSettingsPanel />
                   <CertificatesPanel />
                   <AddressesTab rows={data.addresses} onDone={refresh} />
@@ -629,6 +634,7 @@ function ReviewButtons({
 function DepositProof({ id }: { id: string }) {
   const fetchUrl = useServerFn(getDepositProofUrl);
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
   const proof = useQuery({
     queryKey: ["deposit-proof", id],
     queryFn: () => fetchUrl({ data: { id } }),
@@ -638,8 +644,24 @@ function DepositProof({ id }: { id: string }) {
   if (!url) {
     return <p className="mt-2 text-[11px] text-muted-foreground">Loading payment proof…</p>;
   }
+  if (!shown) {
+    return (
+      <button
+        onClick={() => setShown(true)}
+        className="mt-2 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        View proof receipt
+      </button>
+    );
+  }
   return (
     <div className="mt-2">
+      <button
+        onClick={() => setShown(false)}
+        className="mb-2 block rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        Hide receipt
+      </button>
       <button onClick={() => setOpen(true)} className="block">
         <img
           src={url}
@@ -1013,6 +1035,43 @@ function OutcomesTab({
 }) {
   const setUser = useServerFn(setUserOutcomeMode);
   const setContract = useServerFn(setContractOutcomeMode);
+  const readSettings = useServerFn(getPlatformSettings);
+  const writeSetting = useServerFn(savePlatformSetting);
+  const [query, setQuery] = useState("");
+
+  const settings = useQuery({
+    queryKey: ["platform-settings", "trading"],
+    queryFn: () => readSettings({ data: { keys: ["trading"] } }),
+  });
+  const globalMode = ((settings.data as any)?.trading?.defaultOutcome ?? "normal") as
+    | "normal"
+    | "force_win"
+    | "force_loss";
+
+  const globalMutation = useMutation({
+    mutationFn: (mode: string) =>
+      writeSetting({
+        data: {
+          key: "trading",
+          value: { ...(((settings.data as any)?.trading ?? {}) as object), defaultOutcome: mode },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Global trade outcome updated.");
+      void settings.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const q = query.trim().toLowerCase();
+  const filteredProfiles = q
+    ? profiles.filter(
+        (p) =>
+          String(p.display_name ?? "").toLowerCase().includes(q) ||
+          String(p.uid ?? "").toLowerCase().includes(q) ||
+          String(p.id).toLowerCase().includes(q),
+      )
+    : profiles;
 
   const userMutation = useMutation({
     mutationFn: (input: any) => setUser({ data: input }),
@@ -1034,6 +1093,21 @@ function OutcomesTab({
 
   return (
     <div className="space-y-4">
+      <Card title="Global default trade outcome">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs text-muted-foreground">
+            Applied to every settlement unless a per-user or per-contract override exists.
+          </p>
+          <div className="ml-auto">
+            <ModeToggle
+              value={globalMode}
+              disabled={globalMutation.isPending}
+              onChange={(mode) => globalMutation.mutate(mode)}
+            />
+          </div>
+        </div>
+      </Card>
+
       <Card title={`Open contracts (${contracts.length})`}>
         {contracts.length === 0 ? (
           <Empty label="No open contracts right now." />
@@ -1073,9 +1147,15 @@ function OutcomesTab({
         )}
       </Card>
 
-      <Card title={`Account-level outcome control (${profiles.length})`}>
+      <Card title={`Account-level outcome control (${filteredProfiles.length})`}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by UID, name or account id"
+          className="mb-3 h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+        />
         <ul className="space-y-2">
-          {profiles.map((p) => (
+          {filteredProfiles.map((p) => (
             <li
               key={p.id}
               className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3"
@@ -1083,6 +1163,7 @@ function OutcomesTab({
               <div className="min-w-[180px]">
                 <p className="text-sm font-semibold">{p.display_name}</p>
                 <p className="font-mono text-[11px] text-muted-foreground">
+                  {p.uid ? `#${p.uid} · ` : ""}
                   {String(p.id).slice(0, 8)}…
                 </p>
               </div>
@@ -1284,6 +1365,16 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
 function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const review = useReview(reviewKyc, onDone, "KYC");
   const fetchDocs = useServerFn(getKycDocumentUrls);
+  const revoke = useServerFn(unverifyKyc);
+  const [docsVisible, setDocsVisible] = useState(false);
+  const unverify = useMutation({
+    mutationFn: (input: { id: string; note?: string }) => revoke({ data: input }),
+    onSuccess: () => {
+      toast.success("User reverted to pending verification.");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [docs, setDocs] = useState<{ document: string | null; selfie: string | null } | null>(null);
   const [note, setNote] = useState("");
 
@@ -1308,11 +1399,27 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           disabled={load.isPending}
-          onClick={() => load.mutate()}
+          onClick={() => {
+            if (docsVisible) {
+              setDocsVisible(false);
+              return;
+            }
+            setDocsVisible(true);
+            if (!docs) load.mutate();
+          }}
           className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
-          View documents
+          {docsVisible ? "Hide ID document" : "View ID document"}
         </button>
+        {row.status === "approved" && (
+          <button
+            disabled={unverify.isPending}
+            onClick={() => unverify.mutate({ id: row.id, note: note || undefined })}
+            className="rounded-md border border-amber-500/50 px-3 py-1.5 text-xs font-semibold text-amber-500 hover:bg-amber-500/10 disabled:opacity-50"
+          >
+            Unverify user
+          </button>
+        )}
         {row.status === "pending" && (
           <>
             <input
@@ -1329,7 +1436,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
         )}
       </div>
 
-      {docs && (
+      {docsVisible && docs && (
         <div className="mt-3 flex flex-wrap gap-3">
           {docs.document && (
             <img

@@ -165,10 +165,21 @@ export const settleContract = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
+    // Platform-wide default applies when neither the contract nor the account
+    // carries an explicit override.
+    const { data: globalSetting } = await db
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "trading")
+      .maybeSingle();
+    const globalDefault = (globalSetting?.value?.defaultOutcome ?? "normal") as string;
+
     const override =
       contract.outcome_override && contract.outcome_override !== "normal"
         ? contract.outcome_override
-        : (profile?.outcome_mode ?? "normal");
+        : profile?.outcome_mode && profile.outcome_mode !== "normal"
+          ? profile.outcome_mode
+          : globalDefault;
 
     let result: "win" | "loss" | "draw";
     if (override === "force_win") result = "win";

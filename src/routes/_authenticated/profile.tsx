@@ -179,6 +179,12 @@ function ProfilePage() {
   const sessions = useQuery({ queryKey: ["sessions"], queryFn: listSessions });
 
   const [displayName, setDisplayName] = useState("");
+  const nameLockedDays = (() => {
+    const until = (profile as any)?.nameLockedUntil;
+    if (!until) return 0;
+    const diff = new Date(until).getTime() - Date.now();
+    return diff > 0 ? Math.ceil(diff / 86_400_000) : 0;
+  })();
   useEffect(() => {
     if (profile?.displayName) setDisplayName(profile.displayName);
   }, [profile?.displayName]);
@@ -265,17 +271,29 @@ function ProfilePage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={60}
+              disabled={nameLockedDays > 0}
               placeholder="Display name"
-              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm disabled:opacity-60"
             />
             <button
               onClick={() => nameMutation.mutate(displayName)}
-              disabled={nameMutation.isPending || displayName.trim().length < 2}
+              disabled={
+                nameMutation.isPending || displayName.trim().length < 2 || nameLockedDays > 0
+              }
               className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
               Save name
             </button>
           </div>
+          {nameLockedDays > 0 ? (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-500">
+              Name locked · {nameLockedDays} day{nameLockedDays === 1 ? "" : "s"} remaining
+            </p>
+          ) : (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Your display name can only be changed once every 60 days.
+            </p>
+          )}
         </section>
 
         {/* 3. Financial dashboard */}
@@ -520,6 +538,12 @@ function ProfilePage() {
               >
                 Help center
               </button>
+              <a
+                href="mailto:support@velocitytrade.com"
+                className="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-secondary sm:col-span-2"
+              >
+                📧 Email support — support@velocitytrade.com
+              </a>
               <button
                 onClick={() => setSecurityOpen(true)}
                 className="inline-flex items-center gap-2 rounded-md border border-bear/40 px-3 py-2 text-left text-sm text-bear hover:bg-bear/10 sm:col-span-2"

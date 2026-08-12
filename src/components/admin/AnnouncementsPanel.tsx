@@ -10,6 +10,7 @@ import {
   type Announcement,
   type AnnouncementSeverity,
 } from "@/lib/announcements.functions";
+import { getUserDirectory } from "@/lib/admin.functions";
 
 const SEVERITIES: { id: AnnouncementSeverity; label: string; className: string }[] = [
   { id: "info", label: "Info", className: "bg-primary/15 text-primary" },
@@ -17,7 +18,14 @@ const SEVERITIES: { id: AnnouncementSeverity; label: string; className: string }
   { id: "critical", label: "Critical", className: "bg-bear/15 text-bear" },
 ];
 
-const empty = { id: undefined as string | undefined, title: "", body: "", severity: "info" as AnnouncementSeverity, active: true };
+const empty = {
+  id: undefined as string | undefined,
+  title: "",
+  body: "",
+  severity: "info" as AnnouncementSeverity,
+  active: true,
+  targetUserId: null as string | null,
+};
 
 export function AnnouncementsPanel() {
   const qc = useQueryClient();
@@ -25,6 +33,21 @@ export function AnnouncementsPanel() {
   const save = useServerFn(upsertAnnouncement);
   const remove = useServerFn(deleteAnnouncement);
   const [draft, setDraft] = useState(empty);
+  const [userQuery, setUserQuery] = useState("");
+  const fetchUsers = useServerFn(getUserDirectory);
+  const directory = useQuery({ queryKey: ["admin-directory"], queryFn: () => fetchUsers() });
+  const users = (directory.data ?? []) as any[];
+  const q = userQuery.trim().toLowerCase();
+  const matches = q
+    ? users.filter(
+        (u) =>
+          String(u.uid ?? "").toLowerCase().includes(q) ||
+          String(u.displayName ?? "").toLowerCase().includes(q) ||
+          String(u.legalName ?? "").toLowerCase().includes(q) ||
+          String(u.id).toLowerCase().includes(q),
+      )
+    : users;
+  const targetUser = users.find((u) => u.id === draft.targetUserId);
 
   const rows = useQuery({ queryKey: ["admin-announcements"], queryFn: () => fetchAll() });
 
@@ -93,6 +116,15 @@ export function AnnouncementsPanel() {
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">{a.body}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Audience:{" "}
+                      <span className="font-semibold text-foreground">
+                        {a.targetUserId ? "Specific user" : "All users"}
+                      </span>
+                      {a.targetUserId ? (
+                        <span className="font-mono"> · {a.targetUserId.slice(0, 8)}…</span>
+                      ) : null}
+                    </p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button
                         onClick={() =>
@@ -102,6 +134,7 @@ export function AnnouncementsPanel() {
                             body: a.body,
                             severity: a.severity,
                             active: a.active,
+                            targetUserId: a.targetUserId ?? null,
                           })
                         }
                         className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
@@ -116,6 +149,7 @@ export function AnnouncementsPanel() {
                             body: a.body,
                             severity: a.severity,
                             active: !a.active,
+                            targetUserId: a.targetUserId ?? null,
                           })
                         }
                         className="rounded-md border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
@@ -157,6 +191,64 @@ export function AnnouncementsPanel() {
             placeholder="Message shown in the banner"
             className="w-full rounded-md border border-border bg-background p-2 text-sm"
           />
+          <div className="space-y-2 rounded-md border border-border p-2.5">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Target audience
+            </p>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setDraft((d) => ({ ...d, targetUserId: null }))}
+                className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium ${
+                  draft.targetUserId === null
+                    ? "bg-primary/15 text-primary"
+                    : "border border-border text-muted-foreground"
+                }`}
+              >
+                All users
+              </button>
+              <button
+                onClick={() =>
+                  setDraft((d) => ({ ...d, targetUserId: d.targetUserId ?? (users[0]?.id ?? null) }))
+                }
+                className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium ${
+                  draft.targetUserId !== null
+                    ? "bg-primary/15 text-primary"
+                    : "border border-border text-muted-foreground"
+                }`}
+              >
+                Specific user
+              </button>
+            </div>
+            {draft.targetUserId !== null && (
+              <>
+                <input
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  placeholder="Search by UID, name or account id"
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+                />
+                <select
+                  value={draft.targetUserId ?? ""}
+                  onChange={(e) => setDraft((d) => ({ ...d, targetUserId: e.target.value || null }))}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+                >
+                  <option value="">Select a user…</option>
+                  {matches.slice(0, 100).map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.displayName} — #{u.uid ?? String(u.id).slice(0, 8)}
+                    </option>
+                  ))}
+                </select>
+                {targetUser && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Only <span className="font-semibold text-foreground">{targetUser.displayName}</span>{" "}
+                    will see this banner.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
           <div className="flex gap-1">
             {SEVERITIES.map((s) => (
               <button
@@ -192,6 +284,7 @@ export function AnnouncementsPanel() {
                   body: draft.body.trim(),
                   severity: draft.severity,
                   active: draft.active,
+                  targetUserId: draft.targetUserId,
                 })
               }
               className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
