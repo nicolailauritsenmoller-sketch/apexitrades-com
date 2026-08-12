@@ -220,7 +220,10 @@ type IconInfo = {
 /** Icon source for a wallet currency (USD, EUR, USDT, BTC…). */
 export function currencyIcon(currency: string): { src: string; label: string; tint: string } {
   const upper = currency.toUpperCase();
-  const src = CRYPTO_ICON[upper] ?? FLAG_ICON[upper] ?? METAL_ICON[upper] ?? companyIcon;
+  const src =
+    CRYPTO_ICON[upper] ??
+    METAL_ICON[upper] ??
+    (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper] ? flagFor(upper) : cryptoCdn(upper));
   return { src, label: upper.slice(0, 3), tint: "" };
 }
 
@@ -228,18 +231,19 @@ function instrumentIcon(inst: Instrument): IconInfo {
   switch (inst.assetClass) {
     case "crypto": {
       const base = inst.symbol.replace(/USDT$/, "");
-      return { src: CRYPTO_ICON[base] ?? usdtIcon, label: base.slice(0, 4) };
+      return { src: CRYPTO_ICON[base] ?? cryptoCdn(base), label: base.slice(0, 4) };
     }
     case "forex": {
       const pair = inst.symbol.replace("=X", "");
       const base = pair.slice(0, 3);
       const quote = pair.slice(3, 6);
       return {
-        src: FLAG_ICON[base] ?? usFlag,
-        quoteSrc: FLAG_ICON[quote] ?? usFlag,
+        src: flagFor(base),
+        quoteSrc: flagFor(quote),
         label: base,
       };
     }
+
     case "metal":
       return { src: METAL_ICON[inst.symbol] ?? goldIcon, label: inst.symbol.slice(0, 2) };
     case "future":
