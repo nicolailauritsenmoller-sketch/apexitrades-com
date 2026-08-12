@@ -282,11 +282,11 @@ export const getActiveUsers = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertStaff(context);
     const db = await privileged();
-    const since = new Date(Date.now() - 5 * 60_000).toISOString();
+    const activeSince = Date.now() - 15 * 60_000;
     const { data: rows } = await db
       .from("user_sessions")
       .select("*")
-      .gte("last_active_at", since)
+      .gte("last_active_at", new Date(Date.now() - 24 * 3600_000).toISOString())
       .order("last_active_at", { ascending: false })
       .limit(200);
     const list: any[] = rows ?? [];
@@ -295,22 +295,51 @@ export const getActiveUsers = createServerFn({ method: "POST" })
       ? await db.from("profiles").select("id,display_name,uid").in("id", ids)
       : { data: [] };
     const map = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-    return {
-      count: ids.length,
-      rows: list.map((s) => ({
+
+    // KYC-verified users get a green badge in the monitoring table.
+    const { data: kyc } = ids.length
+      ? await db.from("kyc_submissions").select("user_id,status").in("user_id", ids)
+      : { data: [] };
+    const verified = new Set(
+      (kyc ?? []).filter((k: any) => k.status === "approved").map((k: any) => k.user_id),
+    );
+
+    const emails = new Map<string, string>();
+    try {
+      const { data: users } = await (db as any).auth.admin.listUsers({ page: 1, perPage: 1000 });
+      for (const u of users?.users ?? []) emails.set(u.id, u.email ?? "");
+    } catch {
+      /* email lookup is best-effort */
+    }
+
+    const mapped = list.map((s) => {
+      const active = new Date(s.last_active_at).getTime() >= activeSince;
+      return {
         id: s.id,
         userId: s.user_id,
         name: (map.get(s.user_id) as any)?.display_name ?? "Trader",
         uid: (map.get(s.user_id) as any)?.uid ?? s.user_id.slice(0, 8),
+        email: emails.get(s.user_id) ?? null,
+        verified: verified.has(s.user_id),
         browser: s.browser,
         os: s.os,
+        device: /iOS|Android/i.test(s.os ?? "") ? "Mobile" : "Desktop",
         ip: s.ip_address,
         country: s.country,
         path: s.current_path,
+        loginAt: s.created_at,
         lastActiveAt: s.last_active_at,
-      })),
+        active,
+      };
+    });
+
+    return {
+      count: new Set(mapped.filter((r) => r.active).map((r) => r.userId)).size,
+      rows: mapped.filter((r) => r.active),
+      recent: mapped.slice(0, 60),
     };
   });
+
 
 /* --------------------------- trades & corrections ------------------------ */
 
