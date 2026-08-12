@@ -45,54 +45,128 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
     );
   }
 
+  const recent = q.data?.recent ?? [];
+
   return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-        <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
-          <span className="live-dot size-2 rounded-full bg-bull" />
-          Active users now
-        </h2>
-        <span className="text-xs text-muted-foreground">
-          {q.data?.count ?? 0} online · {rows.length} sessions
-        </span>
-      </header>
-      <div className="overflow-x-auto">
-        {rows.length === 0 ? (
-          <p className="p-6 text-center text-sm text-muted-foreground">Nobody online right now.</p>
-        ) : (
-          <table className="w-full min-w-[52rem] text-sm">
-            <thead className="text-left text-[11px] uppercase tracking-widest text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="px-4 py-2">User</th>
-                <th className="px-4 py-2">Viewing</th>
-                <th className="px-4 py-2">IP</th>
-                <th className="px-4 py-2">Location</th>
-                <th className="px-4 py-2">Device</th>
-                <th className="px-4 py-2">Last seen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-border/60">
-                  <td className="px-4 py-2">
-                    <span className="font-medium">{r.name}</span>
-                    <span className="block text-[11px] text-muted-foreground">UID {r.uid}</span>
-                  </td>
-                  <td className="px-4 py-2 font-mono text-xs">{r.path ?? "—"}</td>
-                  <td className="px-4 py-2 font-mono text-xs">{r.ip ?? "—"}</td>
-                  <td className="px-4 py-2 text-xs">{r.country ?? "—"}</td>
-                  <td className="px-4 py-2 text-xs">
-                    {r.browser} · {r.os}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-[11px] text-muted-foreground">
-                    {new Date(r.lastActiveAt).toLocaleTimeString()}
-                  </td>
+    <div className="space-y-4">
+      <section className="rounded-lg border border-border bg-card">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
+            <span className="live-dot size-2 rounded-full bg-bull" />
+            Active users now
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {q.data?.count ?? 0} online · {rows.length} sessions
+          </span>
+        </header>
+        <div className="overflow-x-auto">
+          {rows.length === 0 ? (
+            <p className="p-6 text-center text-sm text-muted-foreground">
+              Nobody online right now.
+            </p>
+          ) : (
+            <table className="w-full min-w-[52rem] text-sm">
+              <thead className="text-left text-[11px] uppercase tracking-widest text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2">User</th>
+                  <th className="px-4 py-2">Viewing</th>
+                  <th className="px-4 py-2">IP</th>
+                  <th className="px-4 py-2">Location</th>
+                  <th className="px-4 py-2">Device</th>
+                  <th className="px-4 py-2">Last seen</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </section>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-b border-border/60">
+                    <td className="px-4 py-2">
+                      <span className="font-medium">{r.name}</span>
+                      <span className="block text-[11px] text-muted-foreground">UID {r.uid}</span>
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs">{r.path ?? "—"}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{r.ip ?? "—"}</td>
+                    <td className="px-4 py-2 text-xs">{r.country ?? "—"}</td>
+                    <td className="px-4 py-2 text-xs">
+                      {r.browser} · {r.os}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-[11px] text-muted-foreground">
+                      {new Date(r.lastActiveAt).toLocaleTimeString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <h2 className="font-display text-sm font-semibold tracking-tight">
+            Live login activity
+          </h2>
+          <span className="text-xs text-muted-foreground">Last 24 hours</span>
+        </header>
+        <div className="overflow-x-auto">
+          {recent.length === 0 ? (
+            <p className="p-6 text-center text-sm text-muted-foreground">No logins recorded yet.</p>
+          ) : (
+            <table className="w-full min-w-[56rem] text-sm">
+              <thead className="text-left text-[11px] uppercase tracking-widest text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2">User</th>
+                  <th className="px-4 py-2">Login time</th>
+                  <th className="px-4 py-2">IP / location</th>
+                  <th className="px-4 py-2">Device</th>
+                  <th className="px-4 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((r) => (
+                  <tr key={`login-${r.id}`} className="border-b border-border/60">
+                    <td className="px-4 py-2">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{r.name}</span>
+                        {r.verified && <VerifiedBadge />}
+                      </span>
+                      <span className="block text-[11px] text-muted-foreground">
+                        <UidTag uid={r.uid} /> {r.email ? `· ${r.email}` : ""}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-xs">
+                      {new Date(r.loginAt).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2 text-xs">
+                      <span className="font-mono">{r.ip ?? "—"}</span>
+                      <span className="block text-[11px] text-muted-foreground">
+                        {r.country ?? "Unknown"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-xs">
+                      {r.device}
+                      <span className="block text-[11px] text-muted-foreground">
+                        {r.browser} · {r.os}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      {r.active ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-bull/40 bg-bull/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-bull">
+                          <span className="size-1.5 rounded-full bg-bull" /> Active now
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <span className="size-1.5 rounded-full bg-muted-foreground" /> Logged out
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
+
