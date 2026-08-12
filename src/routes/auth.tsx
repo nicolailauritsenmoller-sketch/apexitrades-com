@@ -6,6 +6,7 @@ import brandLogo from "@/assets/velocity-trade-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
+import { OtpInput } from "@/components/OtpInput";
 import { ThemeToggle } from "@/lib/theme";
 
 export const Route = createFileRoute("/auth")({
@@ -29,21 +30,27 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup" | "forgot";
+type Mode = "signin" | "signup" | "forgot" | "verify" | "reset";
+
+const RESEND_SECONDS = 60;
 
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
   const [referral, setReferral] = useState("");
+  const [code, setCode] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("ref");
-    if (code) {
-      setReferral(code.toUpperCase());
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setReferral(ref.toUpperCase());
       setMode("signup");
     }
   }, []);
@@ -54,6 +61,17 @@ function AuthPage() {
     });
   }, [navigate]);
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const mismatch =
+    (mode === "signup" || mode === "reset") &&
+    confirmPassword.length > 0 &&
+    password !== confirmPassword;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -63,12 +81,22 @@ function AuthPage() {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
-        setSent(true);
-        toast.success("Reset code sent — check your inbox.");
+        setCode("");
+        setPassword("");
+        setConfirmPassword("");
+        setCooldown(RESEND_SECONDS);
+        setMode("reset");
+        toast.success("We sent a 6-digit code to your email.");
         return;
       }
+
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        if (password !== confirmPassword) {
+          setPasswordError("Passwords do not match");
+          return;
+        }
+        setPasswordError("");
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -77,16 +105,78 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created — fund your wallet to start trading.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (data.session) {
+          navigate({ to: "/dashboard", replace: true });
+          return;
+        }
+        setCode("");
+        setCooldown(RESEND_SECONDS);
+        setMode("verify");
+        toast.success("Enter the 6-digit code we emailed you.");
+        return;
       }
+
+      if (mode === "verify") {
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token: code.trim(),
+          type: "signup",
+        });
+        if (error) throw error;
+        toast.success("Email verified — welcome to Velocity Trade.");
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      if (mode === "reset") {
+        if (password.length < 8) {
+          setPasswordError("Password must be at least 8 characters");
+          return;
+        }
+        if (password !== confirmPassword) {
+          setPasswordError("Passwords do not match");
+          return;
+        }
+        setPasswordError("");
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          email,
+          token: code.trim(),
+          type: "recovery",
+        });
+        if (otpError) throw otpError;
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+        if (updateError) throw updateError;
+        toast.success("Password updated.");
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onResend() {
+    if (cooldown > 0) return;
+    try {
+      if (mode === "verify") {
+        const { error } = await supabase.auth.resend({ type: "signup", email });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+      }
+      setCooldown(RESEND_SECONDS);
+      toast.success("New code sent.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not resend the code.");
     }
   }
 
@@ -102,6 +192,28 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   }
 
+  const heading =
+    mode === "signup"
+      ? "Create your account"
+      : mode === "signin"
+        ? "Welcome back"
+        : mode === "forgot"
+          ? "Reset your password"
+          : mode === "verify"
+            ? "Verify your email"
+            : "Enter code & new password";
+
+  const subheading =
+    mode === "signup"
+      ? "Create your account, then fund it with a deposit to start trading."
+      : mode === "signin"
+        ? "Sign in to your trading account."
+        : mode === "forgot"
+          ? "We'll email you a 6-digit verification code."
+          : `Enter the 6-digit code sent to ${email}.`;
+
+  const isCodeStep = mode === "verify" || mode === "reset";
+
   return (
     <div className="hero-glow flex min-h-screen items-center justify-center px-4">
       <div className="panel relative w-full max-w-sm p-7 pt-16">
@@ -115,22 +227,10 @@ function AuthPage() {
         </div>
         <ThemeToggle className="absolute right-7 top-6" />
 
-        <h1 className="mt-0 text-2xl font-bold">
-          {mode === "signup"
-            ? "Create your account"
-            : mode === "signin"
-              ? "Welcome back"
-              : "Reset your password"}
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          {mode === "signup"
-            ? "Create your account, then fund it with a deposit to start trading."
-            : mode === "signin"
-              ? "Sign in to your trading account."
-              : "We'll email you a verification code and a secure reset link."}
-        </p>
+        <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>
 
-        {mode !== "forgot" && (
+        {(mode === "signin" || mode === "signup") && (
           <>
             <button
               onClick={onGoogle}
@@ -146,24 +246,58 @@ function AuthPage() {
           </>
         )}
 
-        <form onSubmit={onSubmit} className={`space-y-3 ${mode === "forgot" ? "mt-6" : ""}`}>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:border-ring"
-          />
-          {mode !== "forgot" && (
-            <PasswordInput
+        <form
+          onSubmit={onSubmit}
+          className={`space-y-3 ${mode === "signin" || mode === "signup" ? "" : "mt-6"}`}
+        >
+          {!isCodeStep && (
+            <input
+              type="email"
               required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:border-ring"
             />
           )}
+
+          {isCodeStep && <OtpInput value={code} onChange={setCode} disabled={busy} />}
+
+          {(mode === "signin" || mode === "signup" || mode === "reset") && (
+            <PasswordInput
+              required
+              minLength={mode === "reset" ? 8 : 6}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setPasswordError("");
+              }}
+              placeholder={mode === "reset" ? "New password" : "Password"}
+            />
+          )}
+
+          {(mode === "signup" || mode === "reset") && (
+            <>
+              <PasswordInput
+                required
+                minLength={mode === "reset" ? 8 : 6}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setPasswordError("");
+                }}
+                placeholder="Confirm password"
+                aria-invalid={mismatch}
+                className={mismatch ? "border-destructive focus:border-destructive" : ""}
+              />
+              {(mismatch || passwordError) && (
+                <p role="alert" className="text-xs font-medium text-destructive">
+                  {passwordError || "Passwords do not match"}
+                </p>
+              )}
+            </>
+          )}
+
           {mode === "signup" && (
             <input
               value={referral}
@@ -173,9 +307,10 @@ function AuthPage() {
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm uppercase tracking-wider outline-none transition-colors focus:border-ring"
             />
           )}
+
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || (isCodeStep && code.length < 6) || mismatch}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {busy
@@ -184,25 +319,30 @@ function AuthPage() {
                 ? "Create account"
                 : mode === "signin"
                   ? "Sign in"
-                  : "Send reset code"}
+                  : mode === "forgot"
+                    ? "Send 6-digit code"
+                    : mode === "verify"
+                      ? "Verify & continue"
+                      : "Update password"}
           </button>
           <TrustStrip className="pt-1" />
         </form>
 
-        {mode === "forgot" && sent && (
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Code sent.{" "}
-            <Link to="/reset-password" className="font-medium text-primary hover:underline">
-              Enter your code
-            </Link>
-          </p>
+        {isCodeStep && (
+          <button
+            onClick={onResend}
+            disabled={cooldown > 0}
+            className="mt-4 w-full text-center text-xs text-primary transition-opacity hover:opacity-80 disabled:text-muted-foreground"
+          >
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          </button>
         )}
 
         {mode === "signin" && (
           <button
             onClick={() => {
               setMode("forgot");
-              setSent(false);
+              setCode("");
             }}
             className="mt-4 w-full text-center text-xs text-primary transition-opacity hover:opacity-80"
           >
@@ -210,14 +350,27 @@ function AuthPage() {
           </button>
         )}
 
+        {mode === "reset" && (
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Used an emailed link instead?{" "}
+            <Link to="/reset-password" className="font-medium text-primary hover:underline">
+              Continue here
+            </Link>
+          </p>
+        )}
+
         <button
-          onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+          onClick={() => {
+            setPasswordError("");
+            setConfirmPassword("");
+            setCode("");
+            setMode(mode === "signup" ? "signin" : "signup");
+          }}
           className="mt-4 w-full text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           {mode === "signup" ? (
             <>
-              Already have an account?{" "}
-              <span className="font-bold text-[#22C55E]">Sign in</span>
+              Already have an account? <span className="font-bold text-[#22C55E]">Sign in</span>
             </>
           ) : mode === "signin" ? (
             <>
