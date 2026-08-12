@@ -42,6 +42,7 @@ const TABS: ("all" | AssetClass)[] = ["all", "crypto", "stock", "future", "forex
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
   const [q, setQ] = useState("");
+  const [limit, setLimit] = useState(50);
 
   const filtered = useMemo(
     () =>
@@ -56,8 +57,10 @@ function Markets() {
     [tab, q],
   );
 
+  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+
   const { quotes } = useQuotes(
-    filtered.map((i) => i.symbol),
+    visible.map((i) => i.symbol),
     8000,
   );
 
@@ -74,7 +77,10 @@ function Markets() {
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setLimit(50);
+            }}
             placeholder="Search instruments"
             className="w-64 rounded-md border border-input bg-surface py-2 pl-9 pr-3 text-sm outline-none focus:border-ring"
           />
@@ -85,7 +91,10 @@ function Markets() {
         {TABS.map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              setLimit(50);
+            }}
             className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
               tab === t
                 ? "bg-primary text-primary-foreground"
@@ -111,7 +120,7 @@ function Markets() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((i) => {
+            {visible.map((i) => {
               const quote = quotes[i.symbol];
               const up = (quote?.changePercent ?? 0) >= 0;
               return (
@@ -158,7 +167,22 @@ function Markets() {
             })}
           </tbody>
         </table>
+        {visible.length === 0 && (
+          <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+            No instruments match your search.
+          </p>
+        )}
       </div>
+      {visible.length < filtered.length && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setLimit((n) => n + 50)}
+            className="rounded-md border border-border px-4 py-2 text-sm transition-colors hover:bg-secondary"
+          >
+            Load more ({filtered.length - visible.length} remaining)
+          </button>
+        </div>
+      )}
     </AppShell>
   );
 }
