@@ -181,6 +181,8 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <CookieConsent />
+        <EntryChime />
+
         <Toaster theme={theme} position="top-right" richColors />
       </ConsentProvider>
     </QueryClientProvider>
