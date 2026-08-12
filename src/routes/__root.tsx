@@ -17,6 +17,7 @@ import { themeBootstrapScript, useTheme } from "@/lib/theme";
 import { ConsentProvider } from "@/lib/consent";
 import { CookieConsent } from "@/components/CookieConsent";
 import { restoreAccountPreferences } from "@/lib/preferences";
+import { useServiceWorker } from "@/components/PwaInstall";
 
 function NotFoundComponent() {
   return (
@@ -94,6 +95,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Scalp crypto, stocks, futures, forex and gold on live market data with multi-currency wallets.",
       },
       { name: "author", content: "Velocity Trade" },
+      { name: "theme-color", content: "#0052FF" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Velocity Trade" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -106,6 +111,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -133,6 +140,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const { theme } = useTheme();
+  useServiceWorker();
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {

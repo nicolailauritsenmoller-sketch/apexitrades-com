@@ -31,16 +31,16 @@ const BRANDS: Brand[] = [
 
 function BrandLogo({ brand }: { brand: Brand }) {
   return (
-    <div className="flex min-w-0 touch-manipulation flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
-      <div className="grid h-16 w-full place-items-center rounded-xl bg-white p-2">
+    <div className="flex shrink-0 touch-manipulation items-center gap-3 rounded-full border border-border bg-surface px-4 py-2.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white p-1.5">
         <img
           src={brand.logo}
           alt={`${brand.name} logo`}
           loading="lazy"
-          className="max-h-12 w-auto object-contain"
+          className="max-h-7 w-auto object-contain"
         />
-      </div>
-      <p className="w-full truncate text-sm font-semibold">{brand.name}</p>
+      </span>
+      <p className="whitespace-nowrap text-sm font-semibold">{brand.name}</p>
     </div>
   );
 }
@@ -50,16 +50,19 @@ function BrandLogo({ brand }: { brand: Brand }) {
 export function CaseInPointSection() {
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-16">
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Case in Point</h2>
+      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Market Reference</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Examples of well-known crypto trading and wallet services available in the markets we
-        cover. Listed for illustration only.
+        A selection of established cryptocurrency trading and digital asset platforms serving
+        markets comparable to those covered by our platform. Presented for informational and
+        illustrative purposes only.
       </p>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {BRANDS.map((b) => (
-          <BrandLogo key={b.name} brand={b} />
-        ))}
+      <div className="marquee-mask group mt-8 overflow-hidden">
+        <div className="marquee flex w-max gap-3 group-hover:[animation-play-state:paused]">
+          {[...BRANDS, ...BRANDS].map((b, i) => (
+            <BrandLogo key={`${b.name}-${i}`} brand={b} />
+          ))}
+        </div>
       </div>
 
       <p className="mt-5 text-[11px] leading-relaxed text-muted-foreground">

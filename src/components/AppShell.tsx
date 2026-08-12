@@ -19,6 +19,7 @@ import { ChatWidget } from "@/components/ChatWidget";
 import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
 import { UserAvatar } from "@/components/UserAvatar";
+import { InstallAppButton } from "@/components/PwaInstall";
 
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
@@ -103,6 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Admin Panel
               </Link>
             ) : null}
+            <InstallAppButton />
             <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
