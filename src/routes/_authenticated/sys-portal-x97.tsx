@@ -38,6 +38,7 @@ import {
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
+import { PlatformSettingsHub } from "@/components/admin/PlatformSettingsHub";
 import { CertificatesPanel } from "@/components/admin/CertificatesPanel";
 import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
@@ -544,6 +545,7 @@ function AdminPage() {
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && (
                 <div className="space-y-4">
+                  <PlatformSettingsHub />
                   <PlatformSettingsPanel />
                   <CertificatesPanel />
                   <AddressesTab rows={data.addresses} onDone={refresh} />
