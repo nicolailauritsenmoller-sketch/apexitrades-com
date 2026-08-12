@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { supabase } from "@/integrations/supabase/client";
