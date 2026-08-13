@@ -183,6 +183,7 @@ export function MetricsBar({
           value={money(m.totalDeposits)}
           icon={ArrowDownToLine}
           accent="emerald"
+          badge="Approved"
           hint="Approved deposit volume"
           onClick={go("deposits", { status: "approved" })}
         />
@@ -191,6 +192,7 @@ export function MetricsBar({
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
           accent="amber"
+          badge="Pending"
           hint="Deposit approvals awaiting review"
           alert={Number(m.pendingDeposits) > 0}
           onClick={go("deposits", { status: "pending" })}
@@ -200,6 +202,7 @@ export function MetricsBar({
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
           accent="amber"
+          badge="Pending"
           hint="Withdrawal requests awaiting review"
           alert={Number(m.pendingWithdrawals) > 0}
           onClick={go("withdrawals", { status: "pending" })}
@@ -209,6 +212,7 @@ export function MetricsBar({
           value={money(m.revenue)}
           icon={CircleDollarSign}
           accent={m.revenue >= 0 ? "emerald" : "red"}
+          badge={m.revenue >= 0 ? "Profit" : "Loss"}
           hint="Net platform revenue"
           onClick={go("transactions")}
         />
@@ -225,6 +229,7 @@ export function MetricsBar({
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
           accent="amber"
+          badge="Review"
           hint="Identity documents awaiting approval"
           alert={Number(m.pendingKyc) > 0}
           onClick={go("users", { status: "pending" })}
@@ -246,6 +251,7 @@ export function MetricsBar({
           accent="emerald"
           value={money(m.totalWithdrawals)}
           icon={ArrowUpFromLine}
+          badge="Approved"
           hint="Approved withdrawal volume"
           onClick={go("withdrawals", { status: "approved" })}
         />
