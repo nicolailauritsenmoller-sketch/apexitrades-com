@@ -74,6 +74,16 @@ export function UserWorkspaceDrawer({
                 </p>
               </Section>
 
+              <Section title="Account controls">
+                <UserAccountControls
+                  userId={userId}
+                  tradingFrozen={Boolean(d.profile?.trading_frozen)}
+                  withdrawalsDisabled={Boolean(d.profile?.withdrawals_disabled)}
+                  onChanged={() => void q.refetch()}
+                />
+              </Section>
+
+
               <Section title="Balances">
                 <button
                   onClick={() => setAdjusting(true)}
