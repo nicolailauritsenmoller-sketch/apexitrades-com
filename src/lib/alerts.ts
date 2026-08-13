@@ -201,6 +201,37 @@ export function isChatLooping() {
   return loopTimer !== null;
 }
 
+/* ------------------- active conversation tracking ------------------- */
+
+let activeChatSession: string | null = null;
+
+/**
+ * Registers the conversation currently open in the support desk. Messages that
+ * land in this thread while the tab is focused get a single subtle chime
+ * instead of restarting the looping bell.
+ */
+export function setActiveChatSession(sessionId: string | null) {
+  activeChatSession = sessionId;
+  if (sessionId) silenceChatAlerts();
+}
+
+export function getActiveChatSession() {
+  return activeChatSession;
+}
+
+/** True when the given thread is open and the admin is actually looking at it. */
+export function isChatSessionWatched(sessionId?: string | null) {
+  if (typeof document === "undefined") return false;
+  if (!sessionId || sessionId !== activeChatSession) return false;
+  return document.visibilityState === "visible" && document.hasFocus();
+}
+
+/** Quiet one-shot ping for a message inside the already-open conversation. */
+export function playSoftPing() {
+  playChime("chat", 0.18);
+}
+
+
 /**
  * Hard mute for the chat bell: stops any looping audio right away and tells the
  * rest of the console (badges, unread counters) that the desk has been focused.
