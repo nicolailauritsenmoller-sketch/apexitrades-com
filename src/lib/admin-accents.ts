@@ -104,8 +104,8 @@ export function tabAccent(id: string): OpsAccent {
 
 /** Bold destructive action button (Force liquidate, Reject, Freeze). */
 export const DANGER_BTN =
-  "touch-manipulation rounded-lg border border-ops-red/60 bg-ops-red/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ops-red transition-colors hover:bg-ops-red hover:text-white disabled:opacity-50";
+  "touch-manipulation rounded-lg border border-ops-red/60 bg-ops-red/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ops-red transition-colors hover:bg-ops-red hover:text-background disabled:opacity-50";
 
 /** Approval action button (Approve deposit, Verify KYC). */
 export const APPROVE_BTN =
-  "touch-manipulation rounded-lg border border-ops-emerald/60 bg-ops-emerald/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ops-emerald transition-colors hover:bg-ops-emerald hover:text-white disabled:opacity-50";
+  "touch-manipulation rounded-lg border border-ops-emerald/60 bg-ops-emerald/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ops-emerald transition-colors hover:bg-ops-emerald hover:text-background disabled:opacity-50";

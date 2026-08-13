@@ -514,7 +514,7 @@ function AdminPage() {
                           />
                           <span className="truncate">{label}</span>
                           {pending > 0 && (
-                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-ops-red px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-ops-red px-1.5 py-0.5 text-[10px] font-bold leading-none text-background">
                               {pending}
                             </span>
                           )}
@@ -606,7 +606,7 @@ function AdminPage() {
                       </p>
                     </div>
                     {unreadChats > 0 && (
-                      <span className="ml-auto grid min-w-6 place-items-center rounded-full bg-red-600 px-2 py-1 text-xs font-bold leading-none text-white">
+                      <span className="ml-auto grid min-w-6 place-items-center rounded-full bg-ops-red px-2 py-1 text-xs font-bold leading-none text-background">
                         {unreadChats}
                       </span>
                     )}

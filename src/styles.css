@@ -85,15 +85,16 @@
   --accent: oklch(0.94 0.03 264);
   --accent-foreground: oklch(0.35 0.16 264);
 
-  --bull: oklch(0.56 0.15 155);
+  /* Light-theme accents are tuned to clear WCAG AA (>=4.5:1) on white cards. */
+  --bull: oklch(0.5 0.15 155);
   --bull-foreground: oklch(1 0 0);
-  --bear: oklch(0.57 0.2 25);
+  --bear: oklch(0.55 0.2 25);
   --bear-foreground: oklch(1 0 0);
-  --warning: oklch(0.75 0.15 78);
+  --warning: oklch(0.55 0.15 78);
 
-  --ops-amber: oklch(0.68 0.16 75);
+  --ops-amber: oklch(0.55 0.15 75);
   --ops-red: oklch(0.55 0.22 27);
-  --ops-emerald: oklch(0.56 0.15 158);
+  --ops-emerald: oklch(0.5 0.15 158);
   --ops-blue: oklch(0.52 0.24 264);
   --ops-violet: oklch(0.53 0.24 300);
 
@@ -144,6 +145,8 @@
 
   --bull: oklch(0.72 0.17 155);
   --bear: oklch(0.66 0.2 25);
+  --warning: oklch(0.8 0.15 78);
+
 
   --ops-amber: oklch(0.79 0.16 78);
   --ops-red: oklch(0.68 0.21 26);
