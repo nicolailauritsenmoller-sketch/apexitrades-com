@@ -77,6 +77,7 @@ import {
   getPlatformSettings,
   savePlatformSetting,
   upsertDepositAddress,
+  deleteDepositAddress,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
