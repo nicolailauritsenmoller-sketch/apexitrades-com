@@ -1,35 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-type Ctx = { supabase: any; userId: string };
-
-/** Reads the caller's own roles (RLS: users may read their own role rows). */
-async function myRoles(context: Ctx): Promise<string[]> {
-  const { data } = await context.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", context.userId);
-  return (data ?? []).map((r: { role: string }) => r.role);
-}
-
-async function assertAdmin(context: Ctx) {
-  const roles = await myRoles(context);
-  if (!roles.includes("admin")) throw new Error("Forbidden: admin access required.");
-}
-
-async function assertStaff(context: Ctx) {
-  const roles = await myRoles(context);
-  if (!roles.includes("admin") && !roles.includes("agent")) {
-    throw new Error("Forbidden: staff access required.");
-  }
-}
-
-/** Service-role client: the only way financial tables can be written. */
-async function privileged() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin as any;
-}
+import { myRoles, assertAdmin, assertStaff, privileged, logAudit } from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
