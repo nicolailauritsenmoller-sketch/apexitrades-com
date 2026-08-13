@@ -35,6 +35,7 @@ import {
   TransactionsPanel,
   KycExpiry,
   type Analytics,
+  type DeskFilter,
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
@@ -54,6 +55,8 @@ import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
+import { OpsToggles } from "@/components/admin/OpsToggles";
+import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AssetIcon } from "@/lib/asset-icons";
@@ -418,7 +421,7 @@ function AdminPage() {
                         <button
                           key={id}
                           onClick={() => {
-                            go(id, alerting && !isChat ? "pending" : undefined);
+                            go(id, alerting && !isChat ? { status: "pending" } : undefined);
                             if (isChat) silenceChatAlerts();
                           }}
                           className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -565,6 +568,7 @@ function AdminPage() {
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && (
                 <div className="space-y-4">
+                  <OpsToggles />
                   <PlatformSettingsHub />
                   <PlatformSettingsPanel />
                   <CertificatesPanel />
@@ -593,6 +597,7 @@ function AdminPage() {
                   kyc={data.kyc}
                   onDone={refresh}
                   statusFilter={statusFilter}
+                  userFilter={filter.users ?? null}
                 />
               )}
               {tab === "broadcast" && (
