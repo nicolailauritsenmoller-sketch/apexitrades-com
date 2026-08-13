@@ -401,12 +401,22 @@ function TicketsDesk() {
   const fetchTickets = useServerFn(getSupportTickets);
   const setStatus = useServerFn(updateTicketStatus);
   const reply = useServerFn(replyToTicket);
+  const markRead = useServerFn(markTicketRead);
 
   const query = useQuery({
     queryKey: ["support-tickets"],
     queryFn: () => fetchTickets(),
     refetchInterval: 20_000,
   });
+
+  // Opening a ticket clears its unread indicator in the database.
+  useEffect(() => {
+    if (!activeId) return;
+    void markRead({ data: { ticketId: activeId } }).then(() => {
+      qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["desk-unread"] });
+    });
+  }, [activeId, markRead, qc]);
 
   const statusMutation = useMutation({
     mutationFn: (v: { ticketId: string; status: "open" | "pending" | "resolved" }) =>
@@ -435,6 +445,7 @@ function TicketsDesk() {
     [tickets, filter],
   );
   const active = tickets.find((t) => t.id === activeId) ?? null;
+
 
   return (
     <div className="space-y-3">
