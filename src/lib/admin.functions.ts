@@ -993,7 +993,7 @@ export const setUserRole = createServerFn({ method: "POST" })
     z
       .object({
         userId: z.string().uuid(),
-        role: z.enum(["admin", "agent"]),
+        role: z.enum(["admin", "finance", "agent"]),
         grant: z.boolean(),
       })
       .parse(input),

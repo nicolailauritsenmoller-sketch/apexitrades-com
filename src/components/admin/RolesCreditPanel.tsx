@@ -66,7 +66,7 @@ export function RolesPanel() {
   const grantRole = useServerFn(setUserRole);
 
   const mutation = useMutation({
-    mutationFn: (vars: { userId: string; role: "admin" | "agent"; grant: boolean }) =>
+    mutationFn: (vars: { userId: string; role: "admin" | "finance" | "agent"; grant: boolean }) =>
       grantRole({ data: vars }),
     onSuccess: () => {
       toast.success("Permissions updated.");
@@ -138,7 +138,7 @@ export function RolesPanel() {
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex justify-end gap-1.5">
-                      {(["admin", "agent"] as const).map((role) => {
+                      {(["admin", "finance", "agent"] as const).map((role) => {
                         const has = u.roles.includes(role);
                         return (
                           <button
