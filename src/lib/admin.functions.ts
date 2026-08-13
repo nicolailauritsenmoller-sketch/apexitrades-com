@@ -803,16 +803,38 @@ export const getSupportTickets = createServerFn({ method: "POST" })
     const profileMap = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
     const kycMap = new Map((kyc.data ?? []).map((k: any) => [k.user_id, k]));
 
+    const msgs = messages.data ?? [];
     return {
       tickets: rows.map((t) => ({
         ...t,
         displayName: (profileMap.get(t.user_id) as any)?.display_name ?? "Trader",
         uid: (profileMap.get(t.user_id) as any)?.uid ?? null,
         legalName: (kycMap.get(t.user_id) as any)?.full_name ?? null,
+        unread: msgs.filter(
+          (m: any) =>
+            m.ticket_id === t.id &&
+            m.sender_role === "user" &&
+            new Date(m.created_at) > new Date(t.admin_last_read_at ?? 0),
+        ).length,
       })),
-      messages: messages.data ?? [],
+      messages: msgs,
     };
   });
+
+export const markTicketRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ ticketId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { error } = await db
+      .from("support_tickets")
+      .update({ admin_last_read_at: new Date().toISOString() })
+      .eq("id", data.ticketId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 export const updateTicketStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
