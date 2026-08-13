@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, X } from "lucide-react";
+import { Coins, Eye, X } from "lucide-react";
+import { BalanceAdjustDialog } from "@/components/admin/BalanceAdjustDialog";
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
@@ -25,6 +27,7 @@ export function UserWorkspaceDrawer({
   userId: string;
   onClose: () => void;
 }) {
+  const [adjusting, setAdjusting] = useState(false);
   const fetchWorkspace = useServerFn(getUserWorkspace);
   const q = useQuery({
     queryKey: ["admin-user-workspace", userId],
@@ -72,6 +75,12 @@ export function UserWorkspaceDrawer({
               </Section>
 
               <Section title="Balances">
+                <button
+                  onClick={() => setAdjusting(true)}
+                  className="mb-2 flex w-full touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary"
+                >
+                  <Coins className="size-3.5" /> Credit / debit balance
+                </button>
                 <ul className="grid grid-cols-2 gap-2">
                   {d.wallets.map((w: any) => (
                     <li
@@ -164,6 +173,13 @@ export function UserWorkspaceDrawer({
           )}
         </div>
       </aside>
+      {adjusting && (
+        <BalanceAdjustDialog
+          userId={userId}
+          userName={d?.profile?.display_name}
+          onClose={() => setAdjusting(false)}
+        />
+      )}
     </div>
   );
 }
