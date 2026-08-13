@@ -459,20 +459,37 @@ function AdminPage() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
+          <div className="sticky top-16 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-3 backdrop-blur-xl">
+            <div className="min-w-0">
+              <nav className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <button onClick={() => go("overview")} className="hover:text-foreground">
+                  Desk
+                </button>
+                <span>/</span>
+                <span className="text-foreground">{activeSection}</span>
+                <span>/</span>
+                <span className="text-primary">{activeLabel}</span>
+              </nav>
               <h1 className="font-display text-xl font-bold tracking-tight">{activeLabel}</h1>
-              <p className="text-sm text-muted-foreground">
-                Approvals, roles, credit scores, outcome control and platform settings.
-              </p>
             </div>
-            <button
-              onClick={refresh}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-2">
+              {filterLabel && (
+                <button
+                  onClick={() => setFilter({})}
+                  className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                >
+                  {filterLabel} ✕
+                </button>
+              )}
+              <button
+                onClick={refresh}
+                className="rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
+
 
           {tab === "corrections" && <TradeCorrections />}
           {tab === "active" && <ActiveUsersPanel />}
