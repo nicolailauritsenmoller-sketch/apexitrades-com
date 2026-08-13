@@ -510,7 +510,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
     const week = new Date(now.getTime() - 7 * 864e5);
     const month = new Date(now.getTime() - 30 * 864e5);
 
-    const [profiles, deposits, withdrawals, contracts, sessions, chats, swaps, wallets, kyc] =
+    const [profiles, deposits, withdrawals, contracts, sessions, chats, swaps, wallets, kyc, ticketRows] =
       await Promise.all([
         db.from("profiles").select("id,display_name,uid,created_at,outcome_mode,referred_by,referral_rewards_usdt,base_currency").order("created_at", { ascending: false }).limit(500),
         db.from("deposits").select("id,user_id,coin,amount,status,created_at").order("created_at", { ascending: false }).limit(500),
@@ -521,6 +521,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         db.from("swaps").select("id,user_id,from_currency,to_currency,from_amount,to_amount,created_at").order("created_at", { ascending: false }).limit(60),
         db.from("wallets").select("currency,balance"),
         db.from("kyc_submissions").select("id,user_id,full_name,status,document_expires_at,created_at").order("created_at", { ascending: false }).limit(200),
+        db.from("support_tickets").select("id,status"),
       ]);
 
     const P: any[] = (profiles.data ?? []) as any[];
@@ -596,7 +597,8 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         revenue,
         activeTrades: C.filter((c) => c.status === "open").length,
         pendingKyc: K.filter((k) => k.status === "pending").length,
-        openTickets: (chats.data ?? []).filter((c: any) => c.status === "open").length,
+        // Only genuinely open tickets count — resolved/closed drop out instantly.
+        openTickets: (ticketRows.data ?? []).filter((t: any) => t.status === "open").length,
       },
       series,
       contracts: C.slice(0, 120),
