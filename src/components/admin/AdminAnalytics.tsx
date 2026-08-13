@@ -12,6 +12,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { OPS_ACCENTS, type OpsAccent } from "@/lib/admin-accents";
 
 export type Analytics = {
   metrics: Record<string, number>;
@@ -137,6 +138,7 @@ export function MetricsBar({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Total users"
+          accent="blue"
           value={String(m.totalUsers)}
           icon={Users}
           hint="All registered accounts"
@@ -144,6 +146,7 @@ export function MetricsBar({
         />
         <Stat
           label="New today"
+          accent="blue"
           value={String(m.newUsersToday)}
           icon={UserPlus}
           hint="Registrations in the last 24 hours"
@@ -151,6 +154,7 @@ export function MetricsBar({
         />
         <Stat
           label="Weekly sign-ups"
+          accent="blue"
           value={String(m.signupsWeek)}
           icon={UserPlus}
           hint="Registrations in the last 7 days"
@@ -158,6 +162,7 @@ export function MetricsBar({
         />
         <Stat
           label="Monthly sign-ups"
+          accent="blue"
           value={String(m.signupsMonth)}
           icon={UserPlus}
           hint="Registrations in the last 30 days"
@@ -165,6 +170,7 @@ export function MetricsBar({
         />
         <Stat
           label="Referred users"
+          accent="violet"
           value={String(a.referrals)}
           icon={BadgeCheck}
           hint="Accounts that joined via a referral code"
@@ -176,7 +182,7 @@ export function MetricsBar({
           label="Total deposits"
           value={money(m.totalDeposits)}
           icon={ArrowDownToLine}
-          tone="bull"
+          accent="emerald"
           hint="Approved deposit volume"
           onClick={go("deposits", { status: "approved" })}
         />
@@ -184,7 +190,7 @@ export function MetricsBar({
           label="Pending deposits"
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
-          tone="warn"
+          accent="amber"
           hint="Deposit approvals awaiting review"
           alert={Number(m.pendingDeposits) > 0}
           onClick={go("deposits", { status: "pending" })}
@@ -193,7 +199,7 @@ export function MetricsBar({
           label="Pending withdrawals"
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
-          tone="warn"
+          accent="amber"
           hint="Withdrawal requests awaiting review"
           alert={Number(m.pendingWithdrawals) > 0}
           onClick={go("withdrawals", { status: "pending" })}
@@ -202,12 +208,13 @@ export function MetricsBar({
           label="Revenue"
           value={money(m.revenue)}
           icon={CircleDollarSign}
-          tone={m.revenue >= 0 ? "bull" : "bear"}
+          accent={m.revenue >= 0 ? "emerald" : "red"}
           hint="Net platform revenue"
           onClick={go("transactions")}
         />
         <Stat
           label="Active trades"
+          accent="blue"
           value={String(m.activeTrades)}
           icon={TrendingUp}
           hint="Contracts currently open"
@@ -217,7 +224,7 @@ export function MetricsBar({
           label="Pending KYC"
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
-          tone="warn"
+          accent="amber"
           hint="Identity documents awaiting approval"
           alert={Number(m.pendingKyc) > 0}
           onClick={go("users", { status: "pending" })}
@@ -226,6 +233,8 @@ export function MetricsBar({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat
           label="Open tickets"
+          accent="red"
+          badge="Open"
           value={String(m.openTickets)}
           icon={LifeBuoy}
           hint="Support tickets with status open"
@@ -234,6 +243,7 @@ export function MetricsBar({
         />
         <Stat
           label="Total withdrawals"
+          accent="emerald"
           value={money(m.totalWithdrawals)}
           icon={ArrowUpFromLine}
           hint="Approved withdrawal volume"
@@ -241,6 +251,7 @@ export function MetricsBar({
         />
         <Stat
           label="Referral rewards"
+          accent="violet"
           value={money(a.referralRewards)}
           icon={BadgeCheck}
           hint="Rewards paid to referrers"
@@ -248,6 +259,7 @@ export function MetricsBar({
         />
         <Stat
           label="Active devices"
+          accent="blue"
           value={String(a.sessions.length)}
           icon={Eye}
           hint="Devices seen in recent sessions"
@@ -385,10 +397,10 @@ export function TradeStatsPanel({ a }: { a: Analytics }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <Stat label="Settled trades" value={String(s.settled)} icon={TrendingUp} />
-        <Stat label="Wins" value={String(s.wins)} icon={TrendingUp} tone="bull" />
-        <Stat label="Losses" value={String(s.losses)} icon={TrendingUp} tone="bear" />
-        <Stat label="Win rate" value={`${winRate.toFixed(1)}%`} icon={Activity} />
+        <Stat label="Settled trades" value={String(s.settled)} icon={TrendingUp} accent="blue" />
+        <Stat label="Wins" value={String(s.wins)} icon={TrendingUp} accent="emerald" />
+        <Stat label="Losses" value={String(s.losses)} icon={TrendingUp} accent="red" />
+        <Stat label="Win rate" value={`${winRate.toFixed(1)}%`} icon={Activity} accent="violet" />
       </div>
       <Panel title="Recent trades">
         <div className="overflow-x-auto">
