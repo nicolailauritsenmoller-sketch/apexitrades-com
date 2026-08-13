@@ -65,6 +65,15 @@ export const openPosition = createServerFn({ method: "POST" })
     const inst = INSTRUMENT_MAP[data.symbol];
     if (!inst) throw new Error("Unknown instrument.");
 
+    const { data: guard } = await supabase
+      .from("profiles")
+      .select("trading_frozen")
+      .eq("id", userId)
+      .maybeSingle();
+    if ((guard as any)?.trading_frozen) {
+      throw new Error("Trading is frozen on this account. Contact support.");
+    }
+
     const price = await fetchPrice(inst.symbol);
     const notional = price * data.quantity;
     const margin = notional / data.leverage;
