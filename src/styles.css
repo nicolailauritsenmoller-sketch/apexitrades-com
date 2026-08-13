@@ -91,6 +91,12 @@
   --bear-foreground: oklch(1 0 0);
   --warning: oklch(0.75 0.15 78);
 
+  --ops-amber: oklch(0.68 0.16 75);
+  --ops-red: oklch(0.55 0.22 27);
+  --ops-emerald: oklch(0.56 0.15 158);
+  --ops-blue: oklch(0.52 0.24 264);
+  --ops-violet: oklch(0.53 0.24 300);
+
   --destructive: oklch(0.57 0.2 25);
   --destructive-foreground: oklch(1 0 0);
 
