@@ -26,6 +26,9 @@ import {
   Trash2,
   BadgeCheck,
   ShieldAlert,
+  Eye,
+  CheckCheck,
+  XCircle,
 } from "lucide-react";
 import {
   MetricsBar,
