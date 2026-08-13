@@ -34,13 +34,19 @@ function Toggle({
       onClick={onClick}
       className={`flex touch-manipulation items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-50 ${
         active
-          ? "border-bear/40 bg-bear/10 text-bear"
+          ? "border-l-4 border-ops-red/50 border-l-ops-red bg-ops-red/15 text-ops-red"
           : "border-border text-muted-foreground hover:text-foreground"
       }`}
     >
       <Icon className="size-3.5" />
       {label}
-      <span className="ml-auto text-[10px] uppercase">{active ? "On" : "Off"}</span>
+      <span
+        className={`ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none ${
+          active ? "bg-ops-red/20 text-ops-red" : "text-muted-foreground"
+        }`}
+      >
+        {active ? "Restricted" : "Off"}
+      </span>
     </button>
   );
 }
