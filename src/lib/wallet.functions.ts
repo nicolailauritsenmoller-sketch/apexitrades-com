@@ -100,36 +100,86 @@ export const getWalletActivity = createServerFn({ method: "POST" })
     };
   });
 
-/** Live USDT valuation of every wallet the user holds. */
+/** Live USDT valuation of every wallet the user holds, with locked-fund breakdown. */
 export const getPortfolioValue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { usdtRates, assetUsdtRates } = await import("./rates.server");
-    const { data: wallets } = await context.supabase
-      .from("wallets")
-      .select("*")
-      .eq("user_id", context.userId)
-      .order("currency");
+    const { supabase, userId } = context;
 
-    const codes = (wallets ?? []).map((w) => w.currency);
+    const [{ data: wallets }, { data: positions }, { data: contracts }, { data: pendingWd }] =
+      await Promise.all([
+        supabase.from("wallets").select("*").eq("user_id", userId).order("currency"),
+        supabase
+          .from("positions")
+          .select("currency,quantity,entry_price,leverage")
+          .eq("user_id", userId)
+          .eq("status", "open"),
+        supabase
+          .from("contracts")
+          .select("currency,stake")
+          .eq("user_id", userId)
+          .eq("status", "open"),
+        supabase
+          .from("withdrawals")
+          .select("coin,amount")
+          .eq("user_id", userId)
+          .eq("status", "pending"),
+      ]);
+
+    // Margin on open leveraged positions and stakes on open timed contracts are
+    // already debited from the wallet balance — they are frozen collateral.
+    const frozen: Record<string, number> = {};
+    for (const p of positions ?? []) {
+      const margin =
+        (Number(p.entry_price) * Number(p.quantity)) / Math.max(Number(p.leverage) || 1, 1);
+      frozen[p.currency] = (frozen[p.currency] ?? 0) + margin;
+    }
+    for (const c of contracts ?? []) {
+      frozen[c.currency] = (frozen[c.currency] ?? 0) + Number(c.stake);
+    }
+
+    // Pending withdrawals are still inside the balance but reserved.
+    const pending: Record<string, number> = {};
+    for (const w of pendingWd ?? []) {
+      pending[w.coin] = (pending[w.coin] ?? 0) + Number(w.amount);
+    }
+
+    const codes = [
+      ...new Set([
+        ...(wallets ?? []).map((w) => w.currency),
+        ...Object.keys(frozen),
+        ...Object.keys(pending),
+      ]),
+    ];
     const [base, extra] = await Promise.all([
       usdtRates(),
       assetUsdtRates(codes.filter((c) => !["USD", "EUR", "GBP", "USDT", "BTC"].includes(c))),
     ]);
     const rates = { ...base, ...extra };
 
-    const rows = (wallets ?? []).map((w) => {
-      const rate = rates[w.currency] ?? 0;
+    const rows = codes.map((currency) => {
+      const wallet = (wallets ?? []).find((w) => w.currency === currency);
+      const rate = rates[currency] ?? 0;
+      const balance = Number(wallet?.balance ?? 0);
+      const frozenMargin = frozen[currency] ?? 0;
+      const inOrders = Math.min(pending[currency] ?? 0, balance);
+      const available = Math.max(balance - inOrders, 0);
+      const total = balance + frozenMargin;
       return {
-        currency: w.currency,
-        balance: Number(w.balance),
+        currency,
+        balance: total,
+        available,
+        frozenMargin,
+        inOrders,
         rate,
-        valueUsdt: Number(w.balance) * rate,
+        valueUsdt: total * rate,
       };
     });
 
     return { rates, wallets: rows, totalUsdt: rows.reduce((s, r) => s + r.valueUsdt, 0) };
   });
+
 
 /** Live conversion rate between any two supported assets. */
 export const getSwapRate = createServerFn({ method: "POST" })
