@@ -163,8 +163,18 @@ export function AdminAlerts() {
         const r = p.new as any;
         if (r.sender_role !== "user") return;
         window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
+        const watched = isChatSessionWatched(r.session_id);
+        if (watched) {
+          // Conversation is open and focused: single subtle chime, no loop.
+          stopChatLoop();
+          if (sound) playSoftPing();
+          if (push) pushNotify("New live chat message", String(r.body).slice(0, 120), "chat");
+          toast("New live chat message", { description: String(r.body).slice(0, 120) });
+          return;
+        }
         alert("chat", "New live chat message", String(r.body).slice(0, 120), true);
       })
+
       .subscribe();
 
     return () => {
