@@ -2,7 +2,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, CheckCheck, Inbox, Loader2, Paperclip, Send, Ticket, X } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  CheckCircle2,
+  Inbox,
+  Loader2,
+  Paperclip,
+  Send,
+  Ticket,
+  X,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
@@ -12,6 +22,7 @@ import {
   getSupportThreads,
   getSupportTickets,
   getThreadMessages,
+  markTicketRead,
   replyToTicket,
   setThreadStatus,
   updateTicketStatus,
@@ -25,6 +36,12 @@ const PRIORITY_TONE: Record<string, string> = {
   normal: "text-foreground",
   high: "text-warning",
   urgent: "text-bear",
+};
+
+const STATUS_TONE: Record<string, string> = {
+  open: "bg-primary/10 text-primary",
+  pending: "bg-warning/10 text-warning",
+  resolved: "bg-bull/10 text-bull",
 };
 
 export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" | "tickets" }) {
@@ -401,12 +418,22 @@ function TicketsDesk() {
   const fetchTickets = useServerFn(getSupportTickets);
   const setStatus = useServerFn(updateTicketStatus);
   const reply = useServerFn(replyToTicket);
+  const markRead = useServerFn(markTicketRead);
 
   const query = useQuery({
     queryKey: ["support-tickets"],
     queryFn: () => fetchTickets(),
     refetchInterval: 20_000,
   });
+
+  // Opening a ticket clears its unread indicator in the database.
+  useEffect(() => {
+    if (!activeId) return;
+    void markRead({ data: { ticketId: activeId } }).then(() => {
+      qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["desk-unread"] });
+    });
+  }, [activeId, markRead, qc]);
 
   const statusMutation = useMutation({
     mutationFn: (v: { ticketId: string; status: "open" | "pending" | "resolved" }) =>
@@ -435,6 +462,7 @@ function TicketsDesk() {
     [tickets, filter],
   );
   const active = tickets.find((t) => t.id === activeId) ?? null;
+
 
   return (
     <div className="space-y-3">
@@ -475,7 +503,18 @@ function TicketsDesk() {
                     activeId === t.id ? "bg-secondary" : "hover:bg-secondary/50"
                   }`}
                 >
-                  <td className="max-w-[16rem] truncate px-3 py-2">{t.subject}</td>
+                  <td className="max-w-[16rem] px-3 py-2">
+                    <span className="flex items-center gap-2">
+                      {t.unread > 0 && (
+                        <span className="size-2 shrink-0 rounded-full bg-bear" aria-label="Unread" />
+                      )}
+                      <span
+                        className={`truncate ${t.unread > 0 ? "font-semibold text-foreground" : ""}`}
+                      >
+                        {t.subject}
+                      </span>
+                    </span>
+                  </td>
                   <td className="px-3 py-2">
                     <span className="block truncate text-xs">{t.legalName ?? t.displayName}</span>
                     <span className="block truncate text-[10px] text-muted-foreground">
@@ -487,6 +526,9 @@ function TicketsDesk() {
                     {t.priority}
                   </td>
                   <td className="px-3 py-2">
+                    <span className={`mr-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[t.status] ?? ""}`}>
+                      {t.status === "resolved" ? "Closed" : t.status}
+                    </span>
                     <select
                       value={t.status}
                       onClick={(e) => e.stopPropagation()}
@@ -497,7 +539,7 @@ function TicketsDesk() {
                     >
                       <option value="open">Open</option>
                       <option value="pending">Pending</option>
-                      <option value="resolved">Resolved</option>
+                      <option value="resolved">Closed / Resolved</option>
                     </select>
                   </td>
                 </tr>
@@ -521,7 +563,12 @@ function TicketsDesk() {
           ) : (
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-semibold">{active.subject}</p>
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  {active.subject}
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[active.status] ?? ""}`}>
+                    {active.status === "resolved" ? "Closed" : active.status}
+                  </span>
+                </p>
                 <p className="text-[11px] text-muted-foreground">
                   {active.legalName ?? active.displayName} ·{" "}
                   {new Date(active.created_at).toLocaleString()}
@@ -558,6 +605,28 @@ function TicketsDesk() {
               >
                 {replyMutation.isPending ? "Sending…" : "Send reply"}
               </button>
+              {active.status === "resolved" ? (
+                <button
+                  onClick={() =>
+                    statusMutation.mutate({ ticketId: active.id, status: "open" })
+                  }
+                  disabled={statusMutation.isPending}
+                  className="w-full rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  Reopen ticket
+                </button>
+              ) : (
+                <button
+                  onClick={() =>
+                    statusMutation.mutate({ ticketId: active.id, status: "resolved" })
+                  }
+                  disabled={statusMutation.isPending}
+                  className="flex w-full items-center justify-center gap-2 rounded-md bg-bull px-3 py-2 text-sm font-medium text-background disabled:opacity-50"
+                >
+                  <CheckCircle2 className="size-4" />
+                  Close ticket / Mark resolved
+                </button>
+              )}
             </div>
           )}
         </div>
