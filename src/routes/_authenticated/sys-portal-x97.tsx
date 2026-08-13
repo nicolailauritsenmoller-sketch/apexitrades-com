@@ -364,6 +364,23 @@ function AdminPage() {
     );
   }
 
+  if (access.isError) {
+    return (
+      <AdminShell>
+        <div className="p-8 text-sm text-muted-foreground">
+          <p className="font-semibold text-foreground">Could not verify your access.</p>
+          <p className="mt-1">The permission check failed. Try again in a moment.</p>
+          <button
+            onClick={() => void access.refetch()}
+            className="mt-4 touch-manipulation rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Retry
+          </button>
+        </div>
+      </AdminShell>
+    );
+  }
+
   if (!isAdmin) return <NotFoundScreen />;
 
   const data = overview.data;
