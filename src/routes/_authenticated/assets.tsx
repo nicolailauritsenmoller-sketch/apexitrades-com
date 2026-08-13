@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
+import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { AssetIcon } from "@/lib/asset-icons";
 import { getPortfolio } from "@/lib/trading.functions";
 import { getContracts } from "@/lib/contracts.functions";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/assets")({
 });
 
 function Assets() {
+  const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
   const fetchPortfolio = useServerFn(getPortfolio);
   const portfolio = useQuery({
     queryKey: ["portfolio"],
@@ -62,7 +64,10 @@ function Assets() {
         Your multi-currency balances, live exposure and the full tradable universe.
       </p>
 
-      <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Wallets</h2>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Wallets</h2>
+        <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {wallets.map((w) => (
           <div key={w.currency} className="panel flex items-center gap-3 p-4">
@@ -72,7 +77,7 @@ function Assets() {
                 {w.currency}
               </div>
               <div className="num truncate text-lg font-semibold">
-                {formatMoney(w.balance, w.currency)}
+                {balancesHidden ? "••••••" : formatMoney(w.balance, w.currency)}
               </div>
             </div>
           </div>
@@ -114,7 +119,9 @@ function Assets() {
                 Timed contract · {c.direction === "up" ? "Buy Long" : "Sell Short"}
               </div>
             </div>
-            <div className="num text-right text-sm">{formatMoney(c.stake, c.currency)}</div>
+            <div className="num text-right text-sm">
+              {balancesHidden ? "••••" : formatMoney(c.stake, c.currency)}
+            </div>
           </div>
         ))}
       </div>
