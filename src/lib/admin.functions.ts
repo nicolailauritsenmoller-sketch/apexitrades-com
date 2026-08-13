@@ -34,7 +34,7 @@ export const getAdminOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     // KYC records and financial ledgers are admin-only.
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase } = context;
 
     const [deposits, withdrawals, kyc, addresses, profiles, contracts] = await Promise.all([
@@ -102,7 +102,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInput.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase, userId } = context;
 
     const { data: dep } = await supabase.from("deposits").select("*").eq("id", data.id).maybeSingle();
@@ -168,7 +168,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInput.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase, userId } = context;
 
     const { data: wd } = await supabase
@@ -447,7 +447,7 @@ export const getUserWallets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { data: rows } = await context.supabase
       .from("wallets")
       .select("*")
@@ -469,7 +469,7 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const currency = data.currency.toUpperCase();
     const db = await privileged();
     const { data: wallet } = await db
