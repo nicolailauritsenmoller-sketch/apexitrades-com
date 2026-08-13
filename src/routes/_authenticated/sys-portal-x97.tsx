@@ -975,12 +975,22 @@ function AddressesTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
 
 function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
   const save = useServerFn(upsertDepositAddress);
+  const remove = useServerFn(deleteDepositAddress);
   const [address, setAddress] = useState(row.address as string);
 
   const mutation = useMutation({
     mutationFn: (input: any) => save({ data: input }),
     onSuccess: () => {
       toast.success("Address updated.");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deletion = useMutation({
+    mutationFn: () => remove({ data: { id: row.id as string } }),
+    onSuccess: () => {
+      toast.success("Address deleted.");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
