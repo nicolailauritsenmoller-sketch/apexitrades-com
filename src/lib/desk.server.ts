@@ -7,6 +7,7 @@ export async function myRoles(context: Ctx): Promise<string[]> {
   // roles). If that returns nothing — e.g. the row is only visible to the
   // service role — fall back to a service-role lookup scoped strictly to the
   // authenticated user id, never to a client-supplied value.
+  console.log('[roles-debug] start', context.userId);
   const { data, error } = await context.supabase
     .from("user_roles")
     .select("role")
