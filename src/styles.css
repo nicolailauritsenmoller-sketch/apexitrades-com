@@ -49,6 +49,13 @@
   --color-bear-foreground: var(--bear-foreground);
   --color-warning: var(--warning);
   --color-grid: var(--grid);
+
+  /* Admin operations accent palette */
+  --color-ops-amber: var(--ops-amber);
+  --color-ops-red: var(--ops-red);
+  --color-ops-emerald: var(--ops-emerald);
+  --color-ops-blue: var(--ops-blue);
+  --color-ops-violet: var(--ops-violet);
 }
 
 :root {
