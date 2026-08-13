@@ -853,7 +853,7 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: row, error } = await db
       .from("support_tickets")
-      .update({ status: data.status })
+      .update({ status: data.status, admin_last_read_at: new Date().toISOString() })
       .eq("id", data.ticketId)
       .select()
       .maybeSingle();
