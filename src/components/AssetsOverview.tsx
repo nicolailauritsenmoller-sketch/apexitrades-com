@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
+import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
+
 
 export type AssetHolding = {
   currency: string;
@@ -41,6 +43,8 @@ export function AssetsOverview({
 }) {
   const [hideZero, setHideZero] = useState(hideEmpty);
   const [search, setSearch] = useState("");
+  const { hidden, toggle } = useBalancePrivacy();
+  const mv = (value: string) => (hidden ? "••••••" : value);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -64,13 +68,19 @@ export function AssetsOverview({
             Every asset you hold, valued at live market rates.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Total portfolio balance
-          </p>
-          <p className="num text-xl font-bold">{isLoading ? "—" : `${fmt(totalUsdt)} USDT`}</p>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Total portfolio balance
+            </p>
+            <p className="num text-xl font-bold">
+              {isLoading ? "—" : hidden ? "••••••" : `${fmt(totalUsdt)} USDT`}
+            </p>
+          </div>
+          <BalancePrivacyToggle hidden={hidden} onToggle={toggle} />
         </div>
       </header>
+
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
@@ -131,18 +141,18 @@ export function AssetsOverview({
                   </div>
                 </td>
                 <td className="num px-4 py-3 text-right font-semibold">
-                  {qty(h.balance, h.currency)}
+                  {mv(qty(h.balance, h.currency))}
                 </td>
                 <td className="num px-4 py-3 text-right">
-                  {qty(h.available ?? h.balance, h.currency)}
+                  {mv(qty(h.available ?? h.balance, h.currency))}
                 </td>
                 <td className="num px-4 py-3 text-right text-muted-foreground">
-                  {qty(h.frozenMargin ?? 0, h.currency)}
+                  {mv(qty(h.frozenMargin ?? 0, h.currency))}
                 </td>
                 <td className="num px-4 py-3 text-right text-muted-foreground">
-                  {qty(h.inOrders ?? 0, h.currency)}
+                  {mv(qty(h.inOrders ?? 0, h.currency))}
                 </td>
-                <td className="num px-4 py-3 text-right font-semibold">{fmt(h.valueUsdt)}</td>
+                <td className="num px-4 py-3 text-right font-semibold">{mv(fmt(h.valueUsdt))}</td>
               </tr>
             ))}
           </tbody>
@@ -160,24 +170,24 @@ export function AssetsOverview({
                 <div className="text-[11px] text-muted-foreground">{h.currency}</div>
               </div>
               <div className="text-right">
-                <div className="num text-sm font-semibold">{qty(h.balance, h.currency)}</div>
+                <div className="num text-sm font-semibold">{mv(qty(h.balance, h.currency))}</div>
                 <div className="num text-[11px] text-muted-foreground">
-                  ≈ {fmt(h.valueUsdt)} USDT
+                  ≈ {mv(fmt(h.valueUsdt))} USDT
                 </div>
               </div>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
               <div>
                 <div className="text-muted-foreground">Available</div>
-                <div className="num font-semibold">{qty(h.available ?? h.balance, h.currency)}</div>
+                <div className="num font-semibold">{mv(qty(h.available ?? h.balance, h.currency))}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">Frozen</div>
-                <div className="num font-semibold">{qty(h.frozenMargin ?? 0, h.currency)}</div>
+                <div className="num font-semibold">{mv(qty(h.frozenMargin ?? 0, h.currency))}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">In orders</div>
-                <div className="num font-semibold">{qty(h.inOrders ?? 0, h.currency)}</div>
+                <div className="num font-semibold">{mv(qty(h.inOrders ?? 0, h.currency))}</div>
               </div>
             </div>
           </div>

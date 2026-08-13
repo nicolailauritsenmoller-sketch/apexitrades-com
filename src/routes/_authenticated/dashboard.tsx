@@ -10,6 +10,7 @@ import { useQuotes } from "@/hooks/useMarket";
 import { getPortfolio } from "@/lib/trading.functions";
 import { getPortfolioValue } from "@/lib/wallet.functions";
 import { AssetsOverview } from "@/components/AssetsOverview";
+import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { TradeHistoryList } from "@/components/TradeHistoryList";
 import { getContracts } from "@/lib/contracts.functions";
 import { formatMoney } from "@/lib/instruments";
@@ -73,6 +74,7 @@ function Dashboard() {
       unrealizedByCurrency[p.currency] = (unrealizedByCurrency[p.currency] ?? 0) + pnl;
     }
   }
+  const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
   const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
 
@@ -116,18 +118,23 @@ function Dashboard() {
         </Link>
       </div>
 
-      <div className="panel mb-4 p-5">
-        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-          Total portfolio balance
+      <div className="panel mb-4 flex items-start justify-between gap-3 p-5">
+        <div>
+          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            Total portfolio balance
+          </div>
+          <div className="num text-3xl font-bold">
+            {value.isLoading
+              ? "—"
+              : balancesHidden
+                ? "••••••"
+                : `${(value.data?.totalUsdt ?? 0).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })} USDT`}
+          </div>
         </div>
-        <div className="num text-3xl font-bold">
-          {value.isLoading
-            ? "—"
-            : `${(value.data?.totalUsdt ?? 0).toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} USDT`}
-        </div>
+        <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -139,13 +146,17 @@ function Dashboard() {
         <StatCard
           icon={<TrendingUp className="size-4 text-primary" />}
           label="Unrealized P&L"
-          value={`${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`}
+          value={
+            balancesHidden
+              ? "••••"
+              : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`
+          }
           tone={totalUnrealized >= 0 ? "bull" : "bear"}
         />
         <StatCard
           icon={<Wallet className="size-4 text-primary" />}
           label="Realized P&L"
-          value={`${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
+          value={balancesHidden ? "••••" : `${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
           tone={realized >= 0 ? "bull" : "bear"}
         />
       </div>
@@ -167,8 +178,7 @@ function Dashboard() {
                 {currency} open P&L
               </div>
               <div className={`num mt-1.5 text-lg font-semibold ${pnl >= 0 ? "text-bull" : "text-bear"}`}>
-                {pnl >= 0 ? "+" : ""}
-                {formatMoney(pnl, currency)}
+                {balancesHidden ? "••••••" : `${pnl >= 0 ? "+" : ""}${formatMoney(pnl, currency)}`}
               </div>
             </div>
           ))}
