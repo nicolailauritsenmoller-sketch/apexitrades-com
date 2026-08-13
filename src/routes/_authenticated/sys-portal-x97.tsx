@@ -60,6 +60,7 @@ import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
+import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AssetIcon } from "@/lib/asset-icons";
@@ -1662,6 +1663,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const fetchDocs = useServerFn(getKycDocumentUrls);
   const revoke = useServerFn(unverifyKyc);
   const [docsVisible, setDocsVisible] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const unverify = useMutation({
     mutationFn: (input: { id: string; note?: string }) => revoke({ data: input }),
     onSuccess: () => {
@@ -1692,6 +1694,12 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setReviewOpen(true)}
+          className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
+        >
+          Open review drawer
+        </button>
         <button
           disabled={load.isPending}
           onClick={() => {
@@ -1751,6 +1759,10 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
             <p className="text-xs text-muted-foreground">No files uploaded.</p>
           )}
         </div>
+      )}
+
+      {reviewOpen && (
+        <KycReviewDrawer row={row} onClose={() => setReviewOpen(false)} onDone={onDone} />
       )}
     </li>
   );
