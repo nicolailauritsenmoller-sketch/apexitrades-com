@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
+import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
+
 
 export type AssetHolding = {
   currency: string;
