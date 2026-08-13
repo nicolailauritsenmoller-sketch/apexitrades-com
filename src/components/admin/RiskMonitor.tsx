@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AlertTriangle, ShieldAlert, Zap } from "lucide-react";
+import { DANGER_BTN } from "@/lib/admin-accents";
 import { forceLiquidatePosition, getRiskMonitor } from "@/lib/admin-ops.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
@@ -167,7 +168,7 @@ export function RiskMonitor() {
                       <td className="px-3 py-2.5 text-right">
                         <button
                           onClick={() => setConfirmId(p.id)}
-                          className="inline-flex touch-manipulation items-center gap-1 rounded-lg border border-bear/50 bg-bear/10 px-2.5 py-1 text-[11px] font-semibold text-bear"
+                          className={`inline-flex items-center gap-1 ${DANGER_BTN}`}
                         >
                           <Zap className="size-3" /> Liquidate
                         </button>
@@ -244,7 +245,7 @@ export function RiskMonitor() {
               <button
                 onClick={() => kill.mutate(confirmId)}
                 disabled={kill.isPending}
-                className="min-h-10 flex-1 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                className="min-h-10 flex-1 touch-manipulation rounded-xl bg-ops-red text-sm font-bold uppercase tracking-wide text-white disabled:opacity-50"
               >
                 {kill.isPending ? "Liquidating…" : "Liquidate now"}
               </button>
