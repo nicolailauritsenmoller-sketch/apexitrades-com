@@ -394,6 +394,20 @@ function AdminPage() {
 
   const activeLabel =
     NAV.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
+  const activeSection =
+    NAV.find((g) => g.items.some((i) => i.id === tab))?.section ?? "Overview";
+  const USER_FILTER_LABEL: Record<string, string> = {
+    today: "Registered in last 24h",
+    week: "Registered in last 7 days",
+    month: "Registered in last 30 days",
+    referred: "Referred users only",
+  };
+  const filterLabel = filter.users
+    ? USER_FILTER_LABEL[filter.users]
+    : filter.status
+      ? `Status: ${filter.status}`
+      : null;
+
 
   return (
     <AdminShell>
