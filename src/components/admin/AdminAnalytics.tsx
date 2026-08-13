@@ -67,64 +67,51 @@ function Stat({
   label,
   value,
   icon: Icon,
-  tone = "default",
+  accent = "neutral",
   onClick,
   alert = false,
   hint,
+  badge,
 }: {
   label: string;
   value: string;
   icon: React.ElementType;
-  tone?: "default" | "bull" | "bear" | "warn";
+  accent?: OpsAccent;
   onClick?: () => void;
   alert?: boolean;
   hint?: string;
+  badge?: string;
 }) {
-  const toneClass = alert
-    ? "text-red-500"
-    : tone === "bull"
-      ? "text-bull"
-      : tone === "bear"
-        ? "text-bear"
-        : tone === "warn"
-          ? "text-warning"
-          : "text-foreground";
+  const key: OpsAccent = alert && accent === "neutral" ? "red" : accent;
+  const a = OPS_ACCENTS[key];
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       {...(onClick ? { onClick, type: "button" as const, title: hint ?? label } : { title: hint })}
-      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${
-        alert
-          ? "border-red-500/70 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
-          : "border-border/70"
+      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${a.edge} ${
+        alert ? "shadow-[0_0_18px_-6px_currentColor]" : ""
       } ${
-        onClick
-          ? alert
-            ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.7)] active:scale-[0.99]"
-            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.99]"
-          : ""
+        onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.99]" : ""
       }`}
     >
-      <span
-        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
-          alert ? "via-red-500/70" : "via-primary/40"
-        }`}
-      />
-      <div
-        className={`flex items-center gap-2 text-[11px] uppercase tracking-wider ${
-          alert ? "text-red-500" : "text-muted-foreground"
-        }`}
-      >
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
         <span
-          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${
-            alert ? "bg-red-500/15 text-red-500" : "bg-primary/10 text-primary"
+          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${a.chip} ${
+            alert ? "animate-pulse" : ""
           }`}
         >
           <Icon className="size-3.5" />
         </span>
         <span className="truncate">{label}</span>
+        {badge && (
+          <span
+            className={`ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none ${a.badge}`}
+          >
+            {badge}
+          </span>
+        )}
       </div>
-      <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${toneClass}`}>{value}</p>
+      <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${a.text}`}>{value}</p>
       {onClick && (
         <span className="mt-1 block text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open →
