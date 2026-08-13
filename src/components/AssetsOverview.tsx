@@ -43,6 +43,8 @@ export function AssetsOverview({
 }) {
   const [hideZero, setHideZero] = useState(hideEmpty);
   const [search, setSearch] = useState("");
+  const { hidden, toggle } = useBalancePrivacy();
+  const mv = (value: string) => (hidden ? "••••••" : value);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -66,13 +68,19 @@ export function AssetsOverview({
             Every asset you hold, valued at live market rates.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Total portfolio balance
-          </p>
-          <p className="num text-xl font-bold">{isLoading ? "—" : `${fmt(totalUsdt)} USDT`}</p>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Total portfolio balance
+            </p>
+            <p className="num text-xl font-bold">
+              {isLoading ? "—" : hidden ? "••••••" : `${fmt(totalUsdt)} USDT`}
+            </p>
+          </div>
+          <BalancePrivacyToggle hidden={hidden} onToggle={toggle} />
         </div>
       </header>
+
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
