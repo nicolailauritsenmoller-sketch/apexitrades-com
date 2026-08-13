@@ -4,12 +4,15 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ensurePushPermission,
+  isChatSessionWatched,
   playChime,
+  playSoftPing,
   pushNotify,
   startChatLoop,
   stopChatLoop,
   unlockAudio,
 } from "@/lib/alerts";
+
 
 const SOUND_KEY = "velocity:desk-sound";
 const PUSH_KEY = "velocity:desk-push";
