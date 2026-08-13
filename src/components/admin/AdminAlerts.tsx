@@ -48,6 +48,18 @@ export function AdminAlerts() {
     [sound, push],
   );
 
+  const settle = useCallback(
+    (win: boolean, title: string, body: string) => {
+      if (sound) playChime(win ? "win" : "loss");
+      if (push) pushNotify(title, body, win ? "win" : "loss");
+      toast(title, {
+        description: body,
+        className: win ? "text-bull font-semibold" : "text-bear font-semibold",
+      });
+    },
+    [sound, push],
+  );
+
   // Stop the looping chat bell as soon as an agent looks at the support desk.
   useEffect(() => {
     const stop = () => stopChatLoop();
@@ -86,8 +98,40 @@ export function AdminAlerts() {
         const r = p.new as any;
         alert(
           "trade",
-          "Trade executed",
-          `${r.display_symbol ?? r.symbol} · ${r.direction} · ${money(r.stake)} ${r.currency}`,
+          "Scalp contract opened",
+          `${r.display_symbol ?? r.symbol} · ${String(r.direction).toUpperCase()} · ${money(r.stake)} ${r.currency} · ${r.duration_seconds}s · user ${String(r.user_id).slice(0, 8)}`,
+        );
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "contracts" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        const prev = (p.old ?? {}) as any;
+        if (r.status !== "settled" && r.status !== "closed") return;
+        if (prev.status === r.status) return;
+        const win = r.result === "win";
+        const pnl = Number(r.payout ?? 0) - Number(r.stake ?? 0);
+        settle(
+          win,
+          `${win ? "PROFIT" : "LOSS"} · ${r.display_symbol ?? r.symbol}`,
+          `Entry ${money(r.entry_price)} → exit ${money(r.exit_price)} · P&L ${pnl >= 0 ? "+" : ""}${money(pnl)} ${r.currency} · user ${String(r.user_id).slice(0, 8)}`,
+        );
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "positions" }, (p) => {
+        const r = p.new as any;
+        alert(
+          "trade",
+          "Margin position opened",
+          `${r.display_symbol ?? r.symbol} · ${String(r.side).toUpperCase()} ×${Number(r.leverage ?? 1)} · ${money(r.quantity)} @ ${money(r.entry_price)} · user ${String(r.user_id).slice(0, 8)}`,
+        );
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "positions" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        const prev = (p.old ?? {}) as any;
+        if (r.status !== "closed" || prev.status === "closed") return;
+        const pnl = Number(r.realized_pnl ?? 0);
+        settle(
+          pnl >= 0,
+          `${pnl >= 0 ? "PROFIT" : "LOSS"} · ${r.display_symbol ?? r.symbol}`,
+          `Entry ${money(r.entry_price)} → exit ${money(r.exit_price)} · P&L ${pnl >= 0 ? "+" : ""}${money(pnl)} ${r.currency} · user ${String(r.user_id).slice(0, 8)}`,
         );
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, (p) => {
