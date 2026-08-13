@@ -465,6 +465,8 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
         currency: z.string().trim().min(1).max(12),
         amount: z.number().finite(),
         mode: z.enum(["set", "delta"]).default("delta"),
+        kind: z.enum(["credit", "debit", "bonus", "correction"]).default("correction"),
+        reason: z.string().trim().max(400).optional(),
       })
       .parse(input),
   )
@@ -497,22 +499,28 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     }
 
 
-    await writeAudit(context, "balance.adjust", data.userId, {
+    await writeAudit(context, `balance.${data.kind}`, data.userId, {
       currency,
       amount: data.amount,
       mode: data.mode,
+      kind: data.kind,
+      reason: data.reason ?? null,
+      previous_balance: Number(wallet?.balance ?? 0),
       resulting_balance: next,
     });
 
+    const label =
+      data.kind === "bonus" ? "Bonus credited" : data.kind === "debit" ? "Balance debited" : "Balance updated";
     await notify(
       context.supabase,
       data.userId,
-      "Balance updated",
-      `Your ${currency} balance was adjusted by an administrator to ${next}.`,
-      "info",
+      label,
+      `Your ${currency} balance was adjusted by an administrator to ${next}.${data.reason ? ` Reason: ${data.reason}` : ""}`,
+      data.kind === "debit" ? "warning" : "success",
     );
     return { balance: next };
   });
+
 
 /** Aggregated metrics, activity feeds and ledgers for the admin control center. */
 export const getAdminAnalytics = createServerFn({ method: "POST" })
