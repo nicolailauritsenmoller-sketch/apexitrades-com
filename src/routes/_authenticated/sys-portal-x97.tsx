@@ -1046,6 +1046,15 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
           >
             {row.active ? "Disable" : "Enable"}
           </button>
+          <button
+            disabled={deletion.isPending}
+            onClick={() => {
+              if (confirm(`Delete the ${row.coin} ${row.network} address?`)) deletion.mutate();
+            }}
+            className="rounded-md border border-bear/40 px-3 py-1.5 text-xs font-semibold text-bear hover:bg-bear/10 disabled:opacity-50"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </li>
