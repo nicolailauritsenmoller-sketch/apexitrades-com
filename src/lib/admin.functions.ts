@@ -893,7 +893,10 @@ export const replyToTicket = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
-    await db.from("support_tickets").update({ status: "pending" }).eq("id", data.ticketId);
+    await db
+      .from("support_tickets")
+      .update({ status: "pending", admin_last_read_at: new Date().toISOString() })
+      .eq("id", data.ticketId);
     await notify(
       db,
       ticket.user_id,
