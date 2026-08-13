@@ -12,6 +12,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { OPS_ACCENTS, type OpsAccent } from "@/lib/admin-accents";
 
 export type Analytics = {
   metrics: Record<string, number>;
@@ -67,64 +68,51 @@ function Stat({
   label,
   value,
   icon: Icon,
-  tone = "default",
+  accent = "neutral",
   onClick,
   alert = false,
   hint,
+  badge,
 }: {
   label: string;
   value: string;
   icon: React.ElementType;
-  tone?: "default" | "bull" | "bear" | "warn";
+  accent?: OpsAccent;
   onClick?: () => void;
   alert?: boolean;
   hint?: string;
+  badge?: string;
 }) {
-  const toneClass = alert
-    ? "text-red-500"
-    : tone === "bull"
-      ? "text-bull"
-      : tone === "bear"
-        ? "text-bear"
-        : tone === "warn"
-          ? "text-warning"
-          : "text-foreground";
+  const key: OpsAccent = alert && accent === "neutral" ? "red" : accent;
+  const a = OPS_ACCENTS[key];
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       {...(onClick ? { onClick, type: "button" as const, title: hint ?? label } : { title: hint })}
-      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${
-        alert
-          ? "border-red-500/70 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
-          : "border-border/70"
+      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${a.edge} ${
+        alert ? "shadow-[0_0_18px_-6px_currentColor]" : ""
       } ${
-        onClick
-          ? alert
-            ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.7)] active:scale-[0.99]"
-            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.99]"
-          : ""
+        onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.99]" : ""
       }`}
     >
-      <span
-        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
-          alert ? "via-red-500/70" : "via-primary/40"
-        }`}
-      />
-      <div
-        className={`flex items-center gap-2 text-[11px] uppercase tracking-wider ${
-          alert ? "text-red-500" : "text-muted-foreground"
-        }`}
-      >
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
         <span
-          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${
-            alert ? "bg-red-500/15 text-red-500" : "bg-primary/10 text-primary"
+          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${a.chip} ${
+            alert ? "animate-pulse" : ""
           }`}
         >
           <Icon className="size-3.5" />
         </span>
         <span className="truncate">{label}</span>
+        {badge && (
+          <span
+            className={`ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none ${a.badge}`}
+          >
+            {badge}
+          </span>
+        )}
       </div>
-      <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${toneClass}`}>{value}</p>
+      <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${a.text}`}>{value}</p>
       {onClick && (
         <span className="mt-1 block text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Open →
@@ -150,6 +138,7 @@ export function MetricsBar({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <Stat
           label="Total users"
+          accent="blue"
           value={String(m.totalUsers)}
           icon={Users}
           hint="All registered accounts"
@@ -157,6 +146,7 @@ export function MetricsBar({
         />
         <Stat
           label="New today"
+          accent="blue"
           value={String(m.newUsersToday)}
           icon={UserPlus}
           hint="Registrations in the last 24 hours"
@@ -164,6 +154,7 @@ export function MetricsBar({
         />
         <Stat
           label="Weekly sign-ups"
+          accent="blue"
           value={String(m.signupsWeek)}
           icon={UserPlus}
           hint="Registrations in the last 7 days"
@@ -171,6 +162,7 @@ export function MetricsBar({
         />
         <Stat
           label="Monthly sign-ups"
+          accent="blue"
           value={String(m.signupsMonth)}
           icon={UserPlus}
           hint="Registrations in the last 30 days"
@@ -178,6 +170,7 @@ export function MetricsBar({
         />
         <Stat
           label="Referred users"
+          accent="violet"
           value={String(a.referrals)}
           icon={BadgeCheck}
           hint="Accounts that joined via a referral code"
@@ -189,7 +182,8 @@ export function MetricsBar({
           label="Total deposits"
           value={money(m.totalDeposits)}
           icon={ArrowDownToLine}
-          tone="bull"
+          accent="emerald"
+          badge="Approved"
           hint="Approved deposit volume"
           onClick={go("deposits", { status: "approved" })}
         />
@@ -197,7 +191,8 @@ export function MetricsBar({
           label="Pending deposits"
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
-          tone="warn"
+          accent="amber"
+          badge="Pending"
           hint="Deposit approvals awaiting review"
           alert={Number(m.pendingDeposits) > 0}
           onClick={go("deposits", { status: "pending" })}
@@ -206,7 +201,8 @@ export function MetricsBar({
           label="Pending withdrawals"
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
-          tone="warn"
+          accent="amber"
+          badge="Pending"
           hint="Withdrawal requests awaiting review"
           alert={Number(m.pendingWithdrawals) > 0}
           onClick={go("withdrawals", { status: "pending" })}
@@ -215,12 +211,14 @@ export function MetricsBar({
           label="Revenue"
           value={money(m.revenue)}
           icon={CircleDollarSign}
-          tone={m.revenue >= 0 ? "bull" : "bear"}
+          accent={m.revenue >= 0 ? "emerald" : "red"}
+          badge={m.revenue >= 0 ? "Profit" : "Loss"}
           hint="Net platform revenue"
           onClick={go("transactions")}
         />
         <Stat
           label="Active trades"
+          accent="blue"
           value={String(m.activeTrades)}
           icon={TrendingUp}
           hint="Contracts currently open"
@@ -230,7 +228,8 @@ export function MetricsBar({
           label="Pending KYC"
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
-          tone="warn"
+          accent="amber"
+          badge="Review"
           hint="Identity documents awaiting approval"
           alert={Number(m.pendingKyc) > 0}
           onClick={go("users", { status: "pending" })}
@@ -239,6 +238,8 @@ export function MetricsBar({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat
           label="Open tickets"
+          accent="red"
+          badge="Open"
           value={String(m.openTickets)}
           icon={LifeBuoy}
           hint="Support tickets with status open"
@@ -247,13 +248,16 @@ export function MetricsBar({
         />
         <Stat
           label="Total withdrawals"
+          accent="emerald"
           value={money(m.totalWithdrawals)}
           icon={ArrowUpFromLine}
+          badge="Approved"
           hint="Approved withdrawal volume"
           onClick={go("withdrawals", { status: "approved" })}
         />
         <Stat
           label="Referral rewards"
+          accent="violet"
           value={money(a.referralRewards)}
           icon={BadgeCheck}
           hint="Rewards paid to referrers"
@@ -261,6 +265,7 @@ export function MetricsBar({
         />
         <Stat
           label="Active devices"
+          accent="blue"
           value={String(a.sessions.length)}
           icon={Eye}
           hint="Devices seen in recent sessions"
@@ -398,10 +403,10 @@ export function TradeStatsPanel({ a }: { a: Analytics }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <Stat label="Settled trades" value={String(s.settled)} icon={TrendingUp} />
-        <Stat label="Wins" value={String(s.wins)} icon={TrendingUp} tone="bull" />
-        <Stat label="Losses" value={String(s.losses)} icon={TrendingUp} tone="bear" />
-        <Stat label="Win rate" value={`${winRate.toFixed(1)}%`} icon={Activity} />
+        <Stat label="Settled trades" value={String(s.settled)} icon={TrendingUp} accent="blue" />
+        <Stat label="Wins" value={String(s.wins)} icon={TrendingUp} accent="emerald" />
+        <Stat label="Losses" value={String(s.losses)} icon={TrendingUp} accent="red" />
+        <Stat label="Win rate" value={`${winRate.toFixed(1)}%`} icon={Activity} accent="violet" />
       </div>
       <Panel title="Recent trades">
         <div className="overflow-x-auto">

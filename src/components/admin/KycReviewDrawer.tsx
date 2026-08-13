@@ -1,3 +1,4 @@
+import { APPROVE_BTN, DANGER_BTN } from "@/lib/admin-accents";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -158,7 +159,7 @@ export function KycReviewDrawer({
               <button
                 disabled={act.isPending}
                 onClick={() => act.mutate({ action: "approve", note: note || undefined })}
-                className="flex-1 touch-manipulation rounded-md bg-bull px-3 py-2 text-xs font-semibold text-background disabled:opacity-50"
+                className={`flex-1 ${APPROVE_BTN}`}
               >
                 Approve KYC
               </button>
@@ -167,7 +168,7 @@ export function KycReviewDrawer({
                 onClick={() =>
                   act.mutate({ action: "reject", note: note ? `${reason} — ${note}` : reason })
                 }
-                className="flex-1 touch-manipulation rounded-md border border-bear/60 px-3 py-2 text-xs font-semibold text-bear hover:bg-bear/10 disabled:opacity-50"
+                className={`flex-1 ${DANGER_BTN}`}
               >
                 Reject KYC
               </button>

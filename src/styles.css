@@ -49,6 +49,13 @@
   --color-bear-foreground: var(--bear-foreground);
   --color-warning: var(--warning);
   --color-grid: var(--grid);
+
+  /* Admin operations accent palette */
+  --color-ops-amber: var(--ops-amber);
+  --color-ops-red: var(--ops-red);
+  --color-ops-emerald: var(--ops-emerald);
+  --color-ops-blue: var(--ops-blue);
+  --color-ops-violet: var(--ops-violet);
 }
 
 :root {
@@ -83,6 +90,12 @@
   --bear: oklch(0.57 0.2 25);
   --bear-foreground: oklch(1 0 0);
   --warning: oklch(0.75 0.15 78);
+
+  --ops-amber: oklch(0.68 0.16 75);
+  --ops-red: oklch(0.55 0.22 27);
+  --ops-emerald: oklch(0.56 0.15 158);
+  --ops-blue: oklch(0.52 0.24 264);
+  --ops-violet: oklch(0.53 0.24 300);
 
   --destructive: oklch(0.57 0.2 25);
   --destructive-foreground: oklch(1 0 0);
@@ -131,6 +144,12 @@
 
   --bull: oklch(0.72 0.17 155);
   --bear: oklch(0.66 0.2 25);
+
+  --ops-amber: oklch(0.79 0.16 78);
+  --ops-red: oklch(0.68 0.21 26);
+  --ops-emerald: oklch(0.73 0.17 158);
+  --ops-blue: oklch(0.66 0.21 264);
+  --ops-violet: oklch(0.68 0.2 300);
 
   --border: oklch(0.295 0.014 258);
   --input: oklch(0.295 0.014 258);

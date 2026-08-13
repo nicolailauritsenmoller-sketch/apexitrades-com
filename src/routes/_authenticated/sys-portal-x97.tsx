@@ -58,6 +58,7 @@ import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
 import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
+import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, tabAccent } from "@/lib/admin-accents";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { AuthProvidersPanel } from "@/components/admin/AuthProvidersPanel";
@@ -486,6 +487,7 @@ function AdminPage() {
                       const pending =
                         isChat ? unreadChats : id === "vip" ? unreadVip : (pendingCounts[id] ?? 0);
                       const alerting = pending > 0;
+                      const accentTheme = OPS_ACCENTS[tabAccent(id)];
                       return (
                         <button
                           key={id}
@@ -493,26 +495,26 @@ function AdminPage() {
                             go(id, alerting && !isChat ? { status: "pending" } : undefined);
                             if (isChat) silenceChatAlerts();
                           }}
-                          className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                          className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
                             tab === id
-                              ? "bg-primary/15 font-medium text-primary"
-                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              ? `${accentTheme.tab} border-l-current font-medium`
+                              : "border-l-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
                           } ${
                             alerting
                               ? isChat
-                                ? "animate-pulse border border-bear/60 text-foreground ring-2 ring-bear/30"
-                                : "border border-red-500/70 text-foreground"
-                              : isChat
-                                ? "border border-primary/30"
-                                : ""
+                                ? "animate-pulse border border-ops-red/60 text-foreground ring-2 ring-ops-red/30"
+                                : "border border-ops-red/70 text-foreground"
+                              : ""
                           }`}
                         >
                           <Icon
-                            className={`size-4 shrink-0 ${alerting && !isChat ? "text-red-500" : ""}`}
+                            className={`size-4 shrink-0 ${
+                              alerting && !isChat ? "text-ops-red" : accentTheme.text
+                            }`}
                           />
                           <span className="truncate">{label}</span>
                           {pending > 0 && (
-                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-ops-red px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
                               {pending}
                             </span>
                           )}
@@ -733,14 +735,14 @@ function ReviewButtons({
       <button
         disabled={pending}
         onClick={() => onAction("approve")}
-        className="rounded-md bg-bull/15 px-3 py-1.5 text-xs font-semibold text-bull disabled:opacity-50"
+        className={APPROVE_BTN}
       >
         Approve
       </button>
       <button
         disabled={pending}
         onClick={() => onAction("reject")}
-        className="rounded-md bg-bear/15 px-3 py-1.5 text-xs font-semibold text-bear disabled:opacity-50"
+        className={DANGER_BTN}
       >
         Reject
       </button>
@@ -836,14 +838,14 @@ function BulkBar({
         <button
           disabled={pending || selected === 0}
           onClick={onApprove}
-          className="flex items-center gap-1.5 rounded-xl bg-bull/15 px-3 py-1.5 text-xs font-semibold text-bull disabled:opacity-40"
+          className={`flex items-center gap-1.5 ${APPROVE_BTN}`}
         >
           <CheckCheck className="size-3.5" /> Bulk approve
         </button>
         <button
           disabled={pending || selected === 0}
           onClick={onReject}
-          className="flex items-center gap-1.5 rounded-xl bg-bear/15 px-3 py-1.5 text-xs font-semibold text-bear disabled:opacity-40"
+          className={`flex items-center gap-1.5 ${DANGER_BTN}`}
         >
           <XCircle className="size-3.5" /> Bulk reject
         </button>
