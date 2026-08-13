@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
-import { silenceChatAlerts } from "@/lib/alerts";
+import { setActiveChatSession, silenceChatAlerts } from "@/lib/alerts";
 
 import {
   getSupportThreads,
@@ -106,6 +106,12 @@ function ChatInboxes() {
 
   // Opening the desk (or switching threads) hard-mutes the looping bell and
   // clears unread ticks for the selected conversation.
+  useEffect(() => {
+    setActiveChatSession(activeId);
+    silenceChatAlerts();
+    return () => setActiveChatSession(null);
+  }, [activeId]);
+
   useEffect(() => {
     silenceChatAlerts();
     if (!activeId) return;
