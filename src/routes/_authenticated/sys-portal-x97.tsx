@@ -249,11 +249,13 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<TabId>("overview");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const go = (next: TabId, status?: string) => {
-    setTab(next);
-    setStatusFilter(status ?? null);
+  const [filter, setFilter] = useState<DeskFilter>({});
+  const statusFilter = filter.status ?? null;
+  const go = (next: string, nextFilter?: DeskFilter) => {
+    setTab(next as TabId);
+    setFilter(nextFilter ?? {});
   };
+
 
   const fetchAccess = useServerFn(getMyAccess);
   const fetchOverview = useServerFn(getAdminOverview);
