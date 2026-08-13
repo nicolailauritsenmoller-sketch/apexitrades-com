@@ -141,18 +141,48 @@ export function MetricsBar({
   onOpen,
 }: {
   a: Analytics;
-  onOpen?: (tab: string, status?: string) => void;
+  onOpen?: (tab: string, filter?: DeskFilter) => void;
 }) {
   const m = a.metrics;
-  const go = (tab: string, status?: string) => (onOpen ? () => onOpen(tab, status) : undefined);
+  const go = (tab: string, filter?: DeskFilter) => (onOpen ? () => onOpen(tab, filter) : undefined);
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Total users" value={String(m.totalUsers)} icon={Users} onClick={go("users")} />
-        <Stat label="New today" value={String(m.newUsersToday)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Weekly sign-ups" value={String(m.signupsWeek)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Monthly sign-ups" value={String(m.signupsMonth)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Referred users" value={String(a.referrals)} icon={BadgeCheck} onClick={go("users")} />
+        <Stat
+          label="Total users"
+          value={String(m.totalUsers)}
+          icon={Users}
+          hint="All registered accounts"
+          onClick={go("users")}
+        />
+        <Stat
+          label="New today"
+          value={String(m.newUsersToday)}
+          icon={UserPlus}
+          hint="Registrations in the last 24 hours"
+          onClick={go("users", { users: "today" })}
+        />
+        <Stat
+          label="Weekly sign-ups"
+          value={String(m.signupsWeek)}
+          icon={UserPlus}
+          hint="Registrations in the last 7 days"
+          onClick={go("users", { users: "week" })}
+        />
+        <Stat
+          label="Monthly sign-ups"
+          value={String(m.signupsMonth)}
+          icon={UserPlus}
+          hint="Registrations in the last 30 days"
+          onClick={go("users", { users: "month" })}
+        />
+        <Stat
+          label="Referred users"
+          value={String(a.referrals)}
+          icon={BadgeCheck}
+          hint="Accounts that joined via a referral code"
+          onClick={go("users", { users: "referred" })}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <Stat
@@ -160,35 +190,40 @@ export function MetricsBar({
           value={money(m.totalDeposits)}
           icon={ArrowDownToLine}
           tone="bull"
-          onClick={go("deposits")}
+          hint="Approved deposit volume"
+          onClick={go("deposits", { status: "approved" })}
         />
         <Stat
           label="Pending deposits"
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
           tone="warn"
+          hint="Deposit approvals awaiting review"
           alert={Number(m.pendingDeposits) > 0}
-          onClick={go("deposits", "pending")}
+          onClick={go("deposits", { status: "pending" })}
         />
         <Stat
           label="Pending withdrawals"
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
           tone="warn"
+          hint="Withdrawal requests awaiting review"
           alert={Number(m.pendingWithdrawals) > 0}
-          onClick={go("withdrawals", "pending")}
+          onClick={go("withdrawals", { status: "pending" })}
         />
         <Stat
           label="Revenue"
           value={money(m.revenue)}
           icon={CircleDollarSign}
           tone={m.revenue >= 0 ? "bull" : "bear"}
+          hint="Net platform revenue"
           onClick={go("transactions")}
         />
         <Stat
           label="Active trades"
           value={String(m.activeTrades)}
           icon={TrendingUp}
+          hint="Contracts currently open"
           onClick={go("trades")}
         />
         <Stat
@@ -196,8 +231,9 @@ export function MetricsBar({
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
           tone="warn"
+          hint="Identity documents awaiting approval"
           alert={Number(m.pendingKyc) > 0}
-          onClick={go("users", "pending")}
+          onClick={go("users", { status: "pending" })}
         />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -205,19 +241,33 @@ export function MetricsBar({
           label="Open tickets"
           value={String(m.openTickets)}
           icon={LifeBuoy}
+          hint="Support tickets with status open"
           alert={Number(m.openTickets) > 0}
           onClick={go("tickets")}
         />
-
         <Stat
           label="Total withdrawals"
           value={money(m.totalWithdrawals)}
           icon={ArrowUpFromLine}
-          onClick={go("withdrawals")}
+          hint="Approved withdrawal volume"
+          onClick={go("withdrawals", { status: "approved" })}
         />
-        <Stat label="Referral rewards" value={money(a.referralRewards)} icon={BadgeCheck} onClick={go("users")} />
-        <Stat label="Active devices" value={String(a.sessions.length)} icon={Eye} onClick={go("analytics")} />
+        <Stat
+          label="Referral rewards"
+          value={money(a.referralRewards)}
+          icon={BadgeCheck}
+          hint="Rewards paid to referrers"
+          onClick={go("users", { users: "referred" })}
+        />
+        <Stat
+          label="Active devices"
+          value={String(a.sessions.length)}
+          icon={Eye}
+          hint="Devices seen in recent sessions"
+          onClick={go("active")}
+        />
       </div>
+
     </div>
   );
 }
