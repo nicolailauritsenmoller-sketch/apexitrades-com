@@ -61,7 +61,7 @@ async function notify(supabase: any, userId: string, title: string, body: string
 
 /** Records a staff action in the immutable admin audit trail. */
 async function writeAudit(
-  context: Ctx,
+  context: { supabase: any; userId: string },
   action: string,
   targetUserId: string | null,
   details: Record<string, unknown> = {},
