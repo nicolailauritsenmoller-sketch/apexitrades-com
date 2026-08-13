@@ -21,6 +21,7 @@ export async function myRoles(context: Ctx): Promise<string[]> {
     .from("user_roles")
     .select("role")
     .eq("user_id", context.userId);
+  console.log('[roles-debug]', context.userId, JSON.stringify({data, error: error?.message, fallback}));
   return (fallback ?? []).map((r: { role: string }) => r.role);
 }
 
