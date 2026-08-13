@@ -432,25 +432,29 @@ function TicketsDesk() {
     void markRead({ data: { ticketId: activeId } }).then(() => {
       qc.invalidateQueries({ queryKey: ["support-tickets"] });
       qc.invalidateQueries({ queryKey: ["desk-unread"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
     });
   }, [activeId, markRead, qc]);
 
   const statusMutation = useMutation({
     mutationFn: (v: { ticketId: string; status: "open" | "pending" | "resolved" }) =>
       setStatus({ data: v }),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Ticket updated");
-      qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+      qc.invalidateQueries({ queryKey: ["desk-unread"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const replyMutation = useMutation({
     mutationFn: (v: { ticketId: string; body: string }) => reply({ data: v }),
-    onSuccess: () => {
+    onSuccess: async () => {
       setDraft("");
       toast.success("Reply sent to the trader's dashboard");
-      qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
