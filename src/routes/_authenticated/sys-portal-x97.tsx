@@ -16,6 +16,7 @@ import {
   LifeBuoy,
   Settings2,
   ScrollText,
+  Fingerprint,
   KeySquare,
   CreditCard,
   Radio,
@@ -59,6 +60,7 @@ import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
+import { AuthProvidersPanel } from "@/components/admin/AuthProvidersPanel";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
 import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +176,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     items: [
       { id: "audit", label: "Audit logs", icon: ScrollText },
       { id: "security", label: "Security reports", icon: ShieldAlert },
+      { id: "authproviders", label: "Auth & identity", icon: Fingerprint },
       { id: "settings", label: "Settings", icon: Settings2 },
     ],
   },
@@ -192,7 +195,14 @@ const AGENT_TABS = new Set([
 ]);
 
 /** Tabs reserved for Super Admins only. */
-const ADMIN_ONLY_TABS = new Set(["roles", "settings", "audit", "security", "addresses"]);
+const ADMIN_ONLY_TABS = new Set([
+  "roles",
+  "settings",
+  "authproviders",
+  "audit",
+  "security",
+  "addresses",
+]);
 
 const TAB_IDS = NAV.flatMap((g) => g.items.map((i) => i.id));
 
@@ -549,6 +559,7 @@ function AdminPage() {
           {tab === "roles" && <RolesPanel />}
           {tab === "credit" && <CreditScorePanel />}
           {tab === "audit" && <AuditLogPanel />}
+          {tab === "authproviders" && <AuthProvidersPanel />}
 
           {overview.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading console…</p>

@@ -641,6 +641,7 @@ export type Database = {
           credit_score: number
           display_name: string
           display_name_updated_at: string | null
+          email: string | null
           id: string
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
           preferences: Json
@@ -656,6 +657,7 @@ export type Database = {
           credit_score?: number
           display_name?: string
           display_name_updated_at?: string | null
+          email?: string | null
           id: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
@@ -671,6 +673,7 @@ export type Database = {
           credit_score?: number
           display_name?: string
           display_name_updated_at?: string | null
+          email?: string | null
           id?: string
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
