@@ -1,24 +1,40 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { myRoles, assertAdmin, assertStaff, privileged } from "@/lib/desk.server";
+import {
+  myRoles,
+  assertAdmin,
+  assertStaff,
+  assertFinance,
+  privileged,
+} from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const roles = await myRoles(context);
+    const isAdmin = roles.includes("admin");
+    const isFinance = roles.includes("finance");
+    const isAgent = roles.includes("agent");
     return {
-      isAdmin: roles.includes("admin"),
-      isStaff: roles.includes("admin") || roles.includes("agent"),
+      roles,
+      isAdmin,
+      isFinance,
+      isAgent,
+      /** Super Admin or Finance Admin: money movement + balance adjustments. */
+      canFinance: isAdmin || isFinance,
+      /** Any staff member: tickets, live chat, read-only user profiles. */
+      isStaff: isAdmin || isFinance || isAgent,
     };
   });
+
 
 
 export const getAdminOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     // KYC records and financial ledgers are admin-only.
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase } = context;
 
     const [deposits, withdrawals, kyc, addresses, profiles, contracts] = await Promise.all([
@@ -86,7 +102,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInput.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase, userId } = context;
 
     const { data: dep } = await supabase.from("deposits").select("*").eq("id", data.id).maybeSingle();
@@ -152,7 +168,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInput.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { supabase, userId } = context;
 
     const { data: wd } = await supabase
@@ -431,7 +447,7 @@ export const getUserWallets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const { data: rows } = await context.supabase
       .from("wallets")
       .select("*")
@@ -449,11 +465,13 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
         currency: z.string().trim().min(1).max(12),
         amount: z.number().finite(),
         mode: z.enum(["set", "delta"]).default("delta"),
+        kind: z.enum(["credit", "debit", "bonus", "correction"]).default("correction"),
+        reason: z.string().trim().max(400).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    await assertFinance(context);
     const currency = data.currency.toUpperCase();
     const db = await privileged();
     const { data: wallet } = await db
@@ -481,22 +499,28 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     }
 
 
-    await writeAudit(context, "balance.adjust", data.userId, {
+    await writeAudit(context, `balance.${data.kind}`, data.userId, {
       currency,
       amount: data.amount,
       mode: data.mode,
+      kind: data.kind,
+      reason: data.reason ?? null,
+      previous_balance: Number(wallet?.balance ?? 0),
       resulting_balance: next,
     });
 
+    const label =
+      data.kind === "bonus" ? "Bonus credited" : data.kind === "debit" ? "Balance debited" : "Balance updated";
     await notify(
       context.supabase,
       data.userId,
-      "Balance updated",
-      `Your ${currency} balance was adjusted by an administrator to ${next}.`,
-      "info",
+      label,
+      `Your ${currency} balance was adjusted by an administrator to ${next}.${data.reason ? ` Reason: ${data.reason}` : ""}`,
+      data.kind === "debit" ? "warning" : "success",
     );
     return { balance: next };
   });
+
 
 /** Aggregated metrics, activity feeds and ledgers for the admin control center. */
 export const getAdminAnalytics = createServerFn({ method: "POST" })
@@ -969,7 +993,7 @@ export const setUserRole = createServerFn({ method: "POST" })
     z
       .object({
         userId: z.string().uuid(),
-        role: z.enum(["admin", "agent"]),
+        role: z.enum(["admin", "finance", "agent"]),
         grant: z.boolean(),
       })
       .parse(input),

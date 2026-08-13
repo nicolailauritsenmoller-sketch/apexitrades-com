@@ -47,6 +47,18 @@ const PATTERNS: Record<string, Tone[]> = {
     { freq: 2793, at: 0.1, dur: 0.3, type: "triangle" },
     { freq: 2093, at: 0.34, dur: 0.3, type: "triangle" },
   ],
+  // upbeat ascending chime for a profitable settlement
+  win: [
+    { freq: 880, at: 0, dur: 0.12, type: "triangle" },
+    { freq: 1318, at: 0.12, dur: 0.12, type: "triangle" },
+    { freq: 1760, at: 0.24, dur: 0.26, type: "triangle" },
+  ],
+  // subdued descending tone for a losing / liquidated settlement
+  loss: [
+    { freq: 440, at: 0, dur: 0.16, type: "sine" },
+    { freq: 330, at: 0.16, dur: 0.22, type: "sine" },
+    { freq: 220, at: 0.36, dur: 0.3, type: "sine" },
+  ],
   // "electronic" — synthetic execution blip for trades / scalp contracts
   trade: [
     { freq: 660, at: 0, dur: 0.08, type: "square" },

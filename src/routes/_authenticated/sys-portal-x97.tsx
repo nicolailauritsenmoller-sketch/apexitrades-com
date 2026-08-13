@@ -60,6 +60,7 @@ import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
+import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AssetIcon } from "@/lib/asset-icons";
@@ -178,6 +179,21 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
   },
 ];
 
+/** Tabs a Support Agent may open (no money movement, no platform config). */
+const AGENT_TABS = new Set([
+  "support",
+  "vip",
+  "tickets",
+  "ratings",
+  "agent",
+  "active",
+  "overview",
+  "users",
+]);
+
+/** Tabs reserved for Super Admins only. */
+const ADMIN_ONLY_TABS = new Set(["roles", "settings", "audit", "security", "addresses"]);
+
 const TAB_IDS = NAV.flatMap((g) => g.items.map((i) => i.id));
 
 type TabId = (typeof TAB_IDS)[number];
@@ -270,13 +286,26 @@ function AdminPage() {
 
   const access = useQuery({ queryKey: ["my-access"], queryFn: () => fetchAccess() });
   const isAdmin = access.data?.isAdmin === true;
+  const canFinance = access.data?.canFinance === true;
+  const isStaff = access.data?.isStaff === true;
+
+  /** Navigation filtered by the signed-in staff member's role. */
+  const nav = NAV.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => {
+      if (isAdmin) return true;
+      if (ADMIN_ONLY_TABS.has(i.id)) return false;
+      if (canFinance) return true;
+      return AGENT_TABS.has(i.id);
+    }),
+  })).filter((g) => g.items.length > 0);
 
   // Unread live-chat counter for the sidebar badge.
   const fetchThreads = useServerFn(getSupportThreads);
   const threads = useQuery({
     queryKey: ["desk-unread"],
     queryFn: () => fetchThreads(),
-    enabled: isAdmin,
+    enabled: isStaff,
     refetchInterval: 10_000,
   });
   const unreadChats = (threads.data ?? []).reduce(
@@ -289,7 +318,7 @@ function AdminPage() {
   const vipDesk = useQuery({
     queryKey: ["vip-desk"],
     queryFn: () => fetchVipDesk(),
-    enabled: isAdmin,
+    enabled: isStaff,
     refetchInterval: 15_000,
   });
   const unreadVip = ((vipDesk.data as any)?.threads ?? []).reduce(
@@ -323,14 +352,14 @@ function AdminPage() {
   const overview = useQuery({
     queryKey: ["admin-overview"],
     queryFn: () => fetchOverview(),
-    enabled: isAdmin,
+    enabled: canFinance,
     refetchInterval: 20_000,
   });
 
   const analyticsQuery = useQuery({
     queryKey: ["admin-analytics"],
     queryFn: () => fetchAnalytics(),
-    enabled: isAdmin,
+    enabled: canFinance,
     refetchInterval: 30_000,
   });
 
@@ -391,15 +420,17 @@ function AdminPage() {
     );
   }
 
-  if (!isAdmin) return <NotFoundScreen />;
+  if (!isStaff) return <NotFoundScreen />;
+  const allowedTabs = new Set(nav.flatMap((g) => g.items.map((i) => i.id)));
+  if (!allowedTabs.has(tab)) return <NotFoundScreen />;
 
   const data = overview.data;
   const analytics = analyticsQuery.data as Analytics | undefined;
 
   const activeLabel =
-    NAV.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
+    nav.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
   const activeSection =
-    NAV.find((g) => g.items.some((i) => i.id === tab))?.section ?? "Overview";
+    nav.find((g) => g.items.some((i) => i.id === tab))?.section ?? "Overview";
   const USER_FILTER_LABEL: Record<string, string> = {
     today: "Registered in last 24h",
     week: "Registered in last 7 days",
@@ -424,7 +455,7 @@ function AdminPage() {
               <p className="text-[11px] text-muted-foreground">Operations backend</p>
             </div>
             <nav className="flex gap-1 overflow-x-auto lg:block lg:space-y-3 lg:overflow-visible">
-              {NAV.map((group) => (
+              {nav.map((group) => (
                 <div key={group.section} className="shrink-0 lg:block">
                   <p className="hidden px-2 pb-1 pt-2 text-[10px] uppercase tracking-widest text-muted-foreground lg:block">
                     {group.section}
@@ -1662,6 +1693,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const fetchDocs = useServerFn(getKycDocumentUrls);
   const revoke = useServerFn(unverifyKyc);
   const [docsVisible, setDocsVisible] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const unverify = useMutation({
     mutationFn: (input: { id: string; note?: string }) => revoke({ data: input }),
     onSuccess: () => {
@@ -1692,6 +1724,12 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setReviewOpen(true)}
+          className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
+        >
+          Open review drawer
+        </button>
         <button
           disabled={load.isPending}
           onClick={() => {
@@ -1751,6 +1789,10 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
             <p className="text-xs text-muted-foreground">No files uploaded.</p>
           )}
         </div>
+      )}
+
+      {reviewOpen && (
+        <KycReviewDrawer row={row} onClose={() => setReviewOpen(false)} onDone={onDone} />
       )}
     </li>
   );

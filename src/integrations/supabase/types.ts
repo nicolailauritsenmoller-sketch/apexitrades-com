@@ -1120,7 +1120,7 @@ export type Database = {
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "agent" | "user"
+      app_role: "admin" | "agent" | "user" | "finance"
       asset_class: "crypto" | "stock" | "future" | "forex" | "metal"
       outcome_mode: "normal" | "force_win" | "force_loss"
       position_status: "open" | "closed"
@@ -1253,7 +1253,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "agent", "user"],
+      app_role: ["admin", "agent", "user", "finance"],
       asset_class: ["crypto", "stock", "future", "forex", "metal"],
       outcome_mode: ["normal", "force_win", "force_loss"],
       position_status: ["open", "closed"],
