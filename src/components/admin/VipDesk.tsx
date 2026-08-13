@@ -278,7 +278,7 @@ export function VipDesk() {
                           />
                         )}
                         <p className="whitespace-pre-wrap break-words">{m.body}</p>
-                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/50">
+                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/70">
                           {time(m.createdAt)}
                           {staff &&
                             (m.readAt ? (
@@ -302,7 +302,7 @@ export function VipDesk() {
                 className="flex flex-col gap-2 bg-[#202c33] px-3 py-2"
               >
                 {file && (
-                  <div className="flex items-center gap-2 rounded-md bg-black/30 px-2 py-1 text-[11px] text-white/80">
+                  <div className="flex items-center gap-2 rounded-md bg-black/30 px-2 py-1 text-[11px] text-white/90">
                     <Paperclip className="size-3" />
                     <span className="min-w-0 flex-1 truncate">{file.name}</span>
                     <span className="opacity-70">{formatBytes(file.size)}</span>
@@ -331,7 +331,7 @@ export function VipDesk() {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder={`Reply as ${activeSpecialist?.fullName ?? "specialist"}`}
-                  className="flex-1 rounded-full bg-[#2a3942] px-4 py-2 text-sm text-white outline-none placeholder:text-white/40"
+                  className="flex-1 rounded-full bg-[#2a3942] px-4 py-2 text-sm text-white outline-none placeholder:text-white/60"
                 />
                 <button
                   type="submit"

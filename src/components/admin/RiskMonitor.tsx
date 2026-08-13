@@ -245,7 +245,7 @@ export function RiskMonitor() {
               <button
                 onClick={() => kill.mutate(confirmId)}
                 disabled={kill.isPending}
-                className="min-h-10 flex-1 touch-manipulation rounded-xl bg-ops-red text-sm font-bold uppercase tracking-wide text-white disabled:opacity-50"
+                className="min-h-10 flex-1 touch-manipulation rounded-xl bg-ops-red text-sm font-bold uppercase tracking-wide text-background disabled:opacity-50"
               >
                 {kill.isPending ? "Liquidating…" : "Liquidate now"}
               </button>
