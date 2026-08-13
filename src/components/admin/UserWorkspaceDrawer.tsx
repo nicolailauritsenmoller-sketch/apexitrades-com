@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Coins, Eye, X } from "lucide-react";
 import { BalanceAdjustDialog } from "@/components/admin/BalanceAdjustDialog";
+import { UserAccountControls } from "@/components/admin/UserAccountControls";
+
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
