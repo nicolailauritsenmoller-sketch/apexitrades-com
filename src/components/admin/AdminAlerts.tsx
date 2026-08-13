@@ -170,7 +170,7 @@ export function AdminAlerts() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [alert]);
+  }, [alert, settle]);
 
   async function togglePush() {
     if (push) {
