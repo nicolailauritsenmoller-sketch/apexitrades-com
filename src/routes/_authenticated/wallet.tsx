@@ -217,14 +217,14 @@ function WalletPage() {
       )}
       {tab === "withdraw" && (
         <WithdrawTab
-          balances={wallets.map((w) => ({ currency: w.currency, balance: w.balance }))}
+          balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
           onDone={refresh}
           onSubmitted={setActiveTx}
         />
       )}
       {tab === "swap" && (
         <SwapTab
-          balances={wallets.map((w) => ({ currency: w.currency, balance: w.balance }))}
+          balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
           onDone={refresh}
         />
       )}
