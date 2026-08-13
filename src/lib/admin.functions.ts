@@ -1,17 +1,33 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { myRoles, assertAdmin, assertStaff, privileged } from "@/lib/desk.server";
+import {
+  myRoles,
+  assertAdmin,
+  assertStaff,
+  assertFinance,
+  privileged,
+} from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const roles = await myRoles(context);
+    const isAdmin = roles.includes("admin");
+    const isFinance = roles.includes("finance");
+    const isAgent = roles.includes("agent");
     return {
-      isAdmin: roles.includes("admin"),
-      isStaff: roles.includes("admin") || roles.includes("agent"),
+      roles,
+      isAdmin,
+      isFinance,
+      isAgent,
+      /** Super Admin or Finance Admin: money movement + balance adjustments. */
+      canFinance: isAdmin || isFinance,
+      /** Any staff member: tickets, live chat, read-only user profiles. */
+      isStaff: isAdmin || isFinance || isAgent,
     };
   });
+
 
 
 export const getAdminOverview = createServerFn({ method: "POST" })
