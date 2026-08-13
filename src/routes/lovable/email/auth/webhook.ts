@@ -9,7 +9,7 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
-const SITE_NAME = "apexitrades-com"
+const SITE_NAME = "Velocity Trade"
 const SENDER_DOMAIN = "notify.velocitytrades.com"
 const ROOT_DOMAIN = "velocitytrades.com"
 const FROM_DOMAIN = "notify.velocitytrades.com"
@@ -31,6 +31,7 @@ const handler = createAuthEmailHandler({
           siteUrl: SITE_URL,
           recipient: data.email,
           confirmationUrl: data.url,
+          token: data.token ?? '',
         }),
     },
     invite: {
@@ -56,6 +57,7 @@ const handler = createAuthEmailHandler({
         React.createElement(RecoveryEmail, {
           siteName: SITE_NAME,
           confirmationUrl: data.url,
+          token: data.token ?? '',
         }),
     },
     email_change: {
