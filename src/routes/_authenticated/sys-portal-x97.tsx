@@ -204,8 +204,9 @@ function Card({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -743,6 +744,68 @@ function DepositProof({ id }: { id: string }) {
   );
 }
 
+/** Shared multi-select toolbar for approval queues. */
+function BulkBar({
+  total,
+  selected,
+  allChecked,
+  onToggleAll,
+  onApprove,
+  onReject,
+  pending,
+}: {
+  total: number;
+  selected: number;
+  allChecked: boolean;
+  onToggleAll: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-background/50 px-3 py-2">
+      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <input
+          type="checkbox"
+          checked={allChecked}
+          onChange={onToggleAll}
+          className="size-3.5 accent-[hsl(var(--primary))]"
+        />
+        Select all pending ({total})
+      </label>
+      <span className="text-[11px] text-muted-foreground">{selected} selected</span>
+      <div className="ml-auto flex gap-2">
+        <button
+          disabled={pending || selected === 0}
+          onClick={onApprove}
+          className="flex items-center gap-1.5 rounded-xl bg-bull/15 px-3 py-1.5 text-xs font-semibold text-bull disabled:opacity-40"
+        >
+          <CheckCheck className="size-3.5" /> Bulk approve
+        </button>
+        <button
+          disabled={pending || selected === 0}
+          onClick={onReject}
+          className="flex items-center gap-1.5 rounded-xl bg-bear/15 px-3 py-1.5 text-xs font-semibold text-bear disabled:opacity-40"
+        >
+          <XCircle className="size-3.5" /> Bulk reject
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function useBulkSelection() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const toggle = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  return { checked, setChecked, toggle };
+}
+
 function DepositsTab({
   rows: allRows,
   onDone,
@@ -755,6 +818,13 @@ function DepositsTab({
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
   const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const { checked, setChecked, toggle } = useBulkSelection();
+  const pendingRows = rows.filter((r) => r.status === "pending");
+  const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
+  const runBulk = (action: "approve" | "reject") => {
+    for (const id of checked) review.mutate({ id, action });
+    setChecked(new Set());
+  };
 
 
   return (
@@ -780,14 +850,36 @@ function DepositsTab({
         />
       }
     >
+      {pendingRows.length > 0 && (
+        <BulkBar
+          total={pendingRows.length}
+          selected={checked.size}
+          allChecked={allChecked}
+          onToggleAll={() =>
+            setChecked(allChecked ? new Set() : new Set(pendingRows.map((r) => r.id)))
+          }
+          onApprove={() => runBulk("approve")}
+          onReject={() => runBulk("reject")}
+          pending={review.isPending}
+        />
+      )}
       {rows.length === 0 ? (
         <Empty label="No deposits submitted yet." />
       ) : (
         <ul className="space-y-3">
           {rows.map((d) => (
-            <li key={d.id} className="rounded-md border border-border p-3">
+            <li key={d.id} className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
+                  {d.status === "pending" && (
+                    <input
+                      type="checkbox"
+                      aria-label="Select deposit"
+                      checked={checked.has(d.id)}
+                      onChange={() => toggle(d.id)}
+                      className="size-4 accent-[hsl(var(--primary))]"
+                    />
+                  )}
                   <AssetIcon symbol={d.coin} className="size-7" />
                   <div>
                     <p className="text-sm font-semibold">
@@ -851,6 +943,13 @@ function WithdrawalsTab({
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
   const [note, setNote] = useState<Record<string, string>>({});
   const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const { checked, setChecked, toggle } = useBulkSelection();
+  const pendingRows = rows.filter((r) => r.status === "pending");
+  const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
+  const runBulk = (action: "approve" | "reject") => {
+    for (const id of checked) review.mutate({ id, action });
+    setChecked(new Set());
+  };
 
 
   return (
@@ -876,14 +975,36 @@ function WithdrawalsTab({
         />
       }
     >
+      {pendingRows.length > 0 && (
+        <BulkBar
+          total={pendingRows.length}
+          selected={checked.size}
+          allChecked={allChecked}
+          onToggleAll={() =>
+            setChecked(allChecked ? new Set() : new Set(pendingRows.map((r) => r.id)))
+          }
+          onApprove={() => runBulk("approve")}
+          onReject={() => runBulk("reject")}
+          pending={review.isPending}
+        />
+      )}
       {rows.length === 0 ? (
         <Empty label="No withdrawal requests yet." />
       ) : (
         <ul className="space-y-3">
           {rows.map((w) => (
-            <li key={w.id} className="rounded-md border border-border p-3">
+            <li key={w.id} className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
+                  {w.status === "pending" && (
+                    <input
+                      type="checkbox"
+                      aria-label="Select withdrawal"
+                      checked={checked.has(w.id)}
+                      onChange={() => toggle(w.id)}
+                      className="size-4 accent-[hsl(var(--primary))]"
+                    />
+                  )}
                   <AssetIcon symbol={w.coin} className="size-7" />
                   <div>
                     <p className="text-sm font-semibold">
