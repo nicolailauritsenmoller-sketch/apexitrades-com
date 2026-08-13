@@ -145,6 +145,8 @@
 
   --bull: oklch(0.72 0.17 155);
   --bear: oklch(0.66 0.2 25);
+  --warning: oklch(0.8 0.15 78);
+
 
   --ops-amber: oklch(0.79 0.16 78);
   --ops-red: oklch(0.68 0.21 26);
