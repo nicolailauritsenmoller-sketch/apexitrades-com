@@ -1,0 +1,169 @@
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Eye, X } from "lucide-react";
+import { getUserWorkspace } from "@/lib/admin.functions";
+import { AssetIcon } from "@/lib/asset-icons";
+import { UidTag } from "@/components/VerifiedBadge";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-border/70 bg-card/60 p-3 backdrop-blur">
+      <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">{title}</h4>
+      {children}
+    </section>
+  );
+}
+
+const num = (n: unknown) =>
+  Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 6 });
+
+/** Read-only support view of a user's workspace: balances, trades and activity. */
+export function UserWorkspaceDrawer({
+  userId,
+  onClose,
+}: {
+  userId: string;
+  onClose: () => void;
+}) {
+  const fetchWorkspace = useServerFn(getUserWorkspace);
+  const q = useQuery({
+    queryKey: ["admin-user-workspace", userId],
+    queryFn: () => fetchWorkspace({ data: { userId } }),
+  });
+  const d = q.data as any;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex justify-end bg-black/60 backdrop-blur-sm">
+      <button aria-label="Close" className="flex-1" onClick={onClose} />
+      <aside className="flex h-full w-full max-w-md flex-col border-l border-border bg-background shadow-2xl">
+        <header className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <Eye className="size-4 text-primary" />
+          <div className="min-w-0">
+            <p className="truncate font-display text-sm font-bold tracking-tight">
+              Inspect user workspace
+            </p>
+            <p className="text-[11px] text-muted-foreground">Read-only support view</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-auto touch-manipulation rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+          {q.isLoading && <p className="p-4 text-sm text-muted-foreground">Loading workspace…</p>}
+          {q.isError && (
+            <p className="p-4 text-sm text-bear">{(q.error as Error)?.message ?? "Failed."}</p>
+          )}
+          {d && (
+            <>
+              <Section title="Identity">
+                <p className="text-sm font-semibold">{d.profile?.display_name ?? "—"}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  <UidTag uid={d.profile?.uid} /> · base {d.profile?.base_currency ?? "—"} · credit{" "}
+                  {d.profile?.credit_score ?? "—"}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  KYC: {d.kyc?.status ?? "not submitted"}
+                  {d.kyc?.country ? ` · ${d.kyc.country}` : ""}
+                </p>
+              </Section>
+
+              <Section title="Balances">
+                <ul className="grid grid-cols-2 gap-2">
+                  {d.wallets.map((w: any) => (
+                    <li
+                      key={w.currency}
+                      className="flex items-center gap-2 rounded-lg border border-border/70 p-2"
+                    >
+                      <AssetIcon symbol={w.currency} className="size-5" />
+                      <span className="text-xs text-muted-foreground">{w.currency}</span>
+                      <span className="num ml-auto text-xs font-semibold">{num(w.balance)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+
+              <Section title="Recent contracts">
+                {d.contracts.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No contracts.</p>
+                ) : (
+                  <ul className="space-y-1.5 text-xs">
+                    {d.contracts.map((c: any) => (
+                      <li key={c.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {c.display_symbol} · {c.direction}
+                        </span>
+                        <span className="num shrink-0 text-muted-foreground">
+                          {num(c.stake)} {c.currency} · {c.result ?? c.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Section>
+
+              <Section title="Open / recent positions">
+                {d.positions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No positions.</p>
+                ) : (
+                  <ul className="space-y-1.5 text-xs">
+                    {d.positions.map((p: any) => (
+                      <li key={p.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {p.display_symbol} · {p.side} ×{num(p.leverage)}
+                        </span>
+                        <span className="num shrink-0 text-muted-foreground">
+                          {num(p.quantity)} @ {num(p.entry_price)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Section>
+
+              <Section title="Funding history">
+                <ul className="space-y-1.5 text-xs">
+                  {[...d.deposits.map((x: any) => ({ ...x, kind: "deposit" })), ...d.withdrawals.map((x: any) => ({ ...x, kind: "withdrawal" }))]
+                    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+                    .slice(0, 20)
+                    .map((r: any) => (
+                      <li key={`${r.kind}-${r.id}`} className="flex items-center justify-between gap-2">
+                        <span className="capitalize">
+                          {r.kind} · {num(r.amount)} {r.coin}
+                        </span>
+                        <span className="shrink-0 text-muted-foreground">{r.status}</span>
+                      </li>
+                    ))}
+                  {d.deposits.length + d.withdrawals.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No funding activity.</p>
+                  )}
+                </ul>
+              </Section>
+
+              <Section title="Devices & logins">
+                <ul className="space-y-1.5 text-xs">
+                  {d.sessions.map((s: any, i: number) => (
+                    <li key={i} className="flex items-center justify-between gap-2">
+                      <span className="truncate">
+                        {s.browser} · {s.os} · {s.country ?? "—"}
+                      </span>
+                      <span className="num shrink-0 text-muted-foreground">
+                        {s.ip_address ?? "—"}
+                      </span>
+                    </li>
+                  ))}
+                  {d.sessions.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No sessions recorded.</p>
+                  )}
+                </ul>
+              </Section>
+            </>
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}
