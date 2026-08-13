@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_user_notes: {
+        Row: {
+          author_id: string
+          author_name: string | null
+          body: string
+          created_at: string
+          id: string
+          pinned: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_profiles: {
         Row: {
           agent_role: string
@@ -648,7 +681,9 @@ export type Database = {
           referral_code: string | null
           referral_rewards_usdt: number
           referred_by: string | null
+          trading_frozen: boolean
           uid: string | null
+          withdrawals_disabled: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -664,7 +699,9 @@ export type Database = {
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
+          trading_frozen?: boolean
           uid?: string | null
+          withdrawals_disabled?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -680,7 +717,9 @@ export type Database = {
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
+          trading_frozen?: boolean
           uid?: string | null
+          withdrawals_disabled?: boolean
         }
         Relationships: []
       }
