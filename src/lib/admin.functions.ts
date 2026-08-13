@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { myRoles, assertAdmin, assertStaff, privileged, logAudit } from "@/lib/desk.server";
+import { myRoles, assertAdmin, assertStaff, privileged } from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
