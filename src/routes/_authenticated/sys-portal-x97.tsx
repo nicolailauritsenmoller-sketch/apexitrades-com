@@ -62,6 +62,10 @@ import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { AuthProvidersPanel } from "@/components/admin/AuthProvidersPanel";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
+import { RiskMonitor } from "@/components/admin/RiskMonitor";
+import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
+import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
+import { AccountingPanel } from "@/components/admin/AccountingPanel";
 import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -144,6 +148,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "trades", label: "Trades & outcomes", icon: Gauge },
       { id: "corrections", label: "Trade corrections", icon: Wrench },
       { id: "active", label: "Active users now", icon: Radio },
+      { id: "risk", label: "Risk & liquidation", icon: ShieldAlert },
     ],
   },
   {
@@ -161,6 +166,8 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "withdrawals", label: "Withdrawals", icon: Landmark },
       { id: "transactions", label: "Transactions", icon: Receipt },
       { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
+      { id: "gateways", label: "Payment gateways", icon: CreditCard },
+      { id: "accounting", label: "Accounting & revenue", icon: Receipt },
     ],
   },
   {
@@ -177,6 +184,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "audit", label: "Audit logs", icon: ScrollText },
       { id: "security", label: "Security reports", icon: ShieldAlert },
       { id: "authproviders", label: "Auth & identity", icon: Fingerprint },
+      { id: "engine", label: "Engine & spreads", icon: Gauge },
       { id: "settings", label: "Settings", icon: Settings2 },
     ],
   },
@@ -197,6 +205,8 @@ const AGENT_TABS = new Set([
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
   "roles",
+  "engine",
+  "gateways",
   "settings",
   "authproviders",
   "audit",
@@ -551,6 +561,9 @@ function AdminPage() {
 
 
           {tab === "corrections" && <TradeCorrections />}
+          {tab === "risk" && <RiskMonitor />}
+          {tab === "engine" && <EngineSpreadPanel />}
+          {tab === "accounting" && <AccountingPanel />}
           {tab === "active" && <ActiveUsersPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
@@ -668,6 +681,9 @@ function AdminPage() {
                 />
               )}
               {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
+              {tab === "gateways" && (
+                <PaymentGatewaysPanel addresses={data.addresses as any} onDone={refresh} />
+              )}
               {tab === "users" && (
                 <UsersTab
                   profiles={data.profiles}

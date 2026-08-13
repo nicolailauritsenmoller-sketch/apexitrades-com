@@ -205,7 +205,11 @@ export const getWithdrawalEligibility = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const [{ data: profile }, { data: kyc }] = await Promise.all([
-      supabase.from("profiles").select("credit_score").eq("id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("credit_score,withdrawals_disabled")
+        .eq("id", userId)
+        .maybeSingle(),
       supabase
         .from("kyc_submissions")
         .select("status")
@@ -272,6 +276,9 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
 
+    if ((profile as any)?.withdrawals_disabled) {
+      throw new Error("Withdrawals are disabled on this account. Contact support.");
+    }
     if ((kyc as any)?.status !== "approved") {
       throw new Error("Withdrawals require an approved identity verification (KYC).");
     }
