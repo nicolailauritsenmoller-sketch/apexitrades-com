@@ -192,6 +192,18 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   }
 
+  async function onApple() {
+    const result = await lovable.auth.signInWithOAuth("apple", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Apple sign-in failed. Try again.");
+      return;
+    }
+    if (result.redirected) return;
+    navigate({ to: "/dashboard", replace: true });
+  }
+
   const heading =
     mode === "signup"
       ? "Create your account"
@@ -233,8 +245,23 @@ function AuthPage() {
         {(mode === "signin" || mode === "signup") && (
           <>
             <button
-              onClick={onGoogle}
+              onClick={onApple}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary"
+            >
+              <svg
+                className="size-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.11 1.86-3.98 3.94-4.04.29 2.32-2.07 4.36-3.94 4.04z" />
+              </svg>
+              Continue with Apple
+            </button>
+
+            <button
+              onClick={onGoogle}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary"
             >
               Continue with Google
             </button>
