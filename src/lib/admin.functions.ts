@@ -1219,3 +1219,72 @@ export const savePlatformSetting = createServerFn({ method: "POST" })
     await writeAudit(context, "settings.update", null, { key: data.key });
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ */
+/* Read-only "Inspect user workspace" snapshot (support view-as mode)   */
+/* ------------------------------------------------------------------ */
+
+/** Read-only portfolio/balance snapshot of a single user for support inquiries. */
+export const getUserWorkspace = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const uid = data.userId;
+
+    const [profile, wallets, positions, contracts, deposits, withdrawals, sessions, kyc] =
+      await Promise.all([
+        db.from("profiles").select("*").eq("id", uid).maybeSingle(),
+        db.from("wallets").select("currency,balance").eq("user_id", uid).order("currency"),
+        db
+          .from("positions")
+          .select("id,display_symbol,side,quantity,entry_price,leverage,status,opened_at")
+          .eq("user_id", uid)
+          .order("opened_at", { ascending: false })
+          .limit(25),
+        db
+          .from("contracts")
+          .select("id,display_symbol,direction,stake,currency,status,result,payout,opened_at")
+          .eq("user_id", uid)
+          .order("opened_at", { ascending: false })
+          .limit(25),
+        db
+          .from("deposits")
+          .select("id,coin,amount,status,created_at")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(15),
+        db
+          .from("withdrawals")
+          .select("id,coin,amount,status,created_at")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(15),
+        db
+          .from("user_sessions")
+          .select("browser,os,ip_address,country,last_active_at")
+          .eq("user_id", uid)
+          .order("last_active_at", { ascending: false })
+          .limit(8),
+        db
+          .from("kyc_submissions")
+          .select("status,full_name,country,created_at")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
+
+    await writeAudit(context, "user.inspect", uid, { mode: "read-only" });
+
+    return {
+      profile: profile.data ?? null,
+      wallets: wallets.data ?? [],
+      positions: positions.data ?? [],
+      contracts: contracts.data ?? [],
+      deposits: deposits.data ?? [],
+      withdrawals: withdrawals.data ?? [],
+      sessions: sessions.data ?? [],
+      kyc: (kyc.data ?? [])[0] ?? null,
+    };
+  });

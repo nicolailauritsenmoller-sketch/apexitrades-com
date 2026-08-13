@@ -26,6 +26,9 @@ import {
   Trash2,
   BadgeCheck,
   ShieldAlert,
+  Eye,
+  CheckCheck,
+  XCircle,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -35,6 +38,7 @@ import {
   TransactionsPanel,
   KycExpiry,
   type Analytics,
+  type DeskFilter,
 } from "@/components/admin/AdminAnalytics";
 import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
@@ -54,6 +58,8 @@ import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
 import { AdminShell } from "@/components/AdminShell";
+import { OpsToggles } from "@/components/admin/OpsToggles";
+import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AssetIcon } from "@/lib/asset-icons";
@@ -198,8 +204,9 @@ function Card({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -249,11 +256,13 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<TabId>("overview");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const go = (next: TabId, status?: string) => {
-    setTab(next);
-    setStatusFilter(status ?? null);
+  const [filter, setFilter] = useState<DeskFilter>({});
+  const statusFilter = filter.status ?? null;
+  const go = (next: string, nextFilter?: DeskFilter) => {
+    setTab(next as TabId);
+    setFilter(nextFilter ?? {});
   };
+
 
   const fetchAccess = useServerFn(getMyAccess);
   const fetchOverview = useServerFn(getAdminOverview);
@@ -389,6 +398,20 @@ function AdminPage() {
 
   const activeLabel =
     NAV.flatMap((g) => g.items).find((i) => i.id === tab)?.label ?? "Dashboard";
+  const activeSection =
+    NAV.find((g) => g.items.some((i) => i.id === tab))?.section ?? "Overview";
+  const USER_FILTER_LABEL: Record<string, string> = {
+    today: "Registered in last 24h",
+    week: "Registered in last 7 days",
+    month: "Registered in last 30 days",
+    referred: "Referred users only",
+  };
+  const filterLabel = filter.users
+    ? USER_FILTER_LABEL[filter.users]
+    : filter.status
+      ? `Status: ${filter.status}`
+      : null;
+
 
   return (
     <AdminShell>
@@ -416,7 +439,7 @@ function AdminPage() {
                         <button
                           key={id}
                           onClick={() => {
-                            go(id, alerting && !isChat ? "pending" : undefined);
+                            go(id, alerting && !isChat ? { status: "pending" } : undefined);
                             if (isChat) silenceChatAlerts();
                           }}
                           className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
@@ -454,20 +477,37 @@ function AdminPage() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
+          <div className="sticky top-16 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-3 backdrop-blur-xl">
+            <div className="min-w-0">
+              <nav className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <button onClick={() => go("overview")} className="hover:text-foreground">
+                  Desk
+                </button>
+                <span>/</span>
+                <span className="text-foreground">{activeSection}</span>
+                <span>/</span>
+                <span className="text-primary">{activeLabel}</span>
+              </nav>
               <h1 className="font-display text-xl font-bold tracking-tight">{activeLabel}</h1>
-              <p className="text-sm text-muted-foreground">
-                Approvals, roles, credit scores, outcome control and platform settings.
-              </p>
             </div>
-            <button
-              onClick={refresh}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              Refresh
-            </button>
+            <div className="flex items-center gap-2">
+              {filterLabel && (
+                <button
+                  onClick={() => setFilter({})}
+                  className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                >
+                  {filterLabel} ✕
+                </button>
+              )}
+              <button
+                onClick={refresh}
+                className="rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
+
 
           {tab === "corrections" && <TradeCorrections />}
           {tab === "active" && <ActiveUsersPanel />}
@@ -563,6 +603,7 @@ function AdminPage() {
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && (
                 <div className="space-y-4">
+                  <OpsToggles />
                   <PlatformSettingsHub />
                   <PlatformSettingsPanel />
                   <CertificatesPanel />
@@ -591,6 +632,7 @@ function AdminPage() {
                   kyc={data.kyc}
                   onDone={refresh}
                   statusFilter={statusFilter}
+                  userFilter={filter.users ?? null}
                 />
               )}
               {tab === "broadcast" && (
@@ -702,6 +744,68 @@ function DepositProof({ id }: { id: string }) {
   );
 }
 
+/** Shared multi-select toolbar for approval queues. */
+function BulkBar({
+  total,
+  selected,
+  allChecked,
+  onToggleAll,
+  onApprove,
+  onReject,
+  pending,
+}: {
+  total: number;
+  selected: number;
+  allChecked: boolean;
+  onToggleAll: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-background/50 px-3 py-2">
+      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <input
+          type="checkbox"
+          checked={allChecked}
+          onChange={onToggleAll}
+          className="size-3.5 accent-[hsl(var(--primary))]"
+        />
+        Select all pending ({total})
+      </label>
+      <span className="text-[11px] text-muted-foreground">{selected} selected</span>
+      <div className="ml-auto flex gap-2">
+        <button
+          disabled={pending || selected === 0}
+          onClick={onApprove}
+          className="flex items-center gap-1.5 rounded-xl bg-bull/15 px-3 py-1.5 text-xs font-semibold text-bull disabled:opacity-40"
+        >
+          <CheckCheck className="size-3.5" /> Bulk approve
+        </button>
+        <button
+          disabled={pending || selected === 0}
+          onClick={onReject}
+          className="flex items-center gap-1.5 rounded-xl bg-bear/15 px-3 py-1.5 text-xs font-semibold text-bear disabled:opacity-40"
+        >
+          <XCircle className="size-3.5" /> Bulk reject
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function useBulkSelection() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const toggle = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  return { checked, setChecked, toggle };
+}
+
 function DepositsTab({
   rows: allRows,
   onDone,
@@ -714,6 +818,13 @@ function DepositsTab({
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
   const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const { checked, setChecked, toggle } = useBulkSelection();
+  const pendingRows = rows.filter((r) => r.status === "pending");
+  const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
+  const runBulk = (action: "approve" | "reject") => {
+    for (const id of checked) review.mutate({ id, action });
+    setChecked(new Set());
+  };
 
 
   return (
@@ -739,14 +850,36 @@ function DepositsTab({
         />
       }
     >
+      {pendingRows.length > 0 && (
+        <BulkBar
+          total={pendingRows.length}
+          selected={checked.size}
+          allChecked={allChecked}
+          onToggleAll={() =>
+            setChecked(allChecked ? new Set() : new Set(pendingRows.map((r) => r.id)))
+          }
+          onApprove={() => runBulk("approve")}
+          onReject={() => runBulk("reject")}
+          pending={review.isPending}
+        />
+      )}
       {rows.length === 0 ? (
         <Empty label="No deposits submitted yet." />
       ) : (
         <ul className="space-y-3">
           {rows.map((d) => (
-            <li key={d.id} className="rounded-md border border-border p-3">
+            <li key={d.id} className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
+                  {d.status === "pending" && (
+                    <input
+                      type="checkbox"
+                      aria-label="Select deposit"
+                      checked={checked.has(d.id)}
+                      onChange={() => toggle(d.id)}
+                      className="size-4 accent-[hsl(var(--primary))]"
+                    />
+                  )}
                   <AssetIcon symbol={d.coin} className="size-7" />
                   <div>
                     <p className="text-sm font-semibold">
@@ -810,6 +943,13 @@ function WithdrawalsTab({
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
   const [note, setNote] = useState<Record<string, string>>({});
   const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const { checked, setChecked, toggle } = useBulkSelection();
+  const pendingRows = rows.filter((r) => r.status === "pending");
+  const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
+  const runBulk = (action: "approve" | "reject") => {
+    for (const id of checked) review.mutate({ id, action });
+    setChecked(new Set());
+  };
 
 
   return (
@@ -835,14 +975,36 @@ function WithdrawalsTab({
         />
       }
     >
+      {pendingRows.length > 0 && (
+        <BulkBar
+          total={pendingRows.length}
+          selected={checked.size}
+          allChecked={allChecked}
+          onToggleAll={() =>
+            setChecked(allChecked ? new Set() : new Set(pendingRows.map((r) => r.id)))
+          }
+          onApprove={() => runBulk("approve")}
+          onReject={() => runBulk("reject")}
+          pending={review.isPending}
+        />
+      )}
       {rows.length === 0 ? (
         <Empty label="No withdrawal requests yet." />
       ) : (
         <ul className="space-y-3">
           {rows.map((w) => (
-            <li key={w.id} className="rounded-md border border-border p-3">
+            <li key={w.id} className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
+                  {w.status === "pending" && (
+                    <input
+                      type="checkbox"
+                      aria-label="Select withdrawal"
+                      checked={checked.has(w.id)}
+                      onChange={() => toggle(w.id)}
+                      className="size-4 accent-[hsl(var(--primary))]"
+                    />
+                  )}
                   <AssetIcon symbol={w.coin} className="size-7" />
                   <div>
                     <p className="text-sm font-semibold">
@@ -1220,54 +1382,147 @@ function OutcomesTab({
 }
 
 function UsersTab({
-  profiles,
+  profiles: allProfiles,
   kyc: kycAll,
   onDone,
   statusFilter,
+  userFilter,
 }: {
   profiles: any[];
   kyc: any[];
   onDone: () => void;
   statusFilter?: string | null;
+  userFilter?: "today" | "week" | "month" | "referred" | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [inspect, setInspect] = useState<string | null>(null);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const since = (days: number) => Date.now() - days * 86_400_000;
+  const profiles = allProfiles.filter((p) => {
+    if (userFilter === "today") return new Date(p.created_at).getTime() >= since(1);
+    if (userFilter === "week") return new Date(p.created_at).getTime() >= since(7);
+    if (userFilter === "month") return new Date(p.created_at).getTime() >= since(30);
+    if (userFilter === "referred") return Boolean(p.referred_by);
+    return true;
+  });
+
   const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
   const verifiedIds = new Set(
     kycAll.filter((k) => k.status === "approved").map((k) => k.user_id),
   );
 
+  const heading =
+    userFilter === "today"
+      ? "New users today"
+      : userFilter === "week"
+        ? "Weekly sign-ups"
+        : userFilter === "month"
+          ? "Monthly sign-ups"
+          : userFilter === "referred"
+            ? "Referred users"
+            : "Registered users";
+
+  const toggle = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allChecked = profiles.length > 0 && profiles.every((p) => checked.has(p.id));
+
   return (
     <div className="space-y-4">
-      <Card title={`Registered users (${profiles.length})`}>
-        <ul className="space-y-2">
-          {profiles.map((p) => (
-            <li key={p.id} className="rounded-md border border-border p-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <div>
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-                    {p.display_name}
-                    {verifiedIds.has(p.id) && <VerifiedBadge />}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    <UidTag uid={p.uid} /> · base {p.base_currency}
-                  </p>
+      <Card
+        title={`${heading} (${profiles.length})`}
+        action={
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={allChecked}
+                onChange={() =>
+                  setChecked(allChecked ? new Set() : new Set(profiles.map((p) => p.id)))
+                }
+                className="size-3.5 accent-[hsl(var(--primary))]"
+              />
+              Select all
+            </label>
+            <ExportButton
+              label={checked.size > 0 ? `Export ${checked.size}` : "Export CSV"}
+              onClick={() => {
+                const rows = (checked.size > 0
+                  ? profiles.filter((p) => checked.has(p.id))
+                  : profiles
+                ).map((p) => ({
+                  created_at: p.created_at,
+                  user_id: p.id,
+                  uid: p.uid ?? "",
+                  display_name: p.display_name,
+                  base_currency: p.base_currency,
+                  credit_score: p.credit_score,
+                  referred_by: p.referred_by ?? "",
+                  kyc_verified: verifiedIds.has(p.id),
+                }));
+                if (!downloadCsv(`users-${new Date().toISOString().slice(0, 10)}`, rows))
+                  toast.error("Nothing to export.");
+              }}
+            />
+          </div>
+        }
+      >
+        {profiles.length === 0 ? (
+          <Empty label="No users match this filter." />
+        ) : (
+          <ul className="space-y-2">
+            {profiles.map((p) => (
+              <li
+                key={p.id}
+                className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40"
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select ${p.display_name}`}
+                    checked={checked.has(p.id)}
+                    onChange={() => toggle(p.id)}
+                    className="size-4 accent-[hsl(var(--primary))]"
+                  />
+                  <div>
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                      {p.display_name}
+                      {verifiedIds.has(p.id) && <VerifiedBadge />}
+                      {p.referred_by && (
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          referred
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      <UidTag uid={p.uid} /> · base {p.base_currency} · joined{" "}
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setInspect(p.id)}
+                    className="ml-auto flex items-center gap-1.5 rounded-xl border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <Eye className="size-3.5" /> Inspect workspace
+                  </button>
+                  <button
+                    onClick={() => setSelected(selected === p.id ? null : p.id)}
+                    className="rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {selected === p.id ? "Hide balances" : "Manage balances"}
+                  </button>
+                  <DeleteUserButton userId={p.id} name={p.display_name} onDone={onDone} />
                 </div>
-                <button
-                  onClick={() => setSelected(selected === p.id ? null : p.id)}
-                  className="ml-auto rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {selected === p.id ? "Hide balances" : "Manage balances"}
-                </button>
-                <DeleteUserButton
-                  userId={p.id}
-                  name={p.display_name}
-                  onDone={onDone}
-                />
-              </div>
-              {selected === p.id && <BalanceEditor userId={p.id} onDone={onDone} />}
-            </li>
-          ))}
-        </ul>
+                {selected === p.id && <BalanceEditor userId={p.id} onDone={onDone} />}
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       <Card title={`KYC submissions (${kyc.length})`}>
@@ -1281,9 +1536,12 @@ function UsersTab({
           </ul>
         )}
       </Card>
+
+      {inspect && <UserWorkspaceDrawer userId={inspect} onClose={() => setInspect(null)} />}
     </div>
   );
 }
+
 
 /** Permanent cascade removal of a user and all of their data. */
 function DeleteUserButton({

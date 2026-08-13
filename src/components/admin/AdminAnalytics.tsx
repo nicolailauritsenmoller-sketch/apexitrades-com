@@ -34,6 +34,11 @@ export type Analytics = {
   referralRewards: number;
 };
 
+export type DeskFilter = {
+  status?: string;
+  users?: "today" | "week" | "month" | "referred";
+};
+
 const money = (n: number) =>
   `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -47,8 +52,9 @@ function Panel({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="touch-manipulation rounded-xl border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <section className="relative touch-manipulation overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -64,6 +70,7 @@ function Stat({
   tone = "default",
   onClick,
   alert = false,
+  hint,
 }: {
   label: string;
   value: string;
@@ -71,6 +78,7 @@ function Stat({
   tone?: "default" | "bull" | "bear" | "warn";
   onClick?: () => void;
   alert?: boolean;
+  hint?: string;
 }) {
   const toneClass = alert
     ? "text-red-500"
@@ -84,31 +92,48 @@ function Stat({
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
-      {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={`w-full touch-manipulation rounded-xl border bg-card p-3 text-left transition-all sm:p-4 ${
+      {...(onClick ? { onClick, type: "button" as const, title: hint ?? label } : { title: hint })}
+      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${
         alert
-          ? "border-2 border-red-500 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
-          : "border-border"
+          ? "border-red-500/70 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
+          : "border-border/70"
       } ${
         onClick
           ? alert
             ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.7)] active:scale-[0.99]"
-            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
+            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.99]"
           : ""
       }`}
     >
+      <span
+        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
+          alert ? "via-red-500/70" : "via-primary/40"
+        }`}
+      />
       <div
         className={`flex items-center gap-2 text-[11px] uppercase tracking-wider ${
           alert ? "text-red-500" : "text-muted-foreground"
         }`}
       >
-        <Icon className="size-3.5 shrink-0" />
+        <span
+          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${
+            alert ? "bg-red-500/15 text-red-500" : "bg-primary/10 text-primary"
+          }`}
+        >
+          <Icon className="size-3.5" />
+        </span>
         <span className="truncate">{label}</span>
       </div>
       <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${toneClass}`}>{value}</p>
+      {onClick && (
+        <span className="mt-1 block text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          Open →
+        </span>
+      )}
     </Tag>
   );
 }
+
 
 
 export function MetricsBar({
@@ -116,18 +141,48 @@ export function MetricsBar({
   onOpen,
 }: {
   a: Analytics;
-  onOpen?: (tab: string, status?: string) => void;
+  onOpen?: (tab: string, filter?: DeskFilter) => void;
 }) {
   const m = a.metrics;
-  const go = (tab: string, status?: string) => (onOpen ? () => onOpen(tab, status) : undefined);
+  const go = (tab: string, filter?: DeskFilter) => (onOpen ? () => onOpen(tab, filter) : undefined);
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Total users" value={String(m.totalUsers)} icon={Users} onClick={go("users")} />
-        <Stat label="New today" value={String(m.newUsersToday)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Weekly sign-ups" value={String(m.signupsWeek)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Monthly sign-ups" value={String(m.signupsMonth)} icon={UserPlus} onClick={go("users")} />
-        <Stat label="Referred users" value={String(a.referrals)} icon={BadgeCheck} onClick={go("users")} />
+        <Stat
+          label="Total users"
+          value={String(m.totalUsers)}
+          icon={Users}
+          hint="All registered accounts"
+          onClick={go("users")}
+        />
+        <Stat
+          label="New today"
+          value={String(m.newUsersToday)}
+          icon={UserPlus}
+          hint="Registrations in the last 24 hours"
+          onClick={go("users", { users: "today" })}
+        />
+        <Stat
+          label="Weekly sign-ups"
+          value={String(m.signupsWeek)}
+          icon={UserPlus}
+          hint="Registrations in the last 7 days"
+          onClick={go("users", { users: "week" })}
+        />
+        <Stat
+          label="Monthly sign-ups"
+          value={String(m.signupsMonth)}
+          icon={UserPlus}
+          hint="Registrations in the last 30 days"
+          onClick={go("users", { users: "month" })}
+        />
+        <Stat
+          label="Referred users"
+          value={String(a.referrals)}
+          icon={BadgeCheck}
+          hint="Accounts that joined via a referral code"
+          onClick={go("users", { users: "referred" })}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <Stat
@@ -135,35 +190,40 @@ export function MetricsBar({
           value={money(m.totalDeposits)}
           icon={ArrowDownToLine}
           tone="bull"
-          onClick={go("deposits")}
+          hint="Approved deposit volume"
+          onClick={go("deposits", { status: "approved" })}
         />
         <Stat
           label="Pending deposits"
           value={String(m.pendingDeposits)}
           icon={ArrowDownToLine}
           tone="warn"
+          hint="Deposit approvals awaiting review"
           alert={Number(m.pendingDeposits) > 0}
-          onClick={go("deposits", "pending")}
+          onClick={go("deposits", { status: "pending" })}
         />
         <Stat
           label="Pending withdrawals"
           value={String(m.pendingWithdrawals)}
           icon={ArrowUpFromLine}
           tone="warn"
+          hint="Withdrawal requests awaiting review"
           alert={Number(m.pendingWithdrawals) > 0}
-          onClick={go("withdrawals", "pending")}
+          onClick={go("withdrawals", { status: "pending" })}
         />
         <Stat
           label="Revenue"
           value={money(m.revenue)}
           icon={CircleDollarSign}
           tone={m.revenue >= 0 ? "bull" : "bear"}
+          hint="Net platform revenue"
           onClick={go("transactions")}
         />
         <Stat
           label="Active trades"
           value={String(m.activeTrades)}
           icon={TrendingUp}
+          hint="Contracts currently open"
           onClick={go("trades")}
         />
         <Stat
@@ -171,8 +231,9 @@ export function MetricsBar({
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
           tone="warn"
+          hint="Identity documents awaiting approval"
           alert={Number(m.pendingKyc) > 0}
-          onClick={go("users", "pending")}
+          onClick={go("users", { status: "pending" })}
         />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -180,19 +241,33 @@ export function MetricsBar({
           label="Open tickets"
           value={String(m.openTickets)}
           icon={LifeBuoy}
+          hint="Support tickets with status open"
           alert={Number(m.openTickets) > 0}
           onClick={go("tickets")}
         />
-
         <Stat
           label="Total withdrawals"
           value={money(m.totalWithdrawals)}
           icon={ArrowUpFromLine}
-          onClick={go("withdrawals")}
+          hint="Approved withdrawal volume"
+          onClick={go("withdrawals", { status: "approved" })}
         />
-        <Stat label="Referral rewards" value={money(a.referralRewards)} icon={BadgeCheck} onClick={go("users")} />
-        <Stat label="Active devices" value={String(a.sessions.length)} icon={Eye} onClick={go("analytics")} />
+        <Stat
+          label="Referral rewards"
+          value={money(a.referralRewards)}
+          icon={BadgeCheck}
+          hint="Rewards paid to referrers"
+          onClick={go("users", { users: "referred" })}
+        />
+        <Stat
+          label="Active devices"
+          value={String(a.sessions.length)}
+          icon={Eye}
+          hint="Devices seen in recent sessions"
+          onClick={go("active")}
+        />
       </div>
+
     </div>
   );
 }
