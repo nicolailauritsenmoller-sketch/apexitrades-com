@@ -77,6 +77,7 @@ import {
   getPlatformSettings,
   savePlatformSetting,
   upsertDepositAddress,
+  deleteDepositAddress,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
@@ -975,12 +976,22 @@ function AddressesTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
 
 function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
   const save = useServerFn(upsertDepositAddress);
+  const remove = useServerFn(deleteDepositAddress);
   const [address, setAddress] = useState(row.address as string);
 
   const mutation = useMutation({
     mutationFn: (input: any) => save({ data: input }),
     onSuccess: () => {
       toast.success("Address updated.");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deletion = useMutation({
+    mutationFn: () => remove({ data: { id: row.id as string } }),
+    onSuccess: () => {
+      toast.success("Address deleted.");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -1034,6 +1045,15 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
             className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             {row.active ? "Disable" : "Enable"}
+          </button>
+          <button
+            disabled={deletion.isPending}
+            onClick={() => {
+              if (confirm(`Delete the ${row.coin} ${row.network} address?`)) deletion.mutate();
+            }}
+            className="rounded-md border border-bear/40 px-3 py-1.5 text-xs font-semibold text-bear hover:bg-bear/10 disabled:opacity-50"
+          >
+            Delete
           </button>
         </div>
       </div>
