@@ -66,3 +66,11 @@ export async function logAudit(
     details,
   });
 }
+
+/** Financial operations: Super Admins and Finance Admins only. */
+export async function assertFinance(context: Ctx) {
+  const roles = await myRoles(context);
+  if (!roles.includes("admin") && !roles.includes("finance")) {
+    throw new Error("Forbidden: finance permissions required.");
+  }
+}
