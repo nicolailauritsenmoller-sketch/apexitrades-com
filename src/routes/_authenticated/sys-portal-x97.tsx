@@ -352,14 +352,14 @@ function AdminPage() {
   const overview = useQuery({
     queryKey: ["admin-overview"],
     queryFn: () => fetchOverview(),
-    enabled: isStaff,
+    enabled: canFinance,
     refetchInterval: 20_000,
   });
 
   const analyticsQuery = useQuery({
     queryKey: ["admin-analytics"],
     queryFn: () => fetchAnalytics(),
-    enabled: isStaff,
+    enabled: canFinance,
     refetchInterval: 30_000,
   });
 
