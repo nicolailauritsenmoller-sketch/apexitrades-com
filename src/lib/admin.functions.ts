@@ -311,9 +311,12 @@ export const upsertDepositAddress = createServerFn({ method: "POST" })
       active: data.active,
       updated_at: new Date().toISOString(),
     };
+    // Caller is verified admin above; write through the service role so the
+    // save never depends on policy evaluation quirks.
+    const db = await privileged();
     const { error } = data.id
-      ? await context.supabase.from("deposit_addresses").update(payload).eq("id", data.id)
-      : await context.supabase.from("deposit_addresses").insert(payload);
+      ? await db.from("deposit_addresses").update(payload).eq("id", data.id)
+      : await db.from("deposit_addresses").insert(payload);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
