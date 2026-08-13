@@ -1258,54 +1258,147 @@ function OutcomesTab({
 }
 
 function UsersTab({
-  profiles,
+  profiles: allProfiles,
   kyc: kycAll,
   onDone,
   statusFilter,
+  userFilter,
 }: {
   profiles: any[];
   kyc: any[];
   onDone: () => void;
   statusFilter?: string | null;
+  userFilter?: "today" | "week" | "month" | "referred" | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [inspect, setInspect] = useState<string | null>(null);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const since = (days: number) => Date.now() - days * 86_400_000;
+  const profiles = allProfiles.filter((p) => {
+    if (userFilter === "today") return new Date(p.created_at).getTime() >= since(1);
+    if (userFilter === "week") return new Date(p.created_at).getTime() >= since(7);
+    if (userFilter === "month") return new Date(p.created_at).getTime() >= since(30);
+    if (userFilter === "referred") return Boolean(p.referred_by);
+    return true;
+  });
+
   const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
   const verifiedIds = new Set(
     kycAll.filter((k) => k.status === "approved").map((k) => k.user_id),
   );
 
+  const heading =
+    userFilter === "today"
+      ? "New users today"
+      : userFilter === "week"
+        ? "Weekly sign-ups"
+        : userFilter === "month"
+          ? "Monthly sign-ups"
+          : userFilter === "referred"
+            ? "Referred users"
+            : "Registered users";
+
+  const toggle = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allChecked = profiles.length > 0 && profiles.every((p) => checked.has(p.id));
+
   return (
     <div className="space-y-4">
-      <Card title={`Registered users (${profiles.length})`}>
-        <ul className="space-y-2">
-          {profiles.map((p) => (
-            <li key={p.id} className="rounded-md border border-border p-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <div>
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-                    {p.display_name}
-                    {verifiedIds.has(p.id) && <VerifiedBadge />}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    <UidTag uid={p.uid} /> · base {p.base_currency}
-                  </p>
+      <Card
+        title={`${heading} (${profiles.length})`}
+        action={
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={allChecked}
+                onChange={() =>
+                  setChecked(allChecked ? new Set() : new Set(profiles.map((p) => p.id)))
+                }
+                className="size-3.5 accent-[hsl(var(--primary))]"
+              />
+              Select all
+            </label>
+            <ExportButton
+              label={checked.size > 0 ? `Export ${checked.size}` : "Export CSV"}
+              onClick={() => {
+                const rows = (checked.size > 0
+                  ? profiles.filter((p) => checked.has(p.id))
+                  : profiles
+                ).map((p) => ({
+                  created_at: p.created_at,
+                  user_id: p.id,
+                  uid: p.uid ?? "",
+                  display_name: p.display_name,
+                  base_currency: p.base_currency,
+                  credit_score: p.credit_score,
+                  referred_by: p.referred_by ?? "",
+                  kyc_verified: verifiedIds.has(p.id),
+                }));
+                if (!downloadCsv(`users-${new Date().toISOString().slice(0, 10)}`, rows))
+                  toast.error("Nothing to export.");
+              }}
+            />
+          </div>
+        }
+      >
+        {profiles.length === 0 ? (
+          <Empty label="No users match this filter." />
+        ) : (
+          <ul className="space-y-2">
+            {profiles.map((p) => (
+              <li
+                key={p.id}
+                className="rounded-xl border border-border/70 bg-card/40 p-3 transition-colors hover:border-primary/40"
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select ${p.display_name}`}
+                    checked={checked.has(p.id)}
+                    onChange={() => toggle(p.id)}
+                    className="size-4 accent-[hsl(var(--primary))]"
+                  />
+                  <div>
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                      {p.display_name}
+                      {verifiedIds.has(p.id) && <VerifiedBadge />}
+                      {p.referred_by && (
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          referred
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      <UidTag uid={p.uid} /> · base {p.base_currency} · joined{" "}
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setInspect(p.id)}
+                    className="ml-auto flex items-center gap-1.5 rounded-xl border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <Eye className="size-3.5" /> Inspect workspace
+                  </button>
+                  <button
+                    onClick={() => setSelected(selected === p.id ? null : p.id)}
+                    className="rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {selected === p.id ? "Hide balances" : "Manage balances"}
+                  </button>
+                  <DeleteUserButton userId={p.id} name={p.display_name} onDone={onDone} />
                 </div>
-                <button
-                  onClick={() => setSelected(selected === p.id ? null : p.id)}
-                  className="ml-auto rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {selected === p.id ? "Hide balances" : "Manage balances"}
-                </button>
-                <DeleteUserButton
-                  userId={p.id}
-                  name={p.display_name}
-                  onDone={onDone}
-                />
-              </div>
-              {selected === p.id && <BalanceEditor userId={p.id} onDone={onDone} />}
-            </li>
-          ))}
-        </ul>
+                {selected === p.id && <BalanceEditor userId={p.id} onDone={onDone} />}
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       <Card title={`KYC submissions (${kyc.length})`}>
@@ -1319,9 +1412,12 @@ function UsersTab({
           </ul>
         )}
       </Card>
+
+      {inspect && <UserWorkspaceDrawer userId={inspect} onClose={() => setInspect(null)} />}
     </div>
   );
 }
+
 
 /** Permanent cascade removal of a user and all of their data. */
 function DeleteUserButton({
