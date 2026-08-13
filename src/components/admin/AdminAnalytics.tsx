@@ -34,6 +34,11 @@ export type Analytics = {
   referralRewards: number;
 };
 
+export type DeskFilter = {
+  status?: string;
+  users?: "today" | "week" | "month" | "referred";
+};
+
 const money = (n: number) =>
   `$${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -47,8 +52,9 @@ function Panel({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="touch-manipulation rounded-xl border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <section className="relative touch-manipulation overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -64,6 +70,7 @@ function Stat({
   tone = "default",
   onClick,
   alert = false,
+  hint,
 }: {
   label: string;
   value: string;
@@ -71,6 +78,7 @@ function Stat({
   tone?: "default" | "bull" | "bear" | "warn";
   onClick?: () => void;
   alert?: boolean;
+  hint?: string;
 }) {
   const toneClass = alert
     ? "text-red-500"
@@ -84,31 +92,48 @@ function Stat({
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
-      {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={`w-full touch-manipulation rounded-xl border bg-card p-3 text-left transition-all sm:p-4 ${
+      {...(onClick ? { onClick, type: "button" as const, title: hint ?? label } : { title: hint })}
+      className={`group relative w-full touch-manipulation overflow-hidden rounded-2xl border bg-gradient-to-b from-card/80 to-card/40 p-3 text-left backdrop-blur transition-all duration-200 sm:p-4 ${
         alert
-          ? "border-2 border-red-500 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
-          : "border-border"
+          ? "border-red-500/70 shadow-[0_0_18px_-2px_rgba(239,68,68,0.55)]"
+          : "border-border/70"
       } ${
         onClick
           ? alert
             ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_-2px_rgba(239,68,68,0.7)] active:scale-[0.99]"
-            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
+            : "cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 active:scale-[0.99]"
           : ""
       }`}
     >
+      <span
+        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
+          alert ? "via-red-500/70" : "via-primary/40"
+        }`}
+      />
       <div
         className={`flex items-center gap-2 text-[11px] uppercase tracking-wider ${
           alert ? "text-red-500" : "text-muted-foreground"
         }`}
       >
-        <Icon className="size-3.5 shrink-0" />
+        <span
+          className={`grid size-6 shrink-0 place-items-center rounded-lg transition-colors ${
+            alert ? "bg-red-500/15 text-red-500" : "bg-primary/10 text-primary"
+          }`}
+        >
+          <Icon className="size-3.5" />
+        </span>
         <span className="truncate">{label}</span>
       </div>
       <p className={`num mt-1.5 text-lg font-semibold sm:text-xl ${toneClass}`}>{value}</p>
+      {onClick && (
+        <span className="mt-1 block text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          Open →
+        </span>
+      )}
     </Tag>
   );
 }
+
 
 
 export function MetricsBar({
