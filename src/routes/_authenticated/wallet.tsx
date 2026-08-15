@@ -265,6 +265,7 @@ function WalletPage() {
         tx={activeTx}
         open={activeTx !== null}
         onOpenChange={(v) => !v && setActiveTx(null)}
+        priceUsd={activeTx ? (value.data?.rates?.[activeTx.asset] ?? undefined) : undefined}
       />
 
       <div className="h-10" />
