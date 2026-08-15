@@ -5,17 +5,25 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Copy,
+  ExternalLink,
   LifeBuoy,
   Clock,
   X,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import {
   assetName,
+  confirmationsFor,
   estimateEta,
+  explorerName,
+  explorerUrl,
+  failureReason,
+  networkFeeUsd,
+  requiredConfirmations,
   shortenAddress,
   statusMessage,
   type TransactionRecord,
@@ -25,6 +33,9 @@ function copy(value: string, label: string) {
   navigator.clipboard.writeText(value);
   toast.success(`${label} copied`);
 }
+
+const usd = (n: number, digits = 2) =>
+  `$${n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 
 function Row({
   label,
@@ -69,17 +80,25 @@ export function TransactionStatusDialog({
   tx,
   open,
   onOpenChange,
+  priceUsd,
 }: {
   tx: TransactionRecord | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Live USD rate for the asset, used for the fiat amount and price row. */
+  priceUsd?: number;
 }) {
   const [ticketOpen, setTicketOpen] = useState(false);
+  const [showReason, setShowReason] = useState(false);
   if (!tx) return null;
 
   const isOut = tx.type === "withdrawal";
   const eta = estimateEta(tx.type, tx.asset, tx.network);
   const isTransfer = tx.type !== "swap";
+  const fee = networkFeeUsd(tx.network);
+  const required = requiredConfirmations(tx.network);
+  const confirmations = confirmationsFor(tx.status, tx.network, tx.createdAt);
+  const explorer = explorerUrl(tx.network, tx.txHash);
 
   const title =
     tx.type === "withdrawal"
@@ -96,15 +115,24 @@ export function TransactionStatusDialog({
       ? "border-bull text-bull"
       : tx.status === "failed"
         ? "border-bear text-bear"
-        : "border-amber-400 text-amber-400";
+        : "border-warning text-warning";
+
+  const statusText =
+    tx.status === "successful"
+      ? "text-bull"
+      : tx.status === "failed"
+        ? "text-bear"
+        : "text-warning";
 
   const StatusArrow =
     tx.status === "failed" ? X : tx.status === "pending" ? RefreshCw : isOut ? ArrowUpRight : ArrowDownLeft;
 
-  const amountText = `${isOut ? "-" : "+"}${tx.amount.toLocaleString("en-US", {
+  const sign = isOut ? "-" : "+";
+  const amountText = `${sign}${tx.amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 8,
   })} ${tx.asset}`;
+  const fiatText = priceUsd ? `${sign}${usd(tx.amount * priceUsd)}` : assetName(tx.asset);
 
   return (
     <>
@@ -129,7 +157,7 @@ export function TransactionStatusDialog({
           <div className="border-b border-border px-4 py-7 text-center">
             <p className="num text-[15px] text-muted-foreground">{amountText}</p>
             <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
-              {assetName(tx.asset)}
+              {fiatText}
             </p>
           </div>
 
@@ -143,6 +171,7 @@ export function TransactionStatusDialog({
                 wrap
               />
             )}
+            {priceUsd ? <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} /> : null}
             <Row label="Asset" value={`${assetName(tx.asset)} (${tx.asset})`} />
             {tx.network && (
               <Row
@@ -151,7 +180,20 @@ export function TransactionStatusDialog({
                 icon={<AssetIcon currency={tx.asset} size={20} />}
               />
             )}
-            {isTransfer && <Row label="Estimated arrival" value={eta} />}
+            {isTransfer && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
+            {isTransfer && (
+              <Row
+                label="Confirmations"
+                value={
+                  tx.status === "successful"
+                    ? String(required)
+                    : `${confirmations} / ${required}`
+                }
+              />
+            )}
+            {isTransfer && tx.status === "pending" && (
+              <Row label="Estimated arrival" value={eta} />
+            )}
             {tx.txHash && (
               <Row
                 label="Transaction hash"
@@ -160,7 +202,16 @@ export function TransactionStatusDialog({
               />
             )}
             <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
-            <Row label="Date" value={new Date(tx.createdAt).toLocaleString()} />
+            <Row
+              label="Date"
+              value={new Date(tx.createdAt).toLocaleString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            />
             {tx.note && <Row label="Note from desk" value={tx.note} wrap />}
           </div>
 
@@ -179,7 +230,7 @@ export function TransactionStatusDialog({
               </span>
             </div>
             <span className="text-[17px] font-semibold">Status</span>
-            <span className="ml-auto text-[17px] text-muted-foreground">{statusLabel}</span>
+            <span className={`ml-auto text-[17px] font-semibold ${statusText}`}>{statusLabel}</span>
           </div>
 
           <div className="space-y-3 px-4 pb-5 pt-4">
@@ -190,22 +241,59 @@ export function TransactionStatusDialog({
                 <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span>
                   Funds typically arrive within{" "}
-                  <strong className="text-foreground">{eta}</strong>. Network congestion can
-                  extend this window.
+                  <strong className="text-foreground">{eta}</strong> —{" "}
+                  <strong className="text-foreground">
+                    {confirmations} of {required}
+                  </strong>{" "}
+                  confirmations received.
                 </span>
               </div>
             )}
 
+            {tx.status === "failed" && (
+              <div className="rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setShowReason((v) => !v)}
+                  className="flex w-full touch-manipulation items-center gap-2 text-left font-semibold text-bear"
+                >
+                  <AlertTriangle className="size-4 shrink-0" />
+                  {showReason ? "Hide failure reason" : "View failure reason"}
+                </button>
+                {showReason && (
+                  <p className="mt-2 text-muted-foreground">{failureReason(tx.type, tx.note)}</p>
+                )}
+              </div>
+            )}
+
+            {explorer && (
+              <a
+                href={explorer}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/70"
+              >
+                View on block explorer
+                <ExternalLink className="size-4" />
+              </a>
+            )}
+            {!explorer && isTransfer && (
+              <p className="text-center text-xs text-muted-foreground">
+                A {explorerName(tx.network)} link appears here once the transaction hash is
+                published.
+              </p>
+            )}
+
             <button
               onClick={() => setTicketOpen(true)}
-              className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/70"
+              className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
             >
               <LifeBuoy className="size-4" />
               Contact Customer Support
             </button>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-full touch-manipulation rounded-full border border-border py-3 text-sm font-semibold"
+              className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
             >
               Done
             </button>
