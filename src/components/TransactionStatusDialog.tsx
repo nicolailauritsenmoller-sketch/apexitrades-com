@@ -11,6 +11,7 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
+  Check,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -101,6 +102,7 @@ export function TransactionStatusDialog({
   const explorer = explorerUrl(tx.network, tx.txHash);
 
   const isSwap = tx.type === "swap";
+  const swap = tx.swap;
   const title =
     tx.type === "withdrawal"
       ? `Sent ${tx.asset}`
