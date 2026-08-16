@@ -172,6 +172,13 @@ function WalletPage() {
       createdAt: s.createdAt,
       title: `Swap ${s.fromAmount.toFixed(4)} ${s.fromCurrency} → ${s.toAmount.toFixed(4)} ${s.toCurrency}`,
       subtitle: `Rate ${s.rate.toFixed(6)}`,
+      swap: {
+        fromAsset: s.fromCurrency,
+        fromAmount: s.fromAmount,
+        toAsset: s.toCurrency,
+        toAmount: s.toAmount,
+        rate: s.rate,
+      },
     }));
     return [...deposits, ...withdrawals, ...swaps].sort((x, y) =>
       x.createdAt < y.createdAt ? 1 : -1,
@@ -226,6 +233,7 @@ function WalletPage() {
         <SwapTab
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
           onDone={refresh}
+          onSubmitted={setActiveTx}
         />
       )}
 
@@ -673,9 +681,11 @@ const SWAP_OPTIONS = SWAP_GROUPS.flatMap((g) => g.codes.map((code) => ({ code, g
 function SwapTab({
   balances,
   onDone,
+  onSubmitted,
 }: {
   balances: { currency: string; balance: number }[];
   onDone: () => void;
+  onSubmitted: (tx: TransactionRecord) => void;
 }) {
   const [from, setFrom] = useState("USDT");
   const [to, setTo] = useState("BTCUSDT");
@@ -692,8 +702,30 @@ function SwapTab({
 
   const mutation = useMutation({
     mutationFn: (vars: { from: string; to: string; amount: number }) => submit({ data: vars }),
-    onSuccess: (res) => {
-      toast.success(`Swapped — received ${res.toAmount.toFixed(6)} ${to}`);
+    onSuccess: (res, vars) => {
+      toast.success("Swap successful");
+      onSubmitted({
+        id: `swap-${Date.now()}`,
+        type: "swap",
+        status: "successful",
+        rawStatus: "approved",
+        asset: to,
+        amount: res.toAmount,
+        network: null,
+        address: null,
+        txHash: null,
+        note: null,
+        createdAt: new Date().toISOString(),
+        title: `Swap ${vars.amount} ${vars.from} → ${res.toAmount.toFixed(6)} ${to}`,
+        subtitle: `Rate ${res.rate.toFixed(6)}`,
+        swap: {
+          fromAsset: vars.from,
+          fromAmount: vars.amount,
+          toAsset: to,
+          toAmount: res.toAmount,
+          rate: res.rate,
+        },
+      });
       setAmount("");
       onDone();
     },
