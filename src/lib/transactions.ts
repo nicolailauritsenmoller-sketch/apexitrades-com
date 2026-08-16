@@ -18,6 +18,14 @@ export type TransactionRecord = {
   /** Human readable summary, used in list rows. */
   title: string;
   subtitle: string;
+  /** Conversion detail, only present on swap records. */
+  swap?: {
+    fromAsset: string;
+    fromAmount: number;
+    toAsset: string;
+    toAmount: number;
+    rate: number;
+  };
 };
 
 export const CURRENCY_NAME: Record<string, string> = {
