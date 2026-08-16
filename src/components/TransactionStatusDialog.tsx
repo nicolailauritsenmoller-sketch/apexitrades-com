@@ -100,12 +100,13 @@ export function TransactionStatusDialog({
   const confirmations = confirmationsFor(tx.status, tx.network, tx.createdAt);
   const explorer = explorerUrl(tx.network, tx.txHash);
 
+  const isSwap = tx.type === "swap";
   const title =
     tx.type === "withdrawal"
       ? `Sent ${tx.asset}`
       : tx.type === "deposit"
         ? `Received ${tx.asset}`
-        : `Swapped ${tx.asset}`;
+        : "Swap successful";
 
   const statusLabel =
     tx.status === "successful" ? "Completed" : tx.status === "failed" ? "Failed" : "Pending";
