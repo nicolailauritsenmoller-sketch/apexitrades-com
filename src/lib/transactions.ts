@@ -86,6 +86,11 @@ export function shortenAddress(value: string, lead = 6, tail = 4): string {
 }
 
 export function statusMessage(type: TxType, status: TxStatus): string {
+  if (type === "swap") {
+    if (status === "failed") return "This swap could not be completed. Your balances were not changed.";
+    if (status === "successful") return "Your new balance has been updated.";
+    return "Your swap is being processed.";
+  }
   if (status === "failed") {
     return type === "withdrawal"
       ? "This withdrawal was declined. Any reserved funds remain in your wallet — contact support for the full reason."
