@@ -11,6 +11,7 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
+  Check,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -100,12 +101,14 @@ export function TransactionStatusDialog({
   const confirmations = confirmationsFor(tx.status, tx.network, tx.createdAt);
   const explorer = explorerUrl(tx.network, tx.txHash);
 
+  const isSwap = tx.type === "swap";
+  const swap = tx.swap;
   const title =
     tx.type === "withdrawal"
       ? `Sent ${tx.asset}`
       : tx.type === "deposit"
         ? `Received ${tx.asset}`
-        : `Swapped ${tx.asset}`;
+        : "Swap successful";
 
   const statusLabel =
     tx.status === "successful" ? "Completed" : tx.status === "failed" ? "Failed" : "Pending";
@@ -159,7 +162,45 @@ export function TransactionStatusDialog({
             <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
               {fiatText}
             </p>
+            {isSwap && tx.status === "successful" && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Your new balance has been updated.
+              </p>
+            )}
           </div>
+
+          {/* Swap details card */}
+          {isSwap && swap && (
+            <div className="border-b border-border px-4 py-4">
+              <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+                <p className="text-[15px] font-bold">Swap Successful</p>
+                <div className="mt-3 flex items-center justify-center gap-2 text-[15px] font-semibold">
+                  <AssetIcon currency={swap.fromAsset} size={20} />
+                  <span className="num">
+                    {swap.fromAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
+                    {swap.fromAsset}
+                  </span>
+                  <span className="text-muted-foreground">→</span>
+                  <AssetIcon currency={swap.toAsset} size={20} />
+                  <span className="num">
+                    {swap.toAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
+                    {swap.toAsset}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-bull/40 bg-bull/10 px-2.5 py-1 text-xs font-bold text-bull">
+                    <Check className="size-3.5" strokeWidth={3} />
+                    Completed
+                  </span>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Your {swap.toAsset} balance has been updated.
+                </p>
+              </div>
+            </div>
+          )}
+
 
           {/* Details */}
           <div className="divide-y divide-border/50 border-b border-border px-4">
