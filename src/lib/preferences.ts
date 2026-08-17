@@ -12,6 +12,11 @@ import { readConsent } from "@/lib/consent";
 
 export type Preferences = {
   language?: string;
+  displayCurrency?: string;
+  notifyEmail?: boolean;
+  notifyPush?: boolean;
+  notifyTrades?: boolean;
+  notifyMarketing?: boolean;
   chartTimeframe?: string;
   preferredMarkets?: string[];
   lastSymbol?: string;
