@@ -88,7 +88,7 @@ export function NavTile({
 }) {
   return (
     <Link
-      to={to}
+      to={to as never}
       className="flex touch-manipulation items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary"
     >
       <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
@@ -129,7 +129,7 @@ export function SubPageHeader({
   return (
     <div className="space-y-2">
       <Link
-        to={backTo}
+        to={backTo as never}
         className="inline-flex touch-manipulation items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
       >
         <ChevronRight className="size-3 rotate-180" /> {backLabel}
