@@ -63,8 +63,8 @@ function SecurityCenter() {
             Last sign-in
           </p>
           <p className="mt-2 font-display text-xl font-bold">
-            {rows[0]?.last_active_at
-              ? new Date(rows[0].last_active_at).toLocaleString()
+            {rows[0]?.lastActiveAt
+              ? new Date(rows[0].lastActiveAt).toLocaleString()
               : "—"}
           </p>
         </div>
@@ -96,8 +96,8 @@ function SecurityCenter() {
                   {s.browser} · {s.os}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {s.country ?? "Unknown region"} · {s.ip_address ?? "IP hidden"} ·{" "}
-                  {new Date(s.last_active_at).toLocaleString()}
+                  {s.country ?? "Unknown region"} · {s.ip ?? "IP hidden"} ·{" "}
+                  {new Date(s.lastActiveAt).toLocaleString()}
                 </span>
               </li>
             ))}
@@ -111,7 +111,7 @@ function SecurityCenter() {
         description="Change your password from settings."
       >
         <Link
-          to="/profile/settings/security"
+          to={"/profile/settings/security" as never}
           className="inline-flex touch-manipulation items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
         >
           Open security settings
