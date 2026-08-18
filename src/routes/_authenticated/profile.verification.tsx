@@ -8,6 +8,8 @@ import { KycPanel } from "@/components/profile/KycPanel";
 import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
 import { getProfileOverview } from "@/lib/profile.functions";
 
+type KycPayload = Parameters<Parameters<typeof KycPanel>[0]["onSubmit"]>[0];
+
 export const Route = createFileRoute("/_authenticated/profile/verification")({
   head: () => ({
     meta: [
@@ -39,7 +41,7 @@ function VerificationPage() {
   const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
 
   const mutation = useMutation({
-    mutationFn: (payload: Parameters<typeof sendKyc>[0]["data"]) => sendKyc({ data: payload }),
+    mutationFn: (payload: KycPayload) => sendKyc({ data: payload }),
     onSuccess: () => {
       toast.success("Documents submitted for review");
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
