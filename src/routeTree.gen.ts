@@ -24,6 +24,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authenticated/sys-portal-x97'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -104,6 +105,12 @@ const LegalDocRoute = LegalDocRouteImport.update({
   path: '/legal/$doc',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedTerminalSymbolRoute =
   AuthenticatedTerminalSymbolRouteImport.update({
     id: '/terminal/$symbol',
@@ -138,11 +145,12 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
-  '/profile': typeof AuthenticatedProfileRoute
+  '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -158,11 +166,11 @@ export interface FileRoutesByTo {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
-  '/profile': typeof AuthenticatedProfileRoute
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -180,11 +188,12 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
-  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/legal/$doc'
     | '/terminal/$symbol'
+    | '/profile/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -222,11 +232,11 @@ export interface FileRouteTypes {
     | '/assets'
     | '/dashboard'
     | '/markets'
-    | '/profile'
     | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
     | '/terminal/$symbol'
+    | '/profile'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/wallet'
     | '/legal/$doc'
     | '/_authenticated/terminal/$symbol'
+    | '/_authenticated/profile/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -374,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/_authenticated/terminal/$symbol': {
       id: '/_authenticated/terminal/$symbol'
       path: '/terminal/$symbol'
@@ -405,12 +423,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+}
+
+const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+}
+
+const AuthenticatedProfileRouteWithChildren =
+  AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedSysPortalX97Route: typeof AuthenticatedSysPortalX97Route
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
@@ -421,7 +450,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedSysPortalX97Route: AuthenticatedSysPortalX97Route,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
