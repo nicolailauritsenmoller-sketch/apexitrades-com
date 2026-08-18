@@ -25,6 +25,7 @@ import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authent
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
+import { Route as AuthenticatedProfileSecurityRouteImport } from './routes/_authenticated/profile.security'
 import { Route as AuthenticatedProfileVerificationRouteImport } from './routes/_authenticated/profile.verification'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -112,6 +113,12 @@ const AuthenticatedProfileIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
+const AuthenticatedProfileSecurityRoute =
+  AuthenticatedProfileSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedProfileVerificationRoute =
   AuthenticatedProfileVerificationRouteImport.update({
     id: '/verification',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/profile/security': typeof AuthenticatedProfileSecurityRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/profile/security': typeof AuthenticatedProfileSecurityRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -201,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/_authenticated/profile/security': typeof AuthenticatedProfileSecurityRoute
   '/_authenticated/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
+    | '/profile/security'
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile/'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
+    | '/profile/security'
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile'
@@ -269,6 +281,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sys-portal-x97'
     | '/_authenticated/wallet'
     | '/legal/$doc'
+    | '/_authenticated/profile/security'
     | '/_authenticated/profile/verification'
     | '/_authenticated/terminal/$symbol'
     | '/_authenticated/profile/'
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedProfileRoute
     }
+    '/_authenticated/profile/security': {
+      id: '/_authenticated/profile/security'
+      path: '/security'
+      fullPath: '/profile/security'
+      preLoaderRoute: typeof AuthenticatedProfileSecurityRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/_authenticated/profile/verification': {
       id: '/_authenticated/profile/verification'
       path: '/verification'
@@ -444,11 +464,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileSecurityRoute: typeof AuthenticatedProfileSecurityRoute
   AuthenticatedProfileVerificationRoute: typeof AuthenticatedProfileVerificationRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
 
 const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileSecurityRoute: AuthenticatedProfileSecurityRoute,
   AuthenticatedProfileVerificationRoute: AuthenticatedProfileVerificationRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
 }
