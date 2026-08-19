@@ -118,9 +118,18 @@ export function GlobalMembershipSection() {
       { key: "activeMembers", label: "Active members", value: data?.activeMembers },
       { key: "supportedMarkets", label: "Supported markets", value: data?.supportedMarkets },
     ] as const
-  ).filter(
-    (s) => vis[s.key] !== false && typeof s.value === "number" && s.value !== null,
-  );
+  )
+    .map((s) =>
+      s.key === "totalMembers" || s.key === "activeMembers"
+        ? { ...s, value: typeof s.value === "number" ? s.value : 0 }
+        : s,
+    )
+    .filter(
+      (s) =>
+        s.key === "totalMembers" ||
+        s.key === "activeMembers" ||
+        (vis[s.key] !== false && typeof s.value === "number" && s.value !== null),
+    );
 
 
   return (
