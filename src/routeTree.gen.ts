@@ -25,10 +25,16 @@ import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authent
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
+import { Route as AuthenticatedProfileHelpRouteImport } from './routes/_authenticated/profile.help'
 import { Route as AuthenticatedProfileReferralsRouteImport } from './routes/_authenticated/profile.referrals'
 import { Route as AuthenticatedProfileSecurityRouteImport } from './routes/_authenticated/profile.security'
+import { Route as AuthenticatedProfileSupportRouteImport } from './routes/_authenticated/profile.support'
 import { Route as AuthenticatedProfileVerificationRouteImport } from './routes/_authenticated/profile.verification'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
+import { Route as AuthenticatedProfileSettingsIndexRouteImport } from './routes/_authenticated/profile.settings.index'
+import { Route as AuthenticatedProfileSettingsNotificationsRouteImport } from './routes/_authenticated/profile.settings.notifications'
+import { Route as AuthenticatedProfileSettingsPreferencesRouteImport } from './routes/_authenticated/profile.settings.preferences'
+import { Route as AuthenticatedProfileSettingsSecurityRouteImport } from './routes/_authenticated/profile.settings.security'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -114,6 +120,12 @@ const AuthenticatedProfileIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
+const AuthenticatedProfileHelpRoute =
+  AuthenticatedProfileHelpRouteImport.update({
+    id: '/help',
+    path: '/help',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const AuthenticatedProfileReferralsRoute =
   AuthenticatedProfileReferralsRouteImport.update({
     id: '/referrals',
@@ -124,6 +136,12 @@ const AuthenticatedProfileSecurityRoute =
   AuthenticatedProfileSecurityRouteImport.update({
     id: '/security',
     path: '/security',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileSupportRoute =
+  AuthenticatedProfileSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
     getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
 const AuthenticatedProfileVerificationRoute =
@@ -137,6 +155,30 @@ const AuthenticatedTerminalSymbolRoute =
     id: '/terminal/$symbol',
     path: '/terminal/$symbol',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProfileSettingsIndexRoute =
+  AuthenticatedProfileSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileSettingsNotificationsRoute =
+  AuthenticatedProfileSettingsNotificationsRouteImport.update({
+    id: '/settings/notifications',
+    path: '/settings/notifications',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileSettingsPreferencesRoute =
+  AuthenticatedProfileSettingsPreferencesRouteImport.update({
+    id: '/settings/preferences',
+    path: '/settings/preferences',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileSettingsSecurityRoute =
+  AuthenticatedProfileSettingsSecurityRouteImport.update({
+    id: '/settings/security',
+    path: '/settings/security',
+    getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
@@ -170,14 +212,20 @@ export interface FileRoutesByFullPath {
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/profile/security': typeof AuthenticatedProfileSecurityRoute
+  '/profile/support': typeof AuthenticatedProfileSupportRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
+  '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
+  '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/profile/settings/': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -193,14 +241,20 @@ export interface FileRoutesByTo {
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/profile/security': typeof AuthenticatedProfileSecurityRoute
+  '/profile/support': typeof AuthenticatedProfileSupportRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
+  '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
+  '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/profile/settings': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -219,14 +273,20 @@ export interface FileRoutesById {
   '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/_authenticated/profile/help': typeof AuthenticatedProfileHelpRoute
   '/_authenticated/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/_authenticated/profile/security': typeof AuthenticatedProfileSecurityRoute
+  '/_authenticated/profile/support': typeof AuthenticatedProfileSupportRoute
   '/_authenticated/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
+  '/_authenticated/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
+  '/_authenticated/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/profile/settings/': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,14 +305,20 @@ export interface FileRouteTypes {
     | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
+    | '/profile/help'
     | '/profile/referrals'
     | '/profile/security'
+    | '/profile/support'
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile/'
+    | '/profile/settings/notifications'
+    | '/profile/settings/preferences'
+    | '/profile/settings/security'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/profile/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -268,14 +334,20 @@ export interface FileRouteTypes {
     | '/sys-portal-x97'
     | '/wallet'
     | '/legal/$doc'
+    | '/profile/help'
     | '/profile/referrals'
     | '/profile/security'
+    | '/profile/support'
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile'
+    | '/profile/settings/notifications'
+    | '/profile/settings/preferences'
+    | '/profile/settings/security'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/profile/settings'
   id:
     | '__root__'
     | '/'
@@ -293,14 +365,20 @@ export interface FileRouteTypes {
     | '/_authenticated/sys-portal-x97'
     | '/_authenticated/wallet'
     | '/legal/$doc'
+    | '/_authenticated/profile/help'
     | '/_authenticated/profile/referrals'
     | '/_authenticated/profile/security'
+    | '/_authenticated/profile/support'
     | '/_authenticated/profile/verification'
     | '/_authenticated/terminal/$symbol'
     | '/_authenticated/profile/'
+    | '/_authenticated/profile/settings/notifications'
+    | '/_authenticated/profile/settings/preferences'
+    | '/_authenticated/profile/settings/security'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/profile/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -431,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedProfileRoute
     }
+    '/_authenticated/profile/help': {
+      id: '/_authenticated/profile/help'
+      path: '/help'
+      fullPath: '/profile/help'
+      preLoaderRoute: typeof AuthenticatedProfileHelpRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/_authenticated/profile/referrals': {
       id: '/_authenticated/profile/referrals'
       path: '/referrals'
@@ -443,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/profile/security'
       preLoaderRoute: typeof AuthenticatedProfileSecurityRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/support': {
+      id: '/_authenticated/profile/support'
+      path: '/support'
+      fullPath: '/profile/support'
+      preLoaderRoute: typeof AuthenticatedProfileSupportRouteImport
       parentRoute: typeof AuthenticatedProfileRoute
     }
     '/_authenticated/profile/verification': {
@@ -458,6 +550,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/terminal/$symbol'
       preLoaderRoute: typeof AuthenticatedTerminalSymbolRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile/settings/': {
+      id: '/_authenticated/profile/settings/'
+      path: '/settings'
+      fullPath: '/profile/settings/'
+      preLoaderRoute: typeof AuthenticatedProfileSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/settings/notifications': {
+      id: '/_authenticated/profile/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/profile/settings/notifications'
+      preLoaderRoute: typeof AuthenticatedProfileSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/settings/preferences': {
+      id: '/_authenticated/profile/settings/preferences'
+      path: '/settings/preferences'
+      fullPath: '/profile/settings/preferences'
+      preLoaderRoute: typeof AuthenticatedProfileSettingsPreferencesRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/settings/security': {
+      id: '/_authenticated/profile/settings/security'
+      path: '/settings/security'
+      fullPath: '/profile/settings/security'
+      preLoaderRoute: typeof AuthenticatedProfileSettingsSecurityRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
     }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
@@ -484,17 +604,33 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileHelpRoute: typeof AuthenticatedProfileHelpRoute
   AuthenticatedProfileReferralsRoute: typeof AuthenticatedProfileReferralsRoute
   AuthenticatedProfileSecurityRoute: typeof AuthenticatedProfileSecurityRoute
+  AuthenticatedProfileSupportRoute: typeof AuthenticatedProfileSupportRoute
   AuthenticatedProfileVerificationRoute: typeof AuthenticatedProfileVerificationRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+  AuthenticatedProfileSettingsNotificationsRoute: typeof AuthenticatedProfileSettingsNotificationsRoute
+  AuthenticatedProfileSettingsPreferencesRoute: typeof AuthenticatedProfileSettingsPreferencesRoute
+  AuthenticatedProfileSettingsSecurityRoute: typeof AuthenticatedProfileSettingsSecurityRoute
+  AuthenticatedProfileSettingsIndexRoute: typeof AuthenticatedProfileSettingsIndexRoute
 }
 
 const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileHelpRoute: AuthenticatedProfileHelpRoute,
   AuthenticatedProfileReferralsRoute: AuthenticatedProfileReferralsRoute,
   AuthenticatedProfileSecurityRoute: AuthenticatedProfileSecurityRoute,
+  AuthenticatedProfileSupportRoute: AuthenticatedProfileSupportRoute,
   AuthenticatedProfileVerificationRoute: AuthenticatedProfileVerificationRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+  AuthenticatedProfileSettingsNotificationsRoute:
+    AuthenticatedProfileSettingsNotificationsRoute,
+  AuthenticatedProfileSettingsPreferencesRoute:
+    AuthenticatedProfileSettingsPreferencesRoute,
+  AuthenticatedProfileSettingsSecurityRoute:
+    AuthenticatedProfileSettingsSecurityRoute,
+  AuthenticatedProfileSettingsIndexRoute:
+    AuthenticatedProfileSettingsIndexRoute,
 }
 
 const AuthenticatedProfileRouteWithChildren =
