@@ -5,7 +5,6 @@ import { displaySymbol, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
-import { AmbientMarketBackdrop } from "@/components/home/AmbientMarketBackdrop";
 import { ThemeToggle } from "@/lib/theme";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
@@ -57,7 +56,7 @@ function Landing() {
 
   return (
     <div className="relative w-full max-w-full overflow-x-hidden bg-background">
-      <AmbientMarketBackdrop fixed intensity={0.5} />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(80%_60%_at_50%_-10%,hsl(var(--primary)/0.18),transparent_70%)]" />
       <header className="relative z-40 sticky top-0 w-full border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
           <div className="flex min-w-0 items-center gap-2">
