@@ -29,6 +29,7 @@ import { Route as AuthenticatedProfileReferralsRouteImport } from './routes/_aut
 import { Route as AuthenticatedProfileSecurityRouteImport } from './routes/_authenticated/profile.security'
 import { Route as AuthenticatedProfileVerificationRouteImport } from './routes/_authenticated/profile.verification'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
+import { Route as AuthenticatedProfileSettingsIndexRouteImport } from './routes/_authenticated/profile.settings.index'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -138,6 +139,12 @@ const AuthenticatedTerminalSymbolRoute =
     path: '/terminal/$symbol',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProfileSettingsIndexRoute =
+  AuthenticatedProfileSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/profile/settings/': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/profile/settings': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -227,6 +236,7 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/profile/settings/': typeof AuthenticatedProfileSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/profile/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/profile/settings'
   id:
     | '__root__'
     | '/'
@@ -301,6 +313,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/profile/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTerminalSymbolRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile/settings/': {
+      id: '/_authenticated/profile/settings/'
+      path: '/settings'
+      fullPath: '/profile/settings/'
+      preLoaderRoute: typeof AuthenticatedProfileSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -488,6 +508,7 @@ interface AuthenticatedProfileRouteChildren {
   AuthenticatedProfileSecurityRoute: typeof AuthenticatedProfileSecurityRoute
   AuthenticatedProfileVerificationRoute: typeof AuthenticatedProfileVerificationRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+  AuthenticatedProfileSettingsIndexRoute: typeof AuthenticatedProfileSettingsIndexRoute
 }
 
 const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
@@ -495,6 +516,8 @@ const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
   AuthenticatedProfileSecurityRoute: AuthenticatedProfileSecurityRoute,
   AuthenticatedProfileVerificationRoute: AuthenticatedProfileVerificationRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+  AuthenticatedProfileSettingsIndexRoute:
+    AuthenticatedProfileSettingsIndexRoute,
 }
 
 const AuthenticatedProfileRouteWithChildren =
