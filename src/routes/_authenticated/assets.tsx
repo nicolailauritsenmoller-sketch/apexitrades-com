@@ -6,6 +6,8 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { AssetIcon } from "@/lib/asset-icons";
 import { getPortfolio } from "@/lib/trading.functions";
 import { getContracts } from "@/lib/contracts.functions";
+import { getPortfolioValue } from "@/lib/wallet.functions";
+
 import { useQuotes } from "@/hooks/useMarket";
 import { INSTRUMENTS, displaySymbol, formatMoney, formatPrice } from "@/lib/instruments";
 
@@ -45,10 +47,18 @@ function Assets() {
     refetchInterval: 20_000,
   });
 
+  const fetchValue = useServerFn(getPortfolioValue);
+  const portfolioValue = useQuery({
+    queryKey: ["portfolio-value"],
+    queryFn: () => fetchValue(),
+    refetchInterval: 20_000,
+  });
+
   const fetchContracts = useServerFn(getContracts);
   const contracts = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
 
-  const wallets = portfolio.data?.wallets ?? [];
+  const wallets = portfolioValue.data?.wallets ?? [];
+
   const openPositions = (portfolio.data?.positions ?? []).filter((p) => p.status === "open");
   const { quotes } = useQuotes(
     openPositions.map((p) => p.symbol),

@@ -200,8 +200,20 @@ const AGENT_TABS = new Set([
   "agent",
   "active",
   "overview",
-  "users",
 ]);
+
+/** Tabs whose bodies need the finance-only admin overview payload. */
+const DATA_TABS = new Set([
+  "trades",
+  "settings",
+  "deposits",
+  "withdrawals",
+  "addresses",
+  "gateways",
+  "users",
+  "broadcast",
+]);
+
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
@@ -576,9 +588,9 @@ function AdminPage() {
           {tab === "audit" && <AuditLogPanel />}
           {tab === "authproviders" && <AuthProvidersPanel />}
 
-          {overview.isLoading ? (
+          {DATA_TABS.has(tab) && overview.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading console…</p>
-          ) : !data ? (
+          ) : DATA_TABS.has(tab) && !data ? (
             <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
           ) : (
             <>
@@ -639,7 +651,7 @@ function AdminPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">Loading analytics…</p>
                 ))}
-              {tab === "trades" && (
+              {tab === "trades" && data && (
                 <div className="space-y-4">
                   {analytics && <TradeStatsPanel a={analytics} />}
                   <OutcomesTab
@@ -658,7 +670,7 @@ function AdminPage() {
                 ))}
               {tab === "support" && <SupportDesk />}
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
-              {tab === "settings" && (
+              {tab === "settings" && data && (
                 <div className="space-y-4">
                   <OpsToggles />
                   <PlatformSettingsHub />
@@ -672,21 +684,21 @@ function AdminPage() {
                   />
                 </div>
               )}
-              {tab === "deposits" && (
+              {tab === "deposits" && data && (
                 <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} />
               )}
-              {tab === "withdrawals" && (
+              {tab === "withdrawals" && data && (
                 <WithdrawalsTab
                   rows={data.withdrawals}
                   onDone={refresh}
                   statusFilter={statusFilter}
                 />
               )}
-              {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
-              {tab === "gateways" && (
+              {tab === "addresses" && data && <AddressesTab rows={data.addresses} onDone={refresh} />}
+              {tab === "gateways" && data && (
                 <PaymentGatewaysPanel addresses={data.addresses as any} onDone={refresh} />
               )}
-              {tab === "users" && (
+              {tab === "users" && data && (
                 <UsersTab
                   profiles={data.profiles}
                   kyc={data.kyc}
@@ -695,7 +707,7 @@ function AdminPage() {
                   userFilter={filter.users ?? null}
                 />
               )}
-              {tab === "broadcast" && (
+              {tab === "broadcast" && data && (
                 <div className="space-y-4">
                   <AnnouncementsPanel />
                   <BroadcastTab profiles={data.profiles} />
