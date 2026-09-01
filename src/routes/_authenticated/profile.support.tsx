@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
 
 function ContactSupport() {
   const [ticketOpen, setTicketOpen] = useState(false);
+  const [vipOpen, setVipOpen] = useState(false);
 
   return (
     <>
@@ -56,7 +57,25 @@ function ContactSupport() {
         </button>
       </Section>
 
+      <Section
+        icon={ShieldCheck}
+        title="VIP priority chat"
+        description="Dedicated specialists for account, trading and security matters."
+      >
+        <button
+          type="button"
+          onClick={() => setVipOpen(true)}
+          className="min-h-10 w-full touch-manipulation rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-500/15 sm:w-auto"
+        >
+          Open VIP desk
+        </button>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Unlock individual specialist threads on request. Replies appear here and in your notifications.
+        </p>
+      </Section>
+
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
+      <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
     </>
   );
 }
