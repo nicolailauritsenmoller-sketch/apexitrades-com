@@ -6,6 +6,8 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { AssetIcon } from "@/lib/asset-icons";
 import { getPortfolio } from "@/lib/trading.functions";
 import { getContracts } from "@/lib/contracts.functions";
+import { getPortfolioValue } from "@/lib/wallet.functions";
+
 import { useQuotes } from "@/hooks/useMarket";
 import { INSTRUMENTS, displaySymbol, formatMoney, formatPrice } from "@/lib/instruments";
 
