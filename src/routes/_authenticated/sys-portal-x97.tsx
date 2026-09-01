@@ -651,7 +651,7 @@ function AdminPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">Loading analytics…</p>
                 ))}
-              {tab === "trades" && (
+              {tab === "trades" && data && (
                 <div className="space-y-4">
                   {analytics && <TradeStatsPanel a={analytics} />}
                   <OutcomesTab
@@ -670,7 +670,7 @@ function AdminPage() {
                 ))}
               {tab === "support" && <SupportDesk />}
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
-              {tab === "settings" && (
+              {tab === "settings" && data && (
                 <div className="space-y-4">
                   <OpsToggles />
                   <PlatformSettingsHub />
@@ -684,21 +684,21 @@ function AdminPage() {
                   />
                 </div>
               )}
-              {tab === "deposits" && (
+              {tab === "deposits" && data && (
                 <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} />
               )}
-              {tab === "withdrawals" && (
+              {tab === "withdrawals" && data && (
                 <WithdrawalsTab
                   rows={data.withdrawals}
                   onDone={refresh}
                   statusFilter={statusFilter}
                 />
               )}
-              {tab === "addresses" && <AddressesTab rows={data.addresses} onDone={refresh} />}
-              {tab === "gateways" && (
+              {tab === "addresses" && data && <AddressesTab rows={data.addresses} onDone={refresh} />}
+              {tab === "gateways" && data && (
                 <PaymentGatewaysPanel addresses={data.addresses as any} onDone={refresh} />
               )}
-              {tab === "users" && (
+              {tab === "users" && data && (
                 <UsersTab
                   profiles={data.profiles}
                   kyc={data.kyc}
@@ -707,7 +707,7 @@ function AdminPage() {
                   userFilter={filter.users ?? null}
                 />
               )}
-              {tab === "broadcast" && (
+              {tab === "broadcast" && data && (
                 <div className="space-y-4">
                   <AnnouncementsPanel />
                   <BroadcastTab profiles={data.profiles} />
