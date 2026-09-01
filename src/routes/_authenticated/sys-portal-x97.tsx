@@ -200,8 +200,20 @@ const AGENT_TABS = new Set([
   "agent",
   "active",
   "overview",
-  "users",
 ]);
+
+/** Tabs whose bodies need the finance-only admin overview payload. */
+const DATA_TABS = new Set([
+  "trades",
+  "settings",
+  "deposits",
+  "withdrawals",
+  "addresses",
+  "gateways",
+  "users",
+  "broadcast",
+]);
+
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
