@@ -588,9 +588,9 @@ function AdminPage() {
           {tab === "audit" && <AuditLogPanel />}
           {tab === "authproviders" && <AuthProvidersPanel />}
 
-          {overview.isLoading ? (
+          {DATA_TABS.has(tab) && overview.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading console…</p>
-          ) : !data ? (
+          ) : DATA_TABS.has(tab) && !data ? (
             <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
           ) : (
             <>
