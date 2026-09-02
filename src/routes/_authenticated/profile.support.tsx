@@ -4,6 +4,7 @@ import { LifeBuoy, MessageCircle, ShieldCheck } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
+import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
@@ -77,6 +78,7 @@ function ContactSupport() {
 
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
       <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
+      <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} />
     </>
   );
 }
