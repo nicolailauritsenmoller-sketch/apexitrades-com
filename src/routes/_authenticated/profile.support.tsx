@@ -4,6 +4,7 @@ import { LifeBuoy, MessageCircle, ShieldCheck } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
+import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
 function ContactSupport() {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [vipOpen, setVipOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <>
@@ -50,7 +52,7 @@ function ContactSupport() {
       <Section icon={MessageCircle} title="Live chat" description="Talk to an agent in real time.">
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat"))}
+          onClick={() => setChatOpen(true)}
           className="min-h-10 w-full touch-manipulation rounded-xl border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary sm:w-auto"
         >
           Start live chat
@@ -76,6 +78,7 @@ function ContactSupport() {
 
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
       <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
+      <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} />
     </>
   );
 }
