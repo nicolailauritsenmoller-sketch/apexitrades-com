@@ -73,8 +73,11 @@ export function LiveChatDialog({
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  /* Global open event — supports an optional pre-filled message. */
+  /* Global open event — supports an optional pre-filled message.
+     Only the uncontrolled (global) instance listens, so a controlled
+     instance mounted on the support page never double-opens. */
   useEffect(() => {
+    if (controlledOpen !== undefined) return;
     const handler = (e: Event) => {
       setOpen(true);
       const detail = (e as CustomEvent<{ message?: string }>).detail;
