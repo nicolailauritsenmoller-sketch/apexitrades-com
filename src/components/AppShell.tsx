@@ -19,6 +19,7 @@ import { ThemeToggle } from "@/lib/theme";
 import { SiteFooter } from "@/components/SiteFooter";
 import { UserAvatar } from "@/components/UserAvatar";
 import { InstallAppButton } from "@/components/PwaInstall";
+import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
