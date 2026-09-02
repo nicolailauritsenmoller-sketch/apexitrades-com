@@ -1,0 +1,495 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, CheckCheck, Paperclip, Send, Star, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { UserAvatar } from "@/components/UserAvatar";
+import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
+import brandLogo from "@/assets/velocity-trade-logo.png";
+
+type Message = {
+  id: string;
+  session_id: string;
+  sender_role: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  pending?: boolean;
+};
+
+type Agent = {
+  name: string;
+  role: string;
+  staffId: string;
+  avatarUrl: string | null;
+} | null;
+
+const RATED_KEY = "velocity:chat-rated";
+
+/** Platform logo used as the default face of every support agent. */
+function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
+  return (
+    <img
+      src={src || brandLogo}
+      alt="Velocity Trade support"
+      className={`${className} shrink-0 rounded-full border border-border bg-background object-cover p-0.5`}
+    />
+  );
+}
+
+/**
+ * Standard support live chat rendered as a dialog (no floating launcher).
+ * Can be controlled via `open`/`onOpenChange`, and also listens for the
+ * global `velocity:open-chat` event so other surfaces (e.g. trade close
+ * summary) can open it with a pre-filled message.
+ */
+export function LiveChatDialog({
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = useCallback(
+    (v: boolean) => {
+      setInternalOpen(v);
+      onOpenChange?.(v);
+    },
+    [onOpenChange],
+  );
+
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [agent, setAgent] = useState<Agent>(null);
+  const [rating, setRating] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  /* Global open event — supports an optional pre-filled message. */
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setOpen(true);
+      const detail = (e as CustomEvent<{ message?: string }>).detail;
+      if (detail?.message) setDraft(detail.message);
+    };
+    window.addEventListener("velocity:open-chat", handler);
+    return () => window.removeEventListener("velocity:open-chat", handler);
+  }, [setOpen]);
+
+  /* Resolve or create the user's chat session. */
+  useEffect(() => {
+    if (!open || sessionId) return;
+    (async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+      const { data: existing } = await supabase
+        .from("chat_sessions")
+        .select("*")
+        .eq("user_id", user.user.id)
+        .order("last_message_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        setSessionId(existing.id);
+        return;
+      }
+      const { data: created } = await supabase
+        .from("chat_sessions")
+        .insert({ user_id: user.user.id, subject: "Support" })
+        .select()
+        .single();
+      if (created) setSessionId(created.id);
+    })();
+  }, [open, sessionId]);
+
+  /* Message thread with a resilient realtime subscription. */
+  useEffect(() => {
+    if (!sessionId) return;
+    let active = true;
+
+    async function load() {
+      const { data } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("session_id", sessionId!)
+        .order("created_at");
+      if (active) setMessages((data ?? []) as Message[]);
+    }
+    load();
+
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+
+    function merge(row: Message) {
+      setMessages((prev) => {
+        const withoutOptimistic = prev.filter(
+          (m) => !(m.pending && m.body === row.body && m.sender_role === row.sender_role),
+        );
+        if (withoutOptimistic.some((m) => m.id === row.id)) {
+          return withoutOptimistic.map((m) => (m.id === row.id ? { ...m, ...row } : m));
+        }
+        return [...withoutOptimistic, row];
+      });
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`chat-${sessionId}`, { config: { broadcast: { ack: false } } })
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "chat_messages",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          (payload) => {
+            const row = payload.new as Message;
+            if (row?.id) merge(row);
+          },
+        )
+        .subscribe((status) => {
+          if (!active) return;
+          if (status === "SUBSCRIBED") void load();
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channel) supabase.removeChannel(channel);
+            channel = null;
+            retry = setTimeout(subscribe, 1200);
+          }
+        });
+    }
+    subscribe();
+
+    const resync = () => void load();
+    window.addEventListener("online", resync);
+    window.addEventListener("focus", resync);
+
+    return () => {
+      active = false;
+      if (retry) clearTimeout(retry);
+      window.removeEventListener("online", resync);
+      window.removeEventListener("focus", resync);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [sessionId]);
+
+  /* Agent persona + read-receipt sync. */
+  useEffect(() => {
+    if (!sessionId || !open) return;
+    let active = true;
+    const sync = async () => {
+      try {
+        const res = await getMyChatContext({ data: { sessionId } });
+        if (active) setAgent(res.agent as Agent);
+      } catch {
+        /* not signed in yet */
+      }
+    };
+    sync();
+    const timer = setInterval(sync, 20_000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [sessionId, open, messages.length]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
+
+  async function send() {
+    const body = draft.trim();
+    if ((!body && !file) || !sessionId || sending) return;
+    setSending(true);
+    setDraft("");
+    const tempId = `pending-${crypto.randomUUID()}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        session_id: sessionId,
+        sender_role: "user",
+        body: body || file?.name || "Attachment",
+        created_at: new Date().toISOString(),
+        read_at: null,
+        attachment_path: null,
+        attachment_name: null,
+        attachment_type: null,
+        pending: true,
+      },
+    ]);
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setDraft(body);
+      setSending(false);
+      return;
+    }
+
+    let attachment: Record<string, string | null> = {};
+    if (file) {
+      const path = `${user.user.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
+      const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+      if (!error) {
+        attachment = {
+          attachment_path: path,
+          attachment_name: file.name,
+          attachment_type: file.type,
+        };
+      }
+      setFile(null);
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("chat_messages")
+      .insert({
+        session_id: sessionId,
+        sender_id: user.user.id,
+        sender_role: "user",
+        body: body || (attachment["attachment_name"] ?? "Attachment"),
+        ...attachment,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setDraft(body);
+      setSending(false);
+      return;
+    }
+    if (inserted) {
+      setMessages((prev) => {
+        const rest = prev.filter((m) => m.id !== tempId && m.id !== inserted.id);
+        return [...rest, inserted as Message];
+      });
+    }
+    await supabase
+      .from("chat_sessions")
+      .update({ last_message_at: new Date().toISOString(), status: "open" })
+      .eq("id", sessionId);
+    setSending(false);
+  }
+
+  function close() {
+    setOpen(false);
+    if (sessionId && messages.length > 0 && localStorage.getItem(RATED_KEY) !== sessionId) {
+      setRating(true);
+    }
+  }
+
+  return (
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (v) setOpen(true);
+          else close();
+        }}
+      >
+        <DialogContent className="flex h-[78vh] max-w-lg flex-col gap-0 overflow-hidden p-0">
+          <DialogTitle className="sr-only">Live chat with customer support</DialogTitle>
+          {/* Header */}
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <AgentAvatar src={agent?.avatarUrl} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">
+                {agent?.name ?? "Customer support"}
+              </p>
+              <p className="truncate text-[11px] text-muted-foreground">
+                {agent ? `${agent.role} · ID ${agent.staffId}` : "We typically reply in minutes"}
+              </p>
+            </div>
+          </div>
+
+          {/* Thread */}
+          <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+            {messages.length === 0 && (
+              <p className="py-8 text-center text-xs text-muted-foreground">
+                Send us a message and an agent will join shortly.
+              </p>
+            )}
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
+              >
+                {m.sender_role !== "user" && (
+                  <AgentAvatar src={agent?.avatarUrl} className="size-7" />
+                )}
+                <div
+                  className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                    m.sender_role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-foreground"
+                  } ${m.pending ? "opacity-70" : ""}`}
+                >
+                  {m.sender_role !== "user" && agent && (
+                    <p className="mb-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {agent.name} — {agent.role}
+                    </p>
+                  )}
+                  {m.body}
+                  {m.attachment_path && (
+                    <ChatAttachment
+                      messageId={m.id}
+                      name={m.attachment_name}
+                      type={m.attachment_type}
+                    />
+                  )}
+                  <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
+                    {new Date(m.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {m.sender_role === "user" &&
+                      (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
+                  </span>
+                </div>
+                {m.sender_role === "user" && <UserAvatar className="size-7" alt="You" />}
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
+
+          {/* Composer */}
+          <div className="flex flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            {file && (
+              <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
+                <Paperclip className="size-3" />
+                <span className="truncate">{file.name}</span>
+                <button onClick={() => setFile(null)} aria-label="Remove attachment">
+                  <X className="size-3" />
+                </button>
+              </span>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,application/pdf"
+              hidden
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              aria-label="Attach a photo or document"
+              className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+            >
+              <Paperclip className="size-4" />
+            </button>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              placeholder="Type a message…"
+              maxLength={4000}
+              rows={1}
+              className="max-h-40 flex-1 resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <button
+              onClick={send}
+              aria-label="Send message"
+              className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+              disabled={sending}
+            >
+              <Send className="size-4" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {rating && sessionId && (
+        <RatingModal
+          sessionId={sessionId}
+          onClose={() => {
+            localStorage.setItem(RATED_KEY, sessionId);
+            setRating(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/** Post-session 5-star rating and feedback prompt. */
+function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () => void }) {
+  const [stars, setStars] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!stars || busy) return;
+    setBusy(true);
+    try {
+      await submitChatRating({
+        data: { sessionId, stars, feedback: feedback.trim() || undefined },
+      });
+    } catch {
+      /* ignore — never block the user on feedback */
+    }
+    setBusy(false);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
+        <h3 className="font-display text-base font-bold tracking-tight">How did we do?</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Rate your support experience — it helps us improve.
+        </p>
+        <div className="mt-4 flex justify-center gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => setStars(n)}
+              aria-label={`${n} star${n > 1 ? "s" : ""}`}
+              className="touch-manipulation p-1"
+            >
+              <Star
+                className={`size-7 ${n <= stars ? "fill-warning text-warning" : "text-muted-foreground"}`}
+              />
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          rows={3}
+          maxLength={1000}
+          placeholder="Anything else you'd like to tell us? (optional)"
+          className="mt-4 w-full resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+        />
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 touch-manipulation rounded-md border border-border py-2 text-sm"
+          >
+            Not now
+          </button>
+          <button
+            onClick={submit}
+            disabled={!stars || busy}
+            className="flex-1 touch-manipulation rounded-md bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

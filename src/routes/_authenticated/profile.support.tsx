@@ -50,7 +50,7 @@ function ContactSupport() {
       <Section icon={MessageCircle} title="Live chat" description="Talk to an agent in real time.">
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat"))}
+          onClick={() => setChatOpen(true)}
           className="min-h-10 w-full touch-manipulation rounded-xl border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary sm:w-auto"
         >
           Start live chat
