@@ -85,7 +85,7 @@ export function LiveChatDialog({
     };
     window.addEventListener("velocity:open-chat", handler);
     return () => window.removeEventListener("velocity:open-chat", handler);
-  }, [setOpen]);
+  }, [setOpen, controlledOpen]);
 
   /* Resolve or create the user's chat session. */
   useEffect(() => {
