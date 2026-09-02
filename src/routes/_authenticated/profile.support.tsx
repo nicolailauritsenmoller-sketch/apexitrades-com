@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
 function ContactSupport() {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [vipOpen, setVipOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   return (
     <>
