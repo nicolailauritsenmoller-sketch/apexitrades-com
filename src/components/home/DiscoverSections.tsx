@@ -404,10 +404,11 @@ export function MarketNewsSection() {
                   </p>
                 ) : null}
                 <TickerBadges symbols={lead.tickers} quotes={quotes} />
-                <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {lead.category}
-                  <ExternalLink className="size-3" />
+                <span className="mt-3 inline-flex items-center gap-2">
+                  <CategoryTag category={lead.category} />
+                  <ExternalLink className="size-3 text-muted-foreground" />
                 </span>
+
               </div>
             </a>
           ) : null}
