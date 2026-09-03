@@ -283,12 +283,15 @@ export function VipChatDialog({
                 >
                   <Paperclip className="size-5" />
                 </button>
-                <input
+                <ChatComposerInput
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={setDraft}
+                  onSubmit={() => {
+                    if (draft.trim() || file) sendMutation.mutate(draft.trim());
+                  }}
                   placeholder="Message"
                   maxLength={2000}
-                  className="flex-1 rounded-full bg-[#2a3942] px-4 py-2 text-sm text-white outline-none placeholder:text-white/40"
+                  className="rounded-2xl bg-[#2a3942] px-4 py-2 text-sm text-white placeholder:text-white/40"
                 />
                 <span className="grid size-9 place-items-center text-white/50" title="Audio note">
                   <Mic className="size-5" />
