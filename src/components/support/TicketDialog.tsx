@@ -109,7 +109,28 @@ export function TicketDialog({
     queryKey: ["my-tickets"],
     queryFn: () => fetchTickets(),
     enabled: open,
+    refetchInterval: open ? 20_000 : false,
   });
+
+  // Live sync: agent replies and status changes land in the inbox instantly.
+  useEffect(() => {
+    if (!open) return;
+    const resync = () => qc.invalidateQueries({ queryKey: ["my-tickets"] });
+    const channel = supabase
+      .channel("my-support-tickets")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, resync)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_ticket_messages" },
+        resync,
+      )
+      .subscribe();
+    window.addEventListener("focus", resync);
+    return () => {
+      window.removeEventListener("focus", resync);
+      supabase.removeChannel(channel);
+    };
+  }, [open, qc]);
 
   const uploadIfNeeded = async () => {
     if (!file) return undefined;
