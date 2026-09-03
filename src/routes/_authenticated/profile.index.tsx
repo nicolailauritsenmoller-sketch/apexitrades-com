@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Copy,
   HelpCircle,
+  LogOut,
   MessageSquare,
   ShieldCheck,
   SlidersHorizontal,
@@ -23,6 +24,9 @@ import { getMyKyc } from "@/lib/kyc.functions";
 import { getMyAccess } from "@/lib/admin.functions";
 import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
 import { registerCurrentDevice } from "@/lib/sessions";
+import { supabase } from "@/integrations/supabase/client";
+import { clearQueryCachePersistence } from "@/lib/query-persist";
+import { useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/profile/")({
   head: () => ({
@@ -246,6 +250,13 @@ function ProfileHome() {
           <ShieldCheck className="size-4" /> Open Admin Panel
         </Link>
       ) : null}
+
+      <button
+        onClick={handleSignOut}
+        className="mt-2 flex w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-3.5 text-sm font-semibold text-destructive-foreground transition-opacity hover:opacity-90"
+      >
+        <LogOut className="size-4" /> Log Out
+      </button>
     </>
   );
 }
