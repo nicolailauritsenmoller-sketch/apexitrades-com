@@ -326,7 +326,7 @@ function AuthPage() {
           onSubmit={onSubmit}
           className={`space-y-3 ${mode === "signin" || mode === "signup" ? "" : "mt-6"}`}
         >
-          {!isCodeStep && (
+          {!isCodeStep && mode !== "reset" && (
             <input
               type="email"
               required
@@ -337,7 +337,31 @@ function AuthPage() {
             />
           )}
 
-          {isCodeStep && <OtpInput value={code} onChange={setCode} disabled={busy} />}
+          {isCodeStep && (
+            <>
+              <OtpInput
+                autoFocus
+                value={code}
+                onChange={(next) => {
+                  setCode(next);
+                  setCodeError("");
+                }}
+                disabled={busy}
+                invalid={!!codeError}
+              />
+              <div className="flex items-center justify-between text-xs">
+                <span className={expired ? "text-destructive" : "text-muted-foreground"}>
+                  {expired ? "Code expired" : `Expires in ${formatClock(expiresIn)}`}
+                </span>
+                {codeError && (
+                  <span role="alert" className="font-medium text-destructive">
+                    Invalid code
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+
 
           {(mode === "signin" || mode === "signup" || mode === "reset") && (
             <PasswordInput
