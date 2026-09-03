@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { INSTRUMENT_MAP, type Instrument } from "@/lib/instruments";
+import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
 import btcIcon from "@/assets/crypto/btc.svg";
@@ -41,6 +41,7 @@ import oilIcon from "@/assets/commodities/oil.svg";
 import brentIcon from "@/assets/commodities/brent.svg";
 import gasIcon from "@/assets/commodities/gas.svg";
 import indexIcon from "@/assets/commodities/index.svg";
+import agriIcon from "@/assets/commodities/agri.svg";
 import bondIcon from "@/assets/commodities/bond.svg";
 import companyIcon from "@/assets/commodities/company.svg";
 
@@ -147,6 +148,46 @@ const METAL_ICON: Record<string, string> = {
   XAU: goldIcon,
   XAG: silverIcon,
 };
+
+/** Issuer domains for ETFs, REIT trackers and mutual funds. */
+const FUND_DOMAIN: Record<string, string> = {
+  SPY: "ssga.com",
+  DIA: "ssga.com",
+  GLD: "ssga.com",
+  XLRE: "ssga.com",
+  QQQ: "invesco.com",
+  IWM: "ishares.com",
+  SLV: "ishares.com",
+  TLT: "ishares.com",
+  IYR: "ishares.com",
+  VTI: "vanguard.com",
+  VNQ: "vanguard.com",
+  VFIAX: "vanguard.com",
+  VTSAX: "vanguard.com",
+  VBTLX: "vanguard.com",
+  SPAXX: "fidelity.com",
+};
+
+const ENERGY_ICON: Record<string, string> = {
+  "CL=F": oilIcon,
+  "MCL=F": oilIcon,
+  "HO=F": oilIcon,
+  "RB=F": oilIcon,
+  "BZ=F": brentIcon,
+  "NG=F": gasIcon,
+};
+
+function displayLabel(symbol: string): string {
+  return displaySymbol(symbol).replace(/[^A-Z0-9]/gi, "").slice(0, 4);
+}
+
+function domainSources(domain: string): string[] {
+  return [
+    `https://logo.clearbit.com/${domain}`,
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+  ];
+}
 
 
 const STOCK_DOMAIN: Record<string, string> = {
@@ -290,7 +331,37 @@ function instrumentIcon(inst: Instrument): IconInfo {
         sources: [FUTURE_ICON[inst.symbol] ?? indexIcon],
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
+    case "etf":
+    case "reit":
+    case "fund": {
+      const domain = FUND_DOMAIN[inst.symbol];
+      return {
+        sources: domain ? domainSources(domain) : [companyIcon],
+        label: inst.symbol.slice(0, 4),
+      };
+    }
+    case "index":
+      return { sources: [indexIcon], label: displayLabel(inst.symbol) };
+    case "energy":
+      return {
+        sources: [ENERGY_ICON[inst.symbol] ?? oilIcon],
+        label: inst.symbol.replace("=F", "").slice(0, 3),
+      };
+    case "agriculture":
+      return { sources: [agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
+    case "bond":
+    case "rate":
+      return { sources: [bondIcon], label: displayLabel(inst.symbol) };
+    case "option": {
+      const base = inst.symbol.replace(".OPT", "");
+      const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];
+      return {
+        sources: domain ? domainSources(domain) : [indexIcon],
+        label: base.slice(0, 4),
+      };
+    }
     case "stock":
+
     default: {
       const domain = STOCK_DOMAIN[inst.symbol];
       return {

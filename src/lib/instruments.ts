@@ -1,4 +1,19 @@
-export type AssetClass = "crypto" | "stock" | "future" | "forex" | "metal";
+export type AssetClass =
+  | "crypto"
+  | "stock"
+  | "future"
+  | "forex"
+  | "metal"
+  | "etf"
+  | "index"
+  | "energy"
+  | "agriculture"
+  | "bond"
+  | "option"
+  | "rate"
+  | "reit"
+  | "fund";
+
 
 export type Instrument = {
   symbol: string;
@@ -63,6 +78,51 @@ const metal = (symbol: string, name: string, precision = 2, step = 1): Instrumen
   precision,
   step,
 });
+
+/** Listed funds: ETFs, REIT trackers and mutual funds. */
+const fund_ = (
+  symbol: string,
+  name: string,
+  assetClass: Extract<AssetClass, "etf" | "reit" | "fund">,
+): Instrument => ({
+  symbol,
+  name,
+  assetClass,
+  currency: "USD",
+  source: "yahoo",
+  precision: 2,
+  step: 1,
+});
+
+const index_ = (symbol: string, name: string, precision = 2): Instrument => ({
+  symbol,
+  name,
+  assetClass: "index",
+  currency: "USD",
+  source: "yahoo",
+  precision,
+  step: 1,
+});
+
+const classed =
+  (assetClass: AssetClass) =>
+  (symbol: string, name: string, precision = 2): Instrument => ({
+    symbol,
+    name,
+    assetClass,
+    currency: "USD",
+    source: "yahoo",
+    precision,
+    step: 1,
+  });
+
+const energy = classed("energy");
+const agri = classed("agriculture");
+const bond = classed("bond");
+const option = classed("option");
+const rate = classed("rate");
+
+
 
 const CRYPTO: Instrument[] = [
   crypto("BTC", "Bitcoin", 2, 0.001),
@@ -246,21 +306,6 @@ const FUTURES: Instrument[] = [
   future("NQ=F", "E-mini Nasdaq 100"),
   future("YM=F", "E-mini Dow"),
   future("RTY=F", "E-mini Russell 2000"),
-  future("CL=F", "Crude Oil WTI"),
-  future("BZ=F", "Brent Crude Oil"),
-  future("NG=F", "Natural Gas", 3),
-  future("ZB=F", "US Treasury Bond", 3),
-  future("ZN=F", "10-Year T-Note", 3),
-  future("ZF=F", "5-Year T-Note", 3),
-  future("HO=F", "Heating Oil", 4),
-  future("RB=F", "RBOB Gasoline", 4),
-  future("ZC=F", "Corn Futures"),
-  future("ZS=F", "Soybean Futures"),
-  future("ZW=F", "Wheat Futures"),
-  future("KC=F", "Coffee Futures"),
-  future("SB=F", "Sugar Futures", 3),
-  future("CC=F", "Cocoa Futures"),
-  future("CT=F", "Cotton Futures", 3),
   future("LE=F", "Live Cattle", 3),
   future("HE=F", "Lean Hogs", 3),
   future("VX=F", "VIX Futures"),
@@ -268,6 +313,84 @@ const FUTURES: Instrument[] = [
   future("MES=F", "Micro E-mini S&P 500"),
   future("MNQ=F", "Micro E-mini Nasdaq"),
 ];
+
+const ETFS: Instrument[] = [
+  fund_("SPY", "SPDR S&P 500 ETF Trust", "etf"),
+  fund_("QQQ", "Invesco QQQ Trust", "etf"),
+  fund_("IWM", "iShares Russell 2000 ETF", "etf"),
+  fund_("DIA", "SPDR Dow Jones Industrial Average ETF", "etf"),
+  fund_("VTI", "Vanguard Total Stock Market ETF", "etf"),
+  fund_("GLD", "SPDR Gold Shares", "etf"),
+  fund_("SLV", "iShares Silver Trust", "etf"),
+  fund_("TLT", "iShares 20+ Year Treasury Bond ETF", "etf"),
+];
+
+const INDICES: Instrument[] = [
+  index_("^GSPC", "S&P 500 Index"),
+  index_("^NDX", "Nasdaq-100 Index"),
+  index_("^DJI", "Dow Jones Industrial Average"),
+  index_("^RUT", "Russell 2000 Index"),
+  index_("^VIX", "CBOE Volatility Index"),
+];
+
+const ENERGY: Instrument[] = [
+  energy("CL=F", "WTI Crude Oil Futures"),
+  energy("MCL=F", "Micro WTI Crude Oil Futures"),
+  energy("NG=F", "Natural Gas Futures", 3),
+  energy("BZ=F", "Brent Crude Oil Futures"),
+  energy("HO=F", "Heating Oil Futures", 4),
+  energy("RB=F", "RBOB Gasoline Futures", 4),
+];
+
+const AGRICULTURE: Instrument[] = [
+  agri("ZC=F", "Corn Futures"),
+  agri("ZS=F", "Soybean Futures"),
+  agri("ZW=F", "Wheat Futures"),
+  agri("ZL=F", "Soybean Oil Futures", 3),
+  agri("KC=F", "Coffee Futures"),
+  agri("SB=F", "Sugar Futures", 3),
+  agri("CC=F", "Cocoa Futures"),
+  agri("CT=F", "Cotton Futures", 3),
+];
+
+const BONDS: Instrument[] = [
+  bond("2YY=F", "2-Year Treasury Yield", 3),
+  bond("^FVX", "5-Year Treasury Yield", 3),
+  bond("^TNX", "10-Year Treasury Yield", 3),
+  bond("^TYX", "30-Year Treasury Yield", 3),
+];
+
+const OPTIONS: Instrument[] = [
+  option("SPY.OPT", "SPY Options (At-the-money)"),
+  option("QQQ.OPT", "QQQ Options (At-the-money)"),
+  option("AAPL.OPT", "AAPL Options (At-the-money)"),
+  option("NVDA.OPT", "NVDA Options (At-the-money)"),
+  option("TSLA.OPT", "TSLA Options (At-the-money)"),
+  option("SPX.OPT", "SPX Index Options"),
+];
+
+const RATES: Instrument[] = [
+  rate("SR3=F", "3-Month SOFR Futures", 3),
+  rate("ZQ=F", "30-Day Fed Funds Futures", 3),
+  rate("ZT=F", "2-Year T-Note Futures", 3),
+  rate("ZF=F", "5-Year T-Note Futures", 3),
+  rate("ZN=F", "10-Year T-Note Futures", 3),
+  rate("ZB=F", "30-Year T-Bond Futures", 3),
+];
+
+const REITS: Instrument[] = [
+  fund_("VNQ", "Vanguard Real Estate ETF", "reit"),
+  fund_("IYR", "iShares U.S. Real Estate ETF", "reit"),
+  fund_("XLRE", "Real Estate Select Sector SPDR", "reit"),
+];
+
+const MUTUAL_FUNDS: Instrument[] = [
+  fund_("SPAXX", "Fidelity Government Money Market Fund", "fund"),
+  fund_("VFIAX", "Vanguard 500 Index Fund Admiral", "fund"),
+  fund_("VTSAX", "Vanguard Total Stock Market Index Fund", "fund"),
+  fund_("VBTLX", "Vanguard Total Bond Market Index Fund", "fund"),
+];
+
 
 const FOREX: Instrument[] = [
   forex("EURUSD", "Euro / US Dollar"),
@@ -328,8 +451,17 @@ const METALS: Instrument[] = [
 
 export const INSTRUMENTS: Instrument[] = [
   ...CRYPTO,
+  ...ETFS,
+  ...INDICES,
   ...STOCKS,
   ...FUTURES,
+  ...ENERGY,
+  ...AGRICULTURE,
+  ...BONDS,
+  ...OPTIONS,
+  ...RATES,
+  ...REITS,
+  ...MUTUAL_FUNDS,
   ...FOREX,
   ...METALS,
 ];
@@ -344,12 +476,43 @@ export const ASSET_CLASS_LABEL: Record<AssetClass, string> = {
   future: "Futures",
   forex: "Forex",
   metal: "Gold & Metals",
+  etf: "ETFs",
+  index: "Indices",
+  energy: "Energy",
+  agriculture: "Agriculture",
+  bond: "Bonds / Treasuries",
+  option: "Options",
+  rate: "Interest Rates",
+  reit: "REITs",
+  fund: "Mutual Funds",
 };
 
 export const CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC", "ETH"] as const;
 
+/** Friendly tickers for symbols whose feed code is not user-facing. */
+const DISPLAY_ALIAS: Record<string, string> = {
+  "^GSPC": "US500",
+  "^NDX": "US100",
+  "^DJI": "US30",
+  "^RUT": "US2000",
+  "^VIX": "VOLATILITY",
+  "2YY=F": "US02Y",
+  "^FVX": "US05Y",
+  "^TNX": "US10Y",
+  "^TYX": "US30Y",
+  "SPY.OPT": "SPY OPT",
+  "QQQ.OPT": "QQQ OPT",
+  "AAPL.OPT": "AAPL OPT",
+  "NVDA.OPT": "NVDA OPT",
+  "TSLA.OPT": "TSLA OPT",
+  "SPX.OPT": "SPX OPT",
+  "SR3=F": "SOFR",
+  "ZQ=F": "FF30D",
+};
+
 /** Human-facing ticker, e.g. BTCUSDT -> BTC/USDT, EURUSD=X -> EUR/USD. */
 export function displaySymbol(symbol: string): string {
+  if (DISPLAY_ALIAS[symbol]) return DISPLAY_ALIAS[symbol];
   const inst = INSTRUMENT_MAP[symbol];
   if (!inst) return symbol;
   if (inst.assetClass === "crypto") return `${symbol.replace(/USDT$/, "")}/USDT`;
@@ -359,6 +522,7 @@ export function displaySymbol(symbol: string): string {
   }
   return symbol.replace("=F", "");
 }
+
 
 export function formatPrice(value: number, symbol?: string): string {
   const precision = symbol ? (INSTRUMENT_MAP[symbol]?.precision ?? 2) : 2;
