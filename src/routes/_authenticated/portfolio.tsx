@@ -89,10 +89,10 @@ function Portfolio() {
         <p className="text-sm text-muted-foreground">Overview of your assets and performance.</p>
       </div>
 
-      <section className="panel p-5">
+      <section className="panel touch-manipulation p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-xs font-medium text-muted-foreground">Total portfolio value</div>
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-muted-foreground">Total Portfolio Value</div>
             <div className="num mt-1 text-3xl font-bold tracking-tight">
               {value.isLoading ? (
                 "—"
@@ -108,43 +108,51 @@ function Portfolio() {
                 </>
               )}
             </div>
-            <div
-              className={`num mt-1 text-sm font-semibold ${totalUnrealized >= 0 ? "text-bull" : "text-bear"}`}
-            >
-              {balancesHidden
-                ? "••••"
-                : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)} unrealized`}
-            </div>
           </div>
           <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-          <MiniStat label="Open positions" value={String(open.length)} />
-          <MiniStat
-            label="Unrealized P&L"
-            value={
-              balancesHidden
-                ? "••••"
-                : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`
-            }
-            tone={totalUnrealized >= 0 ? "bull" : "bear"}
-          />
-          <MiniStat
-            label="Realized P&L"
-            value={balancesHidden ? "••••" : `${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
-            tone={realized >= 0 ? "bull" : "bear"}
-          />
-          <MiniStat
-            label="Available"
-            value={
-              balancesHidden || available == null ? "••••" : `${(available ?? 0).toFixed(2)} USDT`
-            }
-          />
-        </div>
+        <PortfolioPerformance
+          total={value.data?.totalUsdt ?? 0}
+          drift={realized + totalUnrealized}
+          range={range}
+          onRangeChange={setRange}
+          hidden={balancesHidden}
+        />
       </section>
 
-      <div className="mt-6">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <MiniStat label="Open Positions" value={String(open.length)} sub="View" subTo="#positions" />
+        <MiniStat
+          label="Unrealized P&L"
+          value={
+            balancesHidden ? "••••" : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`
+          }
+          sub="USDT"
+          tone={totalUnrealized >= 0 ? "bull" : "bear"}
+        />
+        <MiniStat
+          label="Available Balance"
+          value={balancesHidden || available == null ? "••••" : (available ?? 0).toFixed(2)}
+          sub="USDT"
+        />
+        <MiniStat
+          label="Realized P&L"
+          value={balancesHidden ? "••••" : `${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
+          sub="USDT"
+          tone={realized >= 0 ? "bull" : "bear"}
+        />
+      </div>
+
+      <div className="mt-3">
+        <AssetAllocation
+          holdings={value.data?.wallets ?? []}
+          total={value.data?.totalUsdt ?? 0}
+          hidden={balancesHidden}
+        />
+      </div>
+
+      <div className="mt-3">
         <AssetsOverview
           holdings={value.data?.wallets ?? []}
           totalUsdt={value.data?.totalUsdt ?? 0}
@@ -169,6 +177,7 @@ function Portfolio() {
           ))}
         </div>
       )}
+
 
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Open positions
