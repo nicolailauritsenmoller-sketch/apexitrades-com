@@ -3,6 +3,7 @@ import { Check, CheckCheck, Paperclip, Send, Star, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
 import brandLogo from "@/assets/velocity-trade-logo.png";
@@ -389,19 +390,13 @@ export function LiveChatDialog({
             >
               <Paperclip className="size-4" />
             </button>
-            <textarea
+            <ChatComposerInput
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
+              onChange={setDraft}
+              onSubmit={send}
               placeholder="Type a message…"
               maxLength={4000}
-              rows={1}
-              className="max-h-40 flex-1 resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              className="rounded-md bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground"
             />
             <button
               onClick={send}

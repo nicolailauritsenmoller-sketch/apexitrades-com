@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowLeft, Check, CheckCheck, Lock, Loader2, Mic, Paperclip, Send, ShieldCheck, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { VipAttachment, formatBytes } from "@/components/chat/VipAttachment";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -266,7 +267,7 @@ export function VipChatDialog({
                     </button>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
+                <div className="flex items-end gap-2">
                 <input
                   ref={fileRef}
                   type="file"
@@ -282,12 +283,15 @@ export function VipChatDialog({
                 >
                   <Paperclip className="size-5" />
                 </button>
-                <input
+                <ChatComposerInput
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={setDraft}
+                  onSubmit={() => {
+                    if (draft.trim() || file) sendMutation.mutate(draft.trim());
+                  }}
                   placeholder="Message"
                   maxLength={2000}
-                  className="flex-1 rounded-full bg-[#2a3942] px-4 py-2 text-sm text-white outline-none placeholder:text-white/40"
+                  className="rounded-2xl bg-[#2a3942] px-4 py-2 text-sm text-white placeholder:text-white/40"
                 />
                 <span className="grid size-9 place-items-center text-white/50" title="Audio note">
                   <Mic className="size-5" />
