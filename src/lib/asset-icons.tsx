@@ -132,7 +132,11 @@ const FUTURE_ICON: Record<string, string> = {
 const METAL_ICON: Record<string, string> = {
   "GC=F": goldIcon,
   "MGC=F": goldIcon,
+  "1OZ=F": goldIcon,
   "XAUUSD=X": goldIcon,
+  "XAUEUR=X": goldIcon,
+  "XAUGBP=X": goldIcon,
+  "XAUJPY=X": goldIcon,
   "SI=F": silverIcon,
   "SIL=F": silverIcon,
   "XAGUSD=X": silverIcon,
@@ -143,6 +147,7 @@ const METAL_ICON: Record<string, string> = {
   XAU: goldIcon,
   XAG: silverIcon,
 };
+
 
 const STOCK_DOMAIN: Record<string, string> = {
   AAPL: "apple.com",
@@ -264,11 +269,22 @@ function instrumentIcon(inst: Instrument): IconInfo {
         label: base,
       };
     }
-    case "metal":
+    case "metal": {
+      // Metal quoted against a fiat currency (XAUEUR=X) shows metal + flag.
+      const fx = /^(XAU|XAG)([A-Z]{3})=X$/.exec(inst.symbol);
+      if (fx) {
+        return {
+          sources: [METAL_ICON[fx[1]] ?? goldIcon],
+          quoteSources: [flagFor(fx[2])],
+          label: fx[1],
+        };
+      }
       return {
         sources: [METAL_ICON[inst.symbol] ?? goldIcon],
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
+    }
+
     case "future":
       return {
         sources: [FUTURE_ICON[inst.symbol] ?? indexIcon],

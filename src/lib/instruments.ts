@@ -309,16 +309,21 @@ const FOREX: Instrument[] = [
 ];
 
 const METALS: Instrument[] = [
-  metal("GC=F", "Gold Spot Futures", 2, 0.1),
+  metal("XAUUSD=X", "Gold / US Dollar", 2, 0.1),
+  metal("GC=F", "Gold Futures", 2, 0.1),
+  metal("MGC=F", "Micro Gold Futures", 2, 0.1),
+  metal("1OZ=F", "1-Ounce Gold Futures", 2, 0.1),
+  metal("XAUEUR=X", "Gold / Euro", 2, 0.1),
+  metal("XAUGBP=X", "Gold / British Pound", 2, 0.1),
+  metal("XAUJPY=X", "Gold / Japanese Yen", 0, 0.1),
   metal("SI=F", "Silver Futures", 3, 1),
   metal("PL=F", "Platinum Futures", 2, 1),
   metal("PA=F", "Palladium Futures", 2, 1),
   metal("HG=F", "Copper Futures", 4, 1),
-  metal("MGC=F", "Micro Gold Futures", 2, 0.1),
   metal("SIL=F", "Micro Silver Futures", 3, 1),
-  metal("XAUUSD=X", "Gold Spot / US Dollar", 2, 0.1),
   metal("XAGUSD=X", "Silver Spot / US Dollar", 3, 1),
   metal("ALI=F", "Aluminum Futures", 2, 1),
+
 ];
 
 export const INSTRUMENTS: Instrument[] = [
