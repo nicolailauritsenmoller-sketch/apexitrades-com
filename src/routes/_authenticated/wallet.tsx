@@ -9,7 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
-import { AssetsOverview } from "@/components/AssetsOverview";
+import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
