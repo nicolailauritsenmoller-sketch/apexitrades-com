@@ -11,7 +11,7 @@ import {
   UserRound,
   ShieldCheck,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
@@ -24,6 +24,7 @@ import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { useHasSession } from "@/lib/use-session";
+import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useT, type TranslationKey } from "@/lib/i18n";
 
 const NAV = [
@@ -58,8 +59,24 @@ export function AppShell({ children }: { children: ReactNode }) {
     staleTime: 60_000,
   });
   const isStaff = Boolean(access.data?.isStaff);
+
+  // Warm every top-level route chunk once the app is idle so tab switches are instant.
+  useEffect(() => {
+    const idle =
+      typeof window !== "undefined" && "requestIdleCallback" in window
+        ? (window as unknown as { requestIdleCallback: (cb: () => void) => number })
+            .requestIdleCallback
+        : (cb: () => void) => window.setTimeout(cb, 300);
+    idle(() => {
+      for (const item of NAV) {
+        void router.preloadRoute({ to: item.to, params: item.params });
+      }
+    });
+  }, [router]);
+
   async function signOut() {
     await queryClient.cancelQueries();
+    clearQueryCachePersistence();
     queryClient.clear();
     await supabase.auth.signOut();
     router.navigate({ to: "/", replace: true });
