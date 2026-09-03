@@ -954,30 +954,48 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
       .object({
         ticketId: z.string().uuid(),
         status: z.enum(["open", "in_progress", "pending", "waiting_customer", "resolved", "closed"]),
+        resolutionNote: z.string().trim().max(2000).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context);
     const db = await privileged();
+    const patch: Record<string, unknown> = {
+      status: data.status,
+      admin_last_read_at: new Date().toISOString(),
+    };
+    if (data.resolutionNote) patch['resolution_note'] = data.resolutionNote;
     const { data: row, error } = await db
       .from("support_tickets")
-      .update({ status: data.status, admin_last_read_at: new Date().toISOString() })
+      .update(patch)
       .eq("id", data.ticketId)
       .select()
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (row) {
+      const label =
+        ({
+          open: "Open",
+          in_progress: "In Progress",
+          pending: "Waiting for Customer",
+          waiting_customer: "Waiting for Customer",
+          resolved: "Resolved",
+          closed: "Closed",
+        } as Record<string, string>)[data.status] ?? data.status;
       await notify(
         db,
         row.user_id,
-        `Ticket ${data.status}`,
-        `Your ticket "${row.subject}" is now marked ${data.status}.`,
-        data.status === "resolved" ? "success" : "info",
+        `Ticket ${label}`,
+        `Your ticket "${row.subject}"${row.reference ? ` (${row.reference})` : ""} is now marked ${label}.${
+          data.resolutionNote ? ` ${data.resolutionNote}` : ""
+        }`,
+        data.status === "resolved" || data.status === "closed" ? "success" : "info",
       );
     }
     return { ok: true };
   });
+
 
 /** Signed URL for a ticket attachment (staff only). Handles legacy chat-attachments paths. */
 export const getTicketAttachmentUrl = createServerFn({ method: "POST" })
