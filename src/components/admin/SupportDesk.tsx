@@ -699,7 +699,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                 <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Priority</th>
                 <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Assigned</th>
+                <th className="px-3 py-2">{isRequests ? "Action" : "Assigned"}</th>
               </tr>
             </thead>
             <tbody>
@@ -742,14 +742,28 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs text-muted-foreground">
-                    {t.assignedAgentName ?? "Unassigned"}
+                    {isRequests ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          convertMutation.mutate(t.id);
+                        }}
+                        disabled={convertMutation.isPending}
+                        className="rounded-md border border-primary/50 bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-60"
+                      >
+                        Convert to ticket
+                      </button>
+                    ) : (
+                      (t.assignedAgentName ?? "Unassigned")
+                    )}
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground">
-                    No tickets in this view.
+                    {isRequests ? "No new submissions awaiting triage." : "No tickets in this view."}
                   </td>
                 </tr>
               )}
