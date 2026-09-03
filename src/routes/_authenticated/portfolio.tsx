@@ -183,7 +183,10 @@ function Portfolio() {
       )}
 
 
-      <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
+      <h2
+        id="positions"
+        className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground"
+      >
         Open positions
       </h2>
       <div className="panel overflow-x-auto">
