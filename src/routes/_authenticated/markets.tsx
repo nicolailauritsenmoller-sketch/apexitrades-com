@@ -37,7 +37,24 @@ export const Route = createFileRoute("/_authenticated/markets")({
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
 
-const TABS: ("all" | AssetClass)[] = ["all", "crypto", "stock", "future", "forex", "metal"];
+const TABS: ("all" | AssetClass)[] = [
+  "all",
+  "crypto",
+  "etf",
+  "index",
+  "energy",
+  "agriculture",
+  "bond",
+  "option",
+  "rate",
+  "reit",
+  "fund",
+  "stock",
+  "future",
+  "forex",
+  "metal",
+];
+
 
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
