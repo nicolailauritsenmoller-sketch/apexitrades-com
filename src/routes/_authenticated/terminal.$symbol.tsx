@@ -90,8 +90,22 @@ function Terminal() {
   const toggle = useServerFn(toggleWatchlist);
   const toggleMutation = useMutation({
     mutationFn: () => toggle({ data: { symbol } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
+    // Optimistic: flip the star immediately, roll back if the server rejects.
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["watchlist"] });
+      const previous = queryClient.getQueryData<string[]>(["watchlist"]);
+      queryClient.setQueryData<string[]>(["watchlist"], (old) => {
+        const list = old ?? [];
+        return list.includes(symbol) ? list.filter((s) => s !== symbol) : [...list, symbol];
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["watchlist"], ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
   });
+
 
   const open = useServerFn(openPosition);
   const orderMutation = useMutation({
