@@ -542,7 +542,7 @@ function TradingViewChartInner({
     try {
       volumePaneRef.current.setHeight(volumeActive ? 80 : 0);
     } catch {}
-  }, [activeIndicators, candles, colors]);
+  }, [activeIndicators, candles, colors, chartReady]);
 
   // Drawing click handler.
   useEffect(() => {
