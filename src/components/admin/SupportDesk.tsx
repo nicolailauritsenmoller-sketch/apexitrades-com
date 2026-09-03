@@ -79,14 +79,20 @@ const STATUS_TONE: Record<string, string> = {
   closed: "bg-secondary text-muted-foreground",
 };
 
-export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" | "tickets" }) {
-  const [view, setView] = useState<"inbox" | "tickets">(initialView);
+export function SupportDesk({
+  initialView = "inbox",
+}: {
+  initialView?: "inbox" | "requests" | "tickets";
+}) {
+  const [view, setView] = useState<"inbox" | "requests" | "tickets">(initialView);
+  useEffect(() => setView(initialView), [initialView]);
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-lg border border-border bg-card p-1">
+      <div className="inline-flex flex-wrap rounded-lg border border-border bg-card p-1">
         {(
           [
             { id: "inbox", label: "Live chat inboxes", icon: Inbox },
+            { id: "requests", label: "Submitted requests", icon: Inbox },
             { id: "tickets", label: "Support tickets", icon: Ticket },
           ] as const
         ).map(({ id, label, icon: Icon }) => (
@@ -104,7 +110,7 @@ export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" |
           </button>
         ))}
       </div>
-      {view === "inbox" ? <ChatInboxes /> : <TicketsDesk />}
+      {view === "inbox" ? <ChatInboxes /> : <TicketsDesk mode={view} />}
     </div>
   );
 }
@@ -496,7 +502,8 @@ Regards,
 Support Team`;
 }
 
-function TicketsDesk() {
+function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
+  const isRequests = mode === "requests";
   const qc = useQueryClient();
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<SortKey>("recent");
@@ -579,14 +586,20 @@ function TicketsDesk() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const tickets = ((query.data as any)?.tickets ?? []) as any[];
+  const allTickets = ((query.data as any)?.tickets ?? []) as any[];
   const messages = ((query.data as any)?.messages ?? []) as any[];
+  /** A submitted request is a brand-new form: still Open and not yet assigned. */
+  const isTriage = (t: any) => t.status === "open" && !t.assigned_agent_id;
+  const tickets = useMemo(
+    () => allTickets.filter((t) => (isRequests ? isTriage(t) : !isTriage(t))),
+    [allTickets, isRequests],
+  );
   const filtered = useMemo(() => {
     const rule = STATUS_FILTERS.find((f) => f.id === filter)!;
     const term = search.trim().toLowerCase();
     const rows = tickets.filter(
       (t) =>
-        rule.match(t.status) &&
+        (isRequests || rule.match(t.status)) &&
         (!term ||
           [t.reference, t.subject, t.full_name, t.legalName, t.displayName, t.email]
             .filter(Boolean)
@@ -604,8 +617,24 @@ function TicketsDesk() {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     return sorted;
-  }, [tickets, filter, sort, search]);
+  }, [tickets, filter, sort, search, isRequests]);
   const active = tickets.find((t) => t.id === activeId) ?? null;
+
+  /** One click: claim the request and turn it into an active ticket thread. */
+  const convertMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      const { data: auth } = await supabase.auth.getUser();
+      const me = auth.user?.id;
+      if (me) await updateFields({ data: { ticketId, assignedAgentId: me } as any });
+      await setStatus({ data: { ticketId, status: "in_progress" } });
+    },
+    onSuccess: async () => {
+      toast.success("Converted to an active support ticket");
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   // Load a professional starter reply and the stored private notes on open.
   useEffect(() => {
@@ -618,20 +647,28 @@ function TicketsDesk() {
 
   return (
     <div className="space-y-3">
+      {isRequests && (
+        <p className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+          {filtered.length} new submission{filtered.length === 1 ? "" : "s"} awaiting triage.
+          Convert a request to assign it to yourself and move it into Support Tickets.
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-              filter === f.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f.label} ({tickets.filter((t) => f.match(t.status)).length})
-          </button>
-        ))}
+        {!isRequests &&
+          STATUS_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                filter === f.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f.label} ({tickets.filter((t) => f.match(t.status)).length})
+            </button>
+          ))}
+
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -662,7 +699,7 @@ function TicketsDesk() {
                 <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Priority</th>
                 <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Assigned</th>
+                <th className="px-3 py-2">{isRequests ? "Action" : "Assigned"}</th>
               </tr>
             </thead>
             <tbody>
@@ -705,14 +742,28 @@ function TicketsDesk() {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs text-muted-foreground">
-                    {t.assignedAgentName ?? "Unassigned"}
+                    {isRequests ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          convertMutation.mutate(t.id);
+                        }}
+                        disabled={convertMutation.isPending}
+                        className="rounded-md border border-primary/50 bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-60"
+                      >
+                        Convert to ticket
+                      </button>
+                    ) : (
+                      (t.assignedAgentName ?? "Unassigned")
+                    )}
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground">
-                    No tickets in this view.
+                    {isRequests ? "No new submissions awaiting triage." : "No tickets in this view."}
                   </td>
                 </tr>
               )}

@@ -14,6 +14,7 @@ import {
   BarChart3,
   Receipt,
   LifeBuoy,
+  Inbox,
   Settings2,
   ScrollText,
   Fingerprint,
@@ -138,8 +139,9 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "Live support",
     items: [
       { id: "support", label: "Live Chat", icon: MessagesSquare },
-      { id: "vip", label: "VIP Live Chat", icon: BadgeCheck },
-      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
+      { id: "vip", label: "Priority Support", icon: BadgeCheck },
+      { id: "requests", label: "Submitted Requests", icon: Inbox },
+      { id: "tickets", label: "Support Tickets", icon: LifeBuoy },
     ],
   },
   {
@@ -196,6 +198,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
 const AGENT_TABS = new Set([
   "support",
   "vip",
+  "requests",
   "tickets",
   "ratings",
   "agent",
@@ -549,9 +552,9 @@ function AdminPage() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="sticky top-16 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-3 backdrop-blur-xl">
-            <div className="min-w-0">
-              <nav className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
+          <div className="sticky top-16 z-20 -mx-1 mb-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/95 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+            <div className="min-w-0 flex-1 basis-56">
+              <nav className="flex flex-wrap items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
                 <button onClick={() => go("overview")} className="hover:text-foreground">
                   Desk
                 </button>
@@ -560,9 +563,11 @@ function AdminPage() {
                 <span>/</span>
                 <span className="text-primary">{activeLabel}</span>
               </nav>
-              <h1 className="font-display text-xl font-bold tracking-tight">{activeLabel}</h1>
+              <h1 className="mt-1 break-words font-display text-lg font-bold leading-tight tracking-tight sm:text-xl">
+                {activeLabel}
+              </h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
               {filterLabel && (
                 <button
                   onClick={() => setFilter({})}
@@ -579,6 +584,7 @@ function AdminPage() {
               </button>
             </div>
           </div>
+
 
 
           {tab === "corrections" && <TradeCorrections />}
@@ -676,6 +682,7 @@ function AdminPage() {
                   <p className="text-sm text-muted-foreground">Loading ledger…</p>
                 ))}
               {tab === "support" && <SupportDesk />}
+              {tab === "requests" && <SupportDesk initialView="requests" />}
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && data && (
                 <div className="space-y-4">
