@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Info, ShieldAlert, X } from "lucide-react";
 import { getActiveAnnouncements, type Announcement } from "@/lib/announcements.functions";
+import { useHasSession } from "@/lib/use-session";
 
 const STORAGE_KEY = "vt.dismissed-announcements";
 
@@ -42,9 +43,12 @@ export function AnnouncementBanner() {
 
   useEffect(() => setDismissed(readDismissed()), []);
 
+  const hasSession = useHasSession();
+
   const query = useQuery({
     queryKey: ["announcements-active"],
     queryFn: () => fetchAnnouncements(),
+    enabled: hasSession === true,
     retry: false,
     staleTime: 60_000,
     refetchInterval: 120_000,
