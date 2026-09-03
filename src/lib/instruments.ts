@@ -451,8 +451,17 @@ const METALS: Instrument[] = [
 
 export const INSTRUMENTS: Instrument[] = [
   ...CRYPTO,
+  ...ETFS,
+  ...INDICES,
   ...STOCKS,
   ...FUTURES,
+  ...ENERGY,
+  ...AGRICULTURE,
+  ...BONDS,
+  ...OPTIONS,
+  ...RATES,
+  ...REITS,
+  ...MUTUAL_FUNDS,
   ...FOREX,
   ...METALS,
 ];
@@ -467,12 +476,43 @@ export const ASSET_CLASS_LABEL: Record<AssetClass, string> = {
   future: "Futures",
   forex: "Forex",
   metal: "Gold & Metals",
+  etf: "ETFs",
+  index: "Indices",
+  energy: "Energy",
+  agriculture: "Agriculture",
+  bond: "Bonds / Treasuries",
+  option: "Options",
+  rate: "Interest Rates",
+  reit: "REITs",
+  fund: "Mutual Funds",
 };
 
 export const CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC", "ETH"] as const;
 
+/** Friendly tickers for symbols whose feed code is not user-facing. */
+const DISPLAY_ALIAS: Record<string, string> = {
+  "^GSPC": "US500",
+  "^NDX": "US100",
+  "^DJI": "US30",
+  "^RUT": "US2000",
+  "^VIX": "VOLATILITY",
+  "2YY=F": "US02Y",
+  "^FVX": "US05Y",
+  "^TNX": "US10Y",
+  "^TYX": "US30Y",
+  "SPY.OPT": "SPY OPT",
+  "QQQ.OPT": "QQQ OPT",
+  "AAPL.OPT": "AAPL OPT",
+  "NVDA.OPT": "NVDA OPT",
+  "TSLA.OPT": "TSLA OPT",
+  "SPX.OPT": "SPX OPT",
+  "SR3=F": "SOFR",
+  "ZQ=F": "FF30D",
+};
+
 /** Human-facing ticker, e.g. BTCUSDT -> BTC/USDT, EURUSD=X -> EUR/USD. */
 export function displaySymbol(symbol: string): string {
+  if (DISPLAY_ALIAS[symbol]) return DISPLAY_ALIAS[symbol];
   const inst = INSTRUMENT_MAP[symbol];
   if (!inst) return symbol;
   if (inst.assetClass === "crypto") return `${symbol.replace(/USDT$/, "")}/USDT`;
@@ -482,6 +522,7 @@ export function displaySymbol(symbol: string): string {
   }
   return symbol.replace("=F", "");
 }
+
 
 export function formatPrice(value: number, symbol?: string): string {
   const precision = symbol ? (INSTRUMENT_MAP[symbol]?.precision ?? 2) : 2;
