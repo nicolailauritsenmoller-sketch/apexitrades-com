@@ -164,28 +164,41 @@ export function DiscoverPerpsSection() {
 
 const NEWS_TABS = [
   { id: "all", label: "All" },
-  { id: "crypto", label: "Crypto" },
-  { id: "gold", label: "Gold" },
-  { id: "forex", label: "Forex" },
-  { id: "futures", label: "Futures" },
   { id: "stocks", label: "Stocks" },
+  { id: "crypto", label: "Crypto" },
+  { id: "commodities", label: "Commodities" },
+  { id: "forex", label: "Forex" },
+  { id: "macro", label: "Central Banks / Macro" },
+  { id: "regulation", label: "Regulations" },
 ] as const;
+
+const CATEGORY_LABEL: Record<NewsCategory, string> = {
+  stocks: "Stocks",
+  crypto: "Crypto",
+  commodities: "Commodities",
+  forex: "Forex",
+  macro: "Central banks",
+  regulation: "Regulations",
+};
 
 const CATEGORY_GRADIENT: Record<NewsCategory, string> = {
   crypto: "from-primary/30 via-primary/10 to-transparent",
-  gold: "from-amber-500/30 via-amber-500/10 to-transparent",
+  commodities: "from-amber-500/30 via-amber-500/10 to-transparent",
   forex: "from-sky-500/30 via-sky-500/10 to-transparent",
-  futures: "from-violet-500/30 via-violet-500/10 to-transparent",
+  macro: "from-violet-500/30 via-violet-500/10 to-transparent",
+  regulation: "from-rose-500/30 via-rose-500/10 to-transparent",
   stocks: "from-emerald-500/30 via-emerald-500/10 to-transparent",
 };
 
 const CATEGORY_ICON: Record<NewsCategory, typeof Newspaper> = {
   crypto: Bitcoin,
-  gold: Coins,
+  commodities: Coins,
   forex: Banknote,
-  futures: CandlestickChart,
+  macro: CandlestickChart,
+  regulation: Landmark,
   stocks: TrendingUp,
 };
+
 
 function timeAgo(iso: string) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
