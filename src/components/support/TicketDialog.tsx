@@ -22,7 +22,7 @@ import {
 } from "@/lib/support.functions";
 
 const STATUS_TONE: Record<string, string> = {
-  open: "border-warning/40 bg-warning/10 text-warning",
+  open: "border-primary/40 bg-primary/10 text-primary",
   in_progress: "border-primary/40 bg-primary/10 text-primary",
   pending: "border-amber-500/40 bg-amber-500/10 text-amber-600",
   waiting_customer: "border-amber-500/40 bg-amber-500/10 text-amber-600",
@@ -210,7 +210,7 @@ export function TicketDialog({
         <DialogHeader>
           <DialogTitle>Support requests</DialogTitle>
           <DialogDescription>
-            Submit a request or continue an existing conversation — replies arrive in your support inbox.
+            Submit a request or view ongoing tickets — replies from our support desk will appear below.
           </DialogDescription>
         </DialogHeader>
 
