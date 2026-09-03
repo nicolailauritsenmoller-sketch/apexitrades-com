@@ -326,7 +326,37 @@ function instrumentIcon(inst: Instrument): IconInfo {
         sources: [FUTURE_ICON[inst.symbol] ?? indexIcon],
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
+    case "etf":
+    case "reit":
+    case "fund": {
+      const domain = FUND_DOMAIN[inst.symbol];
+      return {
+        sources: domain ? domainSources(domain) : [companyIcon],
+        label: inst.symbol.slice(0, 4),
+      };
+    }
+    case "index":
+      return { sources: [indexIcon], label: displayLabel(inst.symbol) };
+    case "energy":
+      return {
+        sources: [ENERGY_ICON[inst.symbol] ?? oilIcon],
+        label: inst.symbol.replace("=F", "").slice(0, 3),
+      };
+    case "agriculture":
+      return { sources: [agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
+    case "bond":
+    case "rate":
+      return { sources: [bondIcon], label: displayLabel(inst.symbol) };
+    case "option": {
+      const base = inst.symbol.replace(".OPT", "");
+      const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];
+      return {
+        sources: domain ? domainSources(domain) : [indexIcon],
+        label: base.slice(0, 4),
+      };
+    }
     case "stock":
+
     default: {
       const domain = STOCK_DOMAIN[inst.symbol];
       return {
