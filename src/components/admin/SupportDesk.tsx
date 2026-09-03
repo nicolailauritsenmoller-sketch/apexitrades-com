@@ -79,14 +79,20 @@ const STATUS_TONE: Record<string, string> = {
   closed: "bg-secondary text-muted-foreground",
 };
 
-export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" | "tickets" }) {
-  const [view, setView] = useState<"inbox" | "tickets">(initialView);
+export function SupportDesk({
+  initialView = "inbox",
+}: {
+  initialView?: "inbox" | "requests" | "tickets";
+}) {
+  const [view, setView] = useState<"inbox" | "requests" | "tickets">(initialView);
+  useEffect(() => setView(initialView), [initialView]);
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-lg border border-border bg-card p-1">
+      <div className="inline-flex flex-wrap rounded-lg border border-border bg-card p-1">
         {(
           [
             { id: "inbox", label: "Live chat inboxes", icon: Inbox },
+            { id: "requests", label: "Submitted requests", icon: Inbox },
             { id: "tickets", label: "Support tickets", icon: Ticket },
           ] as const
         ).map(({ id, label, icon: Icon }) => (
@@ -104,7 +110,7 @@ export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" |
           </button>
         ))}
       </div>
-      {view === "inbox" ? <ChatInboxes /> : <TicketsDesk />}
+      {view === "inbox" ? <ChatInboxes /> : <TicketsDesk mode={view} />}
     </div>
   );
 }
@@ -496,7 +502,8 @@ Regards,
 Support Team`;
 }
 
-function TicketsDesk() {
+function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
+  const isRequests = mode === "requests";
   const qc = useQueryClient();
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<SortKey>("recent");
