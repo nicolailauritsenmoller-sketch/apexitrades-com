@@ -182,6 +182,7 @@ function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
   });
 
   useEffect(() => {
+    const read = () => {
     const el = ref.current;
     if (!el) return;
     const style = getComputedStyle(el);
@@ -194,6 +195,11 @@ function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
       bear: toRgb(style.getPropertyValue("--bear").trim()) || colors.bear,
       primary: toRgb(style.getPropertyValue("--primary").trim()) || colors.primary,
     });
+    };
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
   }, [ref]);
 
   return colors;
@@ -377,7 +383,7 @@ function TradingViewChartInner({
       rightPriceScale: { borderColor: colors.border },
       timeScale: { borderColor: colors.border },
     });
-  }, [colors]);
+  }, [colors, chartReady]);
 
   // Reset fit state when the symbol or timeframe changes.
   useEffect(() => {
