@@ -107,7 +107,9 @@ export const createSupportTicket = createServerFn({ method: "POST" })
         body,
         category: data.category,
         priority: data.priority,
-      })
+        full_name: data.fullName ?? null,
+        email: data.email ?? null,
+      } as any)
       .select()
       .single();
     if (error) throw new Error(error.message);
