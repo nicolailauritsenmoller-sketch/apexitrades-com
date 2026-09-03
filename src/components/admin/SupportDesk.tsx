@@ -953,11 +953,7 @@ function TicketsDesk() {
                 </button>
                 <button
                   onClick={() =>
-                    statusMutation.mutate({
-                      ticketId: active.id,
-                      status: "resolved",
-                      resolutionNote: notes.trim() ? undefined : undefined,
-                    })
+                    statusMutation.mutate({ ticketId: active.id, status: "resolved" })
                   }
                   disabled={statusMutation.isPending}
                   className="flex items-center justify-center gap-1 rounded-md bg-bull px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
