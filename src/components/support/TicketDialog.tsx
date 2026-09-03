@@ -46,10 +46,16 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/** Ticket files live in `support-attachments`; older threads still point at `chat-attachments`. */
 async function openAttachment(path: string) {
-  const { data } = await supabase.storage.from("chat-attachments").createSignedUrl(path, 300);
-  if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
-  else toast.error("Attachment unavailable.");
+  for (const bucket of ["support-attachments", "chat-attachments"]) {
+    const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 300);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, "_blank", "noopener");
+      return;
+    }
+  }
+  toast.error("Attachment unavailable.");
 }
 
 export function TicketDialog({
@@ -112,7 +118,7 @@ export function TicketDialog({
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Session expired.");
       const path = `${user.user.id}/tickets/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+      const { error } = await supabase.storage.from("support-attachments").upload(path, file);
       if (error) throw new Error(error.message);
       return { path, name: file.name, type: file.type };
     } finally {

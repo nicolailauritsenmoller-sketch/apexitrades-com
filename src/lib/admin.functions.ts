@@ -868,7 +868,7 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
     z
       .object({
         ticketId: z.string().uuid(),
-        status: z.enum(["open", "pending", "resolved"]),
+        status: z.enum(["open", "in_progress", "pending", "waiting_customer", "resolved", "closed"]),
       })
       .parse(input),
   )
@@ -894,11 +894,35 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Signed URL for a ticket attachment (staff only). Handles legacy chat-attachments paths. */
+export const getTicketAttachmentUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ path: z.string().min(1).max(400) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    for (const bucket of ["support-attachments", "chat-attachments"]) {
+      const { data: signed } = await db.storage.from(bucket).createSignedUrl(data.path, 300);
+      if (signed?.signedUrl) return { url: signed.signedUrl };
+    }
+    return { url: null };
+  });
+
 export const replyToTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
-      .object({ ticketId: z.string().uuid(), body: z.string().trim().min(1).max(2000) })
+      .object({
+        ticketId: z.string().uuid(),
+        body: z.string().trim().min(1).max(2000),
+        attachment: z
+          .object({
+            path: z.string().min(1).max(400),
+            name: z.string().min(1).max(200),
+            type: z.string().max(120).optional(),
+          })
+          .optional(),
+      })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -916,12 +940,15 @@ export const replyToTicket = createServerFn({ method: "POST" })
       sender_id: context.userId,
       sender_role: "agent",
       body: data.body,
+      attachment_path: data.attachment?.path ?? null,
+      attachment_name: data.attachment?.name ?? null,
+      attachment_type: data.attachment?.type ?? null,
     });
     if (error) throw new Error(error.message);
 
     await db
       .from("support_tickets")
-      .update({ status: "pending", admin_last_read_at: new Date().toISOString() })
+      .update({ status: "waiting_customer", admin_last_read_at: new Date().toISOString() })
       .eq("id", data.ticketId);
     await notify(
       db,
