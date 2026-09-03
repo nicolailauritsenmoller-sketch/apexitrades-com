@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { themeBootstrapScript, useTheme } from "@/lib/theme";
 import { ConsentProvider } from "@/lib/consent";
+import { I18nProvider, langBootstrapScript } from "@/lib/i18n";
 import { CookieConsent } from "@/components/CookieConsent";
 import { restoreAccountPreferences } from "@/lib/preferences";
 import { useServiceWorker } from "@/components/PwaInstall";
@@ -129,6 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        <script dangerouslySetInnerHTML={{ __html: langBootstrapScript }} />
       </head>
       <body>
         {children}
@@ -184,6 +186,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <I18nProvider>
       <ConsentProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
@@ -192,6 +195,7 @@ function RootComponent() {
 
         <Toaster theme={theme} position="top-right" richColors />
       </ConsentProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }
