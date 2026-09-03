@@ -78,6 +78,7 @@ function Portfolio() {
     }
   }
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
+  const [range, setRange] = useState<Range>("1M");
   const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
   const available = value.data?.wallets?.reduce(
