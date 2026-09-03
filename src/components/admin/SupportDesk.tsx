@@ -26,6 +26,7 @@ import {
   replyToTicket,
   setThreadStatus,
   updateTicketStatus,
+  getTicketAttachmentUrl,
 } from "@/lib/admin.functions";
 
 const STATUS_FILTERS = [
@@ -637,11 +638,7 @@ function TicketsDesk() {
                     >
                       <p className="whitespace-pre-wrap">{m.body}</p>
                       {m.attachment_path && (
-                        <ChatAttachment
-                          path={m.attachment_path}
-                          name={m.attachment_name}
-                          type={m.attachment_type}
-                        />
+                        <TicketAttachment path={m.attachment_path} name={m.attachment_name} />
                       )}
                     </div>
                   ))}
@@ -690,5 +687,24 @@ function TicketsDesk() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Opens a signed link to a ticket attachment for the agent. */
+function TicketAttachment({ path, name }: { path: string; name: string | null }) {
+  const fetchUrl = useServerFn(getTicketAttachmentUrl);
+  const open = async () => {
+    const res: any = await fetchUrl({ data: { path } });
+    if (res?.url) window.open(res.url, "_blank", "noopener");
+    else toast.error("Attachment unavailable.");
+  };
+  return (
+    <button
+      onClick={open}
+      className="mt-1 flex items-center gap-1 text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+    >
+      <Paperclip className="size-3" />
+      {name ?? "Attachment"}
+    </button>
   );
 }

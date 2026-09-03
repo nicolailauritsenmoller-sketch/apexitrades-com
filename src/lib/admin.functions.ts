@@ -897,6 +897,20 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Signed URL for a ticket attachment (staff only). Handles legacy chat-attachments paths. */
+export const getTicketAttachmentUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ path: z.string().min(1).max(400) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    for (const bucket of ["support-attachments", "chat-attachments"]) {
+      const { data: signed } = await db.storage.from(bucket).createSignedUrl(data.path, 300);
+      if (signed?.signedUrl) return { url: signed.signedUrl };
+    }
+    return { url: null };
+  });
+
 export const replyToTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
