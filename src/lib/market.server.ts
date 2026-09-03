@@ -158,6 +158,9 @@ const ANCHOR_PRICE: Record<string, number> = {
   "USDCHF=X": 0.89, "EURGBP=X": 0.85, "USDCAD=X": 1.37, "NZDUSD=X": 0.61,
   "EURJPY=X": 167, "GBPJPY=X": 197, "AUDJPY=X": 102,
   "GC=F": 2350, "SI=F": 30, "PL=F": 1000, "PA=F": 950, "HG=F": 4.4,
+  "MGC=F": 2350, "1OZ=F": 2350, "XAUUSD=X": 2350, "XAUEUR=X": 2170,
+  "XAUGBP=X": 1850, "XAUJPY=X": 364000, "XAGUSD=X": 30,
+
 };
 
 const VOLATILITY: Record<string, number> = {
