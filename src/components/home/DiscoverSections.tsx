@@ -320,11 +320,20 @@ export function MarketNewsSection() {
   const news = useQuery({
     queryKey: ["market-news"],
     queryFn: () => fetchNews(),
-    refetchInterval: 120_000,
-    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    staleTime: 30_000,
   });
 
+  // Keep the "12m ago" stamps ticking without refetching.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const items = (news.data ?? []).filter((n) => tab === "all" || n.category === tab).slice(0, 13);
+
   const [lead, ...rest] = items;
 
   const symbols = useMemo(
