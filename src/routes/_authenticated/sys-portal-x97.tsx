@@ -14,6 +14,7 @@ import {
   BarChart3,
   Receipt,
   LifeBuoy,
+  Inbox,
   Settings2,
   ScrollText,
   Fingerprint,
@@ -197,6 +198,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
 const AGENT_TABS = new Set([
   "support",
   "vip",
+  "requests",
   "tickets",
   "ratings",
   "agent",
@@ -680,6 +682,7 @@ function AdminPage() {
                   <p className="text-sm text-muted-foreground">Loading ledger…</p>
                 ))}
               {tab === "support" && <SupportDesk />}
+              {tab === "requests" && <SupportDesk initialView="requests" />}
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && data && (
                 <div className="space-y-4">
