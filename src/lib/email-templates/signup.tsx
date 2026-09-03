@@ -2,13 +2,11 @@ import * as React from 'react'
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
   Hr,
   Html,
-  Link,
   Preview,
   Section,
   Text,
@@ -16,23 +14,17 @@ import {
 
 interface SignupEmailProps {
   siteName: string
-  siteUrl: string
-  recipient: string
-  confirmationUrl: string
-  token?: string
+  token: string
 }
 
 export const SignupEmail = ({
   siteName,
-  siteUrl,
-  recipient,
-  confirmationUrl,
   token,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>
-      {token ? `${token} is your ${siteName} verification code` : `Confirm your email for ${siteName}`}
+      {token ? `Your ${siteName} verification code is ${token}` : `Verify your email address for ${siteName}`}
     </Preview>
     <Body style={main}>
       <Container style={container}>
@@ -40,31 +32,38 @@ export const SignupEmail = ({
           <Text style={brand}>{siteName}</Text>
         </Section>
         <Section style={card}>
-          <Heading style={h1}>Verify your email</Heading>
+          <Heading style={h1}>Verify your email address</Heading>
+          <Text style={text}>Hello,</Text>
           <Text style={text}>
-            Welcome to {siteName}. Use the verification code below to finish creating your
-            account for <strong style={strong}>{recipient}</strong>.
+            Welcome to {siteName}.
+          </Text>
+          <Text style={text}>
+            To complete your account registration, please enter the verification code below:
           </Text>
           {token ? (
             <Section style={codeBox}>
               <Text style={code}>{token}</Text>
-              <Text style={codeHint}>This code expires in 60 minutes.</Text>
             </Section>
           ) : null}
-          {confirmationUrl ? (
-            <Button style={button} href={confirmationUrl}>
-              Verify Email
-            </Button>
-          ) : null}
+          <Text style={text}>
+            This code will expire in 10 minutes and can only be used once.
+          </Text>
+          <Text style={text}>
+            Enter this code in the verification screen on the official {siteName} website or application to verify your email address.
+          </Text>
           <Hr style={hr} />
-          <Text style={footer}>
-            If you didn&apos;t create a {siteName} account, you can safely ignore this email.
-            We will never ask you for your password, verification code, or recovery phrase.
+          <Text style={text}>
+            Didn&apos;t create this account?
           </Text>
-          <Text style={footer}>
-            Support: <Link href={`${siteUrl}/support`} style={link}>{siteUrl}/support</Link>
-            <br />© {new Date().getFullYear()} {siteName}. All rights reserved.
+          <Text style={text}>
+            You can safely ignore this email. No action is required.
           </Text>
+          <Text style={security}>
+            For your security, never share this code with anyone. Our Support Team will never ask you for your password, verification code, 2FA code, recovery phrase, or private key.
+          </Text>
+          <Text style={signOff}>Regards,</Text>
+          <Text style={signOff}>Security Team</Text>
+          <Text style={signOff}>{siteName}</Text>
         </Section>
       </Container>
     </Body>
@@ -92,37 +91,36 @@ const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
   color: '#0A0D12',
-  margin: '0 0 16px',
+  margin: '0 0 22px',
 }
-const text = { fontSize: '14px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 22px' }
-const strong = { color: '#0A0D12' }
+const text = { fontSize: '14px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 16px' }
 const codeBox = {
   backgroundColor: '#f4f6fb',
   border: '1px solid #dbe2f0',
   borderRadius: '12px',
-  padding: '18px',
+  padding: '22px 18px',
   textAlign: 'center' as const,
-  margin: '0 0 22px',
+  margin: '22px 0 22px',
 }
 const code = {
-  fontSize: '32px',
-  letterSpacing: '10px',
+  fontSize: '36px',
+  letterSpacing: '12px',
   fontWeight: 'bold' as const,
   color: '#0A0D12',
   margin: '0',
   fontFamily: 'Courier New, monospace',
 }
-const codeHint = { fontSize: '12px', color: '#6b7280', margin: '8px 0 0' }
-const button = {
-  backgroundColor: '#0052FF',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 'bold' as const,
-  borderRadius: '10px',
-  padding: '12px 22px',
-  textDecoration: 'none',
-  display: 'inline-block',
-}
 const hr = { borderColor: '#e6e8eb', margin: '26px 0 18px' }
-const link = { color: '#0052FF', textDecoration: 'none' }
-const footer = { fontSize: '12px', color: '#9ca3af', lineHeight: '1.6', margin: '0 0 10px' }
+const security = {
+  fontSize: '13px',
+  color: '#374151',
+  lineHeight: '1.6',
+  margin: '0 0 16px',
+  fontWeight: 'bold' as const,
+}
+const signOff = {
+  fontSize: '14px',
+  color: '#4b5563',
+  lineHeight: '1.5',
+  margin: '0',
+}
