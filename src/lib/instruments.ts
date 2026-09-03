@@ -79,6 +79,51 @@ const metal = (symbol: string, name: string, precision = 2, step = 1): Instrumen
   step,
 });
 
+/** Listed funds: ETFs, REIT trackers and mutual funds. */
+const fund_ = (
+  symbol: string,
+  name: string,
+  assetClass: Extract<AssetClass, "etf" | "reit" | "fund">,
+): Instrument => ({
+  symbol,
+  name,
+  assetClass,
+  currency: "USD",
+  source: "yahoo",
+  precision: 2,
+  step: 1,
+});
+
+const index_ = (symbol: string, name: string, precision = 2): Instrument => ({
+  symbol,
+  name,
+  assetClass: "index",
+  currency: "USD",
+  source: "yahoo",
+  precision,
+  step: 1,
+});
+
+const classed =
+  (assetClass: AssetClass) =>
+  (symbol: string, name: string, precision = 2): Instrument => ({
+    symbol,
+    name,
+    assetClass,
+    currency: "USD",
+    source: "yahoo",
+    precision,
+    step: 1,
+  });
+
+const energy = classed("energy");
+const agri = classed("agriculture");
+const bond = classed("bond");
+const option = classed("option");
+const rate = classed("rate");
+
+
+
 const CRYPTO: Instrument[] = [
   crypto("BTC", "Bitcoin", 2, 0.001),
   crypto("ETH", "Ethereum", 2, 0.01),
