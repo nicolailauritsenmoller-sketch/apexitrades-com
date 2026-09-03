@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { LifeBuoy, MessageCircle, ShieldCheck } from "lucide-react";
-import { Section, SubPageHeader } from "@/components/profile/ui";
+import { ChevronRight, FilePlus2, Inbox, MessageCircle, ShieldCheck } from "lucide-react";
+import { SubPageHeader } from "@/components/profile/ui";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
+
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
