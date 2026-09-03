@@ -26,7 +26,7 @@ import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { useHasSession } from "@/lib/use-session";
 
 const NAV = [
-  { to: "/", params: {}, label: "Home", icon: Home, exact: true },
+  { to: "/dashboard", params: {}, label: "Home", icon: Home, exact: true },
   { to: "/dashboard", params: {}, label: "Portfolio", icon: LayoutDashboard, exact: false },
   { to: "/markets", params: {}, label: "Market", icon: Compass, exact: false },
   {
