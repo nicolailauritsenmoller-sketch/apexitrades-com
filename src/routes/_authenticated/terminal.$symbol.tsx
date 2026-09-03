@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { CandleChart } from "@/components/CandleChart";
+import { TradingViewChart } from "@/components/trading/TradingViewChart";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
@@ -19,7 +19,7 @@ import {
   formatMoney,
   formatPrice,
 } from "@/lib/instruments";
-import { TIMEFRAMES, type Timeframe } from "@/lib/market-types";
+import { type Timeframe } from "@/lib/market-types";
 
 export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   loader: ({ params }) => {
@@ -148,6 +148,14 @@ function Terminal() {
   ).slice(0, 8);
 
 
+  const formatVolume = (n?: number) => {
+    if (n == null || n === 0) return "—";
+    if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(2)}K`;
+    return n.toFixed(2);
+  };
+
   return (
     <AppShell>
       <div className="w-full max-w-full overflow-x-hidden">
@@ -178,33 +186,34 @@ function Terminal() {
               {quote ? `${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)` : "—"}
             </div>
           </div>
-        </div>
-        <div className="-mx-1 flex max-w-full gap-1 overflow-x-auto px-1 pb-1">
-          {TIMEFRAMES.map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`shrink-0 touch-manipulation rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                timeframe === tf
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
+          <div className="hidden flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground sm:flex">
+            <div>
+              <span className="block text-[10px] uppercase tracking-wider">24h High</span>
+              <span className="num text-foreground">{quote ? formatPrice(quote.high, symbol) : "—"}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] uppercase tracking-wider">24h Low</span>
+              <span className="num text-foreground">{quote ? formatPrice(quote.low, symbol) : "—"}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] uppercase tracking-wider">24h Volume</span>
+              <span className="num text-foreground">{formatVolume(quote?.volume)}</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="panel min-w-0 max-w-full overflow-hidden p-3 sm:p-4">
-          {candles.isLoading ? (
-            <div className="flex h-[380px] items-center justify-center text-sm text-muted-foreground">
-              Loading chart…
-            </div>
-          ) : (
-            <CandleChart candles={liveCandles} symbol={symbol} />
-          )}
+        <div className="panel min-w-0 max-w-full overflow-hidden p-0">
+          <TradingViewChart
+            symbol={symbol}
+            candles={liveCandles}
+            quote={quote}
+            timeframe={timeframe}
+            onTimeframeChange={setTimeframe}
+            height={420}
+            isLoading={candles.isLoading}
+          />
         </div>
 
 
