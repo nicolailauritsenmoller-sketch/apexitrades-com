@@ -15,6 +15,8 @@ import {
   Banknote,
   CandlestickChart,
   TrendingUp,
+  Landmark,
+
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
