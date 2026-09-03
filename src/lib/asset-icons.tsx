@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { INSTRUMENT_MAP, type Instrument } from "@/lib/instruments";
+import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
 import btcIcon from "@/assets/crypto/btc.svg";
@@ -41,6 +41,7 @@ import oilIcon from "@/assets/commodities/oil.svg";
 import brentIcon from "@/assets/commodities/brent.svg";
 import gasIcon from "@/assets/commodities/gas.svg";
 import indexIcon from "@/assets/commodities/index.svg";
+import agriIcon from "@/assets/commodities/agri.svg";
 import bondIcon from "@/assets/commodities/bond.svg";
 import companyIcon from "@/assets/commodities/company.svg";
 
@@ -175,6 +176,10 @@ const ENERGY_ICON: Record<string, string> = {
   "BZ=F": brentIcon,
   "NG=F": gasIcon,
 };
+
+function displayLabel(symbol: string): string {
+  return displaySymbol(symbol).replace(/[^A-Z0-9]/gi, "").slice(0, 4);
+}
 
 function domainSources(domain: string): string[] {
   return [
