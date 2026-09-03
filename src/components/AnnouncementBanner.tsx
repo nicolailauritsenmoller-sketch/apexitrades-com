@@ -48,7 +48,7 @@ export function AnnouncementBanner() {
   const query = useQuery({
     queryKey: ["announcements-active"],
     queryFn: () => fetchAnnouncements(),
-    enabled: hasSession,
+    enabled: hasSession === true,
     retry: false,
     staleTime: 60_000,
     refetchInterval: 120_000,
