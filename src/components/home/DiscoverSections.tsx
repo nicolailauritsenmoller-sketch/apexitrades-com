@@ -204,11 +204,21 @@ const CATEGORY_ICON: Record<NewsCategory, typeof Newspaper> = {
 
 function timeAgo(iso: string) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.round(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.round(hrs / 24)}d ago`;
 }
+
+function CategoryTag({ category }: { category: NewsCategory }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-border bg-surface-raised px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      {CATEGORY_LABEL[category]}
+    </span>
+  );
+}
+
 
 /** Publisher favicon with a lettered fallback when the brand icon can't load. */
 function PublisherMark({ domain, source, size = 18 }: { domain: string; source: string; size?: number }) {
