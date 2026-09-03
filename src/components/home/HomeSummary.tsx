@@ -224,7 +224,7 @@ export function RecentActivitySection() {
     <section className="panel mt-4 p-4">
       <div className="mb-1 flex items-center justify-between">
         <h2 className="text-sm font-bold tracking-tight">Recent activity</h2>
-        <Link to="/wallet" search={{ tab: "history" }} className="text-xs font-semibold text-primary">
+        <Link to="/wallet" search={{ tab: "deposit" }} className="text-xs font-semibold text-primary">
           View all
         </Link>
       </div>
