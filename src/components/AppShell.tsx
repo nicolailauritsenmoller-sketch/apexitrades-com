@@ -5,7 +5,6 @@ import {
   LineChart,
   LayoutDashboard,
   Compass,
-  LogOut,
   Home,
   Wallet,
   UserRound,
