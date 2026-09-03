@@ -9,7 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
-import { AssetsOverview } from "@/components/AssetsOverview";
+import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
@@ -69,30 +69,6 @@ export const Route = createFileRoute("/_authenticated/wallet")({
   ),
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
-
-const TABS = [
-  {
-    id: "deposit",
-    label: "Deposit",
-    icon: ArrowDownToLine,
-    active: "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20",
-    idle: "text-emerald-600 dark:text-emerald-500",
-  },
-  {
-    id: "withdraw",
-    label: "Withdraw",
-    icon: ArrowUpFromLine,
-    active: "bg-rose-600 text-white shadow-lg shadow-rose-600/20",
-    idle: "text-rose-600 dark:text-rose-500",
-  },
-  {
-    id: "swap",
-    label: "Swap",
-    icon: Repeat,
-    active: "bg-blue-600 text-white shadow-lg shadow-blue-600/20",
-    idle: "text-blue-600 dark:text-blue-500",
-  },
-] as const;
 
 function qrUrl(text: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
@@ -189,31 +165,19 @@ function WalletPage() {
     <AppShell>
       <h1 className="text-2xl font-bold">Wallet</h1>
       <p className="mb-5 text-sm text-muted-foreground">
-        Fund your account, request withdrawals and swap between assets at live rates.
+        Manage your assets, deposits and withdrawals
       </p>
 
       <div className="mb-6">
-        <AssetsOverview
+        <WalletBalancePanel
           holdings={wallets}
           totalUsdt={value.data?.totalUsdt ?? 0}
           isLoading={value.isLoading}
+          active={tab}
+          onSelect={setTab}
         />
       </div>
 
-      <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl bg-secondary/60 p-1.5">
-        {TABS.map(({ id, label, icon: Icon, active, idle }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
-              tab === id ? active : `${idle} hover:bg-background/60`
-            }`}
-          >
-            <Icon className="size-5" strokeWidth={2.6} />
-            {label}
-          </button>
-        ))}
-      </div>
 
       {tab === "deposit" && (
         <DepositTab
