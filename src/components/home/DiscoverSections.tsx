@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,11 +10,16 @@ import {
   QrCode,
   Newspaper,
   ExternalLink,
+  Bitcoin,
+  Coins,
+  Banknote,
+  CandlestickChart,
+  TrendingUp,
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
-import { getMarketNews, type NewsCategory } from "@/lib/news.functions";
+import { getMarketNews, type NewsCategory, type NewsItem } from "@/lib/news.functions";
 
 /* ------------------------------- Quick actions ------------------------------ */
 
@@ -166,12 +171,122 @@ const NEWS_TABS = [
   { id: "stocks", label: "Stocks" },
 ] as const;
 
+const CATEGORY_GRADIENT: Record<NewsCategory, string> = {
+  crypto: "from-primary/30 via-primary/10 to-transparent",
+  gold: "from-amber-500/30 via-amber-500/10 to-transparent",
+  forex: "from-sky-500/30 via-sky-500/10 to-transparent",
+  futures: "from-violet-500/30 via-violet-500/10 to-transparent",
+  stocks: "from-emerald-500/30 via-emerald-500/10 to-transparent",
+};
+
+const CATEGORY_ICON: Record<NewsCategory, typeof Newspaper> = {
+  crypto: Bitcoin,
+  gold: Coins,
+  forex: Banknote,
+  futures: CandlestickChart,
+  stocks: TrendingUp,
+};
+
 function timeAgo(iso: string) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.round(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.round(hrs / 24)}d ago`;
+}
+
+/** Publisher favicon with a lettered fallback when the brand icon can't load. */
+function PublisherMark({ domain, source, size = 18 }: { domain: string; source: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  if (!domain || failed) {
+    return (
+      <span
+        className="grid shrink-0 place-items-center rounded-full bg-primary/15 text-[9px] font-bold uppercase text-primary"
+        style={{ width: size, height: size }}
+        aria-hidden
+      >
+        {source.slice(0, 1)}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      alt=""
+      width={size}
+      height={size}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="shrink-0 rounded-full bg-surface-raised object-contain"
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
+/** Article thumbnail with a clean category illustration fallback. */
+function NewsThumb({
+  item,
+  className,
+  iconSize = 22,
+}: {
+  item: NewsItem;
+  className: string;
+  iconSize?: number;
+}) {
+  const [failed, setFailed] = useState(false);
+  const Icon = CATEGORY_ICON[item.category];
+  if (item.image && !failed) {
+    return (
+      <img
+        src={item.image}
+        alt=""
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className={`${className} bg-surface-raised object-cover`}
+      />
+    );
+  }
+  return (
+    <div
+      className={`${className} grid place-items-center bg-gradient-to-br ${CATEGORY_GRADIENT[item.category]} bg-surface-raised`}
+      aria-hidden
+    >
+      <Icon className="text-foreground/45" style={{ width: iconSize, height: iconSize }} />
+    </div>
+  );
+}
+
+function TickerBadges({
+  symbols,
+  quotes,
+}: {
+  symbols: string[];
+  quotes: Record<string, { price: number; changePercent: number } | undefined>;
+}) {
+  if (symbols.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {symbols.map((s) => {
+        const q = quotes[s];
+        const chg = q?.changePercent ?? 0;
+        return (
+          <span
+            key={s}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-raised py-0.5 pl-0.5 pr-2 text-[10px] font-semibold"
+          >
+            <AssetIcon symbol={s} size={14} />
+            <span className="num">{displaySymbol(s).split("/")[0]}</span>
+            {q ? (
+              <span className={`num ${chg >= 0 ? "text-bull" : "text-bear"}`}>
+                {chg >= 0 ? "+" : ""}
+                {chg.toFixed(2)}%
+              </span>
+            ) : null}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 export function MarketNewsSection() {
@@ -184,7 +299,15 @@ export function MarketNewsSection() {
     staleTime: 60_000,
   });
 
-  const items = (news.data ?? []).filter((n) => tab === "all" || n.category === tab);
+  const items = (news.data ?? []).filter((n) => tab === "all" || n.category === tab).slice(0, 13);
+  const [lead, ...rest] = items;
+
+  const symbols = useMemo(
+    () => Array.from(new Set(items.flatMap((n) => n.tickers))).slice(0, 12),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items.map((n) => n.id).join("|")],
+  );
+  const { quotes } = useQuotes(symbols, 15000);
 
   return (
     <section className="mt-8 mb-10">
@@ -194,7 +317,7 @@ export function MarketNewsSection() {
         <span className="live-dot ml-1 size-1.5 rounded-full bg-bull" />
       </div>
 
-      <div className="-mx-3 mb-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+      <div className="-mx-3 mb-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
         {NEWS_TABS.map((t) => (
           <button
             key={t.id}
@@ -210,31 +333,80 @@ export function MarketNewsSection() {
         ))}
       </div>
 
-      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
-        {news.isLoading ? (
-          <p className="p-4 text-sm text-muted-foreground">Loading live headlines…</p>
-        ) : items.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No headlines available right now.</p>
-        ) : (
-          items.slice(0, 20).map((n) => (
+      {news.isLoading ? (
+        <div className="grid gap-3 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl border border-border bg-surface" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <p className="rounded-2xl border border-border bg-surface p-4 text-sm text-muted-foreground">
+          No headlines available right now.
+        </p>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Featured lead story */}
+          {lead ? (
             <a
-              key={n.id}
-              href={n.url || "#"}
+              href={lead.url || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex touch-manipulation items-start gap-3 p-4 transition-colors hover:bg-surface-raised"
+              className="group touch-manipulation overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:border-primary/50 hover:bg-surface-raised lg:col-span-1 lg:row-span-2"
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium leading-snug">{n.title}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  {n.source} · {timeAgo(n.publishedAt)} · {n.category}
-                </p>
+              <NewsThumb item={lead} className="h-44 w-full sm:h-52" iconSize={44} />
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <PublisherMark domain={lead.domain} source={lead.source} />
+                  <span className="truncate font-semibold text-foreground">{lead.source}</span>
+                  <span>·</span>
+                  <span className="shrink-0">{timeAgo(lead.publishedAt)}</span>
+                </div>
+                <h3 className="mt-2 text-base font-bold leading-snug group-hover:text-primary">
+                  {lead.title}
+                </h3>
+                {lead.excerpt ? (
+                  <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                    {lead.excerpt}
+                  </p>
+                ) : null}
+                <TickerBadges symbols={lead.tickers} quotes={quotes} />
+                <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {lead.category}
+                  <ExternalLink className="size-3" />
+                </span>
               </div>
-              <ExternalLink className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             </a>
-          ))
-        )}
-      </div>
+          ) : null}
+
+          {/* Secondary cards */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:content-start">
+            {rest.map((n) => (
+              <a
+                key={n.id}
+                href={n.url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex touch-manipulation gap-3 rounded-2xl border border-border bg-surface p-3 transition-all hover:border-primary/50 hover:bg-surface-raised"
+              >
+                <NewsThumb item={n} className="size-20 shrink-0 rounded-xl" iconSize={22} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <PublisherMark domain={n.domain} source={n.source} size={14} />
+                    <span className="truncate font-semibold text-foreground">{n.source}</span>
+                    <span>·</span>
+                    <span className="shrink-0">{timeAgo(n.publishedAt)}</span>
+                    <ExternalLink className="ml-auto size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                  <p className="mt-1 line-clamp-3 text-[13px] font-semibold leading-snug group-hover:text-primary">
+                    {n.title}
+                  </p>
+                  <TickerBadges symbols={n.tickers.slice(0, 2)} quotes={quotes} />
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
