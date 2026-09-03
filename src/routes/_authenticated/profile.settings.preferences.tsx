@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Coins, Languages, Palette } from "lucide-react";
+import { Check, Coins, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { ThemeSetting } from "@/lib/theme";
@@ -68,19 +68,27 @@ function PreferenceSettings() {
       </Section>
 
       <Section icon={Languages} title={t("common.language")} description={t("prefs.languageHelp")}>
-        <select
-          value={lang}
-          onChange={(e) => changeLanguage(e.target.value as LangCode)}
-          aria-label="Interface language"
-          className="min-h-10 w-full touch-manipulation rounded-xl border border-border bg-background px-3 text-sm sm:max-w-xs"
-        >
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-no-translate>
           {LANGUAGES.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label} — {l.native}
-            </option>
+            <button
+              key={l.id}
+              type="button"
+              lang={l.id}
+              onClick={() => changeLanguage(l.id as LangCode)}
+              aria-pressed={lang === l.id}
+              className={`flex min-h-10 touch-manipulation items-center justify-between gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors ${
+                lang === l.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="truncate">{l.native}</span>
+              {lang === l.id ? <Check className="size-4 shrink-0" /> : null}
+            </button>
           ))}
-        </select>
+        </div>
       </Section>
+
 
       <Section icon={Palette} title={t("common.theme")} description={t("prefs.themeHelp")}>
         <ThemeSetting />
