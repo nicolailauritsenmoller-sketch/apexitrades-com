@@ -135,6 +135,8 @@ function strip(input: string) {
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;|&apos;|&#x27;/gi, "'")
     .replace(/&nbsp;/g, " ")
+    .replace(/&#x([0-9a-f]+);/gi, (_m, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_m, d) => String.fromCodePoint(parseInt(d, 10)))
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .trim();
