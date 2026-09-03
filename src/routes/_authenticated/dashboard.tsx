@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet, TrendingUp, Activity, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Wallet, TrendingUp, Activity } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
@@ -14,6 +13,12 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { TradeHistoryList } from "@/components/TradeHistoryList";
 import { getContracts } from "@/lib/contracts.functions";
 import { formatMoney } from "@/lib/instruments";
+import {
+  QuickActionsRow,
+  ExploreTokensSection,
+  DiscoverPerpsSection,
+  MarketNewsSection,
+} from "@/components/home/DiscoverSections";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -91,31 +96,8 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-3 gap-3">
-        <Link
-          to="/wallet"
-          search={{ tab: "deposit" }}
-          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-[0.98]"
-        >
-          <ArrowDownToLine className="size-5" strokeWidth={2.6} />
-          Deposit
-        </Link>
-        <Link
-          to="/wallet"
-          search={{ tab: "withdraw" }}
-          className="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition-transform active:scale-[0.98]"
-        >
-          <ArrowUpFromLine className="size-5" strokeWidth={2.6} />
-          Withdraw
-        </Link>
-        <Link
-          to="/wallet"
-          search={{ tab: "swap" }}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-transform active:scale-[0.98]"
-        >
-          <Repeat className="size-5" strokeWidth={2.6} />
-          Swap
-        </Link>
+      <div className="mb-4">
+        <QuickActionsRow />
       </div>
 
       <div className="panel mb-4 flex items-start justify-between gap-3 p-5">
@@ -206,6 +188,10 @@ function Dashboard() {
           isLoading={contracts.isLoading || isLoading}
         />
       </div>
+
+      <ExploreTokensSection />
+      <DiscoverPerpsSection />
+      <MarketNewsSection />
     </AppShell>
   );
 }

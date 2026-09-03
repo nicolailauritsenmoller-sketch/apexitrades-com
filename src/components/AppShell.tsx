@@ -16,7 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { ThemeToggle } from "@/lib/theme";
-import { SiteFooter } from "@/components/SiteFooter";
 import { UserAvatar } from "@/components/UserAvatar";
 import { InstallAppButton } from "@/components/PwaInstall";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
@@ -130,9 +129,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <div className="pb-24 md:pb-0">
-        <SiteFooter />
-      </div>
 
       {/* Mobile taskbar */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">

@@ -1,4 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, Gauge, Layers, Lock, ShieldCheck, Zap } from "lucide-react";
 import { useQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
@@ -51,7 +53,19 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
   const { quotes } = useQuotes(TICKER, 8000);
+
+  // Signed-in visitors belong on the portfolio, not the marketing page.
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && data.session) navigate({ to: "/dashboard", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
   const row = TICKER.map((s) => ({ symbol: s, quote: quotes[s] }));
 
   return (
