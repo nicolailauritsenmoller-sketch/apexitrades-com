@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_ticket_reference() FROM PUBLIC, anon, authenticated;
