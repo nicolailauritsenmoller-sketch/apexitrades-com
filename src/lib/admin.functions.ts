@@ -1017,7 +1017,10 @@ export const replyToTicket = createServerFn({ method: "POST" })
     z
       .object({
         ticketId: z.string().uuid(),
-        body: z.string().trim().min(1).max(2000),
+        body: z.string().trim().min(1).max(4000),
+        status: z
+          .enum(["open", "in_progress", "waiting_customer", "resolved", "closed"])
+          .optional(),
         attachment: z
           .object({
             path: z.string().min(1).max(400),
@@ -1033,7 +1036,7 @@ export const replyToTicket = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: ticket } = await db
       .from("support_tickets")
-      .select("id,user_id,subject")
+      .select("id,user_id,subject,reference,assigned_agent_id")
       .eq("id", data.ticketId)
       .maybeSingle();
     if (!ticket) throw new Error("Ticket not found.");
@@ -1049,19 +1052,27 @@ export const replyToTicket = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
+    const now = new Date().toISOString();
     await db
       .from("support_tickets")
-      .update({ status: "waiting_customer", admin_last_read_at: new Date().toISOString() })
+      .update({
+        status: data.status ?? "waiting_customer",
+        admin_last_read_at: now,
+        last_response_at: now,
+        // First responder takes ownership automatically.
+        assigned_agent_id: (ticket as any).assigned_agent_id ?? context.userId,
+      } as any)
       .eq("id", data.ticketId);
     await notify(
       db,
       ticket.user_id,
       "Support replied to your ticket",
-      `${ticket.subject}: ${data.body.slice(0, 200)}`,
+      `${(ticket as any).reference ? `${(ticket as any).reference} · ` : ""}${ticket.subject}: ${data.body.slice(0, 200)}`,
       "info",
     );
     return { ok: true };
   });
+
 
 /* ------------------------------------------------------------------ */
 /* Roles, credit scores and audit logging                              */
