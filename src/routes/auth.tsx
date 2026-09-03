@@ -30,9 +30,24 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup" | "forgot" | "verify" | "reset";
+type Mode = "signin" | "signup" | "forgot" | "verify" | "reset-otp" | "reset";
 
 const RESEND_SECONDS = 60;
+const OTP_TTL_SECONDS = 600; // Supabase OTP expiry — 10 minutes
+
+/** m••••@gmail.com — never render the full address on the verification screen. */
+function maskEmail(value: string) {
+  const [local = "", domain = ""] = value.split("@");
+  if (!local || !domain) return value;
+  const head = local.slice(0, 1);
+  return `${head}${"•".repeat(Math.max(4, local.length - 1))}@${domain}`;
+}
+
+function formatClock(total: number) {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -44,7 +59,9 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [referral, setReferral] = useState("");
   const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [expiresIn, setExpiresIn] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -67,6 +84,17 @@ function AuthPage() {
     return () => clearTimeout(t);
   }, [cooldown]);
 
+  useEffect(() => {
+    if (expiresIn <= 0) return;
+    const t = setTimeout(() => setExpiresIn((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [expiresIn]);
+
+  function startCodeTimers() {
+    setCooldown(RESEND_SECONDS);
+    setExpiresIn(OTP_TTL_SECONDS);
+  }
+
   const mismatch =
     (mode === "signup" || mode === "reset") &&
     confirmPassword.length > 0 &&
@@ -80,10 +108,11 @@ function AuthPage() {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
         setCode("");
+        setCodeError("");
         setPassword("");
         setConfirmPassword("");
-        setCooldown(RESEND_SECONDS);
-        setMode("reset");
+        startCodeTimers();
+        setMode("reset-otp");
         toast.success("We sent a 6-digit code to your email.");
         return;
       }
@@ -107,7 +136,8 @@ function AuthPage() {
           return;
         }
         setCode("");
-        setCooldown(RESEND_SECONDS);
+        setCodeError("");
+        startCodeTimers();
         setMode("verify");
         toast.success("Enter the 6-digit code we emailed you.");
         return;
@@ -125,8 +155,23 @@ function AuthPage() {
           });
           if (fallbackError) throw error;
         }
+        setCodeError("");
         toast.success("Email verified — welcome to Velocity Trade.");
         navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+
+      if (mode === "reset-otp") {
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token: code.trim(),
+          type: "recovery",
+        });
+        if (error) throw error;
+        setCodeError("");
+        setExpiresIn(0);
+        setMode("reset");
+        toast.success("Code verified — choose a new password.");
         return;
       }
 
@@ -140,12 +185,6 @@ function AuthPage() {
           return;
         }
         setPasswordError("");
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          email,
-          token: code.trim(),
-          type: "recovery",
-        });
-        if (otpError) throw otpError;
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
         toast.success("Password updated.");
@@ -157,7 +196,9 @@ function AuthPage() {
       if (error) throw error;
       navigate({ to: "/dashboard", replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed.");
+      const message = err instanceof Error ? err.message : "Authentication failed.";
+      if (mode === "verify" || mode === "reset-otp") setCodeError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -173,7 +214,9 @@ function AuthPage() {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
       }
-      setCooldown(RESEND_SECONDS);
+      setCode("");
+      setCodeError("");
+      startCodeTimers();
       toast.success("New code sent.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not resend the code.");
@@ -213,7 +256,9 @@ function AuthPage() {
           ? "Reset your password"
           : mode === "verify"
             ? "Verify your email"
-            : "Enter code & new password";
+            : mode === "reset-otp"
+              ? "Enter your reset code"
+              : "Create new password";
 
   const subheading =
     mode === "signup"
@@ -222,9 +267,13 @@ function AuthPage() {
         ? "Sign in to your trading account."
         : mode === "forgot"
           ? "We'll email you a 6-digit verification code."
-          : `Enter the 6-digit code sent to ${email}.`;
+          : mode === "reset"
+            ? "Choose a strong password you haven't used before."
+            : `Enter the 6-digit code sent to ${maskEmail(email)}.`;
 
-  const isCodeStep = mode === "verify" || mode === "reset";
+  const isCodeStep = mode === "verify" || mode === "reset-otp";
+  const expired = isCodeStep && expiresIn <= 0;
+
 
   return (
     <div className="hero-glow flex min-h-screen items-center justify-center px-4">
@@ -277,7 +326,7 @@ function AuthPage() {
           onSubmit={onSubmit}
           className={`space-y-3 ${mode === "signin" || mode === "signup" ? "" : "mt-6"}`}
         >
-          {!isCodeStep && (
+          {!isCodeStep && mode !== "reset" && (
             <input
               type="email"
               required
@@ -288,7 +337,31 @@ function AuthPage() {
             />
           )}
 
-          {isCodeStep && <OtpInput value={code} onChange={setCode} disabled={busy} />}
+          {isCodeStep && (
+            <>
+              <OtpInput
+                autoFocus
+                value={code}
+                onChange={(next) => {
+                  setCode(next);
+                  setCodeError("");
+                }}
+                disabled={busy}
+                invalid={!!codeError}
+              />
+              <div className="flex items-center justify-between text-xs">
+                <span className={expired ? "text-destructive" : "text-muted-foreground"}>
+                  {expired ? "Code expired" : `Expires in ${formatClock(expiresIn)}`}
+                </span>
+                {codeError && (
+                  <span role="alert" className="font-medium text-destructive">
+                    Invalid code
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+
 
           {(mode === "signin" || mode === "signup" || mode === "reset") && (
             <PasswordInput
@@ -337,7 +410,7 @@ function AuthPage() {
 
           <button
             type="submit"
-            disabled={busy || (isCodeStep && code.length < 6) || mismatch}
+            disabled={busy || (isCodeStep && (code.length < 6 || expired)) || mismatch}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {busy
@@ -350,7 +423,10 @@ function AuthPage() {
                     ? "Send 6-digit code"
                     : mode === "verify"
                       ? "Verify & continue"
-                      : "Update password"}
+                      : mode === "reset-otp"
+                        ? "Verify code"
+                        : "Update password"}
+
           </button>
           <TrustStrip className="pt-1" />
         </form>
