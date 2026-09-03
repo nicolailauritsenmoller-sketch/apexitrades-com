@@ -179,7 +179,9 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     if (!wd) throw new Error("Withdrawal not found.");
     if (wd.status !== "pending") throw new Error("Withdrawal already reviewed.");
 
-    if (data.action === "approve") {
+    // Funds were already held (debited) when the user submitted the request.
+    // Approval simply finalises it; rejection refunds the held amount.
+    if (data.action !== "approve") {
       const db = await privileged();
       const { data: wallet } = await db
         .from("wallets")
@@ -187,16 +189,19 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
         .eq("user_id", wd.user_id)
         .eq("currency", wd.coin)
         .maybeSingle();
-      if (!wallet || Number(wallet.balance) < Number(wd.amount)) {
-        throw new Error("User no longer has sufficient balance for this withdrawal.");
+      if (wallet) {
+        await db
+          .from("wallets")
+          .update({
+            balance: Number(wallet.balance) + Number(wd.amount),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", wallet.id);
+      } else {
+        await db
+          .from("wallets")
+          .insert({ user_id: wd.user_id, currency: wd.coin, balance: Number(wd.amount) });
       }
-      await db
-        .from("wallets")
-        .update({
-          balance: Number(wallet.balance) - Number(wd.amount),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", wallet.id);
     }
 
     const status = data.action === "approve" ? "approved" : "rejected";
