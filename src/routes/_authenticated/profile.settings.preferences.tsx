@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Coins, Languages, Palette } from "lucide-react";
+import { Check, Coins, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { ThemeSetting } from "@/lib/theme";
