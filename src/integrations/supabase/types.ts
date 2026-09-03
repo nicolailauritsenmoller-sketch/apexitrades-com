@@ -773,6 +773,9 @@ export type Database = {
       }
       support_ticket_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_path: string | null
+          attachment_type: string | null
           body: string
           created_at: string
           id: string
@@ -781,6 +784,9 @@ export type Database = {
           ticket_id: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_type?: string | null
           body: string
           created_at?: string
           id?: string
@@ -789,6 +795,9 @@ export type Database = {
           ticket_id: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_type?: string | null
           body?: string
           created_at?: string
           id?: string
@@ -814,6 +823,7 @@ export type Database = {
           created_at: string
           id: string
           priority: string
+          reference: string | null
           status: string
           subject: string
           updated_at: string
@@ -826,6 +836,7 @@ export type Database = {
           created_at?: string
           id?: string
           priority?: string
+          reference?: string | null
           status?: string
           subject: string
           updated_at?: string
@@ -838,6 +849,7 @@ export type Database = {
           created_at?: string
           id?: string
           priority?: string
+          reference?: string | null
           status?: string
           subject?: string
           updated_at?: string

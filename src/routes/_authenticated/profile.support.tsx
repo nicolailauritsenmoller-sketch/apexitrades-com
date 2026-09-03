@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { LifeBuoy, MessageCircle, ShieldCheck } from "lucide-react";
-import { Section, SubPageHeader } from "@/components/profile/ui";
+import { ChevronRight, FilePlus2, Inbox, MessageCircle, ShieldCheck } from "lucide-react";
+import { SubPageHeader } from "@/components/profile/ui";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
+
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
@@ -28,57 +29,77 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
 });
 
 function ContactSupport() {
+  const [ticketTab, setTicketTab] = useState<"submit" | "tickets">("submit");
   const [ticketOpen, setTicketOpen] = useState(false);
   const [vipOpen, setVipOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
+  const openTickets = (tab: "submit" | "tickets") => {
+    setTicketTab(tab);
+    setTicketOpen(true);
+  };
+
+  const items = [
+    {
+      icon: FilePlus2,
+      title: "Submit request",
+      description: "Create a new support request and receive an instant ticket reference number.",
+      onClick: () => openTickets("submit"),
+      tone: "text-primary",
+    },
+    {
+      icon: Inbox,
+      title: "Support tickets",
+      description: "View and manage existing support requests and conversation threads.",
+      onClick: () => openTickets("tickets"),
+      tone: "text-foreground",
+    },
+    {
+      icon: MessageCircle,
+      title: "Live chat",
+      description: "Start a real-time chat with customer support.",
+      onClick: () => setChatOpen(true),
+      tone: "text-foreground",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Priority support",
+      description: "Priority support for eligible VIP customers.",
+      onClick: () => setVipOpen(true),
+      tone: "text-emerald-600",
+    },
+  ];
+
   return (
     <>
-      <SubPageHeader title="Contact support" description="Tickets and live chat with the trading desk." />
+      <SubPageHeader title="Contact support" description="Requests, tickets and live help from the trading desk." />
 
-      <Section icon={LifeBuoy} title="Support tickets" description="Track requests and agent replies in one thread.">
-        <button
-          type="button"
-          onClick={() => setTicketOpen(true)}
-          className="min-h-10 w-full touch-manipulation rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
-        >
-          Open ticket centre
-        </button>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Include amounts, currencies and timestamps so an agent can resolve your request on the first reply.
-        </p>
-      </Section>
+      <div className="touch-manipulation overflow-hidden rounded-2xl border border-border bg-card">
+        {items.map(({ icon: Icon, title, description, onClick, tone }, i) => (
+          <button
+            key={title}
+            type="button"
+            onClick={onClick}
+            className={`flex w-full touch-manipulation items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-secondary ${
+              i > 0 ? "border-t border-border" : ""
+            }`}
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary">
+              <Icon className={`size-4.5 ${tone}`} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">{title}</span>
+              <span className="block text-xs text-muted-foreground">{description}</span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        ))}
+      </div>
 
-      <Section icon={MessageCircle} title="Live chat" description="Talk to an agent in real time.">
-        <button
-          type="button"
-          onClick={() => setChatOpen(true)}
-          className="min-h-10 w-full touch-manipulation rounded-xl border border-border px-4 text-sm font-semibold transition-colors hover:bg-secondary sm:w-auto"
-        >
-          Start live chat
-        </button>
-      </Section>
-
-      <Section
-        icon={ShieldCheck}
-        title="VIP priority chat"
-        description="Dedicated specialists for account, trading and security matters."
-      >
-        <button
-          type="button"
-          onClick={() => setVipOpen(true)}
-          className="min-h-10 w-full touch-manipulation rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-500/15 sm:w-auto"
-        >
-          Open VIP desk
-        </button>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Unlock individual specialist threads on request. Replies appear here and in your notifications.
-        </p>
-      </Section>
-
-      <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
+      <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} defaultTab={ticketTab} />
       <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
       <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} />
     </>
   );
 }
+
