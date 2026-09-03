@@ -52,11 +52,10 @@ const handler = createAuthEmailHandler({
         }),
     },
     recovery: {
-      subject: 'Reset your password',
+      subject: 'Your password reset code',
       render: (data) =>
         React.createElement(RecoveryEmail, {
           siteName: SITE_NAME,
-          confirmationUrl: data.url,
           token: data.token ?? '',
         }),
     },
