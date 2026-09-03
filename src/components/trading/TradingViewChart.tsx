@@ -274,15 +274,10 @@ function TradingViewChartInner({
   const [redrawTick, setRedrawTick] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showIndicators, setShowIndicators] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
 
   const colors = useThemeColors(wrapRef);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    const first = candles[0];
-    const last = candles[candles.length - 1];
-    console.log("[Chart] candles:", candles.length, "first:", first ? { t: first.t, o: first.o, h: first.h, l: first.l, c: first.c } : null, "last:", last ? { t: last.t, o: last.o, h: last.h, l: last.l, c: last.c } : null, "quote:", quote?.price, "tf:", timeframe, "loading:", isLoading, "colors.bg:", colors.background);
-  }, [candles.length, quote?.price, timeframe, isLoading, colors.background]);
 
   const timeframeMs = useMemo(() => {
     const map: Record<Timeframe, number> = {
@@ -336,6 +331,7 @@ function TradingViewChartInner({
         autoSize: true,
       });
       chartRef.current = chart;
+      setChartReady(true);
 
       // Volume pane (hidden until volume indicator active).
       const volumePane = chart.addPane();
@@ -362,6 +358,7 @@ function TradingViewChartInner({
 
     return () => {
       mounted = false;
+      setChartReady(false);
       if (chartRef.current) {
         chartRef.current.remove();
         chartRef.current = null;
@@ -437,7 +434,7 @@ function TradingViewChartInner({
       chart.timeScale().fitContent();
       fittedRef.current = true;
     }
-  }, [chartType, colors]);
+  }, [chartType, colors, chartReady]);
 
   // Update main data when candles/quote change.
   useEffect(() => {
