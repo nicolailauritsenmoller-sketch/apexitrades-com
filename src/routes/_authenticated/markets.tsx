@@ -64,30 +64,31 @@ function Markets() {
     8000,
   );
 
+  const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD"], 8000).quotes;
+
   return (
     <AppShell>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Markets</h1>
-          <p className="text-sm text-muted-foreground">
-            Live prices across crypto, stocks, futures, forex and metals.
-          </p>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setLimit(50);
-            }}
-            placeholder="Search instruments"
-            className="w-64 rounded-md border border-input bg-surface py-2 pl-9 pr-3 text-sm outline-none focus:border-ring"
-          />
-        </div>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold sm:text-2xl">Markets</h1>
+        <p className="text-sm text-muted-foreground">
+          Live prices across crypto, stocks, futures, forex and metals.
+        </p>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
+      <div className="relative mb-3">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setLimit(50);
+          }}
+          placeholder="Search instruments"
+          className="w-full rounded-xl border border-input bg-surface py-2.5 pl-9 pr-3 text-sm outline-none focus:border-ring"
+        />
+      </div>
+
+      <div className="-mx-3 mb-3 flex gap-1.5 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -95,10 +96,10 @@ function Markets() {
               setTab(t);
               setLimit(50);
             }}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+            className={`shrink-0 touch-manipulation rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
               tab === t
                 ? "bg-primary text-primary-foreground"
-                : "border border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                : "border border-border text-muted-foreground"
             }`}
           >
             {t === "all" ? "All" : ASSET_CLASS_LABEL[t]}
@@ -106,7 +107,73 @@ function Markets() {
         ))}
       </div>
 
-      <div className="panel overflow-x-auto">
+      <div className="mb-4 grid grid-cols-3 gap-2.5">
+        {[
+          { label: "Crypto", symbol: "BTCUSDT" },
+          { label: "Stocks", symbol: "AAPL" },
+          { label: "Gold", symbol: "XAUUSD" },
+        ].map(({ label, symbol }) => {
+          const s = summary[symbol];
+          const up = (s?.changePercent ?? 0) >= 0;
+          return (
+            <div key={label} className="panel p-3">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <AssetIcon symbol={symbol} size={16} />
+                {label}
+              </div>
+              <div className="num mt-1 truncate text-sm font-bold">
+                {s && !s.stale ? formatPrice(s.price, symbol) : "—"}
+              </div>
+              <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
+                {s && !s.stale ? `${up ? "+" : ""}${s.changePercent.toFixed(2)}%` : "—"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <h2 className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
+        Market overview
+      </h2>
+
+      {/* Mobile list */}
+      <div className="panel px-4 md:hidden">
+        {visible.map((i) => {
+          const quote = quotes[i.symbol];
+          const up = (quote?.changePercent ?? 0) >= 0;
+          return (
+            <Link
+              key={i.symbol}
+              to="/terminal/$symbol"
+              params={{ symbol: i.symbol }}
+              className="flex touch-manipulation items-center gap-3 border-b border-border/60 py-3 last:border-0"
+            >
+              <AssetIcon symbol={i.symbol} size={30} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{displaySymbol(i.symbol)}</div>
+                <div className="truncate text-[11px] text-muted-foreground">{i.name}</div>
+              </div>
+              <div className="shrink-0 text-right">
+                <div className="num text-sm font-semibold">
+                  {quote && !quote.stale ? formatPrice(quote.price, i.symbol) : "—"}
+                </div>
+                <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
+                  {quote && !quote.stale
+                    ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%`
+                    : "—"}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+        {visible.length === 0 && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No instruments match your search.
+          </p>
+        )}
+      </div>
+
+      <div className="panel hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
