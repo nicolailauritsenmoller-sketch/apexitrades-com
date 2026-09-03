@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
-import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import { Copy } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -69,30 +69,6 @@ export const Route = createFileRoute("/_authenticated/wallet")({
   ),
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
-
-const TABS = [
-  {
-    id: "deposit",
-    label: "Deposit",
-    icon: ArrowDownToLine,
-    active: "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20",
-    idle: "text-emerald-600 dark:text-emerald-500",
-  },
-  {
-    id: "withdraw",
-    label: "Withdraw",
-    icon: ArrowUpFromLine,
-    active: "bg-rose-600 text-white shadow-lg shadow-rose-600/20",
-    idle: "text-rose-600 dark:text-rose-500",
-  },
-  {
-    id: "swap",
-    label: "Swap",
-    icon: Repeat,
-    active: "bg-blue-600 text-white shadow-lg shadow-blue-600/20",
-    idle: "text-blue-600 dark:text-blue-500",
-  },
-] as const;
 
 function qrUrl(text: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
