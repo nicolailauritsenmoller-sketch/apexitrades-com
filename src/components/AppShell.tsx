@@ -27,8 +27,8 @@ import { useHasSession } from "@/lib/use-session";
 
 const NAV = [
   { to: "/dashboard", params: {}, label: "Home", icon: Home, exact: true },
-  { to: "/dashboard", params: {}, label: "Portfolio", icon: LayoutDashboard, exact: false },
-  { to: "/markets", params: {}, label: "Market", icon: Compass, exact: false },
+  { to: "/portfolio", params: {}, label: "Portfolio", icon: LayoutDashboard, exact: false },
+  { to: "/markets", params: {}, label: "Markets", icon: Compass, exact: false },
   {
     to: "/terminal/$symbol",
     params: { symbol: "BTCUSDT" },
@@ -39,6 +39,7 @@ const NAV = [
   { to: "/wallet", params: {}, label: "Wallet", icon: Wallet, exact: false },
   { to: "/profile", params: {}, label: "Profile", icon: UserRound, exact: false },
 ] as const;
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
