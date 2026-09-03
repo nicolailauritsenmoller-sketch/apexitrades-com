@@ -410,7 +410,7 @@ function AuthPage() {
 
           <button
             type="submit"
-            disabled={busy || (isCodeStep && code.length < 6) || mismatch}
+            disabled={busy || (isCodeStep && (code.length < 6 || expired)) || mismatch}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {busy
@@ -423,7 +423,10 @@ function AuthPage() {
                     ? "Send 6-digit code"
                     : mode === "verify"
                       ? "Verify & continue"
-                      : "Update password"}
+                      : mode === "reset-otp"
+                        ? "Verify code"
+                        : "Update password"}
+
           </button>
           <TrustStrip className="pt-1" />
         </form>
