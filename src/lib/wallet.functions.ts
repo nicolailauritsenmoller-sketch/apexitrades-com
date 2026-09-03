@@ -139,7 +139,8 @@ export const getPortfolioValue = createServerFn({ method: "POST" })
       frozen[c.currency] = (frozen[c.currency] ?? 0) + Number(c.stake);
     }
 
-    // Pending withdrawals are still inside the balance but reserved.
+    // Pending withdrawals are debited from the wallet at submission time, so
+    // they are reported for transparency only — never subtracted again here.
     const pending: Record<string, number> = {};
     for (const w of pendingWd ?? []) {
       pending[w.coin] = (pending[w.coin] ?? 0) + Number(w.amount);
@@ -163,8 +164,8 @@ export const getPortfolioValue = createServerFn({ method: "POST" })
       const rate = rates[currency] ?? 0;
       const balance = Number(wallet?.balance ?? 0);
       const frozenMargin = frozen[currency] ?? 0;
-      const inOrders = Math.min(pending[currency] ?? 0, balance);
-      const available = Math.max(balance - inOrders, 0);
+      const inOrders = pending[currency] ?? 0;
+      const available = Math.max(balance, 0);
       const total = balance + frozenMargin;
       return {
         currency,
