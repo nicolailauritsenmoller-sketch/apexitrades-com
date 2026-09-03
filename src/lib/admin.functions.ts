@@ -816,7 +816,7 @@ export const getSupportTickets = createServerFn({ method: "POST" })
     const rows: any[] = tickets ?? [];
     if (rows.length === 0) return { tickets: [], messages: [] };
 
-    const [profiles, kyc, messages] = await Promise.all([
+    const [profiles, kyc, messages, agentProfiles] = await Promise.all([
       db.from("profiles").select("id,display_name,uid").in("id", [...new Set(rows.map((t) => t.user_id))]),
       db.from("kyc_submissions").select("user_id,full_name").in("user_id", [...new Set(rows.map((t) => t.user_id))]),
       db
@@ -824,10 +824,12 @@ export const getSupportTickets = createServerFn({ method: "POST" })
         .select("*")
         .in("ticket_id", rows.map((t) => t.id))
         .order("created_at"),
+      db.from("agent_profiles").select("user_id,full_name,agent_role"),
     ]);
 
     const profileMap = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
     const kycMap = new Map((kyc.data ?? []).map((k: any) => [k.user_id, k]));
+    const agentMap = new Map((agentProfiles.data ?? []).map((a: any) => [a.user_id, a]));
 
     const msgs = messages.data ?? [];
     return {
@@ -836,6 +838,10 @@ export const getSupportTickets = createServerFn({ method: "POST" })
         displayName: (profileMap.get(t.user_id) as any)?.display_name ?? "Trader",
         uid: (profileMap.get(t.user_id) as any)?.uid ?? null,
         legalName: (kycMap.get(t.user_id) as any)?.full_name ?? null,
+        assignedAgentName:
+          (agentMap.get(t.assigned_agent_id) as any)?.full_name ??
+          (profileMap.get(t.assigned_agent_id) as any)?.display_name ??
+          null,
         unread: msgs.filter(
           (m: any) =>
             m.ticket_id === t.id &&
@@ -846,6 +852,85 @@ export const getSupportTickets = createServerFn({ method: "POST" })
       messages: msgs,
     };
   });
+
+/** Staff members who can own a ticket (admin, finance or agent roles). */
+export const listSupportAgents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const [roles, agents, profiles] = await Promise.all([
+      db.from("user_roles").select("user_id,role").in("role", ["admin", "finance", "agent"]),
+      db.from("agent_profiles").select("user_id,full_name,agent_role"),
+      db.from("profiles").select("id,display_name"),
+    ]);
+    const agentMap = new Map((agents.data ?? []).map((a: any) => [a.user_id, a]));
+    const nameMap = new Map((profiles.data ?? []).map((p: any) => [p.id, p.display_name]));
+    const seen = new Set<string>();
+    const list: { id: string; name: string; role: string }[] = [];
+    for (const r of roles.data ?? []) {
+      if (seen.has(r.user_id)) continue;
+      seen.add(r.user_id);
+      const a: any = agentMap.get(r.user_id);
+      list.push({
+        id: r.user_id,
+        name: a?.full_name ?? nameMap.get(r.user_id) ?? "Support agent",
+        role: a?.agent_role ?? r.role,
+      });
+    }
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+/** Assignment, priority, category, resolution note and private internal notes. */
+export const updateTicketFields = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        ticketId: z.string().uuid(),
+        assignedAgentId: z.string().uuid().nullable().optional(),
+        priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+        category: z.string().min(2).max(40).optional(),
+        resolutionNote: z.string().max(2000).nullable().optional(),
+        internalNotes: z.string().max(4000).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const patch: Record<string, unknown> = {};
+    if (data.assignedAgentId !== undefined) patch['assigned_agent_id'] = data.assignedAgentId;
+    if (data.priority !== undefined) patch['priority'] = data.priority;
+    if (data.category !== undefined) patch['category'] = data.category;
+    if (data.resolutionNote !== undefined) patch['resolution_note'] = data.resolutionNote;
+    if (data.internalNotes !== undefined) patch['internal_notes'] = data.internalNotes;
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await db.from("support_tickets").update(patch).eq("id", data.ticketId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Private note kept on the thread — never returned to the customer (RLS blocks it). */
+export const addTicketInternalNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ ticketId: z.string().uuid(), body: z.string().trim().min(1).max(2000) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { error } = await db.from("support_ticket_messages").insert({
+      ticket_id: data.ticketId,
+      sender_id: context.userId,
+      sender_role: "agent",
+      body: data.body,
+      internal: true,
+    } as any);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 export const markTicketRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -869,30 +954,48 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
       .object({
         ticketId: z.string().uuid(),
         status: z.enum(["open", "in_progress", "pending", "waiting_customer", "resolved", "closed"]),
+        resolutionNote: z.string().trim().max(2000).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertStaff(context);
     const db = await privileged();
+    const patch: Record<string, unknown> = {
+      status: data.status,
+      admin_last_read_at: new Date().toISOString(),
+    };
+    if (data.resolutionNote) patch['resolution_note'] = data.resolutionNote;
     const { data: row, error } = await db
       .from("support_tickets")
-      .update({ status: data.status, admin_last_read_at: new Date().toISOString() })
+      .update(patch)
       .eq("id", data.ticketId)
       .select()
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (row) {
+      const label =
+        ({
+          open: "Open",
+          in_progress: "In Progress",
+          pending: "Waiting for Customer",
+          waiting_customer: "Waiting for Customer",
+          resolved: "Resolved",
+          closed: "Closed",
+        } as Record<string, string>)[data.status] ?? data.status;
       await notify(
         db,
         row.user_id,
-        `Ticket ${data.status}`,
-        `Your ticket "${row.subject}" is now marked ${data.status}.`,
-        data.status === "resolved" ? "success" : "info",
+        `Ticket ${label}`,
+        `Your ticket "${row.subject}"${row.reference ? ` (${row.reference})` : ""} is now marked ${label}.${
+          data.resolutionNote ? ` ${data.resolutionNote}` : ""
+        }`,
+        data.status === "resolved" || data.status === "closed" ? "success" : "info",
       );
     }
     return { ok: true };
   });
+
 
 /** Signed URL for a ticket attachment (staff only). Handles legacy chat-attachments paths. */
 export const getTicketAttachmentUrl = createServerFn({ method: "POST" })
@@ -914,7 +1017,10 @@ export const replyToTicket = createServerFn({ method: "POST" })
     z
       .object({
         ticketId: z.string().uuid(),
-        body: z.string().trim().min(1).max(2000),
+        body: z.string().trim().min(1).max(4000),
+        status: z
+          .enum(["open", "in_progress", "waiting_customer", "resolved", "closed"])
+          .optional(),
         attachment: z
           .object({
             path: z.string().min(1).max(400),
@@ -930,7 +1036,7 @@ export const replyToTicket = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: ticket } = await db
       .from("support_tickets")
-      .select("id,user_id,subject")
+      .select("id,user_id,subject,reference,assigned_agent_id")
       .eq("id", data.ticketId)
       .maybeSingle();
     if (!ticket) throw new Error("Ticket not found.");
@@ -946,19 +1052,27 @@ export const replyToTicket = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
+    const now = new Date().toISOString();
     await db
       .from("support_tickets")
-      .update({ status: "waiting_customer", admin_last_read_at: new Date().toISOString() })
+      .update({
+        status: data.status ?? "waiting_customer",
+        admin_last_read_at: now,
+        last_response_at: now,
+        // First responder takes ownership automatically.
+        assigned_agent_id: (ticket as any).assigned_agent_id ?? context.userId,
+      } as any)
       .eq("id", data.ticketId);
     await notify(
       db,
       ticket.user_id,
       "Support replied to your ticket",
-      `${ticket.subject}: ${data.body.slice(0, 200)}`,
+      `${(ticket as any).reference ? `${(ticket as any).reference} · ` : ""}${ticket.subject}: ${data.body.slice(0, 200)}`,
       "info",
     );
     return { ok: true };
   });
+
 
 /* ------------------------------------------------------------------ */
 /* Roles, credit scores and audit logging                              */

@@ -779,6 +779,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          internal: boolean
           sender_id: string
           sender_role: string
           ticket_id: string
@@ -790,6 +791,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          internal?: boolean
           sender_id: string
           sender_role?: string
           ticket_id: string
@@ -801,6 +803,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          internal?: boolean
           sender_id?: string
           sender_role?: string
           ticket_id?: string
@@ -818,14 +821,18 @@ export type Database = {
       support_tickets: {
         Row: {
           admin_last_read_at: string
+          assigned_agent_id: string | null
           body: string | null
           category: string
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          internal_notes: string | null
+          last_response_at: string | null
           priority: string
           reference: string | null
+          resolution_note: string | null
           status: string
           subject: string
           updated_at: string
@@ -833,14 +840,18 @@ export type Database = {
         }
         Insert: {
           admin_last_read_at?: string
+          assigned_agent_id?: string | null
           body?: string | null
           category?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          internal_notes?: string | null
+          last_response_at?: string | null
           priority?: string
           reference?: string | null
+          resolution_note?: string | null
           status?: string
           subject: string
           updated_at?: string
@@ -848,14 +859,18 @@ export type Database = {
         }
         Update: {
           admin_last_read_at?: string
+          assigned_agent_id?: string | null
           body?: string | null
           category?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          internal_notes?: string | null
+          last_response_at?: string | null
           priority?: string
           reference?: string | null
+          resolution_note?: string | null
           status?: string
           subject?: string
           updated_at?: string
