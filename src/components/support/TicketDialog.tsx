@@ -118,7 +118,7 @@ export function TicketDialog({
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Session expired.");
       const path = `${user.user.id}/tickets/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
+      const { error } = await supabase.storage.from("support-attachments").upload(path, file);
       if (error) throw new Error(error.message);
       return { path, name: file.name, type: file.type };
     } finally {
