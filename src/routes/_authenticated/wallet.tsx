@@ -189,31 +189,19 @@ function WalletPage() {
     <AppShell>
       <h1 className="text-2xl font-bold">Wallet</h1>
       <p className="mb-5 text-sm text-muted-foreground">
-        Fund your account, request withdrawals and swap between assets at live rates.
+        Manage your assets, deposits and withdrawals
       </p>
 
       <div className="mb-6">
-        <AssetsOverview
+        <WalletBalancePanel
           holdings={wallets}
           totalUsdt={value.data?.totalUsdt ?? 0}
           isLoading={value.isLoading}
+          active={tab}
+          onSelect={setTab}
         />
       </div>
 
-      <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl bg-secondary/60 p-1.5">
-        {TABS.map(({ id, label, icon: Icon, active, idle }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${
-              tab === id ? active : `${idle} hover:bg-background/60`
-            }`}
-          >
-            <Icon className="size-5" strokeWidth={2.6} />
-            {label}
-          </button>
-        ))}
-      </div>
 
       {tab === "deposit" && (
         <DepositTab
