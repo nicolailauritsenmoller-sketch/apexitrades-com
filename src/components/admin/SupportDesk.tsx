@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Inbox,
   Loader2,
+  Lock,
   Paperclip,
   Send,
   Ticket,
@@ -27,6 +28,9 @@ import {
   setThreadStatus,
   updateTicketStatus,
   getTicketAttachmentUrl,
+  listSupportAgents,
+  updateTicketFields,
+  addTicketInternalNote,
 } from "@/lib/admin.functions";
 
 const STATUS_FILTERS = [
