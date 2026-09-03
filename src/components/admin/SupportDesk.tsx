@@ -446,22 +446,82 @@ function ChatInboxes() {
 
 /* ------------------------------ tickets ------------------------------ */
 
+const CATEGORY_OPTIONS = [
+  "account",
+  "kyc",
+  "deposits",
+  "withdrawals",
+  "trading",
+  "wallet",
+  "security",
+  "technical",
+  "fees",
+  "settings",
+  "general",
+  "other",
+] as const;
+
+const PRIORITY_OPTIONS = ["low", "normal", "high", "urgent"] as const;
+
+const SORTS = [
+  { id: "recent", label: "Newest" },
+  { id: "priority", label: "Priority" },
+  { id: "status", label: "Status" },
+  { id: "customer", label: "Customer" },
+] as const;
+type SortKey = (typeof SORTS)[number]["id"];
+
+const PRIORITY_RANK: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+
+/** Acknowledgment → Understanding → Action → Next step. */
+function defaultReplyTemplate(ticket: any) {
+  const name = (ticket?.full_name ?? ticket?.legalName ?? ticket?.displayName ?? "there")
+    .toString()
+    .split(" ")[0];
+  const issue = String(ticket?.category ?? "your request").replace(/_/g, " ");
+  const ref = ticket?.reference ?? String(ticket?.id ?? "").slice(0, 8).toUpperCase();
+  return `Hello ${name},
+
+Thank you for contacting Support. We've received your request regarding ${issue} and ticket #${ref} has been assigned.
+
+We are currently reviewing your account details and will update you directly through this thread as soon as we have completed our investigation.
+
+Next step: No further action is needed from your end right now. If we require additional details, we will notify you here.
+
+Regards,
+Support Team`;
+}
+
 function TicketsDesk() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [sort, setSort] = useState<SortKey>("recent");
+  const [search, setSearch] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [note, setNote] = useState("");
+  const [notes, setNotes] = useState("");
 
   const fetchTickets = useServerFn(getSupportTickets);
+  const fetchAgents = useServerFn(listSupportAgents);
   const setStatus = useServerFn(updateTicketStatus);
   const reply = useServerFn(replyToTicket);
   const markRead = useServerFn(markTicketRead);
+  const updateFields = useServerFn(updateTicketFields);
+  const addNote = useServerFn(addTicketInternalNote);
 
   const query = useQuery({
     queryKey: ["support-tickets"],
     queryFn: () => fetchTickets(),
     refetchInterval: 20_000,
   });
+
+  const agentsQuery = useQuery({
+    queryKey: ["support-agents"],
+    queryFn: () => fetchAgents(),
+    staleTime: 5 * 60_000,
+  });
+  const agents = (agentsQuery.data ?? []) as { id: string; name: string; role: string }[];
 
   // Opening a ticket clears its unread indicator in the database.
   useEffect(() => {
@@ -474,7 +534,7 @@ function TicketsDesk() {
   }, [activeId, markRead, qc]);
 
   const statusMutation = useMutation({
-    mutationFn: (v: { ticketId: string; status: string }) =>
+    mutationFn: (v: { ticketId: string; status: string; resolutionNote?: string }) =>
       setStatus({ data: v }),
     onSuccess: async () => {
       toast.success("Ticket updated");
@@ -485,8 +545,27 @@ function TicketsDesk() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const fieldsMutation = useMutation({
+    mutationFn: (v: Record<string, unknown>) => updateFields({ data: v as any }),
+    onSuccess: async () => {
+      toast.success("Ticket saved");
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: (v: { ticketId: string; body: string }) => addNote({ data: v }),
+    onSuccess: async () => {
+      setNote("");
+      toast.success("Internal note added (private)");
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const replyMutation = useMutation({
-    mutationFn: (v: { ticketId: string; body: string }) => reply({ data: v }),
+    mutationFn: (v: { ticketId: string; body: string; status?: string }) => reply({ data: v as any }),
     onSuccess: async () => {
       setDraft("");
       toast.success("Reply sent to the trader's dashboard");
@@ -500,10 +579,38 @@ function TicketsDesk() {
   const messages = ((query.data as any)?.messages ?? []) as any[];
   const filtered = useMemo(() => {
     const rule = STATUS_FILTERS.find((f) => f.id === filter)!;
-    return tickets.filter((t) => rule.match(t.status));
-  }, [tickets, filter]);
+    const term = search.trim().toLowerCase();
+    const rows = tickets.filter(
+      (t) =>
+        rule.match(t.status) &&
+        (!term ||
+          [t.reference, t.subject, t.full_name, t.legalName, t.displayName, t.email]
+            .filter(Boolean)
+            .some((v: string) => String(v).toLowerCase().includes(term))),
+    );
+    const sorted = [...rows];
+    sorted.sort((a, b) => {
+      if (sort === "priority")
+        return (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9);
+      if (sort === "status") return String(a.status).localeCompare(String(b.status));
+      if (sort === "customer")
+        return String(a.full_name ?? a.displayName).localeCompare(
+          String(b.full_name ?? b.displayName),
+        );
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    return sorted;
+  }, [tickets, filter, sort, search]);
   const active = tickets.find((t) => t.id === activeId) ?? null;
 
+  // Load a professional starter reply and the stored private notes on open.
+  useEffect(() => {
+    if (!active) return;
+    setDraft(defaultReplyTemplate(active));
+    setNotes(active.internal_notes ?? "");
+  }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const thread = messages.filter((m) => m.ticket_id === active?.id);
 
   return (
     <div className="space-y-3">
@@ -521,19 +628,37 @@ function TicketsDesk() {
             {f.label} ({tickets.filter((t) => f.match(t.status)).length})
           </button>
         ))}
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search ref, subject or customer…"
+          className="ml-auto w-full rounded-md border border-border bg-background px-3 py-1.5 text-xs outline-none sm:w-64"
+        />
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortKey)}
+          className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+          aria-label="Sort tickets"
+        >
+          {SORTS.map((s) => (
+            <option key={s.id} value={s.id}>
+              Sort: {s.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_22rem]">
+      <div className="grid gap-3 xl:grid-cols-[1fr_26rem]">
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr className="border-b border-border">
-                <th className="px-3 py-2">Reference</th>
-                <th className="px-3 py-2">Subject</th>
-                <th className="px-3 py-2">Trader</th>
+                <th className="px-3 py-2">Ticket ID</th>
+                <th className="px-3 py-2">Customer</th>
                 <th className="px-3 py-2">Category</th>
                 <th className="px-3 py-2">Priority</th>
                 <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Assigned</th>
               </tr>
             </thead>
             <tbody>
@@ -546,22 +671,20 @@ function TicketsDesk() {
                   }`}
                 >
                   <td className="whitespace-nowrap px-3 py-2 font-mono text-xs text-muted-foreground">
-                    {t.reference ?? "—"}
-                  </td>
-                  <td className="max-w-[16rem] px-3 py-2">
                     <span className="flex items-center gap-2">
                       {t.unread > 0 && (
                         <span className="size-2 shrink-0 rounded-full bg-bear" aria-label="Unread" />
                       )}
-                      <span
-                        className={`truncate ${t.unread > 0 ? "font-semibold text-foreground" : ""}`}
-                      >
-                        {t.subject}
-                      </span>
+                      {t.reference ?? "—"}
+                    </span>
+                    <span className="block max-w-[14rem] truncate text-[10px] text-muted-foreground">
+                      {t.subject}
                     </span>
                   </td>
                   <td className="px-3 py-2">
-                    <span className="block truncate text-xs">{t.legalName ?? t.displayName}</span>
+                    <span className="block truncate text-xs">
+                      {t.full_name ?? t.legalName ?? t.displayName}
+                    </span>
                     <span className="block truncate text-[10px] text-muted-foreground">
                       {t.email ?? t.uid ?? t.user_id.slice(0, 8)}
                     </span>
@@ -571,23 +694,14 @@ function TicketsDesk() {
                     {t.priority}
                   </td>
                   <td className="px-3 py-2">
-                    <span className={`mr-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[t.status] ?? ""}`}>
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_TONE[t.status] ?? ""}`}
+                    >
                       {STATUS_LABEL[t.status] ?? t.status}
                     </span>
-                    <select
-                      value={t.status}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        statusMutation.mutate({ ticketId: t.id, status: e.target.value as any })
-                      }
-                      className="rounded-md border border-border bg-background px-2 py-1 text-xs capitalize"
-                    >
-                      {TICKET_STATE_OPTIONS.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">
+                    {t.assignedAgentName ?? "Unassigned"}
                   </td>
                 </tr>
               ))}
@@ -605,83 +719,263 @@ function TicketsDesk() {
         <div className="rounded-lg border border-border bg-card p-3">
           {!active ? (
             <p className="py-8 text-center text-xs text-muted-foreground">
-              Select a ticket to read the thread and reply.
+              Select a ticket to open the agent workspace.
             </p>
           ) : (
             <div className="space-y-3">
-              <div>
+              {/* Customer profile & request info */}
+              <div className="rounded-md border border-border bg-secondary/40 p-3">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   {active.subject}
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[active.status] ?? ""}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_TONE[active.status] ?? ""}`}
+                  >
                     {STATUS_LABEL[active.status] ?? active.status}
                   </span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {active.reference ? `${active.reference} · ` : ""}
-                  {active.full_name ?? active.legalName ?? active.displayName}
-                  {active.email ? ` · ${active.email}` : ""} ·{" "}
-                  {new Date(active.created_at).toLocaleString()}
-                </p>
-                <p className="text-[11px] text-muted-foreground capitalize">
-                  {active.category} · {active.priority} priority
-                </p>
+                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                  <div>
+                    <dt className="opacity-70">Ticket</dt>
+                    <dd className="font-mono text-foreground">{active.reference ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Opened</dt>
+                    <dd className="text-foreground">
+                      {new Date(active.created_at).toLocaleString()}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Customer</dt>
+                    <dd className="truncate text-foreground">
+                      {active.full_name ?? active.legalName ?? active.displayName}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Verified email</dt>
+                    <dd className="truncate text-foreground">{active.email ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">UID</dt>
+                    <dd className="font-mono text-foreground">{active.uid ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Last response</dt>
+                    <dd className="text-foreground">
+                      {active.last_response_at
+                        ? new Date(active.last_response_at).toLocaleString()
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
+
+              {/* Control actions */}
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Assign
+                  <select
+                    value={active.assigned_agent_id ?? ""}
+                    onChange={(e) =>
+                      fieldsMutation.mutate({
+                        ticketId: active.id,
+                        assignedAgentId: e.target.value || null,
+                      })
+                    }
+                    className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-xs capitalize text-foreground"
+                  >
+                    <option value="">Unassigned</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Priority
+                  <select
+                    value={active.priority}
+                    onChange={(e) =>
+                      fieldsMutation.mutate({ ticketId: active.id, priority: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-xs capitalize text-foreground"
+                  >
+                    {PRIORITY_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Category
+                  <select
+                    value={active.category}
+                    onChange={(e) =>
+                      fieldsMutation.mutate({ ticketId: active.id, category: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-xs capitalize text-foreground"
+                  >
+                    {CATEGORY_OPTIONS.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {/* Thread conversation */}
               <div className="max-h-64 space-y-2 overflow-y-auto">
-                {messages
-                  .filter((m) => m.ticket_id === active.id)
-                  .map((m) => (
-                    <div
-                      key={m.id}
-                      className={`rounded-lg px-3 py-2 text-xs ${
-                        m.sender_role === "user" ? "bg-secondary" : "bg-primary/10 text-primary"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{m.body}</p>
-                      {m.attachment_path && (
-                        <TicketAttachment path={m.attachment_path} name={m.attachment_name} />
-                      )}
-                    </div>
-                  ))}
+                {thread.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`rounded-lg px-3 py-2 text-xs ${
+                      m.internal
+                        ? "border border-dashed border-warning/50 bg-warning/10 text-warning"
+                        : m.sender_role === "user"
+                          ? "bg-secondary"
+                          : "bg-primary/10 text-primary"
+                    }`}
+                  >
+                    {m.internal && (
+                      <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase">
+                        <Lock className="size-3" /> Internal note — hidden from customer
+                      </p>
+                    )}
+                    <p className="whitespace-pre-wrap">{m.body}</p>
+                    {m.attachment_path && (
+                      <TicketAttachment path={m.attachment_path} name={m.attachment_name} />
+                    )}
+                    <span className="mt-1 block text-[10px] opacity-70">
+                      {new Date(m.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+                {thread.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground">No messages yet.</p>
+                )}
               </div>
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={3}
-                maxLength={2000}
-                placeholder="Official agent reply…"
-                className="w-full rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
-              />
-              <button
-                onClick={() =>
-                  draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })
-                }
-                disabled={replyMutation.isPending}
-                className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              >
-                {replyMutation.isPending ? "Sending…" : "Send reply"}
-              </button>
-              {active.status === "resolved" ? (
+
+              {/* Reply */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Agent reply
+                  </span>
+                  <button
+                    onClick={() => setDraft(defaultReplyTemplate(active))}
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    Reset template
+                  </button>
+                </div>
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={8}
+                  maxLength={4000}
+                  placeholder="Official agent reply…"
+                  className="w-full rounded-md bg-secondary px-3 py-2 text-xs outline-none placeholder:text-muted-foreground"
+                />
                 <button
                   onClick={() =>
-                    statusMutation.mutate({ ticketId: active.id, status: "open" })
+                    draft.trim() && replyMutation.mutate({ ticketId: active.id, body: draft.trim() })
                   }
-                  disabled={statusMutation.isPending}
-                  className="w-full rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  disabled={replyMutation.isPending}
+                  className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
                 >
-                  Reopen ticket
+                  {replyMutation.isPending ? "Sending…" : "Send reply"}
                 </button>
-              ) : (
+              </div>
+
+              {/* Private internal notes */}
+              <div className="space-y-2 rounded-md border border-dashed border-border p-2">
+                <p className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <Lock className="size-3" /> Private internal notes
+                </p>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  maxLength={4000}
+                  placeholder="Case notes kept on the ticket record…"
+                  className="w-full rounded-md bg-secondary px-3 py-2 text-xs outline-none"
+                />
                 <button
                   onClick={() =>
-                    statusMutation.mutate({ ticketId: active.id, status: "resolved" })
+                    fieldsMutation.mutate({ ticketId: active.id, internalNotes: notes })
+                  }
+                  className="w-full rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary"
+                >
+                  Save notes
+                </button>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  maxLength={2000}
+                  placeholder="Add a timestamped private note to the thread…"
+                  className="w-full rounded-md bg-secondary px-3 py-2 text-xs outline-none"
+                />
+                <button
+                  onClick={() =>
+                    note.trim() && noteMutation.mutate({ ticketId: active.id, body: note.trim() })
+                  }
+                  disabled={noteMutation.isPending}
+                  className="w-full rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary disabled:opacity-50"
+                >
+                  Add internal note
+                </button>
+              </div>
+
+              {/* Lifecycle actions */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() =>
+                    statusMutation.mutate({ ticketId: active.id, status: "in_progress" })
+                  }
+                  className="rounded-md border border-border px-3 py-2 text-xs hover:bg-secondary"
+                >
+                  Mark In Progress
+                </button>
+                <button
+                  onClick={() =>
+                    statusMutation.mutate({ ticketId: active.id, status: "waiting_customer" })
+                  }
+                  className="rounded-md border border-warning/50 px-3 py-2 text-xs text-warning hover:bg-warning/10"
+                >
+                  Waiting for Customer
+                </button>
+                <button
+                  onClick={() =>
+                    statusMutation.mutate({
+                      ticketId: active.id,
+                      status: "resolved",
+                      resolutionNote: notes.trim() ? undefined : undefined,
+                    })
                   }
                   disabled={statusMutation.isPending}
-                  className="flex w-full items-center justify-center gap-2 rounded-md bg-bull px-3 py-2 text-sm font-medium text-background disabled:opacity-50"
+                  className="flex items-center justify-center gap-1 rounded-md bg-bull px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
                 >
-                  <CheckCircle2 className="size-4" />
-                  Close ticket / Mark resolved
+                  <CheckCircle2 className="size-3" /> Resolve
                 </button>
-              )}
+                <button
+                  onClick={() => statusMutation.mutate({ ticketId: active.id, status: "closed" })}
+                  disabled={statusMutation.isPending}
+                  className="rounded-md bg-secondary px-3 py-2 text-xs font-medium hover:bg-secondary/70 disabled:opacity-50"
+                >
+                  Close ticket
+                </button>
+                {(active.status === "resolved" || active.status === "closed") && (
+                  <button
+                    onClick={() => statusMutation.mutate({ ticketId: active.id, status: "open" })}
+                    className="col-span-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Reopen ticket
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -689,6 +983,7 @@ function TicketsDesk() {
     </div>
   );
 }
+
 
 /** Opens a signed link to a ticket attachment for the agent. */
 function TicketAttachment({ path, name }: { path: string; name: string | null }) {
