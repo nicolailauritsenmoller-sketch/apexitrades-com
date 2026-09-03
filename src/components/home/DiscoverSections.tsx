@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,6 +15,8 @@ import {
   Banknote,
   CandlestickChart,
   TrendingUp,
+  Landmark,
+
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -164,36 +166,59 @@ export function DiscoverPerpsSection() {
 
 const NEWS_TABS = [
   { id: "all", label: "All" },
-  { id: "crypto", label: "Crypto" },
-  { id: "gold", label: "Gold" },
-  { id: "forex", label: "Forex" },
-  { id: "futures", label: "Futures" },
   { id: "stocks", label: "Stocks" },
+  { id: "crypto", label: "Crypto" },
+  { id: "commodities", label: "Commodities" },
+  { id: "forex", label: "Forex" },
+  { id: "macro", label: "Central Banks / Macro" },
+  { id: "regulation", label: "Regulations" },
 ] as const;
+
+const CATEGORY_LABEL: Record<NewsCategory, string> = {
+  stocks: "Stocks",
+  crypto: "Crypto",
+  commodities: "Commodities",
+  forex: "Forex",
+  macro: "Central banks",
+  regulation: "Regulations",
+};
 
 const CATEGORY_GRADIENT: Record<NewsCategory, string> = {
   crypto: "from-primary/30 via-primary/10 to-transparent",
-  gold: "from-amber-500/30 via-amber-500/10 to-transparent",
+  commodities: "from-amber-500/30 via-amber-500/10 to-transparent",
   forex: "from-sky-500/30 via-sky-500/10 to-transparent",
-  futures: "from-violet-500/30 via-violet-500/10 to-transparent",
+  macro: "from-violet-500/30 via-violet-500/10 to-transparent",
+  regulation: "from-rose-500/30 via-rose-500/10 to-transparent",
   stocks: "from-emerald-500/30 via-emerald-500/10 to-transparent",
 };
 
 const CATEGORY_ICON: Record<NewsCategory, typeof Newspaper> = {
   crypto: Bitcoin,
-  gold: Coins,
+  commodities: Coins,
   forex: Banknote,
-  futures: CandlestickChart,
+  macro: CandlestickChart,
+  regulation: Landmark,
   stocks: TrendingUp,
 };
 
+
 function timeAgo(iso: string) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.round(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.round(hrs / 24)}d ago`;
 }
+
+function CategoryTag({ category }: { category: NewsCategory }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-border bg-surface-raised px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      {CATEGORY_LABEL[category]}
+    </span>
+  );
+}
+
 
 /** Publisher favicon with a lettered fallback when the brand icon can't load. */
 function PublisherMark({ domain, source, size = 18 }: { domain: string; source: string; size?: number }) {
@@ -295,11 +320,20 @@ export function MarketNewsSection() {
   const news = useQuery({
     queryKey: ["market-news"],
     queryFn: () => fetchNews(),
-    refetchInterval: 120_000,
-    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    staleTime: 30_000,
   });
 
+  // Keep the "12m ago" stamps ticking without refetching.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const items = (news.data ?? []).filter((n) => tab === "all" || n.category === tab).slice(0, 13);
+
   const [lead, ...rest] = items;
 
   const symbols = useMemo(
@@ -370,10 +404,11 @@ export function MarketNewsSection() {
                   </p>
                 ) : null}
                 <TickerBadges symbols={lead.tickers} quotes={quotes} />
-                <span className="mt-3 inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {lead.category}
-                  <ExternalLink className="size-3" />
+                <span className="mt-3 inline-flex items-center gap-2">
+                  <CategoryTag category={lead.category} />
+                  <ExternalLink className="size-3 text-muted-foreground" />
                 </span>
+
               </div>
             </a>
           ) : null}
@@ -400,7 +435,11 @@ export function MarketNewsSection() {
                   <p className="mt-1 line-clamp-3 text-[13px] font-semibold leading-snug group-hover:text-primary">
                     {n.title}
                   </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <CategoryTag category={n.category} />
+                  </div>
                   <TickerBadges symbols={n.tickers.slice(0, 2)} quotes={quotes} />
+
                 </div>
               </a>
             ))}
