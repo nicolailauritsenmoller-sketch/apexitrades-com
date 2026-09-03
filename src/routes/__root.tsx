@@ -150,6 +150,13 @@ function RootComponent() {
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       if (event === "SIGNED_IN") void restoreAccountPreferences();
+      // Any sign-out (from any screen) lands on the public landing page.
+      if (event === "SIGNED_OUT") {
+        const path = router.state.location.pathname;
+        if (path !== "/" && path !== "/auth" && !path.startsWith("/reset-password")) {
+          router.navigate({ to: "/", replace: true });
+        }
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
