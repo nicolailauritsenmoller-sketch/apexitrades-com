@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Info, ShieldAlert, X } from "lucide-react";
 import { getActiveAnnouncements, type Announcement } from "@/lib/announcements.functions";
+import { useHasSession } from "@/lib/use-session";
 
 const STORAGE_KEY = "vt.dismissed-announcements";
 
