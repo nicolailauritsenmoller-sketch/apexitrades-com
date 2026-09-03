@@ -317,7 +317,12 @@ function AdminPage() {
   const fetchOverview = useServerFn(getAdminOverview);
   const fetchAnalytics = useServerFn(getAdminAnalytics);
 
-  const access = useQuery({ queryKey: ["my-access"], queryFn: () => fetchAccess() });
+  const access = useQuery({
+    queryKey: ["my-access"],
+    queryFn: () => fetchAccess(),
+    enabled: hasSession === true,
+    retry: false,
+  });
   const isAdmin = access.data?.isAdmin === true;
   const canFinance = access.data?.canFinance === true;
   const isStaff = access.data?.isStaff === true;
