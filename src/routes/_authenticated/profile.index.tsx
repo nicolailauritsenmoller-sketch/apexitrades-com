@@ -112,6 +112,16 @@ function ListRow({
 
 function ProfileHome() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    clearQueryCachePersistence();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
+
   const fetchOverview = useServerFn(getProfileOverview);
   const fetchKyc = useServerFn(getMyKyc);
   const fetchAccess = useServerFn(getMyAccess);
