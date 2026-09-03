@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wallet, TrendingUp, Activity } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
