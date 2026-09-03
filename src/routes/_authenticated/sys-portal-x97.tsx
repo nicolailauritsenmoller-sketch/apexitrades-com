@@ -138,8 +138,9 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "Live support",
     items: [
       { id: "support", label: "Live Chat", icon: MessagesSquare },
-      { id: "vip", label: "VIP Live Chat", icon: BadgeCheck },
-      { id: "tickets", label: "Support tickets", icon: LifeBuoy },
+      { id: "vip", label: "Priority Support", icon: BadgeCheck },
+      { id: "requests", label: "Submitted Requests", icon: Inbox },
+      { id: "tickets", label: "Support Tickets", icon: LifeBuoy },
     ],
   },
   {
