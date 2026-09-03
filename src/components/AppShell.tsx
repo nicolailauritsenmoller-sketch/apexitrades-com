@@ -24,20 +24,21 @@ import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { useHasSession } from "@/lib/use-session";
+import { useT, type TranslationKey } from "@/lib/i18n";
 
 const NAV = [
-  { to: "/dashboard", params: {}, label: "Home", icon: Home, exact: true },
-  { to: "/portfolio", params: {}, label: "Portfolio", icon: LayoutDashboard, exact: false },
-  { to: "/markets", params: {}, label: "Markets", icon: Compass, exact: false },
+  { to: "/dashboard", params: {}, label: "nav.home", icon: Home, exact: true },
+  { to: "/portfolio", params: {}, label: "nav.portfolio", icon: LayoutDashboard, exact: false },
+  { to: "/markets", params: {}, label: "nav.markets", icon: Compass, exact: false },
   {
     to: "/terminal/$symbol",
     params: { symbol: "BTCUSDT" },
-    label: "Trade",
+    label: "nav.trade",
     icon: LineChart,
     exact: false,
   },
-  { to: "/wallet", params: {}, label: "Wallet", icon: Wallet, exact: false },
-  { to: "/profile", params: {}, label: "Profile", icon: UserRound, exact: false },
+  { to: "/wallet", params: {}, label: "nav.wallet", icon: Wallet, exact: false },
+  { to: "/profile", params: {}, label: "nav.profile", icon: UserRound, exact: false },
 ] as const;
 
 
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   usePresenceHeartbeat();
 
+  const t = useT();
   const hasSession = useHasSession();
   const fetchAccess = useServerFn(getMyAccess);
   const access = useQuery({
@@ -92,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 activeProps={{ className: "bg-secondary text-foreground" }}
               >
                 <Icon className="size-4" />
-                {label}
+                {t(label as TranslationKey)}
               </Link>
             ))}
           </nav>
@@ -104,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className="hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
               >
                 <ShieldCheck className="size-4" />
-                Admin Panel
+                {t("nav.admin")}
               </Link>
             ) : null}
             <InstallAppButton />
@@ -112,7 +114,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
-              Live account
+              {t("nav.liveAccount")}
             </span>
             <Link to="/profile" aria-label="Profile" className="touch-manipulation">
               <UserAvatar className="size-8" alt="Your profile avatar" />
@@ -123,7 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <LogOut className="size-4" />
-              <span className="hidden sm:inline">Sign out</span>
+              <span className="hidden sm:inline">{t("nav.signOut")}</span>
             </button>
           </div>
         </div>
@@ -147,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 activeProps={{ className: "text-primary" }}
               >
                 <Icon className="size-5" />
-                {label}
+                {t(label as TranslationKey)}
               </Link>
             </li>
           ))}
