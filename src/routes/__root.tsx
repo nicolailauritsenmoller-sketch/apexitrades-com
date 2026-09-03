@@ -20,6 +20,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { restoreAccountPreferences } from "@/lib/preferences";
 import { useServiceWorker } from "@/components/PwaInstall";
 import { EntryChime } from "@/components/EntryChime";
+import { AutoTranslate } from "@/lib/auto-translate";
 
 
 function NotFoundComponent() {
@@ -190,6 +191,7 @@ function RootComponent() {
       <ConsentProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <AutoTranslate />
         <CookieConsent />
         <EntryChime />
 
