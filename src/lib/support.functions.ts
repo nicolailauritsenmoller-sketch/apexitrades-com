@@ -27,10 +27,10 @@ export const TICKET_PRIORITIES = [
 
 /** Lifecycle states rendered as badges in the customer inbox. */
 export const TICKET_STATUS_LABELS: Record<string, string> = {
-  open: "Open",
-  pending: "Waiting for Customer",
-  waiting_customer: "Waiting for Customer",
-  in_progress: "In Progress",
+  open: "Under Review",
+  pending: "Action Required",
+  waiting_customer: "Action Required",
+  in_progress: "Under Review",
   resolved: "Resolved",
   closed: "Closed",
 };

@@ -1056,7 +1056,9 @@ export const replyToTicket = createServerFn({ method: "POST" })
     await db
       .from("support_tickets")
       .update({
-        status: data.status ?? "waiting_customer",
+        // Agent replies default to "in progress" (customer sees "Under Review");
+        // staff only flip to waiting_customer when they explicitly need details.
+        status: data.status ?? "in_progress",
         admin_last_read_at: now,
         last_response_at: now,
         // First responder takes ownership automatically.
