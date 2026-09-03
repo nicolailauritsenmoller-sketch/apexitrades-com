@@ -3,6 +3,7 @@ import { Check, CheckCheck, Paperclip, Send, Star, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
 import brandLogo from "@/assets/velocity-trade-logo.png";

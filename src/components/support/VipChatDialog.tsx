@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowLeft, Check, CheckCheck, Lock, Loader2, Mic, Paperclip, Send, ShieldCheck, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { VipAttachment, formatBytes } from "@/components/chat/VipAttachment";
 import { supabase } from "@/integrations/supabase/client";
 import {
