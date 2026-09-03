@@ -132,7 +132,11 @@ const FUTURE_ICON: Record<string, string> = {
 const METAL_ICON: Record<string, string> = {
   "GC=F": goldIcon,
   "MGC=F": goldIcon,
+  "1OZ=F": goldIcon,
   "XAUUSD=X": goldIcon,
+  "XAUEUR=X": goldIcon,
+  "XAUGBP=X": goldIcon,
+  "XAUJPY=X": goldIcon,
   "SI=F": silverIcon,
   "SIL=F": silverIcon,
   "XAGUSD=X": silverIcon,
@@ -143,6 +147,7 @@ const METAL_ICON: Record<string, string> = {
   XAU: goldIcon,
   XAG: silverIcon,
 };
+
 
 const STOCK_DOMAIN: Record<string, string> = {
   AAPL: "apple.com",
