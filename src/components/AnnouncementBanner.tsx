@@ -42,9 +42,12 @@ export function AnnouncementBanner() {
 
   useEffect(() => setDismissed(readDismissed()), []);
 
+  const hasSession = useHasSession();
+
   const query = useQuery({
     queryKey: ["announcements-active"],
     queryFn: () => fetchAnnouncements(),
+    enabled: hasSession,
     retry: false,
     staleTime: 60_000,
     refetchInterval: 120_000,
