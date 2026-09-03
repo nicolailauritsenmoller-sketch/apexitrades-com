@@ -586,14 +586,20 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const tickets = ((query.data as any)?.tickets ?? []) as any[];
+  const allTickets = ((query.data as any)?.tickets ?? []) as any[];
   const messages = ((query.data as any)?.messages ?? []) as any[];
+  /** A submitted request is a brand-new form: still Open and not yet assigned. */
+  const isTriage = (t: any) => t.status === "open" && !t.assigned_agent_id;
+  const tickets = useMemo(
+    () => allTickets.filter((t) => (isRequests ? isTriage(t) : !isTriage(t))),
+    [allTickets, isRequests],
+  );
   const filtered = useMemo(() => {
     const rule = STATUS_FILTERS.find((f) => f.id === filter)!;
     const term = search.trim().toLowerCase();
     const rows = tickets.filter(
       (t) =>
-        rule.match(t.status) &&
+        (isRequests || rule.match(t.status)) &&
         (!term ||
           [t.reference, t.subject, t.full_name, t.legalName, t.displayName, t.email]
             .filter(Boolean)
@@ -611,8 +617,24 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     return sorted;
-  }, [tickets, filter, sort, search]);
+  }, [tickets, filter, sort, search, isRequests]);
   const active = tickets.find((t) => t.id === activeId) ?? null;
+
+  /** One click: claim the request and turn it into an active ticket thread. */
+  const convertMutation = useMutation({
+    mutationFn: async (ticketId: string) => {
+      const { data: auth } = await supabase.auth.getUser();
+      const me = auth.user?.id;
+      if (me) await updateFields({ data: { ticketId, assignedAgentId: me } as any });
+      await setStatus({ data: { ticketId, status: "in_progress" } });
+    },
+    onSuccess: async () => {
+      toast.success("Converted to an active support ticket");
+      await qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   // Load a professional starter reply and the stored private notes on open.
   useEffect(() => {
@@ -625,20 +647,28 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
 
   return (
     <div className="space-y-3">
+      {isRequests && (
+        <p className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+          {filtered.length} new submission{filtered.length === 1 ? "" : "s"} awaiting triage.
+          Convert a request to assign it to yourself and move it into Support Tickets.
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-              filter === f.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f.label} ({tickets.filter((t) => f.match(t.status)).length})
-          </button>
-        ))}
+        {!isRequests &&
+          STATUS_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                filter === f.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f.label} ({tickets.filter((t) => f.match(t.status)).length})
+            </button>
+          ))}
+
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
