@@ -74,13 +74,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
-  async function signOut() {
-    await queryClient.cancelQueries();
-    clearQueryCachePersistence();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    router.navigate({ to: "/", replace: true });
-  }
 
   return (
     <div className="min-h-screen bg-background">
