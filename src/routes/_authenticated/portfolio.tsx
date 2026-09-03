@@ -212,21 +212,34 @@ function MiniStat({
   label,
   value,
   tone,
+  sub,
+  subTo,
 }: {
   label: string;
   value: string;
   tone?: "bull" | "bear";
+  sub?: string;
+  subTo?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-3">
+    <div className="touch-manipulation rounded-xl border border-border bg-surface p-3 text-center">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
       <div
-        className={`num mt-1 text-sm font-bold ${
+        className={`num mt-1 text-base font-bold ${
           tone === "bull" ? "text-bull" : tone === "bear" ? "text-bear" : ""
         }`}
       >
         {value}
       </div>
+      {sub &&
+        (subTo ? (
+          <a href={subTo} className="mt-0.5 block text-[11px] font-semibold text-primary">
+            {sub}
+          </a>
+        ) : (
+          <div className="mt-0.5 text-[10px] text-muted-foreground">{sub}</div>
+        ))}
     </div>
   );
 }
+
