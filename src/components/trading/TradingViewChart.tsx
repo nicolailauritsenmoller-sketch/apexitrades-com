@@ -332,12 +332,12 @@ function TradingViewChartInner({
           secondsVisible: false,
           rightOffset: 12,
         },
+        localization: { locale: "en-US" },
         handleScroll: true,
         handleScale: true,
         autoSize: true,
       });
       chartRef.current = chart;
-      console.log('[dbg] chart created');
       setChartReady(true);
 
       // Volume pane (hidden until volume indicator active).
@@ -395,7 +395,7 @@ function TradingViewChartInner({
   useEffect(() => {
     const chart = chartRef.current;
     const lib = libRef.current;
-    if (!chart || !lib) { console.log('[dbg] series effect skipped', !!chart, !!lib); return; }
+    if (!chart || !lib) return;
 
     // Remove existing main series.
     if (mainSeriesRef.current) {
@@ -434,7 +434,6 @@ function TradingViewChartInner({
         wickDownColor: colors.bear,
       });
     }
-    console.log('[dbg] series created', chartType, candles.length);
     mainSeriesRef.current = series;
     // Re-apply data and fit the visible range once.
     applyMainData(series, candles, chartType, quote, timeframeMs);
@@ -798,7 +797,6 @@ function applyMainData(
   quote: Quote | undefined,
   timeframeMs: number,
 ) {
-  console.log('[dbg] applyMainData', candles.length);
   if (!candles.length) return;
   const source = chartType === "heikin" ? heikinAshi(candles) : candles;
   const data = source.map((c) => ({
