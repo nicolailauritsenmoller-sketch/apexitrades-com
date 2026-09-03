@@ -821,6 +821,8 @@ export type Database = {
           body: string | null
           category: string
           created_at: string
+          email: string | null
+          full_name: string | null
           id: string
           priority: string
           reference: string | null
@@ -834,6 +836,8 @@ export type Database = {
           body?: string | null
           category?: string
           created_at?: string
+          email?: string | null
+          full_name?: string | null
           id?: string
           priority?: string
           reference?: string | null
@@ -847,6 +851,8 @@ export type Database = {
           body?: string | null
           category?: string
           created_at?: string
+          email?: string | null
+          full_name?: string | null
           id?: string
           priority?: string
           reference?: string | null
