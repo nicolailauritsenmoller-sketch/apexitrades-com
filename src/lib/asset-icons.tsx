@@ -148,6 +148,42 @@ const METAL_ICON: Record<string, string> = {
   XAG: silverIcon,
 };
 
+/** Issuer domains for ETFs, REIT trackers and mutual funds. */
+const FUND_DOMAIN: Record<string, string> = {
+  SPY: "ssga.com",
+  DIA: "ssga.com",
+  GLD: "ssga.com",
+  XLRE: "ssga.com",
+  QQQ: "invesco.com",
+  IWM: "ishares.com",
+  SLV: "ishares.com",
+  TLT: "ishares.com",
+  IYR: "ishares.com",
+  VTI: "vanguard.com",
+  VNQ: "vanguard.com",
+  VFIAX: "vanguard.com",
+  VTSAX: "vanguard.com",
+  VBTLX: "vanguard.com",
+  SPAXX: "fidelity.com",
+};
+
+const ENERGY_ICON: Record<string, string> = {
+  "CL=F": oilIcon,
+  "MCL=F": oilIcon,
+  "HO=F": oilIcon,
+  "RB=F": oilIcon,
+  "BZ=F": brentIcon,
+  "NG=F": gasIcon,
+};
+
+function domainSources(domain: string): string[] {
+  return [
+    `https://logo.clearbit.com/${domain}`,
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+  ];
+}
+
 
 const STOCK_DOMAIN: Record<string, string> = {
   AAPL: "apple.com",
