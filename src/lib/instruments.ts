@@ -1,4 +1,19 @@
-export type AssetClass = "crypto" | "stock" | "future" | "forex" | "metal";
+export type AssetClass =
+  | "crypto"
+  | "stock"
+  | "future"
+  | "forex"
+  | "metal"
+  | "etf"
+  | "index"
+  | "energy"
+  | "agriculture"
+  | "bond"
+  | "option"
+  | "rate"
+  | "reit"
+  | "fund";
+
 
 export type Instrument = {
   symbol: string;
