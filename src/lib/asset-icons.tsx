@@ -269,11 +269,22 @@ function instrumentIcon(inst: Instrument): IconInfo {
         label: base,
       };
     }
-    case "metal":
+    case "metal": {
+      // Metal quoted against a fiat currency (XAUEUR=X) shows metal + flag.
+      const fx = /^(XAU|XAG)([A-Z]{3})=X$/.exec(inst.symbol);
+      if (fx) {
+        return {
+          sources: [METAL_ICON[fx[1]] ?? goldIcon],
+          quoteSources: [flagFor(fx[2])],
+          label: fx[1],
+        };
+      }
       return {
         sources: [METAL_ICON[inst.symbol] ?? goldIcon],
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
+    }
+
     case "future":
       return {
         sources: [FUTURE_ICON[inst.symbol] ?? indexIcon],
