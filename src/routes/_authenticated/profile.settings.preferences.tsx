@@ -3,15 +3,10 @@ import { Coins, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { ThemeSetting } from "@/lib/theme";
+import { LANGUAGES, useI18n, type LangCode } from "@/lib/i18n";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "BTC", "USDT"];
-const LANGUAGES = [
-  { id: "en", label: "English" },
-  { id: "es", label: "Español" },
-  { id: "fr", label: "Français" },
-  { id: "de", label: "Deutsch" },
-  { id: "pt", label: "Português" },
-];
+
 
 export const Route = createFileRoute("/_authenticated/profile/settings/preferences")({
   head: () => ({
