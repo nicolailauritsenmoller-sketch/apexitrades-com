@@ -36,12 +36,17 @@ export const RecoveryEmail = ({ siteName, token }: RecoveryEmailProps) => (
           <Text style={text}>Your password reset code is:</Text>
           <Section style={codeBox}>
             <Text style={code}>{token || '------'}</Text>
-            <Text style={codeHint}>This code will expire in 10 minutes and can only be used once.</Text>
           </Section>
-          <Text style={text}>Enter this code in the password reset screen to continue.</Text>
+          <Text style={text}>This code will expire in 10 minutes and can only be used once.</Text>
           <Text style={text}>
-            Didn&apos;t request a password reset? You can safely ignore this email. Your password
-            will not be changed unless the verification process is completed.
+            Enter this code in the password reset screen on the official {siteName} platform to
+            continue.
+          </Text>
+          <Text style={text}>
+            <strong>Didn&apos;t request a password reset?</strong>
+            <br />
+            You can safely ignore this email. Your password will not be changed unless the
+            verification process is completed.
           </Text>
           <Text style={text}>
             For your security, never share this code with anyone. Our Support Team will never ask
