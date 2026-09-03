@@ -326,37 +326,13 @@ function Terminal() {
       <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
         Open positions · {displaySymbol(symbol)}
       </h2>
-      <div className="panel mb-40 w-full max-w-full overflow-x-auto md:mb-10">
+      <div className="panel mb-10 w-full max-w-full overflow-x-auto">
         <PositionsTable
           positions={openHere}
           quotes={quotes}
           emptyLabel="No open positions on this instrument."
         />
       </div>
-      </div>
-
-      {/* Sticky one-handed execution controls (mobile) */}
-      <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 w-full max-w-full border-t border-border bg-background/95 px-3 py-2 backdrop-blur-xl md:hidden">
-        <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-          <span className="truncate">{displaySymbol(symbol)}</span>
-          <span className="num shrink-0">{quote ? formatPrice(quote.price, symbol) : "—"}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => orderMutation.mutate("long")}
-            disabled={orderMutation.isPending || qty <= 0}
-            className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground disabled:opacity-40"
-          >
-            Buy Long
-          </button>
-          <button
-            onClick={() => orderMutation.mutate("short")}
-            disabled={orderMutation.isPending || qty <= 0}
-            className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground disabled:opacity-40"
-          >
-            Sell Short
-          </button>
-        </div>
       </div>
     </AppShell>
   );
