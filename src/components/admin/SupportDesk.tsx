@@ -28,8 +28,35 @@ import {
   updateTicketStatus,
 } from "@/lib/admin.functions";
 
-const STATUS_FILTERS = ["all", "open", "pending", "resolved"] as const;
-type StatusFilter = (typeof STATUS_FILTERS)[number];
+const STATUS_FILTERS = [
+  { id: "all", label: "All", match: () => true },
+  { id: "open", label: "Open", match: (s: string) => s === "open" || s === "in_progress" },
+  {
+    id: "pending",
+    label: "Pending agent",
+    match: (s: string) => s === "pending" || s === "waiting_customer",
+  },
+  { id: "resolved", label: "Resolved", match: (s: string) => s === "resolved" || s === "closed" },
+] as const;
+type StatusFilter = (typeof STATUS_FILTERS)[number]["id"];
+
+/** Full lifecycle exposed to agents in the workspace. */
+const TICKET_STATE_OPTIONS = [
+  { id: "open", label: "Open" },
+  { id: "in_progress", label: "In Progress" },
+  { id: "waiting_customer", label: "Waiting for Customer" },
+  { id: "resolved", label: "Resolved" },
+  { id: "closed", label: "Closed" },
+] as const;
+
+const STATUS_LABEL: Record<string, string> = {
+  open: "Open",
+  in_progress: "In Progress",
+  pending: "Waiting for Customer",
+  waiting_customer: "Waiting for Customer",
+  resolved: "Resolved",
+  closed: "Closed",
+};
 
 const PRIORITY_TONE: Record<string, string> = {
   low: "text-muted-foreground",
@@ -40,8 +67,11 @@ const PRIORITY_TONE: Record<string, string> = {
 
 const STATUS_TONE: Record<string, string> = {
   open: "bg-primary/10 text-primary",
+  in_progress: "bg-primary/10 text-primary",
   pending: "bg-warning/10 text-warning",
+  waiting_customer: "bg-warning/10 text-warning",
   resolved: "bg-bull/10 text-bull",
+  closed: "bg-secondary text-muted-foreground",
 };
 
 export function SupportDesk({ initialView = "inbox" }: { initialView?: "inbox" | "tickets" }) {
@@ -443,7 +473,7 @@ function TicketsDesk() {
   }, [activeId, markRead, qc]);
 
   const statusMutation = useMutation({
-    mutationFn: (v: { ticketId: string; status: "open" | "pending" | "resolved" }) =>
+    mutationFn: (v: { ticketId: string; status: string }) =>
       setStatus({ data: v }),
     onSuccess: async () => {
       toast.success("Ticket updated");
@@ -467,27 +497,27 @@ function TicketsDesk() {
 
   const tickets = ((query.data as any)?.tickets ?? []) as any[];
   const messages = ((query.data as any)?.messages ?? []) as any[];
-  const filtered = useMemo(
-    () => (filter === "all" ? tickets : tickets.filter((t) => t.status === filter)),
-    [tickets, filter],
-  );
+  const filtered = useMemo(() => {
+    const rule = STATUS_FILTERS.find((f) => f.id === filter)!;
+    return tickets.filter((t) => rule.match(t.status));
+  }, [tickets, filter]);
   const active = tickets.find((t) => t.id === activeId) ?? null;
 
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {STATUS_FILTERS.map((s) => (
+        {STATUS_FILTERS.map((f) => (
           <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`rounded-full border px-3 py-1 text-xs capitalize transition-colors ${
-              filter === s
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              filter === f.id
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
-            {s} ({s === "all" ? tickets.length : tickets.filter((t) => t.status === s).length})
+            {f.label} ({tickets.filter((t) => f.match(t.status)).length})
           </button>
         ))}
       </div>
@@ -497,6 +527,7 @@ function TicketsDesk() {
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-muted-foreground">
               <tr className="border-b border-border">
+                <th className="px-3 py-2">Reference</th>
                 <th className="px-3 py-2">Subject</th>
                 <th className="px-3 py-2">Trader</th>
                 <th className="px-3 py-2">Category</th>
@@ -513,6 +544,9 @@ function TicketsDesk() {
                     activeId === t.id ? "bg-secondary" : "hover:bg-secondary/50"
                   }`}
                 >
+                  <td className="whitespace-nowrap px-3 py-2 font-mono text-xs text-muted-foreground">
+                    {t.reference ?? "—"}
+                  </td>
                   <td className="max-w-[16rem] px-3 py-2">
                     <span className="flex items-center gap-2">
                       {t.unread > 0 && (
@@ -528,7 +562,7 @@ function TicketsDesk() {
                   <td className="px-3 py-2">
                     <span className="block truncate text-xs">{t.legalName ?? t.displayName}</span>
                     <span className="block truncate text-[10px] text-muted-foreground">
-                      {t.uid ?? t.user_id.slice(0, 8)}
+                      {t.email ?? t.uid ?? t.user_id.slice(0, 8)}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs capitalize">{t.category}</td>
@@ -537,7 +571,7 @@ function TicketsDesk() {
                   </td>
                   <td className="px-3 py-2">
                     <span className={`mr-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[t.status] ?? ""}`}>
-                      {t.status === "resolved" ? "Closed" : t.status}
+                      {STATUS_LABEL[t.status] ?? t.status}
                     </span>
                     <select
                       value={t.status}
@@ -547,16 +581,18 @@ function TicketsDesk() {
                       }
                       className="rounded-md border border-border bg-background px-2 py-1 text-xs capitalize"
                     >
-                      <option value="open">Open</option>
-                      <option value="pending">Pending</option>
-                      <option value="resolved">Closed / Resolved</option>
+                      {TICKET_STATE_OPTIONS.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.label}
+                        </option>
+                      ))}
                     </select>
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                  <td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground">
                     No tickets in this view.
                   </td>
                 </tr>
@@ -576,12 +612,17 @@ function TicketsDesk() {
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   {active.subject}
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium capitalize ${STATUS_TONE[active.status] ?? ""}`}>
-                    {active.status === "resolved" ? "Closed" : active.status}
+                    {STATUS_LABEL[active.status] ?? active.status}
                   </span>
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  {active.legalName ?? active.displayName} ·{" "}
+                  {active.reference ? `${active.reference} · ` : ""}
+                  {active.full_name ?? active.legalName ?? active.displayName}
+                  {active.email ? ` · ${active.email}` : ""} ·{" "}
                   {new Date(active.created_at).toLocaleString()}
+                </p>
+                <p className="text-[11px] text-muted-foreground capitalize">
+                  {active.category} · {active.priority} priority
                 </p>
               </div>
               <div className="max-h-64 space-y-2 overflow-y-auto">
@@ -594,7 +635,14 @@ function TicketsDesk() {
                         m.sender_role === "user" ? "bg-secondary" : "bg-primary/10 text-primary"
                       }`}
                     >
-                      {m.body}
+                      <p className="whitespace-pre-wrap">{m.body}</p>
+                      {m.attachment_path && (
+                        <ChatAttachment
+                          path={m.attachment_path}
+                          name={m.attachment_name}
+                          type={m.attachment_type}
+                        />
+                      )}
                     </div>
                   ))}
               </div>
