@@ -69,6 +69,7 @@ import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
 import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { supabase } from "@/integrations/supabase/client";
+import { useHasSession } from "@/lib/use-session";
 
 import { AssetIcon } from "@/lib/asset-icons";
 import {
@@ -304,6 +305,7 @@ function ModeToggle({
 
 function AdminPage() {
   const qc = useQueryClient();
+  const hasSession = useHasSession();
   const [tab, setTab] = useState<TabId>("overview");
   const [filter, setFilter] = useState<DeskFilter>({});
   const statusFilter = filter.status ?? null;

@@ -23,6 +23,7 @@ import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
+import { useHasSession } from "@/lib/use-session";
 
 const NAV = [
   { to: "/", params: {}, label: "Home", icon: Home, exact: true },
@@ -44,10 +45,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   usePresenceHeartbeat();
 
+  const hasSession = useHasSession();
   const fetchAccess = useServerFn(getMyAccess);
   const access = useQuery({
     queryKey: ["my-access"],
     queryFn: () => fetchAccess(),
+    enabled: hasSession === true,
     retry: false,
     staleTime: 60_000,
   });
