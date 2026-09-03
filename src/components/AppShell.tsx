@@ -5,7 +5,6 @@ import {
   LineChart,
   LayoutDashboard,
   Compass,
-  LogOut,
   Home,
   Wallet,
   UserRound,
@@ -74,13 +73,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
-  async function signOut() {
-    await queryClient.cancelQueries();
-    clearQueryCachePersistence();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    router.navigate({ to: "/", replace: true });
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,14 +128,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link to="/profile" aria-label="Profile" className="touch-manipulation">
               <UserAvatar className="size-8" alt="Your profile avatar" />
             </Link>
-            <button
-
-              onClick={signOut}
-              className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <LogOut className="size-4" />
-              <span className="hidden sm:inline">{t("nav.signOut")}</span>
-            </button>
           </div>
         </div>
       </header>
