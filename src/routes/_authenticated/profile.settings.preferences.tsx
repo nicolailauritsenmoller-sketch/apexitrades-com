@@ -3,15 +3,10 @@ import { Coins, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { ThemeSetting } from "@/lib/theme";
+import { LANGUAGES, useI18n, type LangCode } from "@/lib/i18n";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "BTC", "USDT"];
-const LANGUAGES = [
-  { id: "en", label: "English" },
-  { id: "es", label: "Español" },
-  { id: "fr", label: "Français" },
-  { id: "de", label: "Deutsch" },
-  { id: "pt", label: "Português" },
-];
+
 
 export const Route = createFileRoute("/_authenticated/profile/settings/preferences")({
   head: () => ({
@@ -36,18 +31,24 @@ export const Route = createFileRoute("/_authenticated/profile/settings/preferenc
 
 function PreferenceSettings() {
   const [currency, setCurrency] = usePreference("displayCurrency", "USD");
-  const [language, setLanguage] = usePreference("language", "en");
+  const [, setLanguagePref] = usePreference("language", "en");
+  const { lang, setLang, t } = useI18n();
+
+  function changeLanguage(next: LangCode) {
+    setLang(next);
+    setLanguagePref(next);
+  }
 
   return (
     <>
       <SubPageHeader
-        title="Preferences"
+        title={t("common.preferences")}
         description="Currency, language and appearance."
         backTo="/profile/settings"
         backLabel="Settings"
       />
 
-      <Section icon={Coins} title="Display currency" description="Portfolio values are converted for display only.">
+      <Section icon={Coins} title={t("common.currency")} description={t("prefs.currencyHelp")}>
         <div className="flex flex-wrap gap-2">
           {CURRENCIES.map((c) => (
             <button
@@ -66,22 +67,22 @@ function PreferenceSettings() {
         </div>
       </Section>
 
-      <Section icon={Languages} title="Language" description="Interface language preference.">
+      <Section icon={Languages} title={t("common.language")} description={t("prefs.languageHelp")}>
         <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
+          value={lang}
+          onChange={(e) => changeLanguage(e.target.value as LangCode)}
           aria-label="Interface language"
           className="min-h-10 w-full touch-manipulation rounded-xl border border-border bg-background px-3 text-sm sm:max-w-xs"
         >
           {LANGUAGES.map((l) => (
             <option key={l.id} value={l.id}>
-              {l.label}
+              {l.label} — {l.native}
             </option>
           ))}
         </select>
       </Section>
 
-      <Section icon={Palette} title="Theme" description="Switch between the light and dark terminal.">
+      <Section icon={Palette} title={t("common.theme")} description={t("prefs.themeHelp")}>
         <ThemeSetting />
       </Section>
     </>
