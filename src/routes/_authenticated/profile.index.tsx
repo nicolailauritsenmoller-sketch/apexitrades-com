@@ -119,7 +119,7 @@ function ProfileHome() {
     clearQueryCachePersistence();
     queryClient.clear();
     await supabase.auth.signOut();
-    router.navigate({ to: "/auth", replace: true });
+    router.navigate({ to: "/", replace: true });
   }
 
   const fetchOverview = useServerFn(getProfileOverview);
