@@ -308,7 +308,8 @@ const ANCHOR_PRICE: Record<string, number> = {
   "ZT=F": 102.4,
   "ZF=F": 106.2,
   "ZN=F": 110.5,
-  "ZB=F": 118,
+  // ZB=F anchored above
+
   // REITs
   VNQ: 88,
   IYR: 93,
