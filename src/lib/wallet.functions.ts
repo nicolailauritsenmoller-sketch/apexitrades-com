@@ -292,6 +292,20 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       throw new Error(`Insufficient ${data.coin} balance for this withdrawal.`);
     }
 
+    // Hold the funds immediately: the amount leaves the available balance the
+    // moment the request is submitted and only returns if it is declined.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+
+    const { error: holdError } = await db
+      .from("wallets")
+      .update({
+        balance: Number(wallet.balance) - data.amount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", wallet.id)
+      .gte("balance", data.amount);
+    if (holdError) throw new Error(holdError.message);
 
     const { data: row, error } = await supabase
       .from("withdrawals")
@@ -304,7 +318,22 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       })
       .select("id,created_at")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      // Roll the hold back if the request could not be recorded.
+      const { data: current } = await db
+        .from("wallets")
+        .select("balance")
+        .eq("id", wallet.id)
+        .maybeSingle();
+      await db
+        .from("wallets")
+        .update({
+          balance: Number(current?.balance ?? 0) + data.amount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", wallet.id);
+      throw new Error(error.message);
+    }
     return { ok: true, id: row.id as string, createdAt: row.created_at as string };
   });
 
