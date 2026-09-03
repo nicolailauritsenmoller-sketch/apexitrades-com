@@ -435,7 +435,11 @@ export function MarketNewsSection() {
                   <p className="mt-1 line-clamp-3 text-[13px] font-semibold leading-snug group-hover:text-primary">
                     {n.title}
                   </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <CategoryTag category={n.category} />
+                  </div>
                   <TickerBadges symbols={n.tickers.slice(0, 2)} quotes={quotes} />
+
                 </div>
               </a>
             ))}
