@@ -182,6 +182,7 @@ function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
   });
 
   useEffect(() => {
+    const read = () => {
     const el = ref.current;
     if (!el) return;
     const style = getComputedStyle(el);
@@ -194,6 +195,11 @@ function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
       bear: toRgb(style.getPropertyValue("--bear").trim()) || colors.bear,
       primary: toRgb(style.getPropertyValue("--primary").trim()) || colors.primary,
     });
+    };
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    return () => obs.disconnect();
   }, [ref]);
 
   return colors;
@@ -274,15 +280,10 @@ function TradingViewChartInner({
   const [redrawTick, setRedrawTick] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showIndicators, setShowIndicators] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
 
   const colors = useThemeColors(wrapRef);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    const first = candles[0];
-    const last = candles[candles.length - 1];
-    console.log("[Chart] candles:", candles.length, "first:", first ? { t: first.t, o: first.o, h: first.h, l: first.l, c: first.c } : null, "last:", last ? { t: last.t, o: last.o, h: last.h, l: last.l, c: last.c } : null, "quote:", quote?.price, "tf:", timeframe, "loading:", isLoading, "colors.bg:", colors.background);
-  }, [candles.length, quote?.price, timeframe, isLoading, colors.background]);
 
   const timeframeMs = useMemo(() => {
     const map: Record<Timeframe, number> = {
@@ -331,11 +332,13 @@ function TradingViewChartInner({
           secondsVisible: false,
           rightOffset: 12,
         },
+        localization: { locale: "en-US" },
         handleScroll: true,
         handleScale: true,
         autoSize: true,
       });
       chartRef.current = chart;
+      setChartReady(true);
 
       // Volume pane (hidden until volume indicator active).
       const volumePane = chart.addPane();
@@ -362,6 +365,7 @@ function TradingViewChartInner({
 
     return () => {
       mounted = false;
+      setChartReady(false);
       if (chartRef.current) {
         chartRef.current.remove();
         chartRef.current = null;
@@ -380,7 +384,7 @@ function TradingViewChartInner({
       rightPriceScale: { borderColor: colors.border },
       timeScale: { borderColor: colors.border },
     });
-  }, [colors]);
+  }, [colors, chartReady]);
 
   // Reset fit state when the symbol or timeframe changes.
   useEffect(() => {
@@ -437,7 +441,7 @@ function TradingViewChartInner({
       chart.timeScale().fitContent();
       fittedRef.current = true;
     }
-  }, [chartType, colors]);
+  }, [chartType, colors, chartReady]);
 
   // Update main data when candles/quote change.
   useEffect(() => {
@@ -545,7 +549,7 @@ function TradingViewChartInner({
     try {
       volumePaneRef.current.setHeight(volumeActive ? 80 : 0);
     } catch {}
-  }, [activeIndicators, candles, colors]);
+  }, [activeIndicators, candles, colors, chartReady]);
 
   // Drawing click handler.
   useEffect(() => {
