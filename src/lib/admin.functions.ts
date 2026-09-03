@@ -771,9 +771,6 @@ export const sendAgentMessage = createServerFn({ method: "POST" })
       sender_id: context.userId,
       sender_role: "agent",
       body: data.body,
-      attachment_path: data.attachment?.path ?? null,
-      attachment_name: data.attachment?.name ?? null,
-      attachment_type: data.attachment?.type ?? null,
     });
     if (error) throw new Error(error.message);
     await db
