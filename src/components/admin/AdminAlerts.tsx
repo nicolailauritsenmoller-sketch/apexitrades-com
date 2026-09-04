@@ -156,6 +156,15 @@ export function AdminAlerts() {
       )
       .on(
         "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "kyc_submissions" },
+        (p) => {
+          const r = p.new as any;
+          if (r.status !== "pending") return;
+          alert("kyc", "KYC resubmitted for review", `${r.full_name ?? "A user"} · ${r.country ?? ""}`);
+        },
+      )
+      .on(
+        "postgres_changes",
         { event: "INSERT", schema: "public", table: "support_tickets" },
         (p) => {
           const r = p.new as any;
