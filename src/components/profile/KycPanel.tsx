@@ -41,7 +41,9 @@ export function KycPanel({
   const [docFile, setDocFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
 
-  const showForm = open || !kyc || needsResubmit;
+  const isPending = kyc?.status === "pending";
+  const showForm = open || !kyc;
+  const canResubmit = needsResubmit && !isPending;
 
   async function upload(file: File, kind: string) {
     const path = `${userId}/${kind}-${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
@@ -129,7 +131,7 @@ export function KycPanel({
               </a>
             )}
           </div>
-          {!showForm && (
+          {kyc && canResubmit && !open && (
             <button
               onClick={() => setOpen(true)}
               className="mt-3 touch-manipulation rounded-md border border-border px-3 py-1.5 text-xs"

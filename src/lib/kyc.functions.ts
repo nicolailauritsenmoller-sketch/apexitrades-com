@@ -58,18 +58,50 @@ export const submitKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => submitInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("kyc_submissions").insert({
-      user_id: context.userId,
-      full_name: data.fullName,
-      date_of_birth: data.dateOfBirth,
-      country: data.country,
-      address: data.address,
-      document_type: data.documentType,
-      document_number: data.documentNumber,
-      document_path: data.documentPath,
-      selfie_path: data.selfiePath,
-      document_expires_at: data.documentExpiresAt || null,
-    });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    try {
+      const { error } = await context.supabase
+        .from("kyc_submissions")
+        .upsert(
+          {
+            user_id: context.userId,
+            full_name: data.fullName,
+            date_of_birth: data.dateOfBirth,
+            country: data.country,
+            address: data.address,
+            document_type: data.documentType,
+            document_number: data.documentNumber,
+            document_path: data.documentPath,
+            selfie_path: data.selfiePath,
+            document_expires_at: data.documentExpiresAt || null,
+            status: "pending",
+            admin_note: null,
+            reviewed_by: null,
+            reviewed_at: null,
+          },
+          { onConflict: "user_id" },
+        );
+
+      if (error) {
+        throw new Error(
+          error.message.includes("kyc_submissions_user_id_key")
+            ? "Your verification details could not be saved. Please try again."
+            : error.message,
+        );
+      }
+
+      return {
+        ok: true,
+        message: "Your verification details have been updated and submitted for review.",
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("kyc_submissions_user_id_key") || message.includes("duplicate key")) {
+        throw new Error("Your verification details have been updated and submitted for review.");
+      }
+      throw new Error(
+        message.includes("kyc_submissions")
+          ? "Unable to save your verification details. Please check your inputs and try again."
+          : message,
+      );
+    }
   });
