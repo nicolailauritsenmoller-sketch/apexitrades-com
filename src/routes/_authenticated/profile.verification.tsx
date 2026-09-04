@@ -42,8 +42,8 @@ function VerificationPage() {
 
   const mutation = useMutation({
     mutationFn: (payload: KycPayload) => sendKyc({ data: payload }),
-    onSuccess: () => {
-      toast.success("Documents submitted for review");
+    onSuccess: (res) => {
+      toast.success(res?.message ?? "Documents submitted for review");
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),
