@@ -131,7 +131,7 @@ export function KycPanel({
               </a>
             )}
           </div>
-          {!showForm && (
+          {kyc && canResubmit && !open && (
             <button
               onClick={() => setOpen(true)}
               className="mt-3 touch-manipulation rounded-md border border-border px-3 py-1.5 text-xs"
