@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -98,6 +98,33 @@ function WalletPage() {
     qc.invalidateQueries({ queryKey: ["portfolio-value"] });
     qc.invalidateQueries({ queryKey: ["portfolio"] });
   }
+
+  // Real-time: refresh balances & history instantly when an admin approves or
+  // rejects one of the user's withdrawals/deposits (e.g. refund on rejection).
+  useEffect(() => {
+    const channel = supabase
+      .channel("wallet-activity-live")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "withdrawals" },
+        () => refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "deposits" },
+        () => refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "wallets" },
+        () => refresh(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const wallets = value.data?.wallets ?? [];
 
