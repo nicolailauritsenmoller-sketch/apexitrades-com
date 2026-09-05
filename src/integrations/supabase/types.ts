@@ -517,6 +517,15 @@ export type Database = {
           document_type: string
           full_name: string
           id: string
+          level2_admin_note: string | null
+          level2_proof_path: string | null
+          level2_proof_type: string | null
+          level2_reviewed_at: string | null
+          level2_reviewed_by: string | null
+          level2_selfie_path: string | null
+          level2_status: string
+          level2_submitted_at: string | null
+          level2_tax_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           selfie_path: string | null
@@ -536,6 +545,15 @@ export type Database = {
           document_type: string
           full_name: string
           id?: string
+          level2_admin_note?: string | null
+          level2_proof_path?: string | null
+          level2_proof_type?: string | null
+          level2_reviewed_at?: string | null
+          level2_reviewed_by?: string | null
+          level2_selfie_path?: string | null
+          level2_status?: string
+          level2_submitted_at?: string | null
+          level2_tax_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_path?: string | null
@@ -555,6 +573,15 @@ export type Database = {
           document_type?: string
           full_name?: string
           id?: string
+          level2_admin_note?: string | null
+          level2_proof_path?: string | null
+          level2_proof_type?: string | null
+          level2_reviewed_at?: string | null
+          level2_reviewed_by?: string | null
+          level2_selfie_path?: string | null
+          level2_status?: string
+          level2_submitted_at?: string | null
+          level2_tax_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_path?: string | null
