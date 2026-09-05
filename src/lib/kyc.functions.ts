@@ -14,6 +14,13 @@ const submitInput = z.object({
   documentExpiresAt: z.string().trim().min(4).max(20).optional(),
 });
 
+const level2Input = z.object({
+  livenessSelfiePath: z.string().trim().min(1).max(300),
+  proofPath: z.string().trim().min(1).max(300),
+  proofType: z.enum(["utility_bill", "bank_statement", "tax_document"]),
+  taxId: z.string().trim().max(60).optional(),
+});
+
 export const getMyKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -35,6 +42,12 @@ export const getMyKyc = createServerFn({ method: "POST" })
       return signed?.signedUrl ?? null;
     };
 
+    const row = data as Record<string, any>;
+    const level1Status = data.status as string;
+    const level2Status = (row["level2_status"] as string) ?? "unsubmitted";
+    const verificationLevel =
+      level1Status === "approved" ? (level2Status === "approved" ? 2 : 1) : 0;
+
     const expiresAt = (data as { document_expires_at?: string | null }).document_expires_at ?? null;
     const expired = expiresAt ? new Date(expiresAt).getTime() < Date.now() : false;
 
@@ -51,6 +64,15 @@ export const getMyKyc = createServerFn({ method: "POST" })
       expired,
       documentUrl: await sign(data.document_path),
       selfieUrl: await sign(data.selfie_path),
+      level1Status,
+      level2Status,
+      verificationLevel,
+      level2AdminNote: (row["level2_admin_note"] as string | null) ?? null,
+      level2SubmittedAt: (row["level2_submitted_at"] as string | null) ?? null,
+      level2ProofType: (row["level2_proof_type"] as string | null) ?? null,
+      level2TaxId: (row["level2_tax_id"] as string | null) ?? null,
+      level2SelfieUrl: await sign((row["level2_selfie_path"] as string | null) ?? null),
+      level2ProofUrl: await sign((row["level2_proof_path"] as string | null) ?? null),
     };
   });
 
@@ -104,4 +126,53 @@ export const submitKyc = createServerFn({ method: "POST" })
           : message,
       );
     }
+  });
+
+/** Level 2 (enhanced) verification: liveness selfie + proof of address / tax ID. */
+export const submitKycLevel2 = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => level2Input.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: existing } = await context.supabase
+      .from("kyc_submissions")
+      .select("id,status,level2_status")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (!existing) throw new Error("Complete Level 1 verification first.");
+    if (existing.status !== "approved") {
+      throw new Error("Level 1 verification must be approved before applying for Level 2.");
+    }
+    if ((existing as any).level2_status === "pending") {
+      throw new Error("Your Level 2 review is already in progress.");
+    }
+    if ((existing as any).level2_status === "approved") {
+      throw new Error("Level 2 verification is already approved on this account.");
+    }
+
+    const { error } = await context.supabase
+      .from("kyc_submissions")
+      .upsert(
+        {
+          user_id: context.userId,
+          level2_status: "pending",
+          level2_selfie_path: data.livenessSelfiePath,
+          level2_proof_path: data.proofPath,
+          level2_proof_type: data.proofType,
+          level2_tax_id: data.taxId || null,
+          level2_submitted_at: new Date().toISOString(),
+          level2_reviewed_at: null,
+        } as any,
+        { onConflict: "user_id" },
+      );
+
+    if (error) {
+      throw new Error(
+        error.message.includes("Level 1")
+          ? "Level 1 verification must be approved before applying for Level 2."
+          : "Unable to save your Level 2 documents. Please try again.",
+      );
+    }
+
+    return { ok: true, message: "Level 2 documents submitted for compliance review." };
   });
