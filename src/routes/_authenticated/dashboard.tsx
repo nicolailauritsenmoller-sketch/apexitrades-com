@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Home() {
+  useWalletRealtime("dashboard-wallet-live");
   const fetchValue = useServerFn(getPortfolioValue);
   const value = useQuery({
     queryKey: ["portfolio-value"],

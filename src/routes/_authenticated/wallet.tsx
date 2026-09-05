@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
 import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
@@ -101,30 +102,7 @@ function WalletPage() {
 
   // Real-time: refresh balances & history instantly when an admin approves or
   // rejects one of the user's withdrawals/deposits (e.g. refund on rejection).
-  useEffect(() => {
-    const channel = supabase
-      .channel("wallet-activity-live")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "withdrawals" },
-        () => refresh(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "deposits" },
-        () => refresh(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "wallets" },
-        () => refresh(),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useWalletRealtime("wallet-activity-live");
 
   const wallets = value.data?.wallets ?? [];
 
@@ -143,6 +121,7 @@ function WalletPage() {
       txHash: d.txHash ?? null,
       note: d.adminNote ?? null,
       createdAt: d.createdAt,
+      resolvedAt: d.reviewedAt ?? null,
       title: `Deposit ${d.amount} ${d.coin}`,
       subtitle: d.network,
     }));
@@ -158,6 +137,7 @@ function WalletPage() {
       txHash: null,
       note: w.adminNote ?? null,
       createdAt: w.createdAt,
+      resolvedAt: w.reviewedAt ?? null,
       title: `Withdrawal ${w.amount} ${w.coin}`,
       subtitle: `${w.network} · ${shortenAddress(w.destinationAddress)}`,
     }));

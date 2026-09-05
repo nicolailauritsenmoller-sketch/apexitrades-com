@@ -76,6 +76,7 @@ export const getWalletActivity = createServerFn({ method: "POST" })
         status: d.status as string,
         txHash: d.tx_hash,
         adminNote: d.admin_note,
+        reviewedAt: d.reviewed_at,
         createdAt: d.created_at,
       })),
       withdrawals: (withdrawals.data ?? []).map((w) => ({
@@ -86,6 +87,7 @@ export const getWalletActivity = createServerFn({ method: "POST" })
         status: w.status as string,
         destinationAddress: w.destination_address,
         adminNote: w.admin_note,
+        reviewedAt: w.reviewed_at,
         createdAt: w.created_at,
       })),
       swaps: (swaps.data ?? []).map((s) => ({
