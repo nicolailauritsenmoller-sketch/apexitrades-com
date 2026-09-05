@@ -121,6 +121,7 @@ function WalletPage() {
       txHash: d.txHash ?? null,
       note: d.adminNote ?? null,
       createdAt: d.createdAt,
+      resolvedAt: d.reviewedAt ?? null,
       title: `Deposit ${d.amount} ${d.coin}`,
       subtitle: d.network,
     }));
@@ -136,6 +137,7 @@ function WalletPage() {
       txHash: null,
       note: w.adminNote ?? null,
       createdAt: w.createdAt,
+      resolvedAt: w.reviewedAt ?? null,
       title: `Withdrawal ${w.amount} ${w.coin}`,
       subtitle: `${w.network} · ${shortenAddress(w.destinationAddress)}`,
     }));

@@ -15,6 +15,8 @@ export type TransactionRecord = {
   txHash: string | null;
   note: string | null;
   createdAt: string;
+  /** When the desk approved, declined or refunded the request. */
+  resolvedAt?: string | null;
   /** Human readable summary, used in list rows. */
   title: string;
   subtitle: string;

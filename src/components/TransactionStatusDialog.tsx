@@ -253,6 +253,22 @@ export function TransactionStatusDialog({
                 year: "numeric",
               })}
             />
+            {tx.resolvedAt && tx.status !== "pending" && (
+              <Row
+                label={
+                  tx.status === "failed" && tx.type === "withdrawal"
+                    ? "Refunded"
+                    : "Reviewed"
+                }
+                value={new Date(tx.resolvedAt).toLocaleString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              />
+            )}
             {tx.note && <Row label="Note from desk" value={tx.note} wrap />}
           </div>
 
