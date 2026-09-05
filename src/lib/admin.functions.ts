@@ -181,6 +181,23 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
 
     // Funds were already held (debited) when the user submitted the request.
     // Approval simply finalises it; rejection refunds the held amount.
+    // Settle the status first so a failed update can never double-credit.
+    const status = data.action === "approve" ? "approved" : "rejected";
+    const { data: settled, error } = await supabase
+      .from("withdrawals")
+      .update({
+        status,
+        admin_note: data.note ?? null,
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", wd.id)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!settled) throw new Error("Withdrawal already reviewed.");
+
     if (data.action !== "approve") {
       const db = await privileged();
       const { data: wallet } = await db
@@ -203,19 +220,6 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
           .insert({ user_id: wd.user_id, currency: wd.coin, balance: Number(wd.amount) });
       }
     }
-
-    const status = data.action === "approve" ? "approved" : "rejected";
-    const { error } = await supabase
-      .from("withdrawals")
-      .update({
-        status,
-        admin_note: data.note ?? null,
-        reviewed_by: userId,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq("id", wd.id)
-      .eq("status", "pending");
-    if (error) throw new Error(error.message);
 
     await writeAudit(context, `withdrawal.${data.action}`, wd.user_id, {
       amount: Number(wd.amount),
