@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
