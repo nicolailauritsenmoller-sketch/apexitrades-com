@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
 import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
