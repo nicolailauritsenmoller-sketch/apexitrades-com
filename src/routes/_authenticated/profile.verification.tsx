@@ -37,6 +37,8 @@ function VerificationPage() {
   const fetchKyc = useServerFn(getMyKyc);
   const fetchOverview = useServerFn(getProfileOverview);
   const sendKyc = useServerFn(submitKyc);
+  const sendLevel2 = useServerFn(submitKycLevel2);
+
 
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
   const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
