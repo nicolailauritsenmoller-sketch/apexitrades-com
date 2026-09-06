@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { FileCheck2, X } from "lucide-react";
 import { toast } from "sonner";
-import { getKycDocumentUrls, reviewKyc } from "@/lib/admin.functions";
+import { getKycDocumentUrls, reviewKyc, reviewKycLevel2 } from "@/lib/admin.functions";
 
 const REJECT_REASONS = [
   "Document is blurry or unreadable",
@@ -36,6 +36,7 @@ export function KycReviewDrawer({
 }) {
   const fetchDocs = useServerFn(getKycDocumentUrls);
   const review = useServerFn(reviewKyc);
+  const reviewL2 = useServerFn(reviewKycLevel2);
   const [reason, setReason] = useState(REJECT_REASONS[0]!);
   const [note, setNote] = useState("");
 
@@ -55,7 +56,27 @@ export function KycReviewDrawer({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const d = docs.data as { document: string | null; selfie: string | null } | undefined;
+  const actL2 = useMutation({
+    mutationFn: (vars: { action: "approve" | "reject"; note?: string }) =>
+      reviewL2({ data: { id: row.id, action: vars.action, note: vars.note } }),
+    onSuccess: (_r, vars) => {
+      toast.success(vars.action === "approve" ? "Level 2 approved." : "Level 2 rejected.");
+      onDone();
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const level2Status: string = row.level2_status ?? "unsubmitted";
+
+  const d = docs.data as
+    | {
+        document: string | null;
+        selfie: string | null;
+        level2Selfie: string | null;
+        level2Proof: string | null;
+      }
+    | undefined;
 
   return (
     <div className="fixed inset-0 z-[115] flex justify-end bg-black/60 backdrop-blur-sm">
@@ -128,12 +149,80 @@ export function KycReviewDrawer({
             )}
           </section>
 
+          <section className="rounded-xl border border-border/70 bg-card/60 p-3">
+            <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              Level 2 · enhanced verification · {level2Status}
+            </h4>
+            {level2Status === "unsubmitted" ? (
+              <p className="text-xs text-muted-foreground">Not submitted yet.</p>
+            ) : (
+              <>
+                <Row label="Proof type" value={row.level2_proof_type ?? "—"} />
+                <Row label="Tax ID" value={row.level2_tax_id ?? "—"} />
+                <Row
+                  label="Submitted"
+                  value={
+                    row.level2_submitted_at
+                      ? new Date(row.level2_submitted_at).toLocaleString()
+                      : "—"
+                  }
+                />
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {d?.level2Selfie && (
+                    <a href={d.level2Selfie} target="_blank" rel="noreferrer">
+                      <img
+                        src={d.level2Selfie}
+                        alt={`${row.full_name} liveness selfie`}
+                        className="w-full rounded-lg border border-border object-contain"
+                      />
+                    </a>
+                  )}
+                  {d?.level2Proof && (
+                    <a
+                      href={d.level2Proof}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary underline"
+                    >
+                      Open proof of address document
+                    </a>
+                  )}
+                </div>
+                {row.level2_admin_note && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Previous Level 2 note: {row.level2_admin_note}
+                  </p>
+                )}
+                {level2Status === "pending" && (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      disabled={actL2.isPending}
+                      onClick={() => actL2.mutate({ action: "approve", note: note || undefined })}
+                      className={`flex-1 ${APPROVE_BTN}`}
+                    >
+                      Approve Level 2
+                    </button>
+                    <button
+                      disabled={actL2.isPending}
+                      onClick={() =>
+                        actL2.mutate({ action: "reject", note: note ? `${reason} — ${note}` : reason })
+                      }
+                      className={`flex-1 ${DANGER_BTN}`}
+                    >
+                      Reject Level 2
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+
           {row.admin_note && (
             <p className="text-xs text-muted-foreground">Previous note: {row.admin_note}</p>
           )}
         </div>
 
-        {row.status === "pending" && (
+        {(row.status === "pending" || level2Status === "pending") && (
           <footer className="space-y-2 border-t border-border p-3">
             <label className="block text-[10px] uppercase tracking-widest text-muted-foreground">
               Rejection reason (sent to the user)
@@ -155,7 +244,7 @@ export function KycReviewDrawer({
               placeholder="Additional note (optional)"
               className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
             />
-            <div className="flex gap-2">
+            <div className={`flex gap-2 ${row.status === "pending" ? "" : "hidden"}`}>
               <button
                 disabled={act.isPending}
                 onClick={() => act.mutate({ action: "approve", note: note || undefined })}
