@@ -222,7 +222,7 @@ export function KycReviewDrawer({
           )}
         </div>
 
-        {row.status === "pending" && (
+        {(row.status === "pending" || level2Status === "pending") && (
           <footer className="space-y-2 border-t border-border p-3">
             <label className="block text-[10px] uppercase tracking-widest text-muted-foreground">
               Rejection reason (sent to the user)
@@ -244,7 +244,7 @@ export function KycReviewDrawer({
               placeholder="Additional note (optional)"
               className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
             />
-            <div className="flex gap-2">
+            <div className={`flex gap-2 ${row.status === "pending" ? "" : "hidden"}`}>
               <button
                 disabled={act.isPending}
                 onClick={() => act.mutate({ action: "approve", note: note || undefined })}
