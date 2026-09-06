@@ -272,6 +272,44 @@ export const reviewKyc = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Approve or reject the enhanced (Level 2) verification stage independently. */
+export const reviewKycLevel2 = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabase, userId } = context;
+
+    const status = data.action === "approve" ? "approved" : "rejected";
+    const { data: row, error } = await supabase
+      .from("kyc_submissions")
+      .update({
+        level2_status: status,
+        level2_admin_note: data.note ?? null,
+        level2_reviewed_by: userId,
+        level2_reviewed_at: new Date().toISOString(),
+      } as never)
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (row) {
+      await writeAudit(context, `kyc.level2.${data.action}`, row.user_id, {
+        note: data.note ?? null,
+      });
+      await notify(
+        supabase,
+        row.user_id,
+        data.action === "approve"
+          ? "Level 2 verification approved"
+          : "Level 2 verification rejected",
+        data.note ?? `Your Level 2 verification was ${status}.`,
+        data.action === "approve" ? "success" : "warning",
+      );
+    }
+    return { ok: true };
+  });
+
 export const getKycDocumentUrls = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
@@ -279,7 +317,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: row } = await context.supabase
       .from("kyc_submissions")
-      .select("document_path, selfie_path")
+      .select("document_path, selfie_path, level2_selfie_path, level2_proof_path")
       .eq("id", data.id)
       .maybeSingle();
     if (!row) throw new Error("Submission not found.");
@@ -292,7 +330,13 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
       return signed?.signedUrl ?? null;
     };
 
-    return { document: await sign(row.document_path), selfie: await sign(row.selfie_path) };
+    const r = row as Record<string, string | null>;
+    return {
+      document: await sign(row.document_path),
+      selfie: await sign(row.selfie_path),
+      level2Selfie: await sign(r["level2_selfie_path"] ?? null),
+      level2Proof: await sign(r["level2_proof_path"] ?? null),
+    };
   });
 
 /** Signed URL for a deposit's proof-of-payment screenshot. */
