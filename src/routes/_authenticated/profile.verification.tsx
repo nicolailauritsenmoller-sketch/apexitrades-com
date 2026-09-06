@@ -52,8 +52,20 @@ function VerificationPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const level2Mutation = useMutation({
+    mutationFn: (payload: Level2Payload) => sendLevel2({ data: payload }),
+    onSuccess: (res) => {
+      toast.success(res?.message ?? "Level 2 documents submitted for review");
+      queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const status = kyc.data?.status ?? "unverified";
   const needsResubmit = status === "rejected" || Boolean(kyc.data?.expired);
+  const level1Status = kyc.data?.level1Status ?? "unverified";
+  const level2Status = kyc.data?.level2Status ?? "unsubmitted";
+  const userId = overview.data?.profile.id ?? null;
 
   return (
     <>
@@ -61,20 +73,59 @@ function VerificationPage() {
         title="Account verification"
         description="Verify your identity to enable withdrawals and higher limits."
       />
-      <Section
-        icon={BadgeCheck}
-        title="Identity verification"
-        description="Government ID or passport plus a selfie. Reviews usually complete within 24 hours."
-      >
-        <KycPanel
-          kyc={kyc.data ?? null}
-          userId={overview.data?.profile.id ?? null}
-          needsResubmit={needsResubmit}
-          onSubmit={async (payload) => {
-            await mutation.mutateAsync(payload);
-          }}
-        />
-      </Section>
+
+      <div className="space-y-4">
+        <KycTierCard
+          level={1}
+          title="Basic verification"
+          status={level1Status}
+          requirements={[
+            "Full name, date of birth and address",
+            "Government ID, passport or driver's licence",
+            "Selfie photo",
+          ]}
+          unlocks={[
+            "Standard trading access",
+            "Daily withdrawals up to 5,000 USDT",
+            "Wallet deposits",
+          ]}
+        >
+          <KycPanel
+            kyc={kyc.data ?? null}
+            userId={userId}
+            needsResubmit={needsResubmit}
+            onSubmit={async (payload) => {
+              await mutation.mutateAsync(payload);
+            }}
+          />
+        </KycTierCard>
+
+        <KycTierCard
+          level={2}
+          title="Enhanced verification"
+          status={level2Status}
+          locked={level1Status !== "approved"}
+          requirements={[
+            "Approved Level 1 verification",
+            "Live selfie / liveness check",
+            "Proof of address or SSN / Tax ID",
+          ]}
+          unlocks={[
+            "Unlimited daily withdrawals",
+            "Priority support",
+            "High-leverage trading",
+            "Fiat deposits and withdrawals",
+          ]}
+        >
+          <KycLevel2Panel
+            kyc={kyc.data ?? null}
+            userId={userId}
+            onSubmit={async (payload) => {
+              await level2Mutation.mutateAsync(payload);
+            }}
+          />
+        </KycTierCard>
+      </div>
     </>
   );
 }
