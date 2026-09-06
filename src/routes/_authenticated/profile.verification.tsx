@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BadgeCheck } from "lucide-react";
-import { Section, SubPageHeader } from "@/components/profile/ui";
+import { SubPageHeader } from "@/components/profile/ui";
 import { KycPanel } from "@/components/profile/KycPanel";
-import { getMyKyc, submitKyc } from "@/lib/kyc.functions";
+import { KycTierCard } from "@/components/profile/KycTierCard";
+import { KycLevel2Panel, type Level2Payload } from "@/components/profile/KycLevel2Panel";
+import { getMyKyc, submitKyc, submitKycLevel2 } from "@/lib/kyc.functions";
 import { getProfileOverview } from "@/lib/profile.functions";
 
 type KycPayload = Parameters<Parameters<typeof KycPanel>[0]["onSubmit"]>[0];
