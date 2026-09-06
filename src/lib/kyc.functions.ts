@@ -152,27 +152,25 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
 
     const { error } = await context.supabase
       .from("kyc_submissions")
-      .upsert(
-        {
-          user_id: context.userId,
-          level2_status: "pending",
-          level2_selfie_path: data.livenessSelfiePath,
-          level2_proof_path: data.proofPath,
-          level2_proof_type: data.proofType,
-          level2_tax_id: data.taxId || null,
-          level2_submitted_at: new Date().toISOString(),
-          level2_reviewed_at: null,
-        } as any,
-        { onConflict: "user_id" },
-      );
+      .update({
+        level2_status: "pending",
+        level2_selfie_path: data.livenessSelfiePath,
+        level2_proof_path: data.proofPath,
+        level2_proof_type: data.proofType,
+        level2_tax_id: data.taxId || null,
+        level2_submitted_at: new Date().toISOString(),
+        level2_reviewed_at: null,
+      } as any)
+      .eq("user_id", context.userId);
 
     if (error) {
       throw new Error(
         error.message.includes("Level 1")
           ? "Level 1 verification must be approved before applying for Level 2."
-          : "Unable to save your Level 2 documents. Please try again.",
+          : `Unable to save your Level 2 documents: ${error.message}`,
       );
     }
+
 
     return { ok: true, message: "Level 2 documents submitted for compliance review." };
   });
