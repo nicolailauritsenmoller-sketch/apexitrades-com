@@ -47,13 +47,13 @@ export const Route = createFileRoute("/_authenticated/wallet")({
   },
   head: () => ({
     meta: [
-      { title: "Wallet — deposits, withdrawals & swaps | Velocity Trade" },
+      { title: "Assets — deposits, withdrawals & swaps | Velocity Trade" },
       {
         name: "description",
         content:
           "Fund your account with USDT, BTC or ETH, request withdrawals to your own address, and swap between assets at live market rates.",
       },
-      { property: "og:title", content: "Wallet — deposits, withdrawals & swaps" },
+      { property: "og:title", content: "Assets — deposits, withdrawals & swaps" },
       {
         property: "og:description",
         content: "Deposit crypto, request withdrawals and swap assets instantly at live rates.",
@@ -170,7 +170,7 @@ function WalletPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold">Wallet</h1>
+      <h1 className="text-2xl font-bold">Assets</h1>
       <p className="mb-5 text-sm text-muted-foreground">
         Manage your assets, deposits and withdrawals
       </p>
