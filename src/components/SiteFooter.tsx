@@ -10,7 +10,7 @@ const NAV_GROUPS = [
       { label: "Markets", to: "/markets" as const },
       { label: "Trading", to: "/terminal/$symbol" as const, params: { symbol: "BTCUSDT" } },
       { label: "Portfolio", to: "/dashboard" as const },
-      { label: "Wallet", to: "/wallet" as const },
+      { label: "Assets", to: "/wallet" as const },
     ],
   },
   {
