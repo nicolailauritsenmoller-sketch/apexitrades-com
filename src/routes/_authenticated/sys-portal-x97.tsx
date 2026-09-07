@@ -1493,7 +1493,13 @@ function UsersTab({
     return true;
   });
 
-  const kyc = statusFilter ? kycAll.filter((k) => k.status === statusFilter) : kycAll;
+  // Level 2 submissions awaiting review must surface in the pending queue even
+  // when the applicant's Level 1 record is already approved.
+  const kyc = statusFilter
+    ? kycAll.filter(
+        (k) => k.status === statusFilter || (statusFilter === "pending" && k.level2_status === "pending"),
+      )
+    : kycAll;
   const verifiedIds = new Set(
     kycAll.filter((k) => k.status === "approved").map((k) => k.user_id),
   );
