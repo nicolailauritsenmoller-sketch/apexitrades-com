@@ -211,7 +211,7 @@ function ProfileHome() {
           to="/profile/verification"
           icon={BadgeCheck}
           title="Account Verification"
-          subtitle="Verify identity"
+          subtitle={status === "approved" ? "Verified" : "Verify identity"}
           tone="text-primary"
         />
         <QuickTile
