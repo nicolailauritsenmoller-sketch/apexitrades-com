@@ -167,12 +167,15 @@ function ProfileHome() {
               <h1 className="font-display text-lg font-bold tracking-tight">
                 {profile?.displayName ?? "Trader"}
               </h1>
-              {status === "approved" && <VerifiedBadge />}
-              <span
-                className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
-              >
-                {KYC_LABEL[status] ?? status}
-              </span>
+              {status === "approved" ? (
+                <VerifiedBadge />
+              ) : (
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
+                >
+                  {KYC_LABEL[status] ?? status}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -208,7 +211,7 @@ function ProfileHome() {
           to="/profile/verification"
           icon={BadgeCheck}
           title="Account Verification"
-          subtitle="Verify identity"
+          subtitle={status === "approved" ? "Verified" : "Verify identity"}
           tone="text-primary"
         />
         <QuickTile
