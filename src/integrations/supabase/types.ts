@@ -710,6 +710,8 @@ export type Database = {
           referred_by: string | null
           trading_frozen: boolean
           uid: string | null
+          withdrawal_password_hash: string | null
+          withdrawal_password_updated_at: string | null
           withdrawals_disabled: boolean
         }
         Insert: {
@@ -728,6 +730,8 @@ export type Database = {
           referred_by?: string | null
           trading_frozen?: boolean
           uid?: string | null
+          withdrawal_password_hash?: string | null
+          withdrawal_password_updated_at?: string | null
           withdrawals_disabled?: boolean
         }
         Update: {
@@ -746,6 +750,8 @@ export type Database = {
           referred_by?: string | null
           trading_frozen?: boolean
           uid?: string | null
+          withdrawal_password_hash?: string | null
+          withdrawal_password_updated_at?: string | null
           withdrawals_disabled?: boolean
         }
         Relationships: []
@@ -1220,6 +1226,14 @@ export type Database = {
             Returns: boolean
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      set_withdrawal_password: {
+        Args: { p_password_hash: string; p_user_id: string }
+        Returns: Json
+      }
+      verify_withdrawal_password: {
+        Args: { p_provided_hash: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "agent" | "user" | "finance"
