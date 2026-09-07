@@ -1781,7 +1781,16 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
             {row.country} · {row.document_type} · {new Date(row.created_at).toLocaleString()}
           </p>
         </div>
-        <span className={`text-xs uppercase ${STATUS_TONE[row.status] ?? ""}`}>{row.status}</span>
+        <div className="flex flex-col items-end gap-1">
+          <span className={`text-xs uppercase ${STATUS_TONE[row.status] ?? ""}`}>
+            L1 · {row.status}
+          </span>
+          <span
+            className={`text-[11px] uppercase ${STATUS_TONE[row.level2_status] ?? "text-muted-foreground"}`}
+          >
+            L2 · {row.level2_status ?? "unsubmitted"}
+          </span>
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
