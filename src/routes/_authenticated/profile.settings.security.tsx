@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { KeyRound, MonitorSmartphone, ShieldCheck } from "lucide-react";
+import { KeyRound, Lock, MonitorSmartphone, ShieldCheck } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { PasswordForm } from "@/components/profile/PasswordForm";
+import { WithdrawalPasswordForm } from "@/components/profile/WithdrawalPasswordForm";
 import { DevicesPanel } from "@/components/profile/DevicesPanel";
 import { getProfileOverview } from "@/lib/profile.functions";
 
