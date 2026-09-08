@@ -484,6 +484,7 @@ function WithdrawTab({
   const [network, setNetwork] = useState("TRC20");
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
+  const [withdrawalPassword, setWithdrawalPassword] = useState("");
   const submit = useServerFn(requestWithdrawal);
   const fetchEligibility = useServerFn(getWithdrawalEligibility);
 
@@ -498,6 +499,7 @@ function WithdrawTab({
       network: string;
       amount: number;
       destinationAddress: string;
+      withdrawalPassword: string;
     }) => submit({ data: vars }),
     onSuccess: (res, vars) => {
       onSubmitted({
@@ -517,6 +519,7 @@ function WithdrawTab({
       });
       setAmount("");
       setAddress("");
+      setWithdrawalPassword("");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
