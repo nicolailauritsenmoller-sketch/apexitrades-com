@@ -48,6 +48,15 @@ function SecuritySettings() {
       </Section>
 
       <Section
+        icon={Lock}
+        title="Withdrawal password"
+        description="A separate password required to confirm every withdrawal."
+      >
+        <WithdrawalPasswordForm />
+      </Section>
+
+
+      <Section
         icon={ShieldCheck}
         title="Two-factor authentication"
         description="Email one-time codes protect sign-in and password resets."
