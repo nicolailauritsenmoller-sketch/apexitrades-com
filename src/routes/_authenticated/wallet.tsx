@@ -36,6 +36,7 @@ import {
   requestWithdrawal,
   swapAssets,
 } from "@/lib/wallet.functions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
