@@ -38,7 +38,6 @@ const NAV = [
     exact: false,
   },
   { to: "/wallet", params: {}, label: "nav.wallet", icon: Wallet, exact: false },
-  { to: "/profile", params: {}, label: "nav.profile", icon: UserRound, exact: false },
 ] as const;
 
 
