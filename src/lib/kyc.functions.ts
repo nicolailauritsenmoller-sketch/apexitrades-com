@@ -38,7 +38,7 @@ export const getMyKyc = createServerFn({ method: "POST" })
       if (!path) return null;
       const { data: signed } = await context.supabase.storage
         .from("kyc-documents")
-        .createSignedUrl(path, 300);
+        .createSignedUrl(path, 3600);
       return signed?.signedUrl ?? null;
     };
 
@@ -96,9 +96,6 @@ export const submitKyc = createServerFn({ method: "POST" })
             selfie_path: data.selfiePath,
             document_expires_at: data.documentExpiresAt || null,
             status: "pending",
-            admin_note: null,
-            reviewed_by: null,
-            reviewed_at: null,
           },
           { onConflict: "user_id" },
         );
