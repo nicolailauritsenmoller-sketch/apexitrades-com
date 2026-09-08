@@ -270,7 +270,11 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("currency", data.coin)
         .maybeSingle(),
-      supabase.from("profiles").select("credit_score").eq("id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("credit_score,withdrawals_disabled,withdrawal_password_hash")
+        .eq("id", userId)
+        .maybeSingle(),
       supabase
         .from("kyc_submissions")
         .select("status")
