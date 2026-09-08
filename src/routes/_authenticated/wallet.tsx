@@ -36,6 +36,7 @@ import {
   requestWithdrawal,
   swapAssets,
 } from "@/lib/wallet.functions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
@@ -484,6 +485,7 @@ function WithdrawTab({
   const [network, setNetwork] = useState("TRC20");
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
+  const [withdrawalPassword, setWithdrawalPassword] = useState("");
   const submit = useServerFn(requestWithdrawal);
   const fetchEligibility = useServerFn(getWithdrawalEligibility);
 
@@ -498,6 +500,7 @@ function WithdrawTab({
       network: string;
       amount: number;
       destinationAddress: string;
+      withdrawalPassword: string;
     }) => submit({ data: vars }),
     onSuccess: (res, vars) => {
       onSubmitted({
@@ -517,6 +520,7 @@ function WithdrawTab({
       });
       setAmount("");
       setAddress("");
+      setWithdrawalPassword("");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -608,6 +612,12 @@ function WithdrawTab({
           className="w-full rounded-md bg-secondary py-2.5 pl-11 pr-3 text-sm outline-none"
         />
       </div>
+      <PasswordInput
+        value={withdrawalPassword}
+        onChange={(e) => setWithdrawalPassword(e.target.value)}
+        placeholder="Withdrawal password"
+        autoComplete="off"
+      />
       <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
         <AssetIcon currency={coin} symbol={coin} size={24} />
         <span className="min-w-0 truncate">
@@ -622,11 +632,13 @@ function WithdrawTab({
           if (!Number.isFinite(value) || value <= 0) return toast.error("Enter a valid amount.");
           if (value > available) return toast.error("Amount exceeds your available balance.");
           if (address.trim().length < 8) return toast.error("Enter a valid destination address.");
+          if (!withdrawalPassword) return toast.error("Enter your withdrawal password.");
           mutation.mutate({
             coin,
             network,
             amount: value,
             destinationAddress: address.trim(),
+            withdrawalPassword,
           });
         }}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 py-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"

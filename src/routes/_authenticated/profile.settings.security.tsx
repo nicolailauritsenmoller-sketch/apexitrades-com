@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { KeyRound, MonitorSmartphone, ShieldCheck } from "lucide-react";
+import { KeyRound, Lock, MonitorSmartphone, ShieldCheck } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { PasswordForm } from "@/components/profile/PasswordForm";
+import { WithdrawalPasswordForm } from "@/components/profile/WithdrawalPasswordForm";
 import { DevicesPanel } from "@/components/profile/DevicesPanel";
 import { getProfileOverview } from "@/lib/profile.functions";
 
@@ -45,6 +46,15 @@ function SecuritySettings() {
       <Section icon={KeyRound} title="Change password" description="Confirm your current password to set a new one.">
         <PasswordForm email={email} />
       </Section>
+
+      <Section
+        icon={Lock}
+        title="Withdrawal password"
+        description="A separate password required to confirm every withdrawal."
+      >
+        <WithdrawalPasswordForm />
+      </Section>
+
 
       <Section
         icon={ShieldCheck}

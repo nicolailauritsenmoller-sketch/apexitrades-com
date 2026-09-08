@@ -16,6 +16,7 @@ const withdrawInput = z.object({
   network: z.string().min(1).max(24),
   amount: z.number().positive().max(100_000_000),
   destinationAddress: z.string().trim().min(8).max(200),
+  withdrawalPassword: z.string().max(200).optional(),
 });
 
 const swapInput = z.object({
@@ -269,7 +270,11 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("currency", data.coin)
         .maybeSingle(),
-      supabase.from("profiles").select("credit_score").eq("id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("credit_score,withdrawals_disabled,withdrawal_password_hash")
+        .eq("id", userId)
+        .maybeSingle(),
       supabase
         .from("kyc_submissions")
         .select("status")
@@ -289,6 +294,20 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       throw new Error(
         `Your credit score is below the ${MIN_WITHDRAWAL_CREDIT_SCORE} threshold required for withdrawals.`,
       );
+    }
+
+    const storedPasswordHash = (profile as any)?.withdrawal_password_hash as string | null;
+    if (!storedPasswordHash) {
+      throw new Error(
+        "Set a withdrawal password in Profile → Security before requesting a withdrawal.",
+      );
+    }
+    {
+      const { hashWithdrawalPassword } = await import("./withdrawal-password.functions");
+      const provided = await hashWithdrawalPassword(userId, data.withdrawalPassword ?? "");
+      if (provided !== storedPasswordHash) {
+        throw new Error("Incorrect withdrawal password.");
+      }
     }
 
     if (!wallet || Number(wallet.balance) < data.amount) {
