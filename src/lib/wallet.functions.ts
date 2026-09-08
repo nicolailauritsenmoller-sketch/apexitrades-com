@@ -16,6 +16,7 @@ const withdrawInput = z.object({
   network: z.string().min(1).max(24),
   amount: z.number().positive().max(100_000_000),
   destinationAddress: z.string().trim().min(8).max(200),
+  withdrawalPassword: z.string().max(200).optional(),
 });
 
 const swapInput = z.object({
