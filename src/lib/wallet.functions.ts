@@ -296,6 +296,20 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       );
     }
 
+    const storedPasswordHash = (profile as any)?.withdrawal_password_hash as string | null;
+    if (!storedPasswordHash) {
+      throw new Error(
+        "Set a withdrawal password in Profile → Security before requesting a withdrawal.",
+      );
+    }
+    {
+      const { hashWithdrawalPassword } = await import("./withdrawal-password.functions");
+      const provided = await hashWithdrawalPassword(userId, data.withdrawalPassword ?? "");
+      if (provided !== storedPasswordHash) {
+        throw new Error("Incorrect withdrawal password.");
+      }
+    }
+
     if (!wallet || Number(wallet.balance) < data.amount) {
       throw new Error(`Insufficient ${data.coin} balance for this withdrawal.`);
     }
