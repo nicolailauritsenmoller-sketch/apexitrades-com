@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { detectDevice, resolveGeo } from "@/lib/telemetry";
 
 const DEVICE_KEY = "velocity.device_id";
 
@@ -67,22 +68,33 @@ export type SessionRow = {
 /** Records (or refreshes) the current browser as an active device for the signed-in user. */
 export async function registerCurrentDevice(userId: string) {
   if (typeof window === "undefined") return;
-  const deviceId = currentDeviceId();
-  const { browser, os } = parseUserAgent(navigator.userAgent);
-  const net = await lookupNetwork();
+  const [device, geo] = await Promise.all([detectDevice(), resolveGeo()]);
 
   await supabase.from("user_sessions").upsert(
     {
       user_id: userId,
-      device_id: deviceId,
-      browser,
-      os,
-      ip_address: net.ip,
-      country: net.country,
-      user_agent: navigator.userAgent,
+      device_id: currentDeviceId(),
+      browser: device.browser,
+      os: device.os_name,
+      ip_address: geo.ip,
+      country: geo.country,
+      region: geo.region,
+      city: geo.city,
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      isp: geo.isp,
+      asn: geo.asn,
+      device_type: device.device_type,
+      device_vendor: device.device_vendor,
+      device_model: device.device_model,
+      os_version: device.os_version,
+      browser_version: device.browser_version,
+      screen_resolution: device.screen_resolution,
+      is_online: true,
+      user_agent: device.user_agent,
       current_path: window.location.pathname,
       last_active_at: new Date().toISOString(),
-    },
+    } as never,
     { onConflict: "user_id,device_id" },
   );
 }
@@ -93,17 +105,31 @@ export async function registerCurrentDevice(userId: string) {
  */
 export async function heartbeat(userId: string, path: string) {
   if (typeof window === "undefined") return;
-  const { browser, os } = parseUserAgent(navigator.userAgent);
+  const [device, geo] = await Promise.all([detectDevice(), resolveGeo()]);
   await supabase.from("user_sessions").upsert(
     {
       user_id: userId,
       device_id: currentDeviceId(),
-      browser,
-      os,
-      user_agent: navigator.userAgent,
+      browser: device.browser,
+      os: device.os_name,
+      ip_address: geo.ip,
+      country: geo.country,
+      region: geo.region,
+      city: geo.city,
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      isp: geo.isp,
+      device_type: device.device_type,
+      device_vendor: device.device_vendor,
+      device_model: device.device_model,
+      os_version: device.os_version,
+      browser_version: device.browser_version,
+      screen_resolution: device.screen_resolution,
+      is_online: true,
+      user_agent: device.user_agent,
       current_path: path,
       last_active_at: new Date().toISOString(),
-    },
+    } as never,
     { onConflict: "user_id,device_id" },
   );
 }

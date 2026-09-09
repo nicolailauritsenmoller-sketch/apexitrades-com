@@ -944,6 +944,62 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_logs: {
+        Row: {
+          action_type: string
+          city: string | null
+          country: string | null
+          created_at: string
+          device_id: string | null
+          dom_events_json: Json
+          id: string
+          ip_address: string | null
+          label: string | null
+          metadata_json: Json
+          route: string | null
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_id?: string | null
+          dom_events_json?: Json
+          id?: string
+          ip_address?: string | null
+          label?: string | null
+          metadata_json?: Json
+          route?: string | null
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_id?: string | null
+          dom_events_json?: Json
+          id?: string
+          ip_address?: string | null
+          label?: string | null
+          metadata_json?: Json
+          route?: string | null
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "user_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -967,41 +1023,80 @@ export type Database = {
       }
       user_sessions: {
         Row: {
+          asn: string | null
           browser: string
+          browser_version: string | null
+          city: string | null
           country: string | null
           created_at: string
           current_path: string | null
           device_id: string
+          device_model: string | null
+          device_type: string | null
+          device_vendor: string | null
           id: string
           ip_address: string | null
+          is_online: boolean
+          isp: string | null
           last_active_at: string
+          latitude: number | null
+          longitude: number | null
           os: string
+          os_version: string | null
+          region: string | null
+          screen_resolution: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          asn?: string | null
           browser?: string
+          browser_version?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           current_path?: string | null
           device_id: string
+          device_model?: string | null
+          device_type?: string | null
+          device_vendor?: string | null
           id?: string
           ip_address?: string | null
+          is_online?: boolean
+          isp?: string | null
           last_active_at?: string
+          latitude?: number | null
+          longitude?: number | null
           os?: string
+          os_version?: string | null
+          region?: string | null
+          screen_resolution?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          asn?: string | null
           browser?: string
+          browser_version?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           current_path?: string | null
           device_id?: string
+          device_model?: string | null
+          device_type?: string | null
+          device_vendor?: string | null
           id?: string
           ip_address?: string | null
+          is_online?: boolean
+          isp?: string | null
           last_active_at?: string
+          latitude?: number | null
+          longitude?: number | null
           os?: string
+          os_version?: string | null
+          region?: string | null
+          screen_resolution?: string | null
           user_agent?: string | null
           user_id?: string
         }
