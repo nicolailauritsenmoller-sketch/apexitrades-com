@@ -326,7 +326,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
       if (!path) return null;
       const { data: signed } = await context.supabase.storage
         .from("kyc-documents")
-        .createSignedUrl(path, 300);
+        .createSignedUrl(path, 3600);
       return signed?.signedUrl ?? null;
     };
 
