@@ -4,7 +4,7 @@
  */
 import { UAParser } from "ua-parser-js";
 import { supabase } from "@/integrations/supabase/client";
-import { currentDeviceId } from "@/lib/sessions";
+
 
 export type DeviceInfo = {
   browser: string;
@@ -28,6 +28,18 @@ export type GeoInfo = {
   isp: string | null;
   asn: string | null;
 };
+
+const DEVICE_KEY = "velocity.device_id";
+
+function currentDeviceId(): string {
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
+}
 
 const APPLE_HINTS: Record<string, string> = {
   "iPhone17": "iPhone 16 Pro",
