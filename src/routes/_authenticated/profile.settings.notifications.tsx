@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { logActivity } from "@/lib/telemetry";
 import { Bell, Megaphone } from "lucide-react";
 import { Section, SubPageHeader, ToggleRow } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
@@ -45,19 +46,28 @@ function NotificationSettings() {
             label="Email alerts"
             description="Sign-in notices, deposit and withdrawal confirmations."
             checked={email}
-            onChange={setEmail}
+            onChange={(v) => {
+              setEmail(v);
+              void logActivity("settings", `Email alerts ${v ? "enabled" : "disabled"}`, { setting: "Email alerts", value: v });
+            }}
           />
           <ToggleRow
             label="Push notifications"
             description="Browser and installed-app notifications."
             checked={push}
-            onChange={setPush}
+            onChange={(v) => {
+              setPush(v);
+              void logActivity("settings", `Push notifications ${v ? "enabled" : "disabled"}`, { setting: "Push notifications", value: v });
+            }}
           />
           <ToggleRow
             label="Trade execution updates"
             description="Fills, contract settlements and liquidation warnings."
             checked={trades}
-            onChange={setTrades}
+            onChange={(v) => {
+              setTrades(v);
+              void logActivity("settings", `Trade execution updates ${v ? "enabled" : "disabled"}`, { setting: "Trade execution updates", value: v });
+            }}
           />
         </div>
       </Section>
@@ -67,7 +77,10 @@ function NotificationSettings() {
           label="Marketing communications"
           description="Feature announcements, campaigns and referral offers."
           checked={marketing}
-          onChange={setMarketing}
+          onChange={(v) => {
+              setMarketing(v);
+              void logActivity("settings", `Marketing communications ${v ? "enabled" : "disabled"}`, { setting: "Marketing communications", value: v });
+            }}
         />
         <p className="mt-3 text-xs text-muted-foreground">
           Preferences are saved to this device and synced to your account when functional cookies are allowed.

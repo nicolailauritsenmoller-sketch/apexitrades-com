@@ -8,6 +8,7 @@ import { KycTierCard } from "@/components/profile/KycTierCard";
 import { KycLevel2Panel, type Level2Payload } from "@/components/profile/KycLevel2Panel";
 import { getMyKyc, submitKyc, submitKycLevel2 } from "@/lib/kyc.functions";
 import { getProfileOverview } from "@/lib/profile.functions";
+import { logActivity } from "@/lib/telemetry";
 
 type KycPayload = Parameters<Parameters<typeof KycPanel>[0]["onSubmit"]>[0];
 
@@ -47,6 +48,7 @@ function VerificationPage() {
     mutationFn: (payload: KycPayload) => sendKyc({ data: payload }),
     onSuccess: (res) => {
       toast.success(res?.message ?? "Documents submitted for review");
+      void logActivity("kyc", "Submitted Level 1 identity documents", { level: 1 });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -56,6 +58,7 @@ function VerificationPage() {
     mutationFn: (payload: Level2Payload) => sendLevel2({ data: payload }),
     onSuccess: (res) => {
       toast.success(res?.message ?? "Level 2 documents submitted for review");
+      void logActivity("kyc", "Submitted Level 2 verification documents", { level: 2 });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),

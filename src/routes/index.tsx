@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, Gauge, Layers, Lock, ShieldCheck, Zap } from "lucide-react";
 import { useQuotes } from "@/hooks/useMarket";
@@ -55,6 +55,10 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const navigate = useNavigate();
   const { quotes } = useQuotes(TICKER, 8000);
+  // Prices arrive from a cached client store; render placeholders until hydration
+  // completes so the server and client markup match.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   // Signed-in visitors belong on the portfolio, not the marketing page.
   useEffect(() => {
@@ -66,7 +70,7 @@ function Landing() {
       cancelled = true;
     };
   }, [navigate]);
-  const row = TICKER.map((s) => ({ symbol: s, quote: quotes[s] }));
+  const row = TICKER.map((s) => ({ symbol: s, quote: hydrated ? quotes[s] : undefined }));
 
   return (
     <div className="relative w-full max-w-full overflow-x-hidden bg-background">

@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LANGUAGES, useI18n, type LangCode } from "@/lib/i18n";
+import { logActivity } from "@/lib/telemetry";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "BTC", "USDT"];
 
@@ -44,6 +45,7 @@ function PreferenceSettings() {
   function changeLanguage(next: LangCode) {
     setLang(next);
     setLanguagePref(next);
+    void logActivity("settings", `Changed language to ${next}`, { setting: "language", value: next });
   }
 
   return (
@@ -61,7 +63,13 @@ function PreferenceSettings() {
             <button
               key={c}
               type="button"
-              onClick={() => setCurrency(c)}
+              onClick={() => {
+                setCurrency(c);
+                void logActivity("settings", `Changed display currency to ${c}`, {
+                  setting: "displayCurrency",
+                  value: c,
+                });
+              }}
               className={`min-h-9 touch-manipulation rounded-xl border px-4 text-sm font-semibold transition-colors ${
                 currency === c
                   ? "border-primary bg-primary text-primary-foreground"
