@@ -592,6 +592,7 @@ function AdminPage() {
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
           {tab === "active" && <ActiveUsersPanel />}
+          {tab === "telemetry" && <TelemetryPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
           {tab === "vip" && <VipDesk />}
