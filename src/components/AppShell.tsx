@@ -21,6 +21,7 @@ import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
+import { logActivity, startDomCapture } from "@/lib/telemetry";
 import { useHasSession } from "@/lib/use-session";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useT, type TranslationKey } from "@/lib/i18n";
@@ -70,6 +71,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
     });
   }, [router]);
+
+  // Telemetry: capture UI interactions and log every page view for the ops console.
+  useEffect(() => {
+    if (hasSession !== true) return;
+    startDomCapture();
+    let last = "";
+    const record = () => {
+      const path = window.location.pathname;
+      if (path === last) return;
+      last = path;
+      void logActivity("navigation", `Viewed ${path}`, { path });
+    };
+    record();
+    const unsub = router.subscribe("onResolved", record);
+    return () => {
+      unsub();
+
+    };
+  }, [router, hasSession]);
 
 
   return (

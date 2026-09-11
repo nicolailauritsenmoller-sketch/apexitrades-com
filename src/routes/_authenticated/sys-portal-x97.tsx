@@ -50,6 +50,7 @@ import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/R
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
+import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
@@ -187,6 +188,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     items: [
       { id: "audit", label: "Audit logs", icon: ScrollText },
       { id: "security", label: "Security reports", icon: ShieldAlert },
+      { id: "telemetry", label: "Security & activity", icon: Radio },
       { id: "authproviders", label: "Auth & identity", icon: Fingerprint },
       { id: "engine", label: "Engine & spreads", icon: Gauge },
       { id: "settings", label: "Settings", icon: Settings2 },
@@ -221,6 +223,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "telemetry",
   "roles",
   "engine",
   "gateways",
@@ -592,6 +595,7 @@ function AdminPage() {
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
           {tab === "active" && <ActiveUsersPanel />}
+          {tab === "telemetry" && <TelemetryPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
           {tab === "vip" && <VipDesk />}
