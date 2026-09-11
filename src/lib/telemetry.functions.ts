@@ -57,7 +57,7 @@ export const getTelemetryOverview = createServerFn({ method: "POST" })
     const { data: profiles } = userIds.length
       ? await db.from("profiles").select("id,display_name,email,uid").in("id", userIds)
       : { data: [] as any[] };
-    const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    const byId = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p]));
 
     const shaped = rows.map((r) => shape(r, byId.get(r.user_id)));
 
@@ -129,7 +129,12 @@ export const getUserTelemetry = createServerFn({ method: "POST" })
     ]);
 
     return {
-      profile: profile ?? null,
+      profile: (profile ?? null) as {
+        id: string;
+        display_name: string;
+        email: string | null;
+        uid: string | null;
+      } | null,
       sessions: ((sessions ?? []) as any[]).map((r) => shape(r, profile)),
       activity: ((activity ?? []) as any[]).map((a) => ({
         id: a.id as string,
@@ -139,7 +144,7 @@ export const getUserTelemetry = createServerFn({ method: "POST" })
         city: a.city as string | null,
         country: a.country as string | null,
         ip: a.ip_address as string | null,
-        metadata: (a.metadata_json ?? {}) as Record<string, unknown>,
+        metadata: JSON.stringify(a.metadata_json ?? {}),
         domEvents: (a.dom_events_json ?? []) as {
           t: number;
           kind: string;
