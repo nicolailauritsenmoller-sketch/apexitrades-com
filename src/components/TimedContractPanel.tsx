@@ -21,6 +21,7 @@ import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { LivePnl } from "@/components/LivePnl";
 import { useQuotes } from "@/hooks/useMarket";
+import { logActivity } from "@/lib/telemetry";
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -58,6 +59,7 @@ export function TimedContractPanel({
     mutationFn: (direction: "up" | "down") =>
       place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.seconds } }),
     onSuccess: (res) => {
+      void logActivity("order", `Opened ${symbol} contract`, { symbol, stake: Number(amount) });
       toast.success(
         `Contract open at ${formatPrice(res.entryPrice, symbol)} · target profit ${formatMoney(res.expectedProfit, res.currency)}`,
       );

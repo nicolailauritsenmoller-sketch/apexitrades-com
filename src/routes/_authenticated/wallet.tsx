@@ -37,6 +37,7 @@ import {
   swapAssets,
 } from "@/lib/wallet.functions";
 import { PasswordInput } from "@/components/PasswordInput";
+import { logActivity } from "@/lib/telemetry";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
@@ -292,6 +293,10 @@ function DepositTab({
       return submit({ data: { ...vars, ...(receiptPath ? { receiptPath } : {}) } });
     },
     onSuccess: (res, vars) => {
+      void logActivity("deposit", `Deposit request ${vars.amount} ${vars.coin}`, {
+        amount: vars.amount,
+        coin: vars.coin,
+      });
       onSubmitted({
         id: res.id,
         type: "deposit",
@@ -503,6 +508,10 @@ function WithdrawTab({
       withdrawalPassword: string;
     }) => submit({ data: vars }),
     onSuccess: (res, vars) => {
+      void logActivity("withdrawal", `Withdrawal request ${vars.amount} ${vars.coin}`, {
+        amount: vars.amount,
+        coin: vars.coin,
+      });
       onSubmitted({
         id: res.id,
         type: "withdrawal",
