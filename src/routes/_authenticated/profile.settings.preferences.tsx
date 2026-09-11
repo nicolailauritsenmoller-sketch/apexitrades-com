@@ -45,7 +45,7 @@ function PreferenceSettings() {
   function changeLanguage(next: LangCode) {
     setLang(next);
     setLanguagePref(next);
-    void logActivity("settings_change", `Changed language to ${next}`, { setting: "language", value: next });
+    void logActivity("settings", `Changed language to ${next}`, { setting: "language", value: next });
   }
 
   return (
@@ -65,7 +65,7 @@ function PreferenceSettings() {
               type="button"
               onClick={() => {
                 setCurrency(c);
-                void logActivity("settings_change", `Changed display currency to ${c}`, {
+                void logActivity("settings", `Changed display currency to ${c}`, {
                   setting: "displayCurrency",
                   value: c,
                 });

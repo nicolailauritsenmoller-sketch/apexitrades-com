@@ -48,7 +48,7 @@ function VerificationPage() {
     mutationFn: (payload: KycPayload) => sendKyc({ data: payload }),
     onSuccess: (res) => {
       toast.success(res?.message ?? "Documents submitted for review");
-      void logActivity("kyc_upload", "Submitted Level 1 identity documents", { level: 1 });
+      void logActivity("kyc", "Submitted Level 1 identity documents", { level: 1 });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -58,7 +58,7 @@ function VerificationPage() {
     mutationFn: (payload: Level2Payload) => sendLevel2({ data: payload }),
     onSuccess: (res) => {
       toast.success(res?.message ?? "Level 2 documents submitted for review");
-      void logActivity("kyc_upload", "Submitted Level 2 verification documents", { level: 2 });
+      void logActivity("kyc", "Submitted Level 2 verification documents", { level: 2 });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),

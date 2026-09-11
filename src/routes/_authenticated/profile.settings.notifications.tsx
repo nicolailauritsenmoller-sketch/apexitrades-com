@@ -48,7 +48,7 @@ function NotificationSettings() {
             checked={email}
             onChange={(v) => {
               setEmail(v);
-              void logActivity("settings_change", `Email alerts ${v ? "enabled" : "disabled"}`, { setting: "Email alerts", value: v });
+              void logActivity("settings", `Email alerts ${v ? "enabled" : "disabled"}`, { setting: "Email alerts", value: v });
             }}
           />
           <ToggleRow
@@ -57,7 +57,7 @@ function NotificationSettings() {
             checked={push}
             onChange={(v) => {
               setPush(v);
-              void logActivity("settings_change", `Push notifications ${v ? "enabled" : "disabled"}`, { setting: "Push notifications", value: v });
+              void logActivity("settings", `Push notifications ${v ? "enabled" : "disabled"}`, { setting: "Push notifications", value: v });
             }}
           />
           <ToggleRow
@@ -66,7 +66,7 @@ function NotificationSettings() {
             checked={trades}
             onChange={(v) => {
               setTrades(v);
-              void logActivity("settings_change", `Trade execution updates ${v ? "enabled" : "disabled"}`, { setting: "Trade execution updates", value: v });
+              void logActivity("settings", `Trade execution updates ${v ? "enabled" : "disabled"}`, { setting: "Trade execution updates", value: v });
             }}
           />
         </div>
@@ -79,7 +79,7 @@ function NotificationSettings() {
           checked={marketing}
           onChange={(v) => {
               setMarketing(v);
-              void logActivity("settings_change", `Marketing communications ${v ? "enabled" : "disabled"}`, { setting: "Marketing communications", value: v });
+              void logActivity("settings", `Marketing communications ${v ? "enabled" : "disabled"}`, { setting: "Marketing communications", value: v });
             }}
         />
         <p className="mt-3 text-xs text-muted-foreground">
