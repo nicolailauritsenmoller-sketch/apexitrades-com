@@ -188,6 +188,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     items: [
       { id: "audit", label: "Audit logs", icon: ScrollText },
       { id: "security", label: "Security reports", icon: ShieldAlert },
+      { id: "telemetry", label: "Security & activity", icon: Radio },
       { id: "authproviders", label: "Auth & identity", icon: Fingerprint },
       { id: "engine", label: "Engine & spreads", icon: Gauge },
       { id: "settings", label: "Settings", icon: Settings2 },
@@ -222,6 +223,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "telemetry",
   "roles",
   "engine",
   "gateways",
