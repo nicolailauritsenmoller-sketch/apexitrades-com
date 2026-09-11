@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Telemetry: capture UI interactions and log every page view for the ops console.
   useEffect(() => {
     if (hasSession !== true) return;
-    const stop = startDomCapture();
+    startDomCapture();
     let last = "";
     const record = () => {
       const path = window.location.pathname;
@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const unsub = router.subscribe("onResolved", record);
     return () => {
       unsub();
-      stop?.();
+
     };
   }, [router, hasSession]);
 
