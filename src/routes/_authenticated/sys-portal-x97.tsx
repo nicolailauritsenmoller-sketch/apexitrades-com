@@ -50,6 +50,7 @@ import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/R
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
+import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
