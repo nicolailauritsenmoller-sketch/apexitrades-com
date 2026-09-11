@@ -71,6 +71,25 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, [router]);
 
+  // Telemetry: capture UI interactions and log every page view for the ops console.
+  useEffect(() => {
+    if (hasSession !== true) return;
+    const stop = startDomCapture();
+    let last = "";
+    const record = () => {
+      const path = window.location.pathname;
+      if (path === last) return;
+      last = path;
+      void logActivity("navigation", `Viewed ${path}`, { path });
+    };
+    record();
+    const unsub = router.subscribe("onResolved", record);
+    return () => {
+      unsub();
+      stop?.();
+    };
+  }, [router, hasSession]);
+
 
   return (
     <div className="min-h-screen bg-background">
