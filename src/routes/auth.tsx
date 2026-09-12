@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
 import { OtpInput } from "@/components/OtpInput";
-import { ThemeToggle } from "@/lib/theme";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -286,8 +285,6 @@ function AuthPage() {
           />
           <span className="font-display text-sm font-bold">VELOCITY TRADE</span>
         </div>
-        <ThemeToggle className="absolute right-7 top-6" />
-
         <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>
 

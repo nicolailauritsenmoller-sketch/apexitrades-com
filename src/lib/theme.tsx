@@ -1,35 +1,44 @@
 import { useCallback, useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 
-export type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "system";
 export const THEME_KEY = "velocity.theme";
 
 /** Inline script injected before hydration so the theme class is applied without flash. */
-export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(!t){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var r=document.documentElement;r.classList.toggle("dark",t==="dark");}catch(e){}})();`;
+export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"dark";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){document.documentElement.classList.add("dark");}})();`;
 
 function readTheme(): Theme {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const stored = localStorage.getItem(THEME_KEY);
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (stored === "light" || stored === "dark" || stored === "system") return stored;
+  return "dark";
 }
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
+  const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.classList.toggle("dark", dark);
   window.dispatchEvent(new CustomEvent<Theme>("velocity:theme", { detail: theme }));
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
     const next = readTheme();
     setThemeState(next);
     applyTheme(next);
     const onChange = (e: Event) => setThemeState((e as CustomEvent<Theme>).detail);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onSystemChange = () => {
+      if (readTheme() === "system") applyTheme("system");
+    };
     window.addEventListener("velocity:theme", onChange);
-    return () => window.removeEventListener("velocity:theme", onChange);
+    media.addEventListener("change", onSystemChange);
+    return () => {
+      window.removeEventListener("velocity:theme", onChange);
+      media.removeEventListener("change", onSystemChange);
+    };
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
@@ -42,53 +51,32 @@ export function useTheme() {
     }
   }, []);
 
-  const toggle = useCallback(
-    () => setTheme(theme === "dark" ? "light" : "dark"),
-    [theme, setTheme],
-  );
-
-  return { theme, setTheme, toggle };
+  return { theme, setTheme };
 }
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
-  const { theme, toggle } = useTheme();
-  const isDark = theme === "dark";
-
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Light mode" : "Dark mode"}
-      className={`grid size-9 shrink-0 touch-manipulation place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground ${className}`}
-    >
-      {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
-    </button>
-  );
-}
-
-/** Labelled light/dark switch for settings menus. */
+/** The only platform theme control, presented inside Profile preferences. */
 export function ThemeSetting() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-semibold">Appearance</p>
-        <p className="text-xs text-muted-foreground">Choose light or dark interface.</p>
+        <p className="text-xs text-muted-foreground">Choose light, dark, or follow your device.</p>
       </div>
-      <div className="inline-flex rounded-full border border-border p-0.5">
+      <div className="grid grid-cols-3 rounded-lg border border-border p-0.5">
         {(
           [
             { id: "light" as const, label: "Light", Icon: Sun },
             { id: "dark" as const, label: "Dark", Icon: Moon },
+            { id: "system" as const, label: "System", Icon: Monitor },
           ]
         ).map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => setTheme(id)}
-            className={`flex touch-manipulation items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex min-h-9 touch-manipulation items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
               theme === id
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
