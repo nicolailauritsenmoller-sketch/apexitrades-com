@@ -78,11 +78,13 @@ export function KycLevel2Panel({
       return;
     }
     setBusy(true);
+    setStage("uploading");
     try {
       const [livenessSelfiePath, proofPath] = await Promise.all([
         upload(selfie, "level2-selfie"),
         upload(proof, "level2-proof"),
       ]);
+      setStage("done");
       await onSubmit({
         livenessSelfiePath,
         proofPath,
@@ -91,7 +93,9 @@ export function KycLevel2Panel({
       });
       setSelfie(null);
       setProof(null);
+      setStage("idle");
     } catch (err) {
+      setStage("idle");
       toast.error((err as Error).message);
     } finally {
       setBusy(false);
