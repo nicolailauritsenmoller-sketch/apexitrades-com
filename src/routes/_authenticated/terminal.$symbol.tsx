@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TradingViewChart } from "@/components/trading/TradingViewChart";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
+import { OrderBook } from "@/components/trading/OrderBook";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
@@ -71,6 +72,9 @@ function Terminal() {
   const [timeframe, setTimeframe] = useState<Timeframe>("1m");
   const [quantity, setQuantity] = useState(String(inst.step));
   const [leverage, setLeverage] = useState(1);
+  // Price picked from the order book ladder; empty means execute at market.
+  const [orderPriceValue, setOrderPriceValue] = useState("");
+  const setOrderPrice = (p: number) => setOrderPriceValue(String(+p.toFixed(inst.precision)));
 
   const { quotes } = useQuotes([symbol], 3000);
   const quote = quotes[symbol];
@@ -210,7 +214,7 @@ function Terminal() {
         </div>
       </div>
 
-      <div className="grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid w-full max-w-full gap-4 xl:grid-cols-[minmax(0,1fr)_260px_340px] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="panel min-w-0 max-w-full overflow-hidden p-0">
           <TradingViewChart
             symbol={symbol}
@@ -222,6 +226,11 @@ function Terminal() {
             isLoading={candles.isLoading}
           />
         </div>
+
+        <div className="min-w-0 max-w-full lg:col-span-2 xl:col-span-1">
+          <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} />
+        </div>
+
 
 
         <div className="panel min-w-0 max-w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-9rem)]">
