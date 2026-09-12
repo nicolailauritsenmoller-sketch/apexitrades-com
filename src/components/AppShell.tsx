@@ -21,7 +21,7 @@ import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 import { getMyAccess } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
-import { logActivity, startDomCapture } from "@/lib/telemetry";
+import { logActivity, startDomCapture, startInteractionFlush } from "@/lib/telemetry";
 import { useHasSession } from "@/lib/use-session";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useT, type TranslationKey } from "@/lib/i18n";
