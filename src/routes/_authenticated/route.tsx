@@ -1,10 +1,12 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AccountSuspended } from "@/components/AccountSuspended";
+import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import { getMyAccountStatus, type AccountLockState } from "@/lib/account-status.functions";
+import { getTwoFactorState, type TwoFactorState } from "@/lib/two-factor.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"checking" | "authed">("checking");
 
   useEffect(() => {
@@ -39,7 +42,20 @@ function AuthenticatedLayout() {
     refetchInterval: 60_000,
   });
 
-  if (status === "checking" || (status === "authed" && lock.isLoading)) {
+  // 2FA gate: re-evaluated server-side on every load, so direct URLs cannot bypass it.
+  const fetchTwoFactor = useServerFn(getTwoFactorState);
+  const twoFactor = useQuery({
+    queryKey: ["two-factor-state"],
+    queryFn: () => fetchTwoFactor() as Promise<TwoFactorState>,
+    enabled: status === "authed",
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  if (
+    status === "checking" ||
+    (status === "authed" && (lock.isLoading || twoFactor.isLoading))
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-2 border-border border-t-primary" />
@@ -48,6 +64,14 @@ function AuthenticatedLayout() {
   }
 
   if (lock.data?.locked) return <AccountSuspended state={lock.data} />;
+
+  if (twoFactor.data && twoFactor.data.enabled && !twoFactor.data.sessionVerified) {
+    return (
+      <TwoFactorChallenge
+        onVerified={() => void queryClient.invalidateQueries({ queryKey: ["two-factor-state"] })}
+      />
+    );
+  }
 
   return <Outlet />;
 }
