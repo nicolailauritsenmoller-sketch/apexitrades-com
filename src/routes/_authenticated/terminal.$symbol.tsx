@@ -131,11 +131,12 @@ function Terminal() {
   const wallet = wallets.find((w) => w.currency === inst.currency);
   const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
   const qty = Number(quantity) || 0;
-  const notional = (quote?.price ?? 0) * qty;
+  const selectedPrice = Number(orderPriceValue) || 0;
+  const price = selectedPrice > 0 ? selectedPrice : quote?.price;
+  const notional = (price ?? 0) * qty;
   const margin = notional / leverage;
   // Maintenance margin of 0.5% of notional; liquidation is where equity runs out.
   const MAINTENANCE = 0.005;
-  const price = quote?.price;
   const liqLong = price && qty > 0 ? price * (1 - 1 / leverage + MAINTENANCE) : null;
   const liqShort = price && qty > 0 ? price * (1 + 1 / leverage - MAINTENANCE) : null;
   const insufficientMargin = margin > 0 && wallet != null && margin > wallet.balance;
