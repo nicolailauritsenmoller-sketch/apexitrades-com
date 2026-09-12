@@ -41,7 +41,7 @@ export function UserSecurityPanel() {
 
   const directory = useQuery({
     queryKey: ["admin-user-security"],
-    queryFn: () => fetchDirectory({ data: {} }),
+    queryFn: () => fetchDirectory(),
     refetchInterval: 30_000,
   });
 
