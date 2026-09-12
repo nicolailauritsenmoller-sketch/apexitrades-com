@@ -664,6 +664,10 @@ function WithdrawTab({
           if (value > available) return toast.error("Amount exceeds your available balance.");
           if (address.trim().length < 8) return toast.error("Enter a valid destination address.");
           if (!withdrawalPassword) return toast.error("Enter your withdrawal password.");
+          if (twoFactor.data?.enabled) {
+            setStepUpOpen(true);
+            return;
+          }
           mutation.mutate({
             coin,
             network,
@@ -677,6 +681,24 @@ function WithdrawTab({
         <ArrowUpFromLine className="size-4" strokeWidth={2.8} />
         Request withdrawal
       </button>
+      <StepUpCodeDialog
+        open={stepUpOpen}
+        busy={mutation.isPending}
+        title="Confirm withdrawal"
+        description="Enter the current code from your authenticator app to release this withdrawal."
+        onOpenChange={(open) => (open ? null : setStepUpOpen(false))}
+        onSubmit={(code) => {
+          setStepUpOpen(false);
+          mutation.mutate({
+            coin,
+            network,
+            amount: Number(amount),
+            destinationAddress: address.trim(),
+            withdrawalPassword,
+            totpCode: code,
+          });
+        }}
+      />
       <TrustStrip />
     </div>
   );
