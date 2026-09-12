@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Copy, Gift, Users } from "lucide-react";
 import { Card, Section, SubPageHeader, copy } from "@/components/profile/ui";
 import { formatMoney } from "@/lib/instruments";
-import { getProfileOverview } from "@/lib/profile.functions";
+import { getMyReferrals } from "@/lib/referrals.functions";
 
 export const Route = createFileRoute("/_authenticated/profile/referrals")({
   head: () => ({
@@ -28,10 +28,17 @@ export const Route = createFileRoute("/_authenticated/profile/referrals")({
 });
 
 function ReferralsPage() {
-  const fetchOverview = useServerFn(getProfileOverview);
-  const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
+  const fetchReferrals = useServerFn(getMyReferrals);
+  const overview = useQuery({
+    queryKey: ["my-referrals"],
+    queryFn: () => fetchReferrals(),
+    refetchInterval: 60_000,
+  });
 
-  const code = overview.data?.profile.referralCode ?? "";
+  const code = overview.data?.code ?? "";
+  const stats = overview.data?.stats;
+  const reward = overview.data?.rewardAmount ?? 10;
+  const rows = overview.data?.referrals ?? [];
   const link =
     typeof window !== "undefined" && code ? `${window.location.origin}/auth?ref=${code}` : "";
 
@@ -42,14 +49,19 @@ function ReferralsPage() {
         description="Invite traders and earn rewards when they fund and trade."
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card title="Traders invited" value={String(overview.data?.referrals.invited ?? 0)} />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card title="Traders invited" value={String(stats?.invited ?? 0)} />
         <Card
-          title="Rewards earned"
-          value={formatMoney(overview.data?.referrals.rewards ?? 0, "USDT")}
+          title="Pending rewards"
+          value={formatMoney(stats?.pendingRewards ?? 0, "USDT")}
+          hint={`${stats?.pending ?? 0} awaiting release`}
+        />
+        <Card
+          title="Total earned"
+          value={formatMoney(stats?.earned ?? 0, "USDT")}
           tone="text-bull"
         />
-        <Card title="Your code" value={code || "—"} hint="Share this with friends" />
+        <Card title="Your code" value={code || "—"} hint={`${reward} USDT per referral`} />
       </div>
 
       <Section
@@ -73,11 +85,47 @@ function ReferralsPage() {
         </div>
       </Section>
 
-      <Section icon={Users} title="How rewards work">
+      <Section icon={Users} title="Your invited traders">
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No one has joined with your link yet. Share it to start earning {reward} USDT per
+            verified trader.
+          </p>
+        ) : (
+          <div className="divide-y divide-border">
+            {rows.map((r) => (
+              <div key={r.id} className="flex items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{r.refereeName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Joined {new Date(r.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${
+                    r.status === "rewarded"
+                      ? "border-bull/40 bg-bull/10 text-bull"
+                      : r.status === "rejected"
+                        ? "border-bear/40 bg-bear/10 text-bear"
+                        : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {r.status}
+                </span>
+                <span className="w-24 text-right text-sm font-semibold">
+                  {formatMoney(r.rewardAmount, "USDT")}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      <Section icon={Gift} title="How rewards work">
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>1. Share your link — your friend signs up and verifies their identity.</li>
-          <li>2. They fund their wallet and start trading.</li>
-          <li>3. Your USDT reward is credited automatically to your funding wallet.</li>
+          <li>2. Once their identity check passes, the referral becomes eligible.</li>
+          <li>3. {reward} USDT is credited to your USDT wallet and logged in your history.</li>
         </ul>
       </Section>
     </>

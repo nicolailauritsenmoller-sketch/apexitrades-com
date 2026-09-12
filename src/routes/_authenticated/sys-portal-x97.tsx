@@ -23,6 +23,7 @@ import {
   Radio,
   Wrench,
   Star,
+  Gift,
   IdCard,
   MessagesSquare,
   Trash2,
@@ -53,6 +54,7 @@ import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
 import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
+import { ReferralsPanel } from "@/components/admin/ReferralsPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { VipDesk } from "@/components/admin/VipDesk";
 import { getVipDesk } from "@/lib/vip.functions";
@@ -179,6 +181,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "Engagement",
     items: [
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
+      { id: "referrals", label: "Referrals & rewards", icon: Gift },
       { id: "ratings", label: "Ratings & reviews", icon: Star },
       { id: "agent", label: "Agent persona", icon: IdCard },
     ],
@@ -596,6 +599,7 @@ function AdminPage() {
           {tab === "accounting" && <AccountingPanel />}
           {tab === "active" && <ActiveUsersPanel />}
           {tab === "telemetry" && <TelemetryPanel />}
+          {tab === "referrals" && <ReferralsPanel />}
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
           {tab === "vip" && <VipDesk />}
