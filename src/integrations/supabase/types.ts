@@ -756,6 +756,48 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          referee_id: string
+          referral_code: string | null
+          referrer_id: string
+          reviewed_by: string | null
+          reward_amount: number
+          rewarded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          referee_id: string
+          referral_code?: string | null
+          referrer_id: string
+          reviewed_by?: string | null
+          reward_amount?: number
+          rewarded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          referee_id?: string
+          referral_code?: string | null
+          referrer_id?: string
+          reviewed_by?: string | null
+          reward_amount?: number
+          rewarded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_reports: {
         Row: {
           admin_note: string | null
