@@ -257,8 +257,11 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
         <div className="space-y-2">
           {(q.data?.sessions ?? []).map((s) => (
             <div key={s.id} className="rounded-lg border border-border p-3 text-xs">
-              <p className="font-medium">
-                {s.deviceModel} · {s.browser} {s.browserVersion ?? ""}
+              <p className="flex flex-wrap items-center gap-2 font-medium">
+                <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  {s.deviceModel}
+                </span>
+                {s.browser} {s.browserVersion ?? ""}
               </p>
               <p className="text-muted-foreground">
                 {s.os} {s.osVersion ?? ""} · {s.screen ?? "—"} · {s.deviceType}
@@ -277,33 +280,74 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
           )}
         </div>
 
-        <h3 className="mb-2 mt-5 text-[11px] uppercase tracking-widest text-muted-foreground">
-          Activity stream
-        </h3>
-        <ul className="space-y-2 text-xs">
-          {(q.data?.activity ?? []).map((a) => (
-            <li key={a.id} className="flex items-center justify-between gap-3 border-b border-border pb-2">
-              <span className="min-w-0">
-                <span className="block truncate">{a.label}</span>
-                <span className="block truncate text-muted-foreground">
-                  {a.actionType} · {a.route ?? "—"} · {timeAgo(a.createdAt)}
-                </span>
-              </span>
-              <button
-                onClick={() => setReplay(a)}
-                disabled={(a.domEvents ?? []).length === 0}
-                className="shrink-0 touch-manipulation rounded-md border border-border px-2 py-1 disabled:opacity-40"
-              >
-                Replay
-              </button>
-            </li>
-          ))}
-          {(q.data?.activity ?? []).length === 0 && (
-            <p className="text-muted-foreground">No activity recorded yet.</p>
-          )}
-        </ul>
+        {(() => {
+          const acts = q.data?.activity ?? [];
+          const primaryDevice =
+            (q.data?.sessions ?? []).find((s) => s.online)?.deviceModel ??
+            (q.data?.sessions ?? [])[0]?.deviceModel ??
+            null;
+          const live = acts.filter(
+            (a) => Date.now() - new Date(a.createdAt).getTime() < 5 * 60_000,
+          );
+          const recent = acts.filter(
+            (a) => Date.now() - new Date(a.createdAt).getTime() >= 5 * 60_000,
+          );
+
+          const List = ({ rows }: { rows: typeof acts }) => (
+            <ul className="space-y-2 text-xs">
+              {rows.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center justify-between gap-3 border-b border-border pb-2"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate">{a.label}</span>
+                    <span className="block truncate text-muted-foreground">
+                      {a.actionType} · {a.route ?? "—"} · {timeAgo(a.createdAt)} ·{" "}
+                      {(a.domEvents ?? []).length} events
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => setReplay(a)}
+                    disabled={(a.domEvents ?? []).length === 0}
+                    className="shrink-0 touch-manipulation rounded-md border border-border px-2 py-1 disabled:opacity-40"
+                  >
+                    Replay
+                  </button>
+                </li>
+              ))}
+              {rows.length === 0 && <p className="text-muted-foreground">Nothing recorded yet.</p>}
+            </ul>
+          );
+
+          return (
+            <>
+              <h3 className="mb-2 mt-5 flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-bull" /> Live session recordings
+                {primaryDevice ? (
+                  <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[10px] normal-case tracking-normal">
+                    {primaryDevice}
+                  </span>
+                ) : null}
+              </h3>
+              <List rows={live} />
+
+              <h3 className="mb-2 mt-5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                Recent recordings
+              </h3>
+              <List rows={recent} />
+
+              {replay && (
+                <ReplayModal
+                  entry={replay}
+                  device={primaryDevice}
+                  onClose={() => setReplay(null)}
+                />
+              )}
+            </>
+          );
+        })()}
       </div>
-      {replay && <ReplayModal entry={replay} onClose={() => setReplay(null)} />}
     </div>
   );
 }
