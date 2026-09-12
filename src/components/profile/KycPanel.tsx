@@ -68,11 +68,13 @@ export function KycPanel({
       return;
     }
     setBusy(true);
+    setStage("uploading");
     try {
       const [documentPath, selfiePath] = await Promise.all([
         upload(docFile, "document"),
         upload(selfieFile, "selfie"),
       ]);
+      setStage("done");
       await onSubmit({
         ...form,
         documentPath,
