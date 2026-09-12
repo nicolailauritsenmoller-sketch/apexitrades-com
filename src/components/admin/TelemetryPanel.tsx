@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getReplayEvents, listUserReplays } from "@/lib/replay.functions";
 import {
   getTelemetryOverview,
   getUserTelemetry,
@@ -202,6 +203,69 @@ function ReplayModal({
             </button>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+const RrwebPlayer = lazy(() => import("@/components/admin/RrwebPlayer"));
+
+/** Full visual screen playback of one recorded rrweb session. */
+function ScreenReplayModal({
+  userId,
+  session,
+  device,
+  onClose,
+}: {
+  userId: string;
+  session: { sessionKey: string; route: string | null; startedAt: string; events: number };
+  device?: string | null;
+  onClose: () => void;
+}) {
+  const fetchEvents = useServerFn(getReplayEvents);
+  const q = useQuery({
+    queryKey: ["replay-events", userId, session.sessionKey],
+    queryFn: () => fetchEvents({ data: { userId, sessionKey: session.sessionKey } }),
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/85 p-4 backdrop-blur">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-border bg-card p-4">
+        <header className="mb-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate font-display text-sm font-semibold">
+              Screen recording · {session.route ?? "—"}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {new Date(session.startedAt).toLocaleString()} · {session.events} events
+            </p>
+            {device ? (
+              <span className="mt-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium">
+                {device}
+              </span>
+            ) : null}
+          </div>
+          <button
+            onClick={onClose}
+            className="touch-manipulation rounded-md p-1.5 hover:bg-secondary"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+
+        {q.isLoading ? (
+          <div className="h-64 animate-pulse rounded-lg border border-border bg-secondary/40" />
+        ) : (
+          <ClientOnly fallback={<div className="h-64 rounded-lg border border-border" />}>
+            <Suspense
+              fallback={
+                <div className="h-64 animate-pulse rounded-lg border border-border bg-secondary/40" />
+              }
+            >
+              <RrwebPlayer events={q.data?.events ?? []} />
+            </Suspense>
+          </ClientOnly>
+        )}
       </div>
     </div>
   );
