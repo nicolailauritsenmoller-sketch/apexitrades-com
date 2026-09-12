@@ -28,10 +28,17 @@ export const Route = createFileRoute("/_authenticated/profile/referrals")({
 });
 
 function ReferralsPage() {
-  const fetchOverview = useServerFn(getProfileOverview);
-  const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
+  const fetchReferrals = useServerFn(getMyReferrals);
+  const overview = useQuery({
+    queryKey: ["my-referrals"],
+    queryFn: () => fetchReferrals(),
+    refetchInterval: 60_000,
+  });
 
-  const code = overview.data?.profile.referralCode ?? "";
+  const code = overview.data?.code ?? "";
+  const stats = overview.data?.stats;
+  const reward = overview.data?.rewardAmount ?? 10;
+  const rows = overview.data?.referrals ?? [];
   const link =
     typeof window !== "undefined" && code ? `${window.location.origin}/auth?ref=${code}` : "";
 
