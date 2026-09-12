@@ -36,10 +36,10 @@ export function HomeActionBar() {
       <Link
         to="/wallet"
         search={{ tab: "deposit" }}
-        className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-bull px-3 py-3 text-sm font-bold text-bull-foreground transition-transform active:scale-[0.97]"
+        className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
       >
         <ArrowDownToLine className="size-4" strokeWidth={2.6} />
-        Deposit
+        Add funds
       </Link>
       <Link
         to="/wallet"
@@ -50,8 +50,8 @@ export function HomeActionBar() {
         Withdraw
       </Link>
       <Link
-        to="/terminal/$symbol"
-        params={{ symbol: "BTCUSDT" }}
+        to="/trade"
+        search={{ symbol: "BTCUSDT" }}
         className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
       >
         <CandlestickChart className="size-4" strokeWidth={2.6} />

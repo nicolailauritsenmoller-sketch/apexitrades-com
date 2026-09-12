@@ -19,10 +19,10 @@ function qty(value: number, currency: string) {
 const ACTIONS = [
   {
     id: "deposit",
-    label: "Deposit",
+    label: "Add funds",
     icon: ArrowDownToLine,
-    active: "bg-emerald-600 text-white shadow-lg shadow-emerald-600/25",
-    idle: "bg-emerald-600/15 text-emerald-500 hover:bg-emerald-600/25",
+    active: "bg-primary text-primary-foreground shadow-lg shadow-primary/25",
+    idle: "bg-primary/15 text-primary hover:bg-primary/25",
   },
   {
     id: "withdraw",

@@ -347,7 +347,7 @@ function DepositTab({
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="panel p-5">
         <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-          Select network
+          Crypto transfer · Select network
         </div>
         <div className="grid gap-2">
           {addresses.map((a, i) => (
@@ -452,7 +452,7 @@ function DepositTab({
                     txHash: txHash.trim() || undefined,
                   });
                 }}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-[0.99] disabled:opacity-60"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
                 Submit for security review
