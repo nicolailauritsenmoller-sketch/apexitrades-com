@@ -1,6 +1,7 @@
 # Velocity Trade Roadmap
 
 ## In Progress
+- [ ] Remove user-facing “Admin” terminology, restrict Control Center links to true administrators, and institutionalize system messaging.
 
 ## Completed
 - [x] Consolidate Portfolio and Assets balance privacy into one persisted top-level eye control per page and mask all balance, valuation, and P&L displays.

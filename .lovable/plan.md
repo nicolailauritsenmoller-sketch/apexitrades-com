@@ -1,13 +1,12 @@
-# Consolidate Balance Visibility
+# Institutionalize Control Center Language
 
 ## Changes
-- Keep one persisted balance-visibility state shared across Portfolio and Assets.
-- Remove the duplicate Portfolio “Assets overview” eye control and inherit the page-level state.
-- Mask Portfolio totals, asset rows, allocation/performance values, open-position values and P&L, and trade-history monetary values.
-- Keep one eye control beside the Assets total balance and apply it to every displayed asset balance/value.
-- Remove the secondary visibility control from the standalone Assets directory and place its only control beside a new total-balance summary.
+- Restrict customer-app Control Center links to accounts whose verified backend access reports `isAdmin: true`; keep the protected operations route’s existing role-based controls intact for authorized specialist workflows.
+- Rename visible “Admin” navigation, headings, buttons, accessibility labels, and management copy to institutional terms such as Control Center, Security Operations, Operations Team, and Risk Control.
+- Audit deposit, withdrawal, KYC, credit, support, notification, toast, status, and email messaging; replace administrative approval language with review, compliance, verification, clearing, and settlement terminology.
+- Preserve internal role names, function names, database fields, audit event identifiers, and developer-only comments where changing them could affect authorization or integrations.
 
 ## Validation
-- Verify each page has exactly one balance eye control.
-- Toggle visibility and confirm all relevant monetary values mask and restore together.
-- Check Portfolio and Assets at desktop and mobile widths.
+- Search all user-facing source strings to confirm no visible “Admin” wording remains.
+- Verify regular staff and customers do not receive customer-facing Control Center links, while true administrators do.
+- Check the header, Profile, authentication/public pages, transaction statuses, KYC, support, and operations console in the running preview.
