@@ -123,6 +123,37 @@ export function UserAccountControls({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const suspend = useMutation({
+    mutationFn: (input: {
+      status: "active" | "suspended" | "permanently_banned";
+      reason?: string;
+      note?: string;
+      until?: string | null;
+    }) => setSuspension({ data: { userId, ...input } }),
+    onSuccess: () => {
+      toast.success("Account suspension state updated.");
+      setSuspendNote("");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function applySuspension(status: "suspended" | "permanently_banned") {
+    let until: string | null = null;
+    if (status === "suspended") {
+      if (durationHours === 0) {
+        if (!customUntil) {
+          toast.error("Pick a custom end date and time.");
+          return;
+        }
+        until = new Date(customUntil).toISOString();
+      } else if (durationHours > 0) {
+        until = new Date(Date.now() + durationHours * 3_600_000).toISOString();
+      }
+    }
+    suspend.mutate({ status, reason, note: suspendNote.trim() || undefined, until });
+  }
+
   const sessions = useMutation({
     mutationFn: () => terminate({ data: { userId } }),
     onSuccess: (r: any) =>
