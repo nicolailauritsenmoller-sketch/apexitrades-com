@@ -23,6 +23,7 @@ import {
   Radio,
   Wrench,
   Star,
+  Gift,
   IdCard,
   MessagesSquare,
   Trash2,

@@ -76,6 +76,7 @@ export const TAB_ACCENT: Record<string, OpsAccent> = {
   addresses: "emerald",
   gateways: "emerald",
   accounting: "emerald",
+  referrals: "emerald",
   // User ops
   users: "blue",
   roles: "blue",
