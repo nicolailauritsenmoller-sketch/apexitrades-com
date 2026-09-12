@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   DOC_TYPES,
   FileUploadField,
@@ -109,7 +110,7 @@ export function KycLevel2Panel({
           <p className="font-semibold">
             Your Level 2 submission was rejected. Please re-submit below.
           </p>
-          {kyc?.level2AdminNote && <p className="mt-1">Reviewer note: {kyc.level2AdminNote}</p>}
+           {kyc?.level2AdminNote && <p className="mt-1">Compliance note: {institutionalizeCopy(kyc.level2AdminNote)}</p>}
         </div>
       )}
       <select

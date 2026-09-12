@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { SECURITY_CATEGORIES, SECURITY_SEVERITIES } from "@/lib/vip";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   createSecurityReport,
   listMySecurityReports,
@@ -190,7 +191,7 @@ export function SecurityReportDialog({
                       <span className={`uppercase ${STATUS_TONE[r.status] ?? ""}`}>{r.status}</span>
                     </div>
                     <p className="line-clamp-2 text-muted-foreground">{r.description}</p>
-                    {r.adminNote && <p className="text-primary">Security desk: {r.adminNote}</p>}
+                     {r.adminNote && <p className="text-primary">Security Operations: {institutionalizeCopy(r.adminNote)}</p>}
                   </div>
                 ))
               )}

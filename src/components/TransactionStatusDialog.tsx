@@ -346,7 +346,7 @@ export function TransactionStatusDialog({
               className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
             >
               <LifeBuoy className="size-4" />
-              Contact Customer Support
+              Contact Institutional Support
             </button>
             <button
               onClick={() => onOpenChange(false)}

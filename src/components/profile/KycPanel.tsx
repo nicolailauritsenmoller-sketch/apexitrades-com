@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
 import { KYC_LABEL, KYC_TONE } from "@/components/profile/ui";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   DOC_TYPES,
   FileUploadField,
@@ -119,7 +120,7 @@ export function KycPanel({
             {kyc.expired && <span className="ml-2 text-bear">Expired</span>}
           </p>
           {kyc.adminNote && (
-            <p className="mt-1 text-xs text-amber-400">Reviewer note: {kyc.adminNote}</p>
+            <p className="mt-1 text-xs text-amber-400">Compliance note: {institutionalizeCopy(kyc.adminNote)}</p>
           )}
           <div className="mt-3 flex gap-3 text-xs">
             {kyc.documentUrl && (
@@ -160,7 +161,7 @@ export function KycPanel({
             {kyc?.expired ? "Your document has expired." : "Your submission was rejected."} Please
             re-submit below.
           </p>
-          {kyc?.adminNote && <p className="mt-1">Reviewer note: {kyc.adminNote}</p>}
+           {kyc?.adminNote && <p className="mt-1">Compliance note: {institutionalizeCopy(kyc.adminNote)}</p>}
         </div>
       )}
 
