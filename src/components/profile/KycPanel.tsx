@@ -3,6 +3,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
 import { KYC_LABEL, KYC_TONE } from "@/components/profile/ui";
+import {
+  DOC_TYPES,
+  FileUploadField,
+  IMAGE_TYPES,
+  type UploadStage,
+} from "@/components/profile/FileUploadField";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
@@ -40,10 +46,12 @@ export function KycPanel({
   });
   const [docFile, setDocFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [stage, setStage] = useState<UploadStage>("idle");
 
   const isPending = kyc?.status === "pending";
-  const showForm = open || !kyc;
   const canResubmit = needsResubmit && !isPending;
+  // A rejected or expired submission reopens the form straight away with the reviewer note.
+  const showForm = open || !kyc || canResubmit;
 
   async function upload(file: File, kind: string) {
     const path = `${userId}/${kind}-${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
@@ -60,11 +68,13 @@ export function KycPanel({
       return;
     }
     setBusy(true);
+    setStage("uploading");
     try {
       const [documentPath, selfiePath] = await Promise.all([
         upload(docFile, "document"),
         upload(selfieFile, "selfie"),
       ]);
+      setStage("done");
       await onSubmit({
         ...form,
         documentPath,
@@ -74,7 +84,9 @@ export function KycPanel({
       setOpen(false);
       setDocFile(null);
       setSelfieFile(null);
+      setStage("idle");
     } catch (err) {
+      setStage("idle");
       toast.error((err as Error).message);
     } finally {
       setBusy(false);
@@ -142,6 +154,16 @@ export function KycPanel({
         </div>
       )}
 
+      {showForm && canResubmit && (
+        <div className="rounded-xl border border-bear/40 bg-bear/5 p-3 text-xs text-bear">
+          <p className="font-semibold">
+            {kyc?.expired ? "Your document has expired." : "Your submission was rejected."} Please
+            re-submit below.
+          </p>
+          {kyc?.adminNote && <p className="mt-1">Reviewer note: {kyc.adminNote}</p>}
+        </div>
+      )}
+
       {showForm && (
         <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
           <input
@@ -200,27 +222,23 @@ export function KycPanel({
             />
           </label>
           <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-            <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-              Government ID / passport / licence
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
-                className="mt-2 block w-full text-xs"
-              />
-              {docFile && <span className="mt-1 block text-foreground">{docFile.name}</span>}
-            </label>
-            <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-              Live selfie photo
-              <input
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
-                className="mt-2 block w-full text-xs"
-              />
-              {selfieFile && <span className="mt-1 block text-foreground">{selfieFile.name}</span>}
-            </label>
+            <FileUploadField
+              label="Government ID / passport / licence"
+              accept="image/*,application/pdf"
+              allowed={DOC_TYPES}
+              file={docFile}
+              onChange={setDocFile}
+              stage={stage}
+            />
+            <FileUploadField
+              label="Live selfie photo"
+              accept="image/*"
+              allowed={IMAGE_TYPES}
+              capture="user"
+              file={selfieFile}
+              onChange={setSelfieFile}
+              stage={stage}
+            />
           </div>
           <button
             type="submit"

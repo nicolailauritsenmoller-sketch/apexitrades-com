@@ -60,11 +60,12 @@ function Landing() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  // Signed-in visitors belong on the portfolio, not the marketing page.
+  // Signed-in visitors keep the marketing page but get app-native calls to action.
+  const [authed, setAuthed] = useState(false);
   useEffect(() => {
     let cancelled = false;
     void supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled && data.session) navigate({ to: "/dashboard", replace: true });
+      if (!cancelled) setAuthed(Boolean(data.session));
     });
     return () => {
       cancelled = true;
@@ -90,10 +91,10 @@ function Landing() {
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
             <Link
-              to="/auth"
+              to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Open account
+              {authed ? "Go to terminal" : "Open account"}
             </Link>
           </div>
         </div>
@@ -135,10 +136,10 @@ function Landing() {
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
-              to="/auth"
+              to={authed ? "/dashboard" : "/auth"}
               className="glow-primary inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Start trading free <ArrowUpRight className="size-4" />
+              {authed ? "Go to terminal" : "Start trading free"} <ArrowUpRight className="size-4" />
             </Link>
             <Link
               to="/markets"
@@ -198,6 +199,14 @@ function Landing() {
                       <span className="ml-auto shrink-0">
                         {hydrated && quotes[s] ? formatPrice(quotes[s]!.price, s) : "—"}
                       </span>
+                      <Link
+                        to={authed ? "/terminal/$symbol" : "/auth"}
+                        params={authed ? { symbol: s } : undefined}
+                        aria-label={`Trade ${displaySymbol(s)}`}
+                        className="shrink-0 touch-manipulation rounded-lg border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-secondary"
+                      >
+                        Trade
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -282,10 +291,10 @@ function Landing() {
             Create your account in under a minute and start scalping on real market data.
           </p>
           <Link
-            to="/auth"
+            to={authed ? "/dashboard" : "/auth"}
             className="mt-7 inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground"
           >
-            Create account <ArrowUpRight className="size-4" />
+            {authed ? "Go to terminal" : "Create account"} <ArrowUpRight className="size-4" />
           </Link>
         </div>
       </section>

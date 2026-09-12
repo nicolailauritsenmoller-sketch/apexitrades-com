@@ -2,6 +2,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
+import {
+  DOC_TYPES,
+  FileUploadField,
+  IMAGE_TYPES,
+  type UploadStage,
+} from "@/components/profile/FileUploadField";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
@@ -27,6 +33,7 @@ export function KycLevel2Panel({
   const [taxId, setTaxId] = useState("");
   const [selfie, setSelfie] = useState<File | null>(null);
   const [proof, setProof] = useState<File | null>(null);
+  const [stage, setStage] = useState<UploadStage>("idle");
 
   const level1Approved = kyc?.level1Status === "approved";
   const level2 = kyc?.level2Status ?? "unsubmitted";
@@ -71,11 +78,13 @@ export function KycLevel2Panel({
       return;
     }
     setBusy(true);
+    setStage("uploading");
     try {
       const [livenessSelfiePath, proofPath] = await Promise.all([
         upload(selfie, "level2-selfie"),
         upload(proof, "level2-proof"),
       ]);
+      setStage("done");
       await onSubmit({
         livenessSelfiePath,
         proofPath,
@@ -84,7 +93,9 @@ export function KycLevel2Panel({
       });
       setSelfie(null);
       setProof(null);
+      setStage("idle");
     } catch (err) {
+      setStage("idle");
       toast.error((err as Error).message);
     } finally {
       setBusy(false);
@@ -93,8 +104,13 @@ export function KycLevel2Panel({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
-      {level2 === "rejected" && kyc?.level2AdminNote && (
-        <p className="text-xs text-bear sm:col-span-2">Reviewer note: {kyc.level2AdminNote}</p>
+      {level2 === "rejected" && (
+        <div className="rounded-xl border border-bear/40 bg-bear/5 p-3 text-xs text-bear sm:col-span-2">
+          <p className="font-semibold">
+            Your Level 2 submission was rejected. Please re-submit below.
+          </p>
+          {kyc?.level2AdminNote && <p className="mt-1">Reviewer note: {kyc.level2AdminNote}</p>}
+        </div>
       )}
       <select
         value={proofType}
@@ -112,27 +128,23 @@ export function KycLevel2Panel({
         className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-        <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-          Live selfie / liveness photo
-          <input
-            type="file"
-            accept="image/*"
-            capture="user"
-            onChange={(e) => setSelfie(e.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-xs"
-          />
-          {selfie && <span className="mt-1 block text-foreground">{selfie.name}</span>}
-        </label>
-        <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-          Proof of address document
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={(e) => setProof(e.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-xs"
-          />
-          {proof && <span className="mt-1 block text-foreground">{proof.name}</span>}
-        </label>
+        <FileUploadField
+          label="Live selfie / liveness photo"
+          accept="image/*"
+          allowed={IMAGE_TYPES}
+          capture="user"
+          file={selfie}
+          onChange={setSelfie}
+          stage={stage}
+        />
+        <FileUploadField
+          label="Proof of address document"
+          accept="image/*,application/pdf"
+          allowed={DOC_TYPES}
+          file={proof}
+          onChange={setProof}
+          stage={stage}
+        />
       </div>
       <button
         type="submit"
