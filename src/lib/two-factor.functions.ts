@@ -6,12 +6,12 @@ export type TwoFactorState = {
   enabled: boolean;
   method: "authenticator";
   verifiedAt: string | null;
-  recoveryRemaining: number;
+  recoveryPhraseSet: boolean;
   sessionVerified: boolean;
 };
 
 const codeInput = (input: unknown) =>
-  z.object({ code: z.string().min(6).max(32) }).parse(input);
+  z.object({ code: z.string().min(6).max(200) }).parse(input);
 
 function sessionIdOf(claims: Record<string, unknown>) {
   return (claims["session_id"] as string | undefined) ?? null;
@@ -34,7 +34,7 @@ export const startTwoFactorSetup = createServerFn({ method: "POST" })
     return beginSetup(context.userId, email);
   });
 
-/** Step 3 — verify the first code, enable 2FA and return one-time recovery codes. */
+/** Step 3 — verify the first code, enable 2FA and return the 12-word recovery phrase. */
 export const confirmTwoFactorSetup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(codeInput)
@@ -77,7 +77,7 @@ export const disableTwoFactor = createServerFn({ method: "POST" })
     return disable(context.userId, data.code, sessionIdOf(context.claims as any));
   });
 
-export const regenerateRecoveryCodes = createServerFn({ method: "POST" })
+export const regenerateRecoveryPhrase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(codeInput)
   .handler(async ({ data, context }) => {

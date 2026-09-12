@@ -2,8 +2,9 @@
 import {
   buildOtpAuthUri,
   generateBase32Secret,
-  generateRecoveryCodes,
-  hashRecoveryCode,
+  generateRecoveryPhrase,
+  hashRecoveryPhrase,
+  normalizeRecoveryPhrase,
   verifyTotp,
 } from "./totp.server";
 
@@ -77,20 +78,29 @@ async function registerFailure(userId: string, row: SecurityRow | null) {
   if (locked) throw new Error(`Too many incorrect codes. Try again in ${LOCK_MINUTES} minutes.`);
 }
 
-/** Consume a single-use recovery code. Returns true when one matched. */
-async function consumeRecoveryCode(userId: string, code: string) {
-  const cleaned = code.replace(/[^A-Za-z0-9]/g, "");
-  if (cleaned.length < 8) return false;
-  const hash = await hashRecoveryCode(userId, cleaned);
+/** Check a 12-word recovery phrase. The phrase stays valid until regenerated. */
+async function matchRecoveryPhrase(userId: string, phrase: string) {
+  const normalized = normalizeRecoveryPhrase(phrase);
+  if (normalized.split(" ").length !== 12) return false;
+  const hash = await hashRecoveryPhrase(userId, normalized);
   const client = await db();
   const { data } = await client
     .from("user_recovery_codes")
-    .update({ used_at: new Date().toISOString() })
+    .select("id")
     .eq("user_id", userId)
     .eq("code_hash", hash)
     .is("used_at", null)
-    .select("id");
-  return Array.isArray(data) && data.length > 0;
+    .maybeSingle();
+  return Boolean(data);
+}
+
+async function storeRecoveryPhrase(userId: string) {
+  const phrase = generateRecoveryPhrase();
+  const hash = await hashRecoveryPhrase(userId, phrase);
+  const client = await db();
+  await client.from("user_recovery_codes").delete().eq("user_id", userId);
+  await client.from("user_recovery_codes").insert({ user_id: userId, code_hash: hash });
+  return phrase;
 }
 
 /**
@@ -105,7 +115,7 @@ export async function assertTotpValid(userId: string, code: string) {
   assertNotLocked(row);
 
   const token = (code ?? "").trim();
-  if (!token) throw new Error("Enter your 6-digit authenticator code.");
+  if (!token) throw new Error("Enter your 6-digit authenticator code or 12-word recovery phrase.");
 
   if (/^\d{6}$/.test(token)) {
     const result = await verifyTotp(row.totp_secret, token, { afterStep: row.last_totp_step });
@@ -113,9 +123,9 @@ export async function assertTotpValid(userId: string, code: string) {
       await upsertRow(userId, { last_totp_step: result.step, failed_attempts: 0, locked_until: null });
       return { method: "totp" as const };
     }
-  } else if (await consumeRecoveryCode(userId, token)) {
+  } else if (await matchRecoveryPhrase(userId, token)) {
     await upsertRow(userId, { failed_attempts: 0, locked_until: null });
-    await logSecurityEvent(userId, "2fa_recovery_code_used", "A single-use recovery code was consumed.");
+    await logSecurityEvent(userId, "2fa_recovery_phrase_used", "The 12-word recovery phrase was used.");
     return { method: "recovery" as const };
   }
 
@@ -133,14 +143,14 @@ export async function readState(userId: string, sessionId: string | null) {
   const client = await db();
   const enabled = Boolean(row?.two_factor_enabled && row.totp_secret);
 
-  let recoveryRemaining = 0;
+  let recoveryPhraseSet = false;
   if (enabled) {
     const { count } = await client
       .from("user_recovery_codes")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .is("used_at", null);
-    recoveryRemaining = count ?? 0;
+    recoveryPhraseSet = (count ?? 0) > 0;
   }
 
   let sessionVerified = !enabled;
@@ -158,7 +168,7 @@ export async function readState(userId: string, sessionId: string | null) {
     enabled,
     method: "authenticator" as const,
     verifiedAt: row?.two_factor_verified_at ?? null,
-    recoveryRemaining,
+    recoveryPhraseSet,
     sessionVerified,
   };
 }
@@ -185,13 +195,8 @@ export async function completeSetup(userId: string, code: string, sessionId: str
     throw new Error("That code is not valid. Make sure your device clock is correct and try again.");
   }
 
-  const codes = generateRecoveryCodes(10);
-  const hashes = await Promise.all(codes.map((c) => hashRecoveryCode(userId, c)));
+  const recoveryPhrase = await storeRecoveryPhrase(userId);
   const client = await db();
-  await client.from("user_recovery_codes").delete().eq("user_id", userId);
-  await client
-    .from("user_recovery_codes")
-    .insert(hashes.map((code_hash) => ({ user_id: userId, code_hash })));
 
   await upsertRow(userId, {
     two_factor_enabled: true,
@@ -211,7 +216,7 @@ export async function completeSetup(userId: string, code: string, sessionId: str
     "An authenticator app is now required to sign in to your Velocity Trade account. If this wasn't you, contact support immediately.",
   );
 
-  return { recoveryCodes: codes };
+  return { recoveryPhrase };
 }
 
 export async function markSessionVerified(userId: string, sessionId: string) {
@@ -267,13 +272,7 @@ export async function disable(userId: string, code: string, currentSessionId: st
 
 export async function regenerate(userId: string, code: string) {
   await assertTotpValid(userId, code);
-  const codes = generateRecoveryCodes(10);
-  const hashes = await Promise.all(codes.map((c) => hashRecoveryCode(userId, c)));
-  const client = await db();
-  await client.from("user_recovery_codes").delete().eq("user_id", userId);
-  await client
-    .from("user_recovery_codes")
-    .insert(hashes.map((code_hash) => ({ user_id: userId, code_hash })));
-  await logSecurityEvent(userId, "2fa_recovery_codes_regenerated", "New recovery codes issued.");
-  return { recoveryCodes: codes };
+  const recoveryPhrase = await storeRecoveryPhrase(userId);
+  await logSecurityEvent(userId, "2fa_recovery_phrase_regenerated", "A new 12-word recovery phrase was issued.");
+  return { recoveryPhrase };
 }
