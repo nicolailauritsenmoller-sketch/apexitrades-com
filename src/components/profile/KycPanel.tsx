@@ -154,6 +154,16 @@ export function KycPanel({
         </div>
       )}
 
+      {showForm && canResubmit && (
+        <div className="rounded-xl border border-bear/40 bg-bear/5 p-3 text-xs text-bear">
+          <p className="font-semibold">
+            {kyc?.expired ? "Your document has expired." : "Your submission was rejected."} Please
+            re-submit below.
+          </p>
+          {kyc?.adminNote && <p className="mt-1">Reviewer note: {kyc.adminNote}</p>}
+        </div>
+      )}
+
       {showForm && (
         <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
           <input
