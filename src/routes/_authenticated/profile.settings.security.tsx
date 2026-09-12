@@ -6,6 +6,7 @@ import { Section, SubPageHeader } from "@/components/profile/ui";
 import { PasswordForm } from "@/components/profile/PasswordForm";
 import { WithdrawalPasswordForm } from "@/components/profile/WithdrawalPasswordForm";
 import { DevicesPanel } from "@/components/profile/DevicesPanel";
+import { TwoFactorSection } from "@/components/security/TwoFactorSection";
 import { getProfileOverview } from "@/lib/profile.functions";
 
 export const Route = createFileRoute("/_authenticated/profile/settings/security")({
@@ -59,19 +60,9 @@ function SecuritySettings() {
       <Section
         icon={ShieldCheck}
         title="Two-factor authentication"
-        description="Email one-time codes protect sign-in and password resets."
+        description="Require a code from your authenticator app when signing in and for high-risk actions."
       >
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
-          <div>
-            <p className="text-sm font-semibold">Email OTP</p>
-            <p className="text-xs text-muted-foreground">
-              A 6-digit code is required when signing in from a new device or resetting your password.
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full border border-bull/40 px-2 py-0.5 text-[10px] uppercase tracking-widest text-bull">
-            Active
-          </span>
-        </div>
+        <TwoFactorSection />
       </Section>
 
       <Section

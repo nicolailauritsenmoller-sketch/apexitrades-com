@@ -39,6 +39,8 @@ import {
 import { PasswordInput } from "@/components/PasswordInput";
 import { logActivity } from "@/lib/telemetry";
 import { useBalancePrivacy } from "@/lib/balance-privacy";
+import { StepUpCodeDialog } from "@/components/security/StepUpCodeDialog";
+import { getTwoFactorState, type TwoFactorState } from "@/lib/two-factor.functions";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
@@ -503,12 +505,18 @@ function WithdrawTab({
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
   const [withdrawalPassword, setWithdrawalPassword] = useState("");
+  const [stepUpOpen, setStepUpOpen] = useState(false);
   const submit = useServerFn(requestWithdrawal);
   const fetchEligibility = useServerFn(getWithdrawalEligibility);
+  const fetchTwoFactor = useServerFn(getTwoFactorState);
 
   const eligibility = useQuery({
     queryKey: ["withdrawal-eligibility"],
     queryFn: () => fetchEligibility(),
+  });
+  const twoFactor = useQuery({
+    queryKey: ["two-factor-state"],
+    queryFn: () => fetchTwoFactor() as Promise<TwoFactorState>,
   });
 
   const mutation = useMutation({
@@ -518,6 +526,7 @@ function WithdrawTab({
       amount: number;
       destinationAddress: string;
       withdrawalPassword: string;
+      totpCode?: string;
     }) => submit({ data: vars }),
     onSuccess: (res, vars) => {
       void logActivity("withdrawal", `Withdrawal request ${vars.amount} ${vars.coin}`, {
@@ -655,6 +664,10 @@ function WithdrawTab({
           if (value > available) return toast.error("Amount exceeds your available balance.");
           if (address.trim().length < 8) return toast.error("Enter a valid destination address.");
           if (!withdrawalPassword) return toast.error("Enter your withdrawal password.");
+          if (twoFactor.data?.enabled) {
+            setStepUpOpen(true);
+            return;
+          }
           mutation.mutate({
             coin,
             network,
@@ -668,6 +681,24 @@ function WithdrawTab({
         <ArrowUpFromLine className="size-4" strokeWidth={2.8} />
         Request withdrawal
       </button>
+      <StepUpCodeDialog
+        open={stepUpOpen}
+        busy={mutation.isPending}
+        title="Confirm withdrawal"
+        description="Enter the current code from your authenticator app to release this withdrawal."
+        onOpenChange={(open) => (open ? null : setStepUpOpen(false))}
+        onSubmit={(code) => {
+          setStepUpOpen(false);
+          mutation.mutate({
+            coin,
+            network,
+            amount: Number(amount),
+            destinationAddress: address.trim(),
+            withdrawalPassword,
+            totpCode: code,
+          });
+        }}
+      />
       <TrustStrip />
     </div>
   );

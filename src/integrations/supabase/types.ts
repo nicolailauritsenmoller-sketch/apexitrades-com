@@ -819,6 +819,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_logs: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       security_reports: {
         Row: {
           admin_note: string | null
@@ -1046,6 +1076,27 @@ export type Database = {
         }
         Relationships: []
       }
+      two_factor_sessions: {
+        Row: {
+          id: string
+          session_id: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       user_activity_logs: {
         Row: {
           action_type: string
@@ -1102,6 +1153,30 @@ export type Database = {
           },
         ]
       }
+      user_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1119,6 +1194,45 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_security: {
+        Row: {
+          created_at: string
+          failed_attempts: number
+          last_totp_step: number | null
+          locked_until: string | null
+          pending_totp_secret: string | null
+          totp_secret: string | null
+          two_factor_enabled: boolean
+          two_factor_verified_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          failed_attempts?: number
+          last_totp_step?: number | null
+          locked_until?: string | null
+          pending_totp_secret?: string | null
+          totp_secret?: string | null
+          two_factor_enabled?: boolean
+          two_factor_verified_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          failed_attempts?: number
+          last_totp_step?: number | null
+          locked_until?: string | null
+          pending_totp_secret?: string | null
+          totp_secret?: string | null
+          two_factor_enabled?: boolean
+          two_factor_verified_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

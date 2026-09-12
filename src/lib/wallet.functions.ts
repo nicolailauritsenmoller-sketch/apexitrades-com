@@ -17,6 +17,7 @@ const withdrawInput = z.object({
   amount: z.number().positive().max(100_000_000),
   destinationAddress: z.string().trim().min(8).max(200),
   withdrawalPassword: z.string().max(200).optional(),
+  totpCode: z.string().max(32).optional(),
 });
 
 const swapInput = z.object({
@@ -312,6 +313,15 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         throw new Error("Incorrect withdrawal password.");
       }
     }
+
+    // Step-up: a live authenticator code is required when 2FA is on.
+    {
+      const { isTwoFactorEnabled, assertTotpValid } = await import("./two-factor.server");
+      if (await isTwoFactorEnabled(userId)) {
+        await assertTotpValid(userId, data.totpCode ?? "");
+      }
+    }
+
 
     if (!wallet || Number(wallet.balance) < data.amount) {
       throw new Error(`Insufficient ${data.coin} balance for this withdrawal.`);
