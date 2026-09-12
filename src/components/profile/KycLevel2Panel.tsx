@@ -99,8 +99,13 @@ export function KycLevel2Panel({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
-      {level2 === "rejected" && kyc?.level2AdminNote && (
-        <p className="text-xs text-bear sm:col-span-2">Reviewer note: {kyc.level2AdminNote}</p>
+      {level2 === "rejected" && (
+        <div className="rounded-xl border border-bear/40 bg-bear/5 p-3 text-xs text-bear sm:col-span-2">
+          <p className="font-semibold">
+            Your Level 2 submission was rejected. Please re-submit below.
+          </p>
+          {kyc?.level2AdminNote && <p className="mt-1">Reviewer note: {kyc.level2AdminNote}</p>}
+        </div>
       )}
       <select
         value={proofType}
