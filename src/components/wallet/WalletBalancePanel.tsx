@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownToLine, ArrowUpFromLine, Repeat, Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
-import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
+import { BalancePrivacyToggle } from "@/lib/balance-privacy";
 import type { AssetHolding } from "@/components/AssetsOverview";
 
 function fmt(value: number, digits = 2) {
@@ -52,14 +52,17 @@ export function WalletBalancePanel({
   isLoading,
   active,
   onSelect,
+  hidden,
+  onTogglePrivacy,
 }: {
   holdings: AssetHolding[];
   totalUsdt: number;
   isLoading?: boolean;
   active: WalletAction;
   onSelect: (id: WalletAction) => void;
+  hidden: boolean;
+  onTogglePrivacy: () => void;
 }) {
-  const { hidden, toggle } = useBalancePrivacy();
   const [search, setSearch] = useState("");
   const [hideZero, setHideZero] = useState(true);
 
@@ -87,7 +90,11 @@ export function WalletBalancePanel({
               <span className="text-base font-semibold text-muted-foreground">USDT</span>
             </p>
           </div>
-          <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="border-transparent" />
+          <BalancePrivacyToggle
+            hidden={hidden}
+            onToggle={onTogglePrivacy}
+            className="border-transparent"
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">

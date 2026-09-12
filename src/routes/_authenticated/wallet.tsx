@@ -38,6 +38,7 @@ import {
 } from "@/lib/wallet.functions";
 import { PasswordInput } from "@/components/PasswordInput";
 import { logActivity } from "@/lib/telemetry";
+import { useBalancePrivacy } from "@/lib/balance-privacy";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
@@ -79,6 +80,7 @@ function qrUrl(text: string) {
 
 function WalletPage() {
   const qc = useQueryClient();
+  const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
@@ -184,6 +186,8 @@ function WalletPage() {
           isLoading={value.isLoading}
           active={tab}
           onSelect={setTab}
+          hidden={balancesHidden}
+          onTogglePrivacy={toggleBalances}
         />
       </div>
 
@@ -198,6 +202,7 @@ function WalletPage() {
       {tab === "withdraw" && (
         <WithdrawTab
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
+          balancesHidden={balancesHidden}
           onDone={refresh}
           onSubmitted={setActiveTx}
         />
@@ -205,6 +210,7 @@ function WalletPage() {
       {tab === "swap" && (
         <SwapTab
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
+          balancesHidden={balancesHidden}
           onDone={refresh}
           onSubmitted={setActiveTx}
         />
@@ -479,10 +485,12 @@ function trimAmount(value: number, decimals = 8) {
 
 function WithdrawTab({
   balances,
+  balancesHidden,
   onDone,
   onSubmitted,
 }: {
   balances: { currency: string; balance: number }[];
+  balancesHidden: boolean;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
@@ -587,7 +595,8 @@ function WithdrawTab({
       </div>
 
       <div className="text-[11px] text-muted-foreground">
-        Available: <span className="num">{formatMoney(available, coin)}</span>
+        Available:{" "}
+        <span className="num">{balancesHidden ? "••••" : formatMoney(available, coin)}</span>
       </div>
 
       <div className="relative">
@@ -672,10 +681,12 @@ const SWAP_OPTIONS = SWAP_GROUPS.flatMap((g) => g.codes.map((code) => ({ code, g
 
 function SwapTab({
   balances,
+  balancesHidden,
   onDone,
   onSubmitted,
 }: {
   balances: { currency: string; balance: number }[];
+  balancesHidden: boolean;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
@@ -738,7 +749,8 @@ function SwapTab({
 
       <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
         <span>
-          Available: <span className="num">{formatMoney(available, from)}</span>
+          Available:{" "}
+          <span className="num">{balancesHidden ? "••••" : formatMoney(available, from)}</span>
         </span>
         <span className="num">
           1 {from} = {rate ? rate.toFixed(8) : quote.isLoading ? "…" : "—"} {to}
