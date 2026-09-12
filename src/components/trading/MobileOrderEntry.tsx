@@ -153,6 +153,7 @@ export function MobileOrderEntry({
             <span className="num truncate">{formatMoney(balance ?? 0, quoteCcy)}</span>
             <Link
               to="/wallet"
+              search={{ tab: "deposit" }}
               aria-label="Deposit funds"
               className="grid size-5 shrink-0 place-items-center rounded bg-primary text-primary-foreground"
             >
