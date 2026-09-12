@@ -15,6 +15,13 @@
       "when": 1789176447303,
       "tag": "0001_create_referrals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789177383611,
+      "tag": "0002_account_suspension_controls",
+      "breakpoints": true
     }
   ]
 }

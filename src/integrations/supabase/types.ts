@@ -695,6 +695,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_frozen: boolean
           avatar_url: string | null
           base_currency: string
           created_at: string
@@ -708,6 +709,12 @@ export type Database = {
           referral_code: string | null
           referral_rewards_usdt: number
           referred_by: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspended_until: string | null
+          suspension_note: string | null
+          suspension_reason: string | null
+          suspension_status: string
           trading_frozen: boolean
           uid: string | null
           withdrawal_password_hash: string | null
@@ -715,6 +722,7 @@ export type Database = {
           withdrawals_disabled: boolean
         }
         Insert: {
+          account_frozen?: boolean
           avatar_url?: string | null
           base_currency?: string
           created_at?: string
@@ -728,6 +736,12 @@ export type Database = {
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_note?: string | null
+          suspension_reason?: string | null
+          suspension_status?: string
           trading_frozen?: boolean
           uid?: string | null
           withdrawal_password_hash?: string | null
@@ -735,6 +749,7 @@ export type Database = {
           withdrawals_disabled?: boolean
         }
         Update: {
+          account_frozen?: boolean
           avatar_url?: string | null
           base_currency?: string
           created_at?: string
@@ -748,6 +763,12 @@ export type Database = {
           referral_code?: string | null
           referral_rewards_usdt?: number
           referred_by?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_note?: string | null
+          suspension_reason?: string | null
+          suspension_status?: string
           trading_frozen?: boolean
           uid?: string | null
           withdrawal_password_hash?: string | null
