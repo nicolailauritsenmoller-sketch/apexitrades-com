@@ -4,6 +4,7 @@
  */
 import { UAParser } from "ua-parser-js";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveServerGeo } from "@/lib/geo.functions";
 
 
 export type DeviceInfo = {
@@ -123,25 +124,36 @@ export async function detectDevice(): Promise<DeviceInfo> {
 }
 
 let geoCache: GeoInfo | null = null;
+let geoInFlight: Promise<GeoInfo> | null = null;
 
-/** Resolves the caller's public IP into country / region / city / coordinates / ISP. */
-export async function resolveGeo(): Promise<GeoInfo> {
-  if (geoCache) return geoCache;
-  const empty: GeoInfo = {
-    ip: null,
-    country: null,
-    region: null,
-    city: null,
-    latitude: null,
-    longitude: null,
-    isp: null,
-    asn: null,
-  };
+const EMPTY_GEO: GeoInfo = {
+  ip: null,
+  country: null,
+  region: null,
+  city: null,
+  latitude: null,
+  longitude: null,
+  isp: null,
+  asn: null,
+};
+
+async function lookupGeo(): Promise<GeoInfo> {
+  // Server-side lookup first: it sees the real client IP and is never blocked by
+  // ad blockers or CORS, which is what left every session row without a location.
   try {
-    const res = await fetch("https://ipapi.co/json/", { cache: "no-store" });
+    const geo = await resolveServerGeo();
+    if (geo && (geo.ip || geo.country)) return { ...EMPTY_GEO, ...geo };
+  } catch {
+    /* fall through to the browser lookup */
+  }
+  try {
+    const res = await fetch("https://ipapi.co/json/", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(3000),
+    });
     if (!res.ok) throw new Error("geo lookup failed");
     const j = (await res.json()) as Record<string, any>;
-    geoCache = {
+    return {
       ip: j["ip"] ?? null,
       country: j["country_name"] ?? null,
       region: j["region"] ?? null,
@@ -151,10 +163,33 @@ export async function resolveGeo(): Promise<GeoInfo> {
       isp: j["org"] ?? null,
       asn: j["asn"] ?? null,
     };
-    return geoCache;
   } catch {
-    return empty;
+    return EMPTY_GEO;
   }
+}
+
+/**
+ * Resolves the caller's public IP into country / region / city / coordinates / ISP.
+ * Never hangs: a slow lookup resolves as empty geo so callers still persist their row.
+ */
+export async function resolveGeo(): Promise<GeoInfo> {
+  if (geoCache) return geoCache;
+  if (!geoInFlight) {
+    geoInFlight = lookupGeo()
+      .then((g) => {
+        if (g.ip || g.country) geoCache = g;
+        return g;
+      })
+      .catch(() => EMPTY_GEO)
+      .finally(() => {
+        geoInFlight = null;
+      });
+  }
+  const pending = geoInFlight;
+  return Promise.race([
+    pending,
+    new Promise<GeoInfo>((resolve) => setTimeout(() => resolve(EMPTY_GEO), 4000)),
+  ]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -232,6 +267,7 @@ function drainDomEvents(): DomEvent[] {
 
 export type ActionType =
   | "navigation"
+  | "interaction"
   | "order"
   | "deposit"
   | "withdrawal"
@@ -239,6 +275,25 @@ export type ActionType =
   | "settings"
   | "auth"
   | "support";
+
+/**
+ * Periodically ships buffered UI interactions so the admin replay player always has
+ * recorded timelines, even when the user never triggers a business action.
+ */
+export function startInteractionFlush(intervalMs = 20_000) {
+  if (typeof window === "undefined") return () => {};
+  const flush = () => {
+    if (buffer.length === 0) return;
+    const count = buffer.length;
+    void logActivity("interaction", `${count} UI interactions`, { count });
+  };
+  const id = window.setInterval(flush, intervalMs);
+  window.addEventListener("pagehide", flush);
+  return () => {
+    window.clearInterval(id);
+    window.removeEventListener("pagehide", flush);
+  };
+}
 
 /** Records one user action (plus recent UI interactions) to the live audit stream. */
 export async function logActivity(

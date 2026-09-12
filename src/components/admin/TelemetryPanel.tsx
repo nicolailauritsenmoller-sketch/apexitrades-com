@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ClientOnly } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Activity,
@@ -56,7 +57,9 @@ function Panel({
   );
 }
 
-/** Equirectangular pin map — no external tiles, no API keys. */
+const SessionMap = lazy(() => import("@/components/admin/SessionMap"));
+
+/** Real tiled world map with live session pins (client-only). */
 function WorldMap({
   sessions,
   onPick,
@@ -64,44 +67,20 @@ function WorldMap({
   sessions: SessionRow[];
   onPick: (userId: string) => void;
 }) {
-  const pins = sessions.filter((s) => s.lat != null && s.lng != null);
   return (
-    <div className="relative w-full overflow-hidden rounded-xl border border-border bg-secondary/40">
-      <div
-        className="relative w-full"
-        style={{
-          paddingTop: "50%",
-          backgroundImage:
-            "linear-gradient(hsl(var(--border)/0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)/0.5) 1px, transparent 1px)",
-          backgroundSize: "8.333% 16.666%",
-        }}
+    <ClientOnly
+      fallback={
+        <div className="h-[320px] w-full animate-pulse rounded-xl border border-border bg-secondary/40 sm:h-[420px]" />
+      }
+    >
+      <Suspense
+        fallback={
+          <div className="h-[320px] w-full animate-pulse rounded-xl border border-border bg-secondary/40 sm:h-[420px]" />
+        }
       >
-        {pins.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            title={`${p.name} · ${[p.city, p.country].filter(Boolean).join(", ") || "Unknown"} · ${p.ip ?? "—"}`}
-            onClick={() => onPick(p.userId)}
-            className="absolute -translate-x-1/2 -translate-y-1/2 touch-manipulation"
-            style={{
-              left: `${((p.lng! + 180) / 360) * 100}%`,
-              top: `${((90 - p.lat!) / 180) * 100}%`,
-            }}
-          >
-            <span
-              className={`block size-2.5 rounded-full ring-4 ${
-                p.online ? "bg-bull ring-bull/20 animate-pulse" : "bg-muted-foreground ring-muted/20"
-              }`}
-            />
-          </button>
-        ))}
-        {pins.length === 0 && (
-          <p className="absolute inset-0 grid place-items-center text-xs text-muted-foreground">
-            No geolocated sessions yet.
-          </p>
-        )}
-      </div>
-    </div>
+        <SessionMap sessions={sessions} onPick={onPick} />
+      </Suspense>
+    </ClientOnly>
   );
 }
 
