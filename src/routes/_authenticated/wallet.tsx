@@ -503,12 +503,18 @@ function WithdrawTab({
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
   const [withdrawalPassword, setWithdrawalPassword] = useState("");
+  const [stepUpOpen, setStepUpOpen] = useState(false);
   const submit = useServerFn(requestWithdrawal);
   const fetchEligibility = useServerFn(getWithdrawalEligibility);
+  const fetchTwoFactor = useServerFn(getTwoFactorState);
 
   const eligibility = useQuery({
     queryKey: ["withdrawal-eligibility"],
     queryFn: () => fetchEligibility(),
+  });
+  const twoFactor = useQuery({
+    queryKey: ["two-factor-state"],
+    queryFn: () => fetchTwoFactor() as Promise<TwoFactorState>,
   });
 
   const mutation = useMutation({
@@ -518,6 +524,7 @@ function WithdrawTab({
       amount: number;
       destinationAddress: string;
       withdrawalPassword: string;
+      totpCode?: string;
     }) => submit({ data: vars }),
     onSuccess: (res, vars) => {
       void logActivity("withdrawal", `Withdrawal request ${vars.amount} ${vars.coin}`, {
