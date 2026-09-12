@@ -1,3 +1,6 @@
+import { generateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
+
 /** RFC 6238 TOTP helpers. Server-only: never import from client code. */
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -98,21 +101,19 @@ export function buildOtpAuthUri(params: { secret: string; account: string; issue
   return `otpauth://totp/${label}?${query.toString()}`;
 }
 
-/** 10 single-use recovery codes formatted XXXX-XXXX. */
-export function generateRecoveryCodes(count = 10) {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const codes: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const bytes = crypto.getRandomValues(new Uint8Array(8));
-    const body = Array.from(bytes, (b) => chars[b % chars.length]).join("");
-    codes.push(`${body.slice(0, 4)}-${body.slice(4, 8)}`);
-  }
-  return codes;
+/** 12-word BIP-39 recovery phrase used as the 2FA backup. */
+export function generateRecoveryPhrase() {
+  return generateMnemonic(wordlist, 128);
 }
 
-export async function hashRecoveryCode(userId: string, code: string) {
-  const normalized = code.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const bytes = new TextEncoder().encode(`vt-recovery:${userId}:${normalized}`);
+export function normalizeRecoveryPhrase(phrase: string) {
+  return phrase.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+export async function hashRecoveryPhrase(userId: string, phrase: string) {
+  const bytes = new TextEncoder().encode(
+    `vt-recovery-phrase:${userId}:${normalizeRecoveryPhrase(phrase)}`,
+  );
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
