@@ -33,6 +33,7 @@ export function KycLevel2Panel({
   const [taxId, setTaxId] = useState("");
   const [selfie, setSelfie] = useState<File | null>(null);
   const [proof, setProof] = useState<File | null>(null);
+  const [stage, setStage] = useState<UploadStage>("idle");
 
   const level1Approved = kyc?.level1Status === "approved";
   const level2 = kyc?.level2Status ?? "unsubmitted";
