@@ -281,6 +281,13 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
     refetchInterval: 15_000,
   });
   const [replay, setReplay] = useState<any | null>(null);
+  const fetchReplays = useServerFn(listUserReplays);
+  const replays = useQuery({
+    queryKey: ["screen-replays", userId],
+    queryFn: () => fetchReplays({ data: { userId } }),
+    refetchInterval: 20_000,
+  });
+  const [screen, setScreen] = useState<any | null>(null);
 
   const endAll = useMutation({
     mutationFn: () => killAll({ data: { userId } }),
@@ -386,8 +393,46 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
 
           return (
             <>
+              <h3 className="mb-2 mt-5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                Screen recordings (video playback)
+              </h3>
+              <ul className="space-y-2 text-xs">
+                {(replays.data ?? []).map((r) => (
+                  <li
+                    key={r.sessionKey}
+                    className="flex items-center justify-between gap-3 border-b border-border pb-2"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate">{r.route ?? "—"}</span>
+                      <span className="block truncate text-muted-foreground">
+                        {timeAgo(r.lastAt)} · {r.events} events · {r.chunks} chunk
+                        {r.chunks === 1 ? "" : "s"}
+                      </span>
+                    </span>
+                    <button
+                      onClick={() => setScreen(r)}
+                      className="shrink-0 touch-manipulation rounded-md border border-primary/40 bg-primary/10 px-2 py-1 font-semibold text-primary"
+                    >
+                      Watch
+                    </button>
+                  </li>
+                ))}
+                {(replays.data ?? []).length === 0 && (
+                  <p className="text-muted-foreground">No screen recordings captured yet.</p>
+                )}
+              </ul>
+
+              {screen && (
+                <ScreenReplayModal
+                  userId={userId}
+                  session={screen}
+                  device={primaryDevice}
+                  onClose={() => setScreen(null)}
+                />
+              )}
+
               <h3 className="mb-2 mt-5 flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-bull" /> Live session recordings
+                <span className="size-1.5 rounded-full bg-bull" /> Interaction log
                 {primaryDevice ? (
                   <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[10px] normal-case tracking-normal">
                     {primaryDevice}
