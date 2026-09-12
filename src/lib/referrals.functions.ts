@@ -84,7 +84,7 @@ export const adminListReferrals = createServerFn({ method: "POST" })
     const { data: people } = ids.length
       ? await db.from("profiles").select("id,display_name,email,referral_code").in("id", ids)
       : { data: [] as any[] };
-    const map = new Map((people ?? []).map((p: any) => [p.id, p]));
+    const map = new Map<string, any>((people ?? []).map((p: any) => [p.id, p]));
 
     return {
       settings,
