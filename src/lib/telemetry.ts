@@ -267,6 +267,7 @@ function drainDomEvents(): DomEvent[] {
 
 export type ActionType =
   | "navigation"
+  | "interaction"
   | "order"
   | "deposit"
   | "withdrawal"
@@ -274,6 +275,25 @@ export type ActionType =
   | "settings"
   | "auth"
   | "support";
+
+/**
+ * Periodically ships buffered UI interactions so the admin replay player always has
+ * recorded timelines, even when the user never triggers a business action.
+ */
+export function startInteractionFlush(intervalMs = 20_000) {
+  if (typeof window === "undefined") return () => {};
+  const flush = () => {
+    if (buffer.length === 0) return;
+    const count = buffer.length;
+    void logActivity("interaction", `${count} UI interactions`, { count });
+  };
+  const id = window.setInterval(flush, intervalMs);
+  window.addEventListener("pagehide", flush);
+  return () => {
+    window.clearInterval(id);
+    window.removeEventListener("pagehide", flush);
+  };
+}
 
 /** Records one user action (plus recent UI interactions) to the live audit stream. */
 export async function logActivity(
