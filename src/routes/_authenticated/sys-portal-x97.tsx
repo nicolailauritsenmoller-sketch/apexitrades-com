@@ -55,6 +55,7 @@ import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
 import { ReferralsPanel } from "@/components/admin/ReferralsPanel";
+import { UserSecurityPanel } from "@/components/admin/UserSecurityPanel";
 import { AgentProfilePanel } from "@/components/admin/AgentProfilePanel";
 import { VipDesk } from "@/components/admin/VipDesk";
 import { getVipDesk } from "@/lib/vip.functions";
@@ -163,6 +164,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     items: [
       { id: "users", label: "Users & KYC", icon: Users },
       { id: "roles", label: "Roles & permissions", icon: KeySquare },
+      { id: "restrictions", label: "User security & restrictions", icon: ShieldAlert },
       { id: "credit", label: "Credit scores", icon: CreditCard },
     ],
   },
@@ -226,6 +228,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "restrictions",
   "telemetry",
   "roles",
   "engine",
@@ -605,6 +608,7 @@ function AdminPage() {
           {tab === "vip" && <VipDesk />}
           {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
+          {tab === "restrictions" && <UserSecurityPanel />}
           {tab === "credit" && <CreditScorePanel />}
           {tab === "audit" && <AuditLogPanel />}
           {tab === "authproviders" && <AuthProvidersPanel />}
