@@ -246,6 +246,26 @@ function Terminal() {
             </span>
           </div>
 
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Price
+            </label>
+            <button
+              onClick={() => setOrderPriceValue("")}
+              className="text-[10px] uppercase tracking-wider text-primary"
+            >
+              Market
+            </button>
+          </div>
+          <input
+            value={orderPriceValue}
+            onChange={(e) => setOrderPriceValue(e.target.value)}
+            inputMode="decimal"
+            placeholder={quote ? formatPrice(quote.price, symbol) : "Market"}
+            aria-label="Order price"
+            className="num mb-3 w-full rounded-md border border-input bg-surface px-3 py-2 text-sm outline-none focus:border-ring"
+          />
+
           <label className="mb-1.5 block text-[11px] uppercase tracking-wider text-muted-foreground">
             Quantity
           </label>
