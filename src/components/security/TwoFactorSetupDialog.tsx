@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, Copy, Download, Loader2, ShieldCheck, Smartphone } from "lucide-react";
+import { Check, Copy, Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import QRCode from "qrcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { OtpInput } from "@/components/OtpInput";
+import { RecoveryPhraseCard } from "./RecoveryPhraseCard";
 import { confirmTwoFactorSetup, startTwoFactorSetup } from "@/lib/two-factor.functions";
 
 type Step = 1 | 2 | 3 | 4;
@@ -26,7 +27,7 @@ export function TwoFactorSetupDialog({
   const [secret, setSecret] = useState("");
   const [qr, setQr] = useState("");
   const [code, setCode] = useState("");
-  const [codes, setCodes] = useState<string[]>([]);
+  const [phrase, setPhrase] = useState("");
   const [stored, setStored] = useState(false);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function TwoFactorSetupDialog({
       setSecret("");
       setQr("");
       setCode("");
-      setCodes([]);
+      setPhrase("");
       setStored(false);
     }
   }, [open]);
@@ -57,8 +58,8 @@ export function TwoFactorSetupDialog({
   async function verify() {
     setBusy(true);
     try {
-      const res = (await confirm({ data: { code } })) as { recoveryCodes: string[] };
-      setCodes(res.recoveryCodes);
+      const res = (await confirm({ data: { code } })) as { recoveryPhrase: string };
+      setPhrase(res.recoveryPhrase);
       setStep(4);
       onEnabled();
     } catch (err) {
@@ -69,30 +70,12 @@ export function TwoFactorSetupDialog({
     }
   }
 
-  function copyCodes() {
-    void navigator.clipboard.writeText(codes.join("\n"));
-    toast.success("Recovery codes copied");
-  }
-
-  function downloadCodes() {
-    const blob = new Blob(
-      [`Velocity Trade recovery codes\nKeep these safe. Each code works once.\n\n${codes.join("\n")}\n`],
-      { type: "text/plain" },
-    );
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "velocity-trade-recovery-codes.txt";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <Dialog open={open} onOpenChange={(next) => (step === 4 && !stored ? null : onOpenChange(next))}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {step === 4 ? "Save your recovery codes" : "Set up two-factor authentication"}
+            {step === 4 ? "Save your recovery phrase" : "Set up two-factor authentication"}
           </DialogTitle>
         </DialogHeader>
 
@@ -192,30 +175,10 @@ export function TwoFactorSetupDialog({
               <ShieldCheck className="size-4" /> Two-factor authentication is now enabled.
             </div>
             <p className="text-xs text-muted-foreground">
-              Each code can be used once if you lose access to your authenticator app. They are never
-              shown again.
+              These 12 words restore access if you lose your authenticator app. Write them down in
+              order and never share them. They are never shown again.
             </p>
-            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border p-3 font-mono text-sm">
-              {codes.map((c) => (
-                <span key={c}>{c}</span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={copyCodes}
-                className="flex flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs"
-              >
-                <Copy className="size-3.5" /> Copy codes
-              </button>
-              <button
-                type="button"
-                onClick={downloadCodes}
-                className="flex flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs"
-              >
-                <Download className="size-3.5" /> Download
-              </button>
-            </div>
+            <RecoveryPhraseCard phrase={phrase} />
             <label className="flex items-start gap-2 text-xs">
               <input
                 type="checkbox"
@@ -223,7 +186,7 @@ export function TwoFactorSetupDialog({
                 onChange={(e) => setStored(e.target.checked)}
                 className="mt-0.5 size-4"
               />
-              I have securely stored these recovery codes
+              I have securely stored this recovery phrase
             </label>
             <button
               type="button"

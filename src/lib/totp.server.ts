@@ -1,5 +1,5 @@
 import { generateMnemonic } from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 
 /** RFC 6238 TOTP helpers. Server-only: never import from client code. */
 
