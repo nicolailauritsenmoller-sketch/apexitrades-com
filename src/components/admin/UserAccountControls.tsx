@@ -224,6 +224,99 @@ export function UserAccountControls({
         </div>
       </div>
 
+      <div className="rounded-lg border border-ops-red/40 bg-ops-red/5 p-2">
+        <p className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-ops-red">
+          <ShieldAlert className="size-3" /> Suspend account
+        </p>
+
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          Status:{" "}
+          <span className="font-semibold uppercase text-foreground">
+            {suspensionStatus.replace("_", " ")}
+          </span>
+          {suspendedUntil ? ` · lifts ${new Date(suspendedUntil).toLocaleString()}` : ""}
+          {suspensionReason ? ` · ${suspensionReason}` : ""}
+        </p>
+
+        <label className="block text-[10px] uppercase tracking-widest text-muted-foreground">
+          Reason
+        </label>
+        <select
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-input bg-background p-2 text-xs outline-none focus:border-ring"
+        >
+          {SUSPENSION_REASONS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+
+        <label className="mt-2 block text-[10px] uppercase tracking-widest text-muted-foreground">
+          Duration
+        </label>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {DURATIONS.map((d) => (
+            <button
+              key={d.label}
+              type="button"
+              onClick={() => setDurationHours(d.hours)}
+              className={`touch-manipulation rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                durationHours === d.hours
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground"
+              }`}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        {durationHours === 0 && (
+          <input
+            type="datetime-local"
+            value={customUntil}
+            onChange={(e) => setCustomUntil(e.target.value)}
+            className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-xs outline-none focus:border-ring"
+          />
+        )}
+
+        <textarea
+          value={suspendNote}
+          onChange={(e) => setSuspendNote(e.target.value)}
+          rows={2}
+          placeholder="Optional note shown to the user"
+          className="mt-2 w-full rounded-lg border border-input bg-background p-2 text-xs outline-none focus:border-ring"
+        />
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => applySuspension("suspended")}
+            disabled={suspend.isPending}
+            className="touch-manipulation rounded-lg bg-ops-red px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+          >
+            Suspend account
+          </button>
+          <button
+            onClick={() => applySuspension("permanently_banned")}
+            disabled={suspend.isPending}
+            className="touch-manipulation rounded-lg border border-ops-red/60 px-3 py-2 text-xs font-semibold text-ops-red disabled:opacity-50"
+          >
+            Permanent ban
+          </button>
+        </div>
+        {suspensionStatus !== "active" && (
+          <button
+            onClick={() => suspend.mutate({ status: "active" })}
+            disabled={suspend.isPending}
+            className="mt-2 w-full touch-manipulation rounded-lg border border-bull/50 px-3 py-2 text-xs font-semibold text-bull disabled:opacity-50"
+          >
+            Reinstate account
+          </button>
+        )}
+      </div>
+
+
       <div className="rounded-lg border border-border/70 p-2">
         <p className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
           <NotebookPen className="size-3" /> Admin notes
