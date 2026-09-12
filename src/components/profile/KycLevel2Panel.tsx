@@ -123,27 +123,23 @@ export function KycLevel2Panel({
         className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-        <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-          Live selfie / liveness photo
-          <input
-            type="file"
-            accept="image/*"
-            capture="user"
-            onChange={(e) => setSelfie(e.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-xs"
-          />
-          {selfie && <span className="mt-1 block text-foreground">{selfie.name}</span>}
-        </label>
-        <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-          Proof of address document
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={(e) => setProof(e.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-xs"
-          />
-          {proof && <span className="mt-1 block text-foreground">{proof.name}</span>}
-        </label>
+        <FileUploadField
+          label="Live selfie / liveness photo"
+          accept="image/*"
+          allowed={IMAGE_TYPES}
+          capture="user"
+          file={selfie}
+          onChange={setSelfie}
+          stage={stage}
+        />
+        <FileUploadField
+          label="Proof of address document"
+          accept="image/*,application/pdf"
+          allowed={DOC_TYPES}
+          file={proof}
+          onChange={setProof}
+          stage={stage}
+        />
       </div>
       <button
         type="submit"
