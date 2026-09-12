@@ -2,6 +2,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
+import {
+  DOC_TYPES,
+  FileUploadField,
+  IMAGE_TYPES,
+  type UploadStage,
+} from "@/components/profile/FileUploadField";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
