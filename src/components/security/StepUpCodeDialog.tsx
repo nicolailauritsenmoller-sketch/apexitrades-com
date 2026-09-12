@@ -34,7 +34,7 @@ export function StepUpCodeDialog({
   }, [open]);
 
   const value = useRecovery ? recovery.trim() : code;
-  const ready = useRecovery ? recovery.trim().length >= 8 : code.length === 6;
+  const ready = useRecovery ? recovery.trim().split(/\s+/).length === 12 : code.length === 6;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,12 +44,13 @@ export function StepUpCodeDialog({
         </DialogHeader>
         <p className="text-xs text-muted-foreground">{description}</p>
         {useRecovery ? (
-          <input
+          <textarea
             value={recovery}
-            onChange={(e) => setRecovery(e.target.value.toUpperCase())}
-            placeholder="XXXX-XXXX"
+            onChange={(e) => setRecovery(e.target.value.toLowerCase())}
+            placeholder="word1 word2 word3 …"
+            rows={3}
             autoFocus
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-center font-mono text-sm tracking-widest"
+            className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
           />
         ) : (
           <OtpInput value={code} onChange={setCode} autoFocus disabled={busy} />
@@ -67,7 +68,7 @@ export function StepUpCodeDialog({
           onClick={() => setUseRecovery((v) => !v)}
           className="text-xs text-primary underline-offset-2 hover:underline"
         >
-          {useRecovery ? "Use authenticator code" : "Use a recovery code"}
+          {useRecovery ? "Use authenticator code" : "Use recovery phrase"}
         </button>
       </DialogContent>
     </Dialog>
