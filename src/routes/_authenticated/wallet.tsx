@@ -230,7 +230,11 @@ function WalletPage() {
             >
               <AssetIcon currency={t.asset} size={30} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm">{t.title}</div>
+                <div className="truncate text-sm">
+                  {balancesHidden
+                    ? `${t.type === "deposit" ? "Deposit" : t.type === "withdrawal" ? "Withdrawal" : "Swap"} •••• ${t.asset}`
+                    : t.title}
+                </div>
                 <div className="truncate text-[11px] text-muted-foreground">
                   {t.subtitle} · {new Date(t.createdAt).toLocaleString()}
                 </div>
