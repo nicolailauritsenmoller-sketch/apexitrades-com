@@ -206,27 +206,23 @@ export function KycPanel({
             />
           </label>
           <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-            <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-              Government ID / passport / licence
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
-                className="mt-2 block w-full text-xs"
-              />
-              {docFile && <span className="mt-1 block text-foreground">{docFile.name}</span>}
-            </label>
-            <label className="rounded-md border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
-              Live selfie photo
-              <input
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
-                className="mt-2 block w-full text-xs"
-              />
-              {selfieFile && <span className="mt-1 block text-foreground">{selfieFile.name}</span>}
-            </label>
+            <FileUploadField
+              label="Government ID / passport / licence"
+              accept="image/*,application/pdf"
+              allowed={DOC_TYPES}
+              file={docFile}
+              onChange={setDocFile}
+              stage={stage}
+            />
+            <FileUploadField
+              label="Live selfie photo"
+              accept="image/*"
+              allowed={IMAGE_TYPES}
+              capture="user"
+              file={selfieFile}
+              onChange={setSelfieFile}
+              stage={stage}
+            />
           </div>
           <button
             type="submit"
