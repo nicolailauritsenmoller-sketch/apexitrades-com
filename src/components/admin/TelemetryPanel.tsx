@@ -84,12 +84,20 @@ function WorldMap({
   );
 }
 
+const KIND_COLOR: Record<string, string> = {
+  click: "bg-primary",
+  input: "bg-bull",
+  scroll: "bg-muted-foreground",
+};
+
 /** Video-style playback of the captured DOM interactions for one activity entry. */
 function ReplayModal({
   entry,
+  device,
   onClose,
 }: {
-  entry: { label: string; createdAt: string; domEvents: any[] };
+  entry: { label: string; createdAt: string; domEvents: any[]; route?: string | null };
+  device?: string | null;
   onClose: () => void;
 }) {
   const [idx, setIdx] = useState(0);
@@ -97,6 +105,7 @@ function ReplayModal({
   const [speed, setSpeed] = useState(1);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const events = entry.domEvents ?? [];
+  const duration = Math.max(1, events[events.length - 1]?.t ?? 1);
 
   useEffect(() => {
     if (!playing || idx >= events.length - 1) return;
@@ -113,14 +122,23 @@ function ReplayModal({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4 backdrop-blur">
       <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-4">
-        <header className="mb-3 flex items-center justify-between gap-3">
+        <header className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-display text-sm font-semibold">{entry.label}</p>
             <p className="text-[11px] text-muted-foreground">
               {new Date(entry.createdAt).toLocaleString()} · {events.length} interactions
+              {entry.route ? ` · ${entry.route}` : ""}
             </p>
+            {device ? (
+              <span className="mt-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium">
+                {device}
+              </span>
+            ) : null}
           </div>
-          <button onClick={onClose} className="touch-manipulation rounded-md p-1.5 hover:bg-secondary">
+          <button
+            onClick={onClose}
+            className="touch-manipulation rounded-md p-1.5 hover:bg-secondary"
+          >
             <X className="size-4" />
           </button>
         </header>
@@ -133,6 +151,24 @@ function ReplayModal({
               {e.target ? ` → ${e.target}` : ""}
               {e.value ? ` "${e.value}"` : ""}
             </p>
+          ))}
+        </div>
+
+        {/* Event markers along the recorded timeline */}
+        <div className="relative mt-3 h-2 rounded-full bg-secondary">
+          {events.map((e, i) => (
+            <button
+              key={i}
+              title={`${(e.t / 1000).toFixed(1)}s · ${e.kind}`}
+              onClick={() => {
+                setPlaying(false);
+                setIdx(i);
+              }}
+              style={{ left: `${Math.min(99, (e.t / duration) * 100)}%` }}
+              className={`absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${
+                KIND_COLOR[e.kind] ?? "bg-foreground/60"
+              }`}
+            />
           ))}
         </div>
 
