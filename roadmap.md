@@ -3,6 +3,7 @@
 ## In Progress
 
 ## Completed
+- [x] Make Dark the pre-rendered default theme while preserving saved Light, Dark, and System preferences without a hydration flash.
 - [x] Remove user-facing “Admin” terminology, restrict Control Center links to true administrators, and institutionalize system messaging.
 - [x] Consolidate Portfolio and Assets balance privacy into one persisted top-level eye control per page and mask all balance, valuation, and P&L displays.
 - [x] Stabilize all trading chart view modes and centralize Light, Dark, and System selection in Profile Preferences with Dark as the default.
