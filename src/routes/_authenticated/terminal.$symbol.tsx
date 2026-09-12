@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { TradingViewChart } from "@/components/trading/TradingViewChart";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
+import { OrderBook } from "@/components/trading/OrderBook";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
@@ -71,6 +72,9 @@ function Terminal() {
   const [timeframe, setTimeframe] = useState<Timeframe>("1m");
   const [quantity, setQuantity] = useState(String(inst.step));
   const [leverage, setLeverage] = useState(1);
+  // Price picked from the order book ladder; empty means execute at market.
+  const [orderPriceValue, setOrderPriceValue] = useState("");
+  const setOrderPrice = (p: number) => setOrderPriceValue(String(+p.toFixed(inst.precision)));
 
   const { quotes } = useQuotes([symbol], 3000);
   const quote = quotes[symbol];
@@ -127,11 +131,12 @@ function Terminal() {
   const wallet = wallets.find((w) => w.currency === inst.currency);
   const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
   const qty = Number(quantity) || 0;
-  const notional = (quote?.price ?? 0) * qty;
+  const selectedPrice = Number(orderPriceValue) || 0;
+  const price = selectedPrice > 0 ? selectedPrice : quote?.price;
+  const notional = (price ?? 0) * qty;
   const margin = notional / leverage;
   // Maintenance margin of 0.5% of notional; liquidation is where equity runs out.
   const MAINTENANCE = 0.005;
-  const price = quote?.price;
   const liqLong = price && qty > 0 ? price * (1 - 1 / leverage + MAINTENANCE) : null;
   const liqShort = price && qty > 0 ? price * (1 + 1 / leverage - MAINTENANCE) : null;
   const insufficientMargin = margin > 0 && wallet != null && margin > wallet.balance;
@@ -210,7 +215,7 @@ function Terminal() {
         </div>
       </div>
 
-      <div className="grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid w-full max-w-full gap-4 xl:grid-cols-[minmax(0,1fr)_260px_340px] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="panel min-w-0 max-w-full overflow-hidden p-0">
           <TradingViewChart
             symbol={symbol}
@@ -222,6 +227,11 @@ function Terminal() {
             isLoading={candles.isLoading}
           />
         </div>
+
+        <div className="min-w-0 max-w-full lg:col-span-2 xl:col-span-1">
+          <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} />
+        </div>
+
 
 
         <div className="panel min-w-0 max-w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-9rem)]">
@@ -235,6 +245,26 @@ function Terminal() {
               {wallet ? formatMoney(wallet.balance, wallet.currency) : "—"}
             </span>
           </div>
+
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Price
+            </label>
+            <button
+              onClick={() => setOrderPriceValue("")}
+              className="text-[10px] uppercase tracking-wider text-primary"
+            >
+              Market
+            </button>
+          </div>
+          <input
+            value={orderPriceValue}
+            onChange={(e) => setOrderPriceValue(e.target.value)}
+            inputMode="decimal"
+            placeholder={quote ? formatPrice(quote.price, symbol) : "Market"}
+            aria-label="Order price"
+            className="num mb-3 w-full rounded-md border border-input bg-surface px-3 py-2 text-sm outline-none focus:border-ring"
+          />
 
           <label className="mb-1.5 block text-[11px] uppercase tracking-wider text-muted-foreground">
             Quantity
