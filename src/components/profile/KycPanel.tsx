@@ -84,7 +84,9 @@ export function KycPanel({
       setOpen(false);
       setDocFile(null);
       setSelfieFile(null);
+      setStage("idle");
     } catch (err) {
+      setStage("idle");
       toast.error((err as Error).message);
     } finally {
       setBusy(false);
