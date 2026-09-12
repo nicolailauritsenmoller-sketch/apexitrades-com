@@ -2,12 +2,23 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { KeyRound, LogOut, NotebookPen, Snowflake, Trash2, WalletMinimal } from "lucide-react";
+import {
+  KeyRound,
+  Lock,
+  LogOut,
+  NotebookPen,
+  ShieldAlert,
+  Snowflake,
+  Trash2,
+  WalletMinimal,
+} from "lucide-react";
 import {
   addUserNote,
   deleteUserNote,
   forcePasswordReset,
   getUserNotes,
+  setAccountSuspension,
+  SUSPENSION_REASONS,
   setUserAccountControls,
   terminateUserSessions,
 } from "@/lib/admin-ops.functions";
@@ -51,20 +62,42 @@ function Toggle({
   );
 }
 
+const DURATIONS = [
+  { label: "24 hours", hours: 24 },
+  { label: "3 days", hours: 72 },
+  { label: "7 days", hours: 168 },
+  { label: "30 days", hours: 720 },
+  { label: "Custom", hours: 0 },
+  { label: "Open review", hours: -1 },
+] as const;
+
 /** Compliance quick actions + internal admin note log for a single account. */
 export function UserAccountControls({
   userId,
   tradingFrozen,
   withdrawalsDisabled,
+  accountFrozen = false,
+  suspensionStatus = "active",
+  suspendedUntil = null,
+  suspensionReason = null,
   onChanged,
 }: {
   userId: string;
   tradingFrozen: boolean;
   withdrawalsDisabled: boolean;
+  accountFrozen?: boolean;
+  suspensionStatus?: string;
+  suspendedUntil?: string | null;
+  suspensionReason?: string | null;
   onChanged: () => void;
 }) {
   const qc = useQueryClient();
   const setControls = useServerFn(setUserAccountControls);
+  const setSuspension = useServerFn(setAccountSuspension);
+  const [reason, setReason] = useState<string>(SUSPENSION_REASONS[0]);
+  const [durationHours, setDurationHours] = useState<number>(24);
+  const [customUntil, setCustomUntil] = useState("");
+  const [suspendNote, setSuspendNote] = useState("");
   const terminate = useServerFn(terminateUserSessions);
   const resetPw = useServerFn(forcePasswordReset);
   const fetchNotes = useServerFn(getUserNotes);
