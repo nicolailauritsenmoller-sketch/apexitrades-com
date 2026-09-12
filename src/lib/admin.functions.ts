@@ -268,6 +268,10 @@ export const reviewKyc = createServerFn({ method: "POST" })
         data.note ?? `Your KYC submission was ${status}.`,
         data.action === "approve" ? "success" : "warning",
       );
+      if (data.action === "approve") {
+        const { settleReferralOnKyc } = await import("@/lib/referrals.server");
+        await settleReferralOnKyc(row.user_id, userId).catch(() => undefined);
+      }
     }
     return { ok: true };
   });
