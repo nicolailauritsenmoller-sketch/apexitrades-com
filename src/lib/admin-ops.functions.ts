@@ -222,6 +222,44 @@ export const forceLiquidatePosition = createServerFn({ method: "POST" })
 /* ------------------------------------------------------------------ */
 
 /** Freeze/unfreeze trading, withdrawals or the whole account. */
+/** Every account with its restriction, suspension and KYC state for the security desk. */
+export const getUserSecurityDirectory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+
+    const [profiles, kyc] = await Promise.all([
+      db
+        .from("profiles")
+        .select(
+          "id,display_name,email,uid,created_at,trading_frozen,withdrawals_disabled,account_frozen,suspension_status,suspension_reason,suspension_note,suspended_until",
+        )
+        .order("created_at", { ascending: false })
+        .limit(500),
+      db.from("kyc_submissions").select("user_id,status,level2_status,created_at"),
+    ]);
+
+    const kycMap = new Map<string, any>();
+    for (const k of (kyc.data ?? []) as any[]) if (!kycMap.has(k.user_id)) kycMap.set(k.user_id, k);
+
+    return ((profiles.data ?? []) as any[]).map((p) => ({
+      id: p.id,
+      displayName: p.display_name as string,
+      email: (p.email as string | null) ?? null,
+      uid: (p.uid as string | null) ?? null,
+      createdAt: p.created_at as string,
+      tradingFrozen: Boolean(p.trading_frozen),
+      withdrawalsDisabled: Boolean(p.withdrawals_disabled),
+      accountFrozen: Boolean(p.account_frozen),
+      suspensionStatus: (p.suspension_status as string) ?? "active",
+      suspensionReason: (p.suspension_reason as string | null) ?? null,
+      suspendedUntil: (p.suspended_until as string | null) ?? null,
+      kycStatus: (kycMap.get(p.id)?.status as string) ?? "unverified",
+      kycLevel2Status: (kycMap.get(p.id)?.level2_status as string) ?? "not_started",
+    }));
+  });
+
 export const setUserAccountControls = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
