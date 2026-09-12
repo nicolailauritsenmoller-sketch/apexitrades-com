@@ -91,10 +91,10 @@ function Landing() {
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
             <Link
-              to="/auth"
+              to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Open account
+              {authed ? "Go to terminal" : "Open account"}
             </Link>
           </div>
         </div>
