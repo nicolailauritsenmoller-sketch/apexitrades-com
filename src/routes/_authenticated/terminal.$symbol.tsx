@@ -276,8 +276,28 @@ function Terminal() {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Margin required</dt>
-              <dd className="num">{formatMoney(margin, inst.currency)}</dd>
+              <dd className={`num ${insufficientMargin ? "text-bear" : ""}`}>
+                {formatMoney(margin, inst.currency)}
+              </dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Est. liquidation · long</dt>
+              <dd className="num text-bear">
+                {liqLong != null ? formatPrice(liqLong, symbol) : "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Est. liquidation · short</dt>
+              <dd className="num text-bear">
+                {liqShort != null ? formatPrice(liqShort, symbol) : "—"}
+              </dd>
+            </div>
+            {insufficientMargin && (
+              <p className="pt-1 text-[11px] text-bear">
+                Margin exceeds your {inst.currency} balance of{" "}
+                {formatMoney(wallet?.balance ?? 0, inst.currency)}.
+              </p>
+            )}
           </dl>
 
           <div className="grid grid-cols-2 gap-2">
