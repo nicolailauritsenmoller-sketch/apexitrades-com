@@ -196,7 +196,7 @@ function Landing() {
                       <AssetIcon symbol={s} size={16} />
                       <span className="truncate text-muted-foreground">{displaySymbol(s)}</span>
                       <span className="ml-auto shrink-0">
-                        {quotes[s] ? formatPrice(quotes[s].price, s) : "—"}
+                        {hydrated && quotes[s] ? formatPrice(quotes[s]!.price, s) : "—"}
                       </span>
                     </li>
                   ))}
