@@ -136,10 +136,10 @@ function Landing() {
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
-              to="/auth"
+              to={authed ? "/dashboard" : "/auth"}
               className="glow-primary inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Start trading free <ArrowUpRight className="size-4" />
+              {authed ? "Go to terminal" : "Start trading free"} <ArrowUpRight className="size-4" />
             </Link>
             <Link
               to="/markets"
