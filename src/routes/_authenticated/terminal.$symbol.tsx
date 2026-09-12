@@ -20,6 +20,7 @@ import {
   formatPrice,
 } from "@/lib/instruments";
 import { type Timeframe } from "@/lib/market-types";
+import { TAKER_FEE_PCT } from "@/lib/limits";
 
 export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   loader: ({ params }) => {
