@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ThemeToggle } from "@/lib/theme";
 import { AdminAlerts } from "@/components/admin/AdminAlerts";
 
 /**
@@ -39,8 +38,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <AdminAlerts />
-            <ThemeToggle />
-
             <button
               onClick={signOut}
               className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"

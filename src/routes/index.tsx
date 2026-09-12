@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, Gauge, Layers, Lock, ShieldCheck, Zap } from "lucide-react";
@@ -7,7 +7,6 @@ import { displaySymbol, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
-import { ThemeToggle } from "@/lib/theme";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
 const TICKER = [
@@ -53,7 +52,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const navigate = useNavigate();
   const { quotes } = useQuotes(TICKER, 8000);
   // Prices arrive from a cached client store; render placeholders until hydration
   // completes so the server and client markup match.
@@ -70,7 +68,7 @@ function Landing() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, []);
   const row = TICKER.map((s) => ({ symbol: s, quote: hydrated ? quotes[s] : undefined }));
 
   return (
@@ -89,7 +87,6 @@ function Landing() {
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ThemeToggle />
             <Link
               to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"

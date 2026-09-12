@@ -307,6 +307,7 @@ function TradingViewChartInner({
   // Initialize chart library once.
   useEffect(() => {
     let mounted = true;
+    let createdChart: any = null;
     (async () => {
       const lib = await import("lightweight-charts");
       if (!mounted) return;
@@ -337,6 +338,7 @@ function TradingViewChartInner({
         handleScale: true,
         autoSize: true,
       });
+      createdChart = chart;
       chartRef.current = chart;
       setChartReady(true);
 
@@ -355,21 +357,22 @@ function TradingViewChartInner({
         setRedrawTick((n) => n + 1);
       });
 
-      const ro = new ResizeObserver(() => chart.applyOptions({}));
-      ro.observe(wrapRef.current);
-
-      return () => {
-        ro.disconnect();
-      };
     })();
 
     return () => {
       mounted = false;
       setChartReady(false);
+      if (createdChart) {
+        createdChart.remove();
+        createdChart = null;
+      }
       if (chartRef.current) {
-        chartRef.current.remove();
         chartRef.current = null;
       }
+      mainSeriesRef.current = null;
+      volumeSeriesRef.current = null;
+      volumePaneRef.current = null;
+      indicatorRefs.current = [];
     };
   }, []);
 
@@ -397,10 +400,10 @@ function TradingViewChartInner({
     const lib = libRef.current;
     if (!chart || !lib) return;
 
-    // Remove existing main series.
-    if (mainSeriesRef.current) {
-      chart.removeSeries(mainSeriesRef.current);
-      mainSeriesRef.current = null;
+    const previousSeries = mainSeriesRef.current;
+    mainSeriesRef.current = null;
+    if (previousSeries) {
+      chart.removeSeries(previousSeries);
     }
 
     let series: any;
@@ -798,7 +801,17 @@ function applyMainData(
   timeframeMs: number,
 ) {
   if (!candles.length) return;
-  const source = chartType === "heikin" ? heikinAshi(candles) : candles;
+  // Every series receives a fresh, ordered dataset. Never reuse transformed
+  // values between chart modes, or switching back to OHLC modes can inherit
+  // line-series values and collapse the price scale.
+  const cleanCandles = candles
+    .filter((c) =>
+      [c.t, c.o, c.h, c.l, c.c].every(Number.isFinite) && c.h >= c.l,
+    )
+    .sort((a, b) => a.t - b.t)
+    .filter((c, index, all) => index === all.length - 1 || c.t !== all[index + 1].t);
+  if (!cleanCandles.length) return;
+  const source = chartType === "heikin" ? heikinAshi(cleanCandles) : cleanCandles;
   const data = source.map((c) => ({
     time: Math.floor(c.t / 1000) as any,
     open: c.o,
@@ -807,7 +820,14 @@ function applyMainData(
     close: c.c,
   }));
 
-  if (quote?.price) {
+  const historicalClose = data[data.length - 1]?.close;
+  const quoteMatchesHistory =
+    quote?.price != null &&
+    Number.isFinite(quote.price) &&
+    historicalClose != null &&
+    Math.abs(quote.price - historicalClose) / Math.max(Math.abs(historicalClose), 1e-9) < 0.25;
+
+  if (quoteMatchesHistory && quote) {
     const now = Date.now();
     const bucket = Math.floor(now / timeframeMs) * timeframeMs;
     const last = data[data.length - 1];

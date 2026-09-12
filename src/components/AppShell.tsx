@@ -13,7 +13,6 @@ import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
-import { ThemeToggle } from "@/lib/theme";
 import { UserAvatar } from "@/components/UserAvatar";
 import { InstallAppButton } from "@/components/PwaInstall";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
@@ -141,7 +140,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ) : null}
             <InstallAppButton />
-            <ThemeToggle />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />

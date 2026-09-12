@@ -3,7 +3,6 @@ import { LineChart } from "lucide-react";
 import { LEGAL_DOCS } from "@/lib/legal-content";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookiePreferencesPanel } from "@/components/CookieConsent";
-import { ThemeToggle } from "@/lib/theme";
 
 const EXTRA_DOCS: Record<string, { title: string; body: string[] }> = {
   cookies: {
@@ -80,7 +79,6 @@ function LegalPage() {
             </span>
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </Link>
-          <ThemeToggle />
         </div>
       </header>
 
