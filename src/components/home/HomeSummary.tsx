@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,11 +9,19 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Repeat,
+  ChevronRight,
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
 import { getWalletActivity } from "@/lib/wallet.functions";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 const WATCH = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT"] as const;
 const MOVERS = [
@@ -31,33 +40,63 @@ const MOVERS = [
 /* --------------------------------- Actions -------------------------------- */
 
 export function HomeActionBar() {
+  const [fundingOpen, setFundingOpen] = useState(false);
+
   return (
-    <div className="grid grid-cols-3 gap-2.5">
-      <Link
-        to="/wallet"
-        search={{ tab: "deposit" }}
-        className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
-      >
-        <ArrowDownToLine className="size-4" strokeWidth={2.6} />
-        Add funds
-      </Link>
-      <Link
-        to="/wallet"
-        search={{ tab: "withdraw" }}
-        className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-bear px-3 py-3 text-sm font-bold text-bear-foreground transition-transform active:scale-[0.97]"
-      >
-        <ArrowUpFromLine className="size-4" strokeWidth={2.6} />
-        Withdraw
-      </Link>
-      <Link
-        to="/trade"
-        search={{ symbol: "BTCUSDT" }}
-        className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
-      >
-        <CandlestickChart className="size-4" strokeWidth={2.6} />
-        Trade
-      </Link>
-    </div>
+    <>
+      <div className="grid grid-cols-3 gap-2.5">
+        <button
+          type="button"
+          onClick={() => setFundingOpen(true)}
+          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
+        >
+          <ArrowDownToLine className="size-4" strokeWidth={2.6} />
+          Add funds
+        </button>
+        <Link
+          to="/wallet"
+          search={{ tab: "withdraw" }}
+          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-bear px-3 py-3 text-sm font-bold text-bear-foreground transition-transform active:scale-[0.97]"
+        >
+          <ArrowUpFromLine className="size-4" strokeWidth={2.6} />
+          Withdraw
+        </Link>
+        <Link
+          to="/trade"
+          search={{ symbol: "BTCUSDT" }}
+          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
+        >
+          <CandlestickChart className="size-4" strokeWidth={2.6} />
+          Trade
+        </Link>
+      </div>
+
+      <Drawer open={fundingOpen} onOpenChange={setFundingOpen}>
+        <DrawerContent className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>Add funds</DrawerTitle>
+            <DrawerDescription>Choose how you want to fund your account.</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-6">
+            <Link
+              to="/wallet"
+              search={{ tab: "deposit" }}
+              onClick={() => setFundingOpen(false)}
+              className="flex touch-manipulation items-center gap-3 rounded-lg border border-border bg-surface p-4 transition-colors hover:border-primary/60 hover:bg-surface-raised"
+            >
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                <ArrowDownToLine className="size-5" strokeWidth={2.4} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">Crypto transfer</span>
+                <span className="block text-xs text-muted-foreground">Deposit crypto from another wallet</span>
+              </span>
+              <ChevronRight className="size-5 text-muted-foreground" />
+            </Link>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
 
