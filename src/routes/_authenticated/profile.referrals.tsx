@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Copy, Gift, Users } from "lucide-react";
 import { Card, Section, SubPageHeader, copy } from "@/components/profile/ui";
 import { formatMoney } from "@/lib/instruments";
-import { getProfileOverview } from "@/lib/profile.functions";
+import { getMyReferrals } from "@/lib/referrals.functions";
 
 export const Route = createFileRoute("/_authenticated/profile/referrals")({
   head: () => ({
