@@ -39,6 +39,21 @@ function durationLabel(openedAt: string, closedAt: string) {
   return `${s}s`;
 }
 
+function formatExchangeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const datePart = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timePart = date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${datePart} \u2022 ${timePart}`;
+}
+
 /** Merges closed leveraged positions and settled scalp contracts into one report list. */
 export function buildHistory(positions: PositionRow[], contracts: ContractRow[]): HistoryEntry[] {
   const fromPositions = positions
@@ -175,7 +190,7 @@ export function TradeHistoryList({
               <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">
                 {hidden ? "•••• → •••• · ••••" : `${formatPrice(e.entryPrice, e.symbol)} → ${formatPrice(e.exitPrice, e.symbol)} · ${formatMoney(e.size, e.currency)}`} ·{" "}
                 <Clock className="inline size-3 -translate-y-px" />{" "}
-                {durationLabel(e.openedAt, e.closedAt)} · {new Date(e.closedAt).toLocaleString()}
+                {durationLabel(e.openedAt, e.closedAt)} · {formatExchangeDate(e.closedAt)}
               </div>
             </div>
             <div className="shrink-0 text-right">
@@ -184,10 +199,10 @@ export function TradeHistoryList({
                   positive ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
                 }`}
               >
-                {hidden ? "••••" : `${positive ? "+" : ""}${formatMoney(e.pnl, e.currency)}`}
+                {hidden ? "••••" : `${positive ? "+" : "-"}${formatMoney(Math.abs(e.pnl), e.currency)}`}
               </div>
               <div className={`num text-[11px] ${positive ? "text-bull" : "text-bear"}`}>
-                {hidden ? "••••" : `${positive ? "+" : ""}${e.pnlPct.toFixed(2)}%`}
+                {hidden ? "••••" : `${positive ? "+" : "-"}${Math.abs(e.pnlPct).toFixed(2)}%`}
               </div>
             </div>
           </button>
