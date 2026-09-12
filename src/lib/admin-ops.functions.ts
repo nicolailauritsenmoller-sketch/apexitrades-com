@@ -221,7 +221,7 @@ export const forceLiquidatePosition = createServerFn({ method: "POST" })
 /* User account controls & internal notes                               */
 /* ------------------------------------------------------------------ */
 
-/** Freeze/unfreeze trading and withdrawals for a single account. */
+/** Freeze/unfreeze trading, withdrawals or the whole account. */
 export const setUserAccountControls = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -230,6 +230,7 @@ export const setUserAccountControls = createServerFn({ method: "POST" })
         userId: z.string().uuid(),
         tradingFrozen: z.boolean().optional(),
         withdrawalsDisabled: z.boolean().optional(),
+        accountFrozen: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -240,6 +241,7 @@ export const setUserAccountControls = createServerFn({ method: "POST" })
     if (data.tradingFrozen !== undefined) patch['trading_frozen'] = data.tradingFrozen;
     if (data.withdrawalsDisabled !== undefined)
       patch['withdrawals_disabled'] = data.withdrawalsDisabled;
+    if (data.accountFrozen !== undefined) patch['account_frozen'] = data.accountFrozen;
     if (Object.keys(patch).length === 0) return { ok: true };
 
     const { error } = await db.from("profiles").update(patch).eq("id", data.userId);
@@ -250,10 +252,91 @@ export const setUserAccountControls = createServerFn({ method: "POST" })
       db,
       data.userId,
       "Account status updated",
-      data.tradingFrozen || data.withdrawalsDisabled
+      data.tradingFrozen || data.withdrawalsDisabled || data.accountFrozen
         ? "Some account features were restricted by compliance. Contact support for details."
         : "Account restrictions were lifted.",
       "warning",
+    );
+    return { ok: true };
+  });
+
+export const SUSPENSION_REASONS = [
+  "Suspicious activity / Phishing attempt detected",
+  "Unusual login pattern from unauthorized IP/device",
+  "Terms of Service violation / Platform abuse",
+  "Pending identity verification / Security review",
+  "Security hold requested by user",
+] as const;
+
+/** Temporary suspension, permanent ban, or reinstatement of an account. */
+export const setAccountSuspension = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        status: z.enum(["active", "suspended", "permanently_banned"]),
+        reason: z.string().trim().max(200).optional(),
+        note: z.string().trim().max(1000).optional(),
+        /** ISO timestamp when a temporary suspension lifts; omit for open-ended review. */
+        until: z.string().datetime().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const now = new Date().toISOString();
+
+    if (data.status !== "active" && !data.reason) {
+      throw new Error("A suspension reason is required.");
+    }
+
+    const patch =
+      data.status === "active"
+        ? {
+            suspension_status: "active",
+            suspension_reason: null,
+            suspension_note: null,
+            suspended_until: null,
+            suspended_at: null,
+            suspended_by: null,
+          }
+        : {
+            suspension_status: data.status,
+            suspension_reason: data.reason ?? null,
+            suspension_note: data.note ?? null,
+            suspended_until: data.status === "suspended" ? (data.until ?? null) : null,
+            suspended_at: now,
+            suspended_by: context.userId,
+          };
+
+    const { error } = await db.from("profiles").update(patch).eq("id", data.userId);
+    if (error) throw new Error(error.message);
+
+    if (data.status !== "active") {
+      // Kick the user out of every live session immediately.
+      try {
+        const url = process.env['SUPABASE_URL']!;
+        const key = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+        await fetch(`${url}/auth/v1/admin/users/${data.userId}/logout`, {
+          method: "POST",
+          headers: { apikey: key, Authorization: `Bearer ${key}` },
+        });
+      } catch {
+        /* session revocation is best-effort */
+      }
+    }
+
+    await audit(context, "user.suspension", data.userId, patch as Record<string, unknown>);
+    await notify(
+      db,
+      data.userId,
+      data.status === "active" ? "Account reinstated" : "Account access restricted",
+      data.status === "active"
+        ? "Your account has been reinstated. Full access is restored."
+        : `${data.reason ?? "Security review"}. Contact security support for assistance.`,
+      data.status === "active" ? "info" : "warning",
     );
     return { ok: true };
   });
