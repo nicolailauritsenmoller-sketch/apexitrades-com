@@ -16,6 +16,7 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TicketDialog } from "@/components/support/TicketDialog";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   assetName,
   confirmationsFor,
@@ -269,7 +270,7 @@ export function TransactionStatusDialog({
                 })}
               />
             )}
-            {tx.note && <Row label="Note from desk" value={tx.note} wrap />}
+            {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
           </div>
 
           {/* Status */}
@@ -318,7 +319,9 @@ export function TransactionStatusDialog({
                   {showReason ? "Hide failure reason" : "View failure reason"}
                 </button>
                 {showReason && (
-                  <p className="mt-2 text-muted-foreground">{failureReason(tx.type, tx.note)}</p>
+                   <p className="mt-2 text-muted-foreground">
+                     {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                   </p>
                 )}
               </div>
             )}

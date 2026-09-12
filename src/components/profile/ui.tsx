@@ -11,9 +11,9 @@ export const KYC_TONE: Record<string, string> = {
 
 export const KYC_LABEL: Record<string, string> = {
   unverified: "Unverified",
-  pending: "Pending review",
+  pending: "Under security review",
   approved: "Verified",
-  rejected: "Rejected",
+  rejected: "Compliance check failed",
 };
 
 export function copy(text: string, label: string) {

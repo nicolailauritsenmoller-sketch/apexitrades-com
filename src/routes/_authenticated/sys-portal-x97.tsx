@@ -171,7 +171,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
   {
     section: "Money",
     items: [
-      { id: "deposits", label: "Deposits & approvals", icon: Wallet2 },
+      { id: "deposits", label: "Deposit clearing", icon: Wallet2 },
       { id: "withdrawals", label: "Withdrawals", icon: Landmark },
       { id: "transactions", label: "Transactions", icon: Receipt },
       { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
