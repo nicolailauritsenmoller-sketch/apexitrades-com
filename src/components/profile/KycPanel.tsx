@@ -46,10 +46,12 @@ export function KycPanel({
   });
   const [docFile, setDocFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [stage, setStage] = useState<UploadStage>("idle");
 
   const isPending = kyc?.status === "pending";
-  const showForm = open || !kyc;
   const canResubmit = needsResubmit && !isPending;
+  // A rejected or expired submission reopens the form straight away with the reviewer note.
+  const showForm = open || !kyc || canResubmit;
 
   async function upload(file: File, kind: string) {
     const path = `${userId}/${kind}-${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
