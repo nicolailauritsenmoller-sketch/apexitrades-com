@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Rows3 } from "lucide-react";
 import { getDepth } from "@/lib/orderbook.functions";
 import { INSTRUMENT_MAP } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
@@ -69,10 +69,13 @@ export function OrderBook({
   symbol,
   quote,
   onSelectPrice,
+  compact = false,
 }: {
   symbol: string;
   quote?: Quote;
   onSelectPrice?: (price: number) => void;
+  /** Binance-style mini book used in the mobile dual-column trade layout. */
+  compact?: boolean;
 }) {
   const inst = INSTRUMENT_MAP[symbol];
   const basePrecision = inst?.precision ?? 2;
@@ -83,6 +86,8 @@ export function OrderBook({
   }, [basePrecision]);
   const [step, setStep] = useState(steps[0]);
   const [mode, setMode] = useState<ViewMode>("both");
+  const [marginMode, setMarginMode] = useState<"cross" | "isolated">("cross");
+  const baseRows = compact ? 5 : ROWS;
 
   useEffect(() => setStep(steps[0]), [steps]);
 
@@ -95,7 +100,7 @@ export function OrderBook({
   });
 
   const digits = Math.max(0, Math.round(-Math.log10(step)));
-  const rowCount = mode === "both" ? ROWS : ROWS * 2;
+  const rowCount = mode === "both" ? baseRows : baseRows * 2;
 
   const asks = useMemo(
     () => cumulative(groupLevels(depth.data?.asks ?? [], step, "ask").slice(0, rowCount)),
@@ -137,7 +142,7 @@ export function OrderBook({
       key={`${side}-${r.price}`}
       type="button"
       onClick={() => onSelectPrice?.(r.price)}
-      className={`relative grid w-full grid-cols-3 items-center px-2 py-[3px] text-left text-[11px] leading-4 touch-manipulation hover:bg-secondary/60 ${
+      className={`relative grid w-full ${compact ? "grid-cols-2" : "grid-cols-3"} items-center px-2 py-[3px] text-left text-[11px] leading-4 touch-manipulation hover:bg-secondary/60 ${
         side === "ask" ? askFlash(r.price) : bidFlash(r.price)
       }`}
       title="Use this price"
@@ -151,7 +156,9 @@ export function OrderBook({
         {fmt(r.price, digits)}
       </span>
       <span className="num relative text-right text-foreground">{fmtQty(r.qty)}</span>
-      <span className="num relative text-right text-muted-foreground">{fmtQty(r.total)}</span>
+      {!compact && (
+        <span className="num relative text-right text-muted-foreground">{fmtQty(r.total)}</span>
+      )}
     </button>
   );
 
@@ -159,31 +166,40 @@ export function OrderBook({
     <section className="panel flex min-w-0 max-w-full flex-col overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-3 py-2">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Order book</h2>
-        <div className="flex gap-1">
-          {(["both", "asks", "bids"] as ViewMode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              aria-pressed={mode === m}
-              aria-label={
-                m === "both" ? "Asks and bids" : m === "asks" ? "Asks only" : "Bids only"
-              }
-              className={`rounded border px-1.5 py-0.5 text-[10px] uppercase transition-colors ${
-                mode === m
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {m === "both" ? "Both" : m === "asks" ? "Asks" : "Bids"}
-            </button>
-          ))}
-        </div>
+        {compact ? (
+          <button
+            onClick={() => setMarginMode((m) => (m === "cross" ? "isolated" : "cross"))}
+            className="rounded border border-border px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground"
+          >
+            {marginMode}
+          </button>
+        ) : (
+          <div className="flex gap-1">
+            {(["both", "asks", "bids"] as ViewMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                aria-pressed={mode === m}
+                aria-label={m === "both" ? "Asks and bids" : m === "asks" ? "Asks only" : "Bids only"}
+                className={`rounded border px-1.5 py-0.5 text-[10px] uppercase transition-colors ${
+                  mode === m
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m === "both" ? "Both" : m === "asks" ? "Asks" : "Bids"}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
-      <div className="grid grid-cols-3 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span>Price</span>
-        <span className="text-right">Size</span>
-        <span className="text-right">Total</span>
+      <div
+        className={`grid ${compact ? "grid-cols-2" : "grid-cols-3"} px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground`}
+      >
+        <span>{compact ? `Price (${inst?.currency ?? "USDT"})` : "Price"}</span>
+        <span className="text-right">{compact ? "Amount" : "Size"}</span>
+        {!compact && <span className="text-right">Total</span>}
       </div>
 
       {mode !== "bids" && (
@@ -192,23 +208,29 @@ export function OrderBook({
 
       <div
         key={`${lastPrice}`}
-        className={`flex items-center justify-between border-y border-border px-3 py-2 ${
+        className={`border-y border-border px-3 py-2 ${
           dir === "up" ? "ob-banner-up" : "ob-banner-down"
-        }`}
+        } ${compact ? "text-center" : "flex items-center justify-between"}`}
       >
-        <div className="flex items-center gap-1.5">
+        <div className={`flex items-center gap-1.5 ${compact ? "justify-center" : ""}`}>
           {dir === "up" ? (
             <ArrowUp className="size-4 text-bull" />
           ) : (
             <ArrowDown className="size-4 text-bear" />
           )}
-          <span className={`num text-lg font-bold ${dir === "up" ? "text-bull" : "text-bear"}`}>
+          <span
+            className={`num font-bold ${compact ? "text-base text-foreground" : "text-lg"} ${
+              compact ? "" : dir === "up" ? "text-bull" : "text-bear"
+            }`}
+          >
             {lastPrice != null ? fmt(lastPrice, digits) : "—"}
           </span>
         </div>
-        <div className="text-right text-[10px] text-muted-foreground">
+        <div
+          className={`text-[10px] text-muted-foreground ${compact ? "text-center" : "text-right"}`}
+        >
           <div className="num">≈ ${lastPrice != null ? fmt(lastPrice, 2) : "—"}</div>
-          <div className="num">Spread {spreadPct.toFixed(3)}%</div>
+          {!compact && <div className="num">Spread {spreadPct.toFixed(3)}%</div>}
         </div>
       </div>
 
@@ -223,10 +245,20 @@ export function OrderBook({
           <div className="bg-bull" style={{ width: `${buyPct}%` }} />
           <div className="flex-1 bg-bear" />
         </div>
-        <div className="mt-2 flex items-center justify-between">
-          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Precision
-          </label>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {compact ? (
+            <button
+              onClick={() => setMode((m) => (m === "both" ? "asks" : m === "asks" ? "bids" : "both"))}
+              aria-label="Change order book layout"
+              className="rounded border border-border p-1 text-muted-foreground"
+            >
+              <Rows3 className="size-3.5" />
+            </button>
+          ) : (
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Precision
+            </label>
+          )}
           <select
             value={step}
             onChange={(e) => setStep(Number(e.target.value))}
