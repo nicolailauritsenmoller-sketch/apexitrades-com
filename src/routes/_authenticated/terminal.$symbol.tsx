@@ -116,8 +116,15 @@ function Terminal() {
 
   const open = useServerFn(openPosition);
   const orderMutation = useMutation({
-    mutationFn: (side: "long" | "short") =>
-      open({ data: { symbol, side, quantity: Number(quantity), leverage } }),
+    mutationFn: (vars: { side: "long" | "short"; quantity?: number }) =>
+      open({
+        data: {
+          symbol,
+          side: vars.side,
+          quantity: vars.quantity ?? Number(quantity),
+          leverage,
+        },
+      }),
     onSuccess: (res) => {
       toast.success(
         `Filled at ${formatPrice(res.entryPrice, symbol)} · margin ${formatMoney(res.margin, res.currency)}`,
@@ -353,14 +360,14 @@ function Terminal() {
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => orderMutation.mutate("long")}
+              onClick={() => orderMutation.mutate({ side: "long" })}
               disabled={orderMutation.isPending || qty <= 0}
               className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               Buy Long
             </button>
             <button
-              onClick={() => orderMutation.mutate("short")}
+              onClick={() => orderMutation.mutate({ side: "short" })}
               disabled={orderMutation.isPending || qty <= 0}
               className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
@@ -394,10 +401,7 @@ function Terminal() {
           balance={wallet?.balance}
           orderPrice={orderPriceValue}
           onOrderPriceChange={setOrderPriceValue}
-          onSubmit={(side, q) => {
-            setQuantity(String(q));
-            orderMutation.mutate(side, q);
-          }}
+          onSubmit={(side, q) => orderMutation.mutate({ side, quantity: q })}
           pending={orderMutation.isPending}
         />
         <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} compact />
