@@ -29,13 +29,25 @@ function AuthenticatedLayout() {
     };
   }, [navigate]);
 
-  if (status === "checking") {
+  const fetchStatus = useServerFn(getMyAccountStatus);
+  const lock = useQuery({
+    queryKey: ["my-account-status"],
+    queryFn: () => fetchStatus() as Promise<AccountLockState>,
+    enabled: status === "authed",
+    retry: false,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  if (status === "checking" || (status === "authed" && lock.isLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="size-8 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
     );
   }
+
+  if (lock.data?.locked) return <AccountSuspended state={lock.data} />;
 
   return <Outlet />;
 }
