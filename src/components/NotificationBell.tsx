@@ -1,36 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bell } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
-type Notification = {
-  id: string;
-  title: string;
-  body: string;
-  kind: string;
-  read_at: string | null;
-  created_at: string;
-};
-
+/**
+ * Header entry point to the notification center.
+ * Shows an amber pill with the number of unread messages and links to /notifications.
+ */
 export function NotificationBell() {
-  const [items, setItems] = useState<Notification[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [unread, setUnread] = useState(0);
 
-  // Every read is scoped to the signed-in account, on top of the owner-only
-  // RLS policy — a notification belongs to exactly one user.
   const load = useCallback(async (uid: string) => {
-    const { data } = await supabase
+    const { count } = await supabase
       .from("notifications")
-      .select("*")
+      .select("id", { count: "exact", head: true })
       .eq("user_id", uid)
-      .order("created_at", { ascending: false })
-      .limit(30);
-    setItems((data ?? []) as Notification[]);
+      .is("read_at", null);
+    setUnread(count ?? 0);
   }, []);
 
   useEffect(() => {
@@ -41,13 +28,10 @@ export function NotificationBell() {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id;
       if (!uid || cancelled) return;
-      setUserId(uid);
       load(uid);
 
-      // Private per-user stream: the subscription filters on user_id so no
-      // other account's notification events ever reach this client.
       channel = supabase
-        .channel(`notifications-${uid}`)
+        .channel(`notifications-badge-${uid}`)
         .on(
           "postgres_changes",
           {
@@ -67,64 +51,19 @@ export function NotificationBell() {
     };
   }, [load]);
 
-  const unread = items.filter((n) => !n.read_at).length;
-
-  async function markAllRead() {
-    if (!userId) return;
-    const ids = items.filter((n) => !n.read_at).map((n) => n.id);
-    if (ids.length === 0) return;
-    await supabase
-      .from("notifications")
-      .update({ read_at: new Date().toISOString() })
-      .eq("user_id", userId)
-      .in("id", ids);
-    load(userId);
-  }
-
   return (
-    <DropdownMenu onOpenChange={(open) => open && userId && load(userId)}>
-      <DropdownMenuTrigger asChild>
-        <button
-          aria-label="Notifications"
-          className="relative flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          <Bell className="size-4" />
-          {unread > 0 && (
-            <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b border-border px-3 py-2">
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">
-            Notifications
-          </span>
-          <button onClick={markAllRead} className="text-[11px] text-primary hover:underline">
-            Mark all read
-          </button>
-        </div>
-        <div className="max-h-80 overflow-y-auto">
-          {items.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-muted-foreground">Nothing yet.</p>
-          )}
-          {items.map((n) => (
-            <div
-              key={n.id}
-              className={`border-b border-border/60 px-3 py-2.5 ${n.read_at ? "" : "bg-secondary/40"}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-medium">{n.title}</span>
-                <span className="shrink-0 text-[10px] text-muted-foreground">
-                  {new Date(n.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
-            </div>
-          ))}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Link
+      to="/notifications"
+      aria-label={unread > 0 ? `Messages, ${unread} unread` : "Messages"}
+      className="relative flex size-9 touch-manipulation items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+      activeProps={{ className: "bg-secondary text-foreground" }}
+    >
+      <MessageSquareText className="size-4" />
+      {unread > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[18px] place-items-center rounded-full bg-[#FCD535] px-1 text-[10px] font-bold leading-none text-[#12161C]">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }
