@@ -49,14 +49,19 @@ function ReferralsPage() {
         description="Invite traders and earn rewards when they fund and trade."
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card title="Traders invited" value={String(overview.data?.referrals.invited ?? 0)} />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card title="Traders invited" value={String(stats?.invited ?? 0)} />
         <Card
-          title="Rewards earned"
-          value={formatMoney(overview.data?.referrals.rewards ?? 0, "USDT")}
+          title="Pending rewards"
+          value={formatMoney(stats?.pendingRewards ?? 0, "USDT")}
+          hint={`${stats?.pending ?? 0} awaiting release`}
+        />
+        <Card
+          title="Total earned"
+          value={formatMoney(stats?.earned ?? 0, "USDT")}
           tone="text-bull"
         />
-        <Card title="Your code" value={code || "—"} hint="Share this with friends" />
+        <Card title="Your code" value={code || "—"} hint={`${reward} USDT per referral`} />
       </div>
 
       <Section
