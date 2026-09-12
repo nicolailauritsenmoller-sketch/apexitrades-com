@@ -39,6 +39,8 @@ import {
 import { PasswordInput } from "@/components/PasswordInput";
 import { logActivity } from "@/lib/telemetry";
 import { useBalancePrivacy } from "@/lib/balance-privacy";
+import { StepUpCodeDialog } from "@/components/security/StepUpCodeDialog";
+import { getTwoFactorState, type TwoFactorState } from "@/lib/two-factor.functions";
 
 const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
