@@ -334,3 +334,29 @@
 @utility input-base {
   @apply w-full min-h-10 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary;
 }
+
+/* Admin telemetry map: blinking beacons for live sessions */
+.session-beacon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #94a3b8;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 rgba(148, 163, 184, 0.6);
+}
+.session-beacon.is-online {
+  background: #22c55e;
+  animation: session-pulse 1.6s ease-out infinite;
+}
+@keyframes session-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
