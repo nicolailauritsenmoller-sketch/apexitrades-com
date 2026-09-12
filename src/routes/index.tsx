@@ -60,11 +60,12 @@ function Landing() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  // Signed-in visitors belong on the portfolio, not the marketing page.
+  // Signed-in visitors keep the marketing page but get app-native calls to action.
+  const [authed, setAuthed] = useState(false);
   useEffect(() => {
     let cancelled = false;
     void supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled && data.session) navigate({ to: "/dashboard", replace: true });
+      if (!cancelled) setAuthed(Boolean(data.session));
     });
     return () => {
       cancelled = true;
