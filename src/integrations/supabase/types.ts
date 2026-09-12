@@ -1537,6 +1537,7 @@ export type Database = {
             Returns: boolean
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      purge_old_session_replays: { Args: never; Returns: number }
       set_withdrawal_password: {
         Args: { p_password_hash: string; p_user_id: string }
         Returns: Json
