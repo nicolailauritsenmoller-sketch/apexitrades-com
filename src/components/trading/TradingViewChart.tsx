@@ -307,13 +307,16 @@ function TradingViewChartInner({
   // Initialize chart library once.
   useEffect(() => {
     let mounted = true;
+    let disposed = false;
     let createdChart: any = null;
+    let resizeObserver: ResizeObserver | null = null;
     (async () => {
       const lib = await import("lightweight-charts");
       if (!mounted) return;
       libRef.current = lib;
-      if (!wrapRef.current) return;
-      const chart = lib.createChart(wrapRef.current, {
+      const container = wrapRef.current;
+      if (!container) return;
+      const chart = lib.createChart(container, {
         layout: {
           background: { type: lib.ColorType.Solid, color: colors.background },
           textColor: colors.foreground,
@@ -336,7 +339,8 @@ function TradingViewChartInner({
         localization: { locale: "en-US" },
         handleScroll: true,
         handleScale: true,
-        autoSize: true,
+        width: container.clientWidth,
+        height: container.clientHeight,
       });
       createdChart = chart;
       chartRef.current = chart;
@@ -354,13 +358,24 @@ function TradingViewChartInner({
       volumePane.setHeight(80);
 
       chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+        if (disposed) return;
         setRedrawTick((n) => n + 1);
       });
+
+      resizeObserver = new ResizeObserver(([entry]) => {
+        if (disposed || !createdChart) return;
+        const { width, height: nextHeight } = entry.contentRect;
+        if (width > 0 && nextHeight > 0) createdChart.resize(width, nextHeight);
+      });
+      resizeObserver.observe(container);
 
     })();
 
     return () => {
       mounted = false;
+      disposed = true;
+      resizeObserver?.disconnect();
+      resizeObserver = null;
       setChartReady(false);
       if (createdChart) {
         createdChart.remove();
@@ -403,7 +418,11 @@ function TradingViewChartInner({
     const previousSeries = mainSeriesRef.current;
     mainSeriesRef.current = null;
     if (previousSeries) {
-      chart.removeSeries(previousSeries);
+      try {
+        chart.removeSeries(previousSeries);
+      } catch {
+        return;
+      }
     }
 
     let series: any;
@@ -444,6 +463,32 @@ function TradingViewChartInner({
       chart.timeScale().fitContent();
       fittedRef.current = true;
     }
+  }, [chartType, chartReady]);
+
+  // Restyle the active series without replacing it when the theme changes.
+  useEffect(() => {
+    const series = mainSeriesRef.current;
+    if (!series) return;
+    if (chartType === "line") {
+      series.applyOptions({ color: colors.primary });
+    } else if (chartType === "area") {
+      series.applyOptions({
+        lineColor: colors.primary,
+        topColor: `${colors.primary}33`,
+        bottomColor: `${colors.primary}05`,
+      });
+    } else if (chartType === "bars") {
+      series.applyOptions({ upColor: colors.bull, downColor: colors.bear });
+    } else {
+      series.applyOptions({
+        upColor: chartType === "hollow" ? "transparent" : colors.bull,
+        downColor: colors.bear,
+        borderUpColor: colors.bull,
+        borderDownColor: colors.bear,
+        wickUpColor: colors.bull,
+        wickDownColor: colors.bear,
+      });
+    }
   }, [chartType, colors, chartReady]);
 
   // Update main data when candles/quote change.
@@ -456,7 +501,7 @@ function TradingViewChartInner({
       chart.timeScale().fitContent();
       fittedRef.current = true;
     }
-  }, [candles, quote, chartType, timeframeMs]);
+  }, [candles, quote, timeframeMs]);
 
   // Manage indicators.
   useEffect(() => {
@@ -811,7 +856,25 @@ function applyMainData(
     .sort((a, b) => a.t - b.t)
     .filter((c, index, all) => index === all.length - 1 || c.t !== all[index + 1].t);
   if (!cleanCandles.length) return;
-  const source = chartType === "heikin" ? heikinAshi(cleanCandles) : cleanCandles;
+  const prepared = cleanCandles.map((c) => ({ ...c }));
+  const rawLast = prepared[prepared.length - 1];
+  const historicalClose = rawLast?.c;
+  const quoteMatchesHistory =
+    quote?.price != null &&
+    Number.isFinite(quote.price) &&
+    historicalClose != null &&
+    Math.abs(quote.price - historicalClose) / Math.max(Math.abs(historicalClose), 1e-9) < 0.25;
+
+  if (quoteMatchesHistory && quote && rawLast) {
+    const bucket = Math.floor(Date.now() / timeframeMs) * timeframeMs;
+    if (Math.floor(rawLast.t / 1000) === Math.floor(bucket / 1000)) {
+      rawLast.c = quote.price;
+      rawLast.h = Math.max(rawLast.h, quote.price);
+      rawLast.l = Math.min(rawLast.l, quote.price);
+    }
+  }
+
+  const source = chartType === "heikin" ? heikinAshi(prepared) : prepared;
   const data = source.map((c) => ({
     time: Math.floor(c.t / 1000) as any,
     open: c.o,
@@ -819,24 +882,6 @@ function applyMainData(
     low: c.l,
     close: c.c,
   }));
-
-  const historicalClose = data[data.length - 1]?.close;
-  const quoteMatchesHistory =
-    quote?.price != null &&
-    Number.isFinite(quote.price) &&
-    historicalClose != null &&
-    Math.abs(quote.price - historicalClose) / Math.max(Math.abs(historicalClose), 1e-9) < 0.25;
-
-  if (quoteMatchesHistory && quote) {
-    const now = Date.now();
-    const bucket = Math.floor(now / timeframeMs) * timeframeMs;
-    const last = data[data.length - 1];
-    if (last && Math.floor(last.time) === Math.floor(bucket / 1000)) {
-      last.close = quote.price;
-      last.high = Math.max(last.high, quote.price);
-      last.low = Math.min(last.low, quote.price);
-    }
-  }
 
   if (chartType === "line" || chartType === "area") {
     series.setData(data.map((d) => ({ time: d.time, value: d.close })));
