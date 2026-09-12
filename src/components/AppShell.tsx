@@ -76,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hasSession !== true) return;
     startDomCapture();
+    const stopFlush = startInteractionFlush();
     let last = "";
     const record = () => {
       const path = window.location.pathname;
@@ -87,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const unsub = router.subscribe("onResolved", record);
     return () => {
       unsub();
-
+      stopFlush();
     };
   }, [router, hasSession]);
 
