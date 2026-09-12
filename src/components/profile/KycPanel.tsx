@@ -3,6 +3,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
 import { KYC_LABEL, KYC_TONE } from "@/components/profile/ui";
+import {
+  DOC_TYPES,
+  FileUploadField,
+  IMAGE_TYPES,
+  type UploadStage,
+} from "@/components/profile/FileUploadField";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
