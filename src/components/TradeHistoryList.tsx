@@ -123,10 +123,12 @@ export function TradeHistoryList({
   positions,
   contracts,
   isLoading,
+  hidden = false,
 }: {
   positions: PositionRow[];
   contracts: ContractRow[];
   isLoading?: boolean;
+  hidden?: boolean;
 }) {
   const entries = useMemo(() => buildHistory(positions, contracts), [positions, contracts]);
   const [active, setActive] = useState<TradeSummary | null>(null);
@@ -171,8 +173,7 @@ export function TradeHistoryList({
                 </span>
               </div>
               <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">
-                {formatPrice(e.entryPrice, e.symbol)} → {formatPrice(e.exitPrice, e.symbol)} ·{" "}
-                {formatMoney(e.size, e.currency)} ·{" "}
+                {hidden ? "•••• → •••• · ••••" : `${formatPrice(e.entryPrice, e.symbol)} → ${formatPrice(e.exitPrice, e.symbol)} · ${formatMoney(e.size, e.currency)}`} ·{" "}
                 <Clock className="inline size-3 -translate-y-px" />{" "}
                 {durationLabel(e.openedAt, e.closedAt)} · {new Date(e.closedAt).toLocaleString()}
               </div>
@@ -183,12 +184,10 @@ export function TradeHistoryList({
                   positive ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
                 }`}
               >
-                {positive ? "+" : ""}
-                {formatMoney(e.pnl, e.currency)}
+                {hidden ? "••••" : `${positive ? "+" : ""}${formatMoney(e.pnl, e.currency)}`}
               </div>
               <div className={`num text-[11px] ${positive ? "text-bull" : "text-bear"}`}>
-                {positive ? "+" : ""}
-                {e.pnlPct.toFixed(2)}%
+                {hidden ? "••••" : `${positive ? "+" : ""}${e.pnlPct.toFixed(2)}%`}
               </div>
             </div>
           </button>

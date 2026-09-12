@@ -74,10 +74,26 @@ function Assets() {
         Your multi-currency balances, live exposure and the full tradable universe.
       </p>
 
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Wallets</h2>
-        <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
-      </div>
+      <section className="panel mb-5 touch-manipulation p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-muted-foreground">Total Balance</p>
+            <p className="num mt-1 text-3xl font-bold tracking-tight">
+              {portfolioValue.isLoading
+                ? "—"
+                : balancesHidden
+                  ? "••••••"
+                  : `${(portfolioValue.data?.totalUsdt ?? 0).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })} USDT`}
+            </p>
+          </div>
+          <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
+        </div>
+      </section>
+
+      <h2 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Wallets</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {wallets.map((w) => (
           <div key={w.currency} className="panel flex items-center gap-3 p-4">
@@ -116,7 +132,11 @@ function Assets() {
               </div>
             </div>
             <div className="num text-right text-sm">
-              {quotes[p.symbol] ? formatPrice(quotes[p.symbol].price, p.symbol) : "—"}
+              {balancesHidden
+                ? "••••"
+                : quotes[p.symbol]
+                  ? formatPrice(quotes[p.symbol].price, p.symbol)
+                  : "—"}
             </div>
           </div>
         ))}

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
-import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 
 
 export type AssetHolding = {
@@ -35,15 +34,16 @@ export function AssetsOverview({
   totalUsdt,
   isLoading,
   hideEmpty = true,
+  hidden = false,
 }: {
   holdings: AssetHolding[];
   totalUsdt: number;
   isLoading?: boolean;
   hideEmpty?: boolean;
+  hidden?: boolean;
 }) {
   const [hideZero, setHideZero] = useState(hideEmpty);
   const [search, setSearch] = useState("");
-  const { hidden, toggle } = useBalancePrivacy();
   const mv = (value: string) => (hidden ? "••••••" : value);
 
   const rows = useMemo(() => {
@@ -68,16 +68,13 @@ export function AssetsOverview({
             Every asset you hold, valued at live market rates.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Total portfolio balance
-            </p>
-            <p className="num text-xl font-bold">
-              {isLoading ? "—" : hidden ? "••••••" : `${fmt(totalUsdt)} USDT`}
-            </p>
-          </div>
-          <BalancePrivacyToggle hidden={hidden} onToggle={toggle} />
+        <div className="text-right">
+          <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            Total portfolio balance
+          </p>
+          <p className="num text-xl font-bold">
+            {isLoading ? "—" : hidden ? "••••••" : `${fmt(totalUsdt)} USDT`}
+          </p>
         </div>
       </header>
 

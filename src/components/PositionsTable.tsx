@@ -37,10 +37,12 @@ export function PositionsTable({
   positions,
   quotes,
   emptyLabel,
+  hidden = false,
 }: {
   positions: PositionRow[];
   quotes: Record<string, Quote>;
   emptyLabel: string;
+  hidden?: boolean;
 }) {
   const queryClient = useQueryClient();
   const close = useServerFn(closePosition);
@@ -132,19 +134,25 @@ export function PositionsTable({
                     {p.side}
                   </span>
                 </td>
-                <td className="num px-4 py-3 text-right">{p.quantity}</td>
+                <td className="num px-4 py-3 text-right">{hidden ? "••••" : p.quantity}</td>
                 <td className="num px-4 py-3 text-right">
-                  {formatPrice(p.entryPrice, p.symbol)}
+                  {hidden ? "••••" : formatPrice(p.entryPrice, p.symbol)}
                 </td>
                 <td className="num px-4 py-3 text-right">
-                  {p.status === "open"
+                  {hidden
+                    ? "••••"
+                    : p.status === "open"
                     ? mark
                       ? formatPrice(mark, p.symbol)
                       : "—"
                     : formatPrice(p.exitPrice ?? 0, p.symbol)}
                 </td>
                 <td className="px-4 py-3 text-right font-medium">
-                  <LivePnl value={pnl} currency={p.currency} live={p.status === "open"} />
+                  {hidden ? (
+                    <span className="num text-muted-foreground">••••</span>
+                  ) : (
+                    <LivePnl value={pnl} currency={p.currency} live={p.status === "open"} />
+                  )}
                 </td>
 
                 <td className="px-4 py-3 text-right">

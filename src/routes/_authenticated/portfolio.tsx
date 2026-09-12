@@ -161,6 +161,7 @@ function Portfolio() {
           holdings={value.data?.wallets ?? []}
           totalUsdt={value.data?.totalUsdt ?? 0}
           isLoading={value.isLoading}
+          hidden={balancesHidden}
         />
       </div>
 
@@ -194,6 +195,7 @@ function Portfolio() {
           positions={open}
           quotes={quotes}
           emptyLabel="No open positions. Head to the terminal to place your first trade."
+          hidden={balancesHidden}
         />
       </div>
 
@@ -205,6 +207,7 @@ function Portfolio() {
           positions={closed}
           contracts={contracts.data ?? []}
           isLoading={contracts.isLoading || isLoading}
+          hidden={balancesHidden}
         />
       </div>
     </AppShell>
