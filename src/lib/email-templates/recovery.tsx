@@ -76,7 +76,7 @@ const brand = {
   fontSize: '18px',
   fontWeight: 'bold' as const,
   letterSpacing: '-0.3px',
-  color: '#0052FF',
+  color: '#FCD535',
   margin: '0',
 }
 const card = { border: '1px solid #e6e8eb', borderRadius: '14px', padding: '28px 24px' }
