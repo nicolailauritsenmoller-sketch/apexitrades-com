@@ -193,11 +193,18 @@ export function UserAccountControls({
           onClick={() => controls.mutate({ tradingFrozen: !tradingFrozen })}
         />
         <Toggle
-          label="Disable withdrawals"
+          label="Freeze withdrawals"
           icon={WalletMinimal}
           active={withdrawalsDisabled}
           pending={controls.isPending}
           onClick={() => controls.mutate({ withdrawalsDisabled: !withdrawalsDisabled })}
+        />
+        <Toggle
+          label="Freeze entire account"
+          icon={Lock}
+          active={accountFrozen}
+          pending={controls.isPending}
+          onClick={() => controls.mutate({ accountFrozen: !accountFrozen })}
         />
         <div className="grid grid-cols-2 gap-2">
           <button
