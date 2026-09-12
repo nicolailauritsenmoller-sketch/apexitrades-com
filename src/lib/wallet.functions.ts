@@ -284,6 +284,9 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
 
+    const { assertAccountUsable } = await import("./account-status.functions");
+    await assertAccountUsable(supabase, userId);
+
     if ((profile as any)?.withdrawals_disabled) {
       throw new Error("Withdrawals are disabled on this account. Contact support.");
     }

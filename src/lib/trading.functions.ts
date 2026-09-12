@@ -65,12 +65,9 @@ export const openPosition = createServerFn({ method: "POST" })
     const inst = INSTRUMENT_MAP[data.symbol];
     if (!inst) throw new Error("Unknown instrument.");
 
-    const { data: guard } = await supabase
-      .from("profiles")
-      .select("trading_frozen")
-      .eq("id", userId)
-      .maybeSingle();
-    if ((guard as any)?.trading_frozen) {
+    const { assertAccountUsable } = await import("./account-status.functions");
+    const guard = await assertAccountUsable(supabase, userId);
+    if (guard.tradingFrozen) {
       throw new Error("Trading is frozen on this account. Contact support.");
     }
 
