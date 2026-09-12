@@ -37,17 +37,18 @@ export function TwoFactorChallenge({ onVerified }: { onVerified: () => void }) {
         </div>
         <p className="text-xs text-muted-foreground">
           {useRecovery
-            ? "Enter one of your single-use recovery codes."
+            ? "Enter your 12-word recovery phrase, words separated by spaces."
             : "Enter the 6-digit code from your authenticator app to continue."}
         </p>
 
         {useRecovery ? (
-          <input
+          <textarea
             value={recovery}
-            onChange={(e) => setRecovery(e.target.value.toUpperCase())}
-            placeholder="XXXX-XXXX"
+            onChange={(e) => setRecovery(e.target.value.toLowerCase())}
+            placeholder="word1 word2 word3 …"
+            rows={3}
             autoFocus
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-center font-mono text-sm tracking-widest"
+            className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
           />
         ) : (
           <OtpInput value={code} onChange={setCode} autoFocus disabled={busy} />
@@ -55,7 +56,7 @@ export function TwoFactorChallenge({ onVerified }: { onVerified: () => void }) {
 
         <button
           type="submit"
-          disabled={busy || (useRecovery ? recovery.length < 8 : code.length !== 6)}
+          disabled={busy || (useRecovery ? recovery.trim().split(/\s+/).length !== 12 : code.length !== 6)}
           className="w-full touch-manipulation rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           {busy ? "Verifying…" : "Verify"}
@@ -67,7 +68,7 @@ export function TwoFactorChallenge({ onVerified }: { onVerified: () => void }) {
             onClick={() => setUseRecovery((v) => !v)}
             className="text-primary underline-offset-2 hover:underline"
           >
-            {useRecovery ? "Use authenticator code" : "Use a recovery code"}
+            {useRecovery ? "Use authenticator code" : "Use recovery phrase"}
           </button>
           <button
             type="button"
