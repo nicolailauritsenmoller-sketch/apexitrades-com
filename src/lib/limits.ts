@@ -12,3 +12,8 @@ export function creditScoreBand(score: number): { label: string; tone: string } 
   if (score >= 580) return { label: "Fair", tone: "text-amber-400" };
   return { label: "Restricted", tone: "text-bear" };
 }
+
+/** Default taker fee applied to leveraged order notional (0.05%). */
+export const TAKER_FEE_PCT = 0.0005;
+/** Default maker fee applied to resting orders (0.02%). */
+export const MAKER_FEE_PCT = 0.0002;
