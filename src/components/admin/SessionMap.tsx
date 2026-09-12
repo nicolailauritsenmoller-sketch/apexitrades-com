@@ -4,18 +4,27 @@ type Pin = {
   id: string;
   userId: string;
   name: string;
+  email?: string | null;
   city: string | null;
   country: string | null;
   ip: string | null;
   isp: string | null;
+  deviceModel?: string | null;
   lat: number | null;
   lng: number | null;
   online: boolean;
 };
 
+const esc = (v: unknown) =>
+  String(v ?? "—").replace(
+    /[&<>"]/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string,
+  );
+
 /**
  * Leaflet map with OpenStreetMap tiles. Loaded lazily on the client only —
- * Leaflet touches `window` at import time.
+ * Leaflet touches `window` at import time. Online sessions render as blinking
+ * green beacons; offline ones as static slate dots.
  */
 export default function SessionMap({
   sessions,
@@ -27,51 +36,60 @@ export default function SessionMap({
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<any>(null);
   const layer = useRef<any>(null);
+  const pick = useRef(onPick);
+  pick.current = onPick;
   const pins = sessions.filter((s) => s.lat != null && s.lng != null);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const L = (await import("leaflet")).default;
-      await import("leaflet/dist/leaflet.css");
-      if (cancelled || !host.current || map.current) return;
-      map.current = L.map(host.current, {
-        center: [20, 0],
-        zoom: 2,
-        worldCopyJump: true,
-        attributionControl: false,
-      });
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-      }).addTo(map.current);
-      layer.current = L.layerGroup().addTo(map.current);
-      render(L);
-    })();
 
     function render(L: any) {
       if (!layer.current) return;
       layer.current.clearLayers();
       for (const p of pins) {
-        const marker = L.circleMarker([p.lat!, p.lng!], {
-          radius: 7,
-          weight: 2,
-          color: p.online ? "#16a34a" : "#94a3b8",
-          fillColor: p.online ? "#22c55e" : "#cbd5e1",
-          fillOpacity: 0.85,
+        const icon = L.divIcon({
+          className: "",
+          html: `<span class="session-beacon${p.online ? " is-online" : ""}"></span>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
         });
-        marker.bindTooltip(
-          `<b>${p.name}</b><br/>${[p.city, p.country].filter(Boolean).join(", ") || "Unknown location"}` +
-            `<br/>${p.ip ?? "—"}${p.isp ? ` · ${p.isp}` : ""}`,
-          { direction: "top" },
-        );
-        marker.on("click", () => onPick(p.userId));
+        const marker = L.marker([p.lat!, p.lng!], { icon, riseOnHover: true });
+        const popup = `
+          <div style="min-width:190px;line-height:1.45">
+            <b>${esc(p.name)}</b><br/>
+            <span style="opacity:.8">${esc(p.email)}</span><br/>
+            ${esc([p.city, p.country].filter(Boolean).join(", ") || "Unknown location")}<br/>
+            IP ${esc(p.ip)}${p.isp ? ` · ${esc(p.isp)}` : ""}<br/>
+            <b>${esc(p.deviceModel)}</b><br/>
+            <span style="color:${p.online ? "#16a34a" : "#64748b"}">
+              ${p.online ? "● Online now" : "○ Offline"}
+            </span>
+          </div>`;
+        marker.bindPopup(popup);
+        marker.bindTooltip(popup, { direction: "top", opacity: 0.98 });
+        marker.on("click", () => pick.current(p.userId));
         marker.addTo(layer.current);
       }
     }
 
-    if (map.current) {
-      void import("leaflet").then((m) => render(m.default));
-    }
+    (async () => {
+      const L = (await import("leaflet")).default;
+      await import("leaflet/dist/leaflet.css");
+      if (cancelled || !host.current) return;
+      if (!map.current) {
+        map.current = L.map(host.current, {
+          center: [20, 0],
+          zoom: 2,
+          worldCopyJump: true,
+          attributionControl: false,
+        });
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(
+          map.current,
+        );
+        layer.current = L.layerGroup().addTo(map.current);
+      }
+      render(L);
+    })();
 
     return () => {
       cancelled = true;

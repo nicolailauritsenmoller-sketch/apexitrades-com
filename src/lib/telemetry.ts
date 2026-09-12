@@ -42,27 +42,81 @@ function currentDeviceId(): string {
   return id;
 }
 
+/** Apple hardware identifiers (Client Hints / UA) → marketing names. */
 const APPLE_HINTS: Record<string, string> = {
-  "iPhone17": "iPhone 16 Pro",
-  "iPhone16": "iPhone 15 Pro",
-  "iPad": "iPad",
+  iPhone18: "iPhone 17 Pro",
+  iPhone17: "iPhone 16 Pro",
+  iPhone16: "iPhone 15 Pro",
+  iPhone15: "iPhone 14",
+  iPhone14: "iPhone 13",
+  iPad: "iPad",
 };
 
-/** Best-effort mapping of Apple/desktop hardware into a friendly model name. */
+/**
+ * iOS never exposes a model string, but the logical screen size + pixel ratio
+ * uniquely identify almost every iPhone/iPad generation.
+ */
+const IOS_SCREENS: Record<string, string> = {
+  "440x956@3": "iPhone 17 Pro Max",
+  "402x874@3": "iPhone 17 Pro",
+  "430x932@3": "iPhone 15 Pro Max",
+  "393x852@3": "iPhone 15 Pro",
+  "428x926@3": "iPhone 13 Pro Max",
+  "390x844@3": "iPhone 13",
+  "375x812@3": "iPhone 13 mini",
+  "414x896@2": "iPhone 11",
+  "414x896@3": "iPhone 11 Pro Max",
+  "414x736@3": "iPhone 8 Plus",
+  "375x667@2": "iPhone SE",
+  "1024x1366@2": 'iPad Pro 12.9"',
+  "834x1194@2": 'iPad Pro 11"',
+  "820x1180@2": "iPad Air",
+  "810x1080@2": "iPad",
+  "768x1024@2": "iPad mini",
+};
+
+function screenKey(): string | null {
+  if (typeof window === "undefined") return null;
+  const w = Math.min(window.screen.width, window.screen.height);
+  const h = Math.max(window.screen.width, window.screen.height);
+  return `${w}x${h}@${Math.round(window.devicePixelRatio)}`;
+}
+
+/** Best-effort mapping of Apple/desktop hardware into an exact marketing model name. */
 function refineModel(info: DeviceInfo): string {
-  if (info.device_model) {
-    return [info.device_vendor, info.device_model].filter(Boolean).join(" ");
+  const key = screenKey();
+
+  if (info.os_name === "iOS" || info.os_name === "iPadOS" || /iPhone|iPad/.test(info.user_agent)) {
+    const exact = key ? IOS_SCREENS[key] : undefined;
+    if (exact) return exact;
+    if (info.device_model && /iPad/i.test(info.device_model)) return "iPad";
+    return /iPad/.test(info.user_agent) ? "iPad" : "iPhone";
   }
-  if (info.os_name === "iOS") return "iPhone";
-  if (info.os_name === "macOS") {
-    const chip = /Apple/.test(info.user_agent) ? "Apple Silicon" : "Intel";
-    return `Mac (${chip})`;
+
+  if (info.device_model && !/^(iPhone|iPad|Macintosh)$/i.test(info.device_model)) {
+    const label = [info.device_vendor, info.device_model].filter(Boolean).join(" ");
+    return /Galaxy|SM-/i.test(label) ? label.replace(/^Samsung SM-\S+$/, label) : label;
   }
+
+  if (info.os_name === "macOS" || info.os_name === "Mac OS") {
+    const chip = /Apple|arm/i.test(info.user_agent) ? "Apple Silicon" : "Intel";
+    const width = typeof window === "undefined" ? 0 : window.screen.width;
+    const family =
+      width >= 2560 ? "Mac Studio Display" : width >= 1728 ? "MacBook Pro" : "MacBook Air";
+    return `${family} (${chip})`;
+  }
+
   if (info.os_name === "Windows") {
-    const v = info.os_version ?? "";
-    return v.startsWith("11") || v === "10" ? "Windows PC" : "Windows PC";
+    const major = Number((info.os_version ?? "").split(".")[0] ?? 0);
+    // Client Hints report Windows 11 as platformVersion 13+.
+    const name = major >= 13 ? "Windows 11" : major >= 1 ? "Windows 10" : "Windows";
+    return `${name} ${info.device_type === "Mobile" ? "Tablet" : "Desktop"}`;
   }
-  if (info.os_name === "Android") return "Android device";
+
+  if (info.os_name === "Android") {
+    return info.device_vendor ? `${info.device_vendor} Android device` : "Android device";
+  }
+  if (info.os_name === "Linux") return "Linux Desktop";
   return `${info.os_name} ${info.device_type}`;
 }
 
