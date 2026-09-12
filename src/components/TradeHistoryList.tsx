@@ -39,6 +39,21 @@ function durationLabel(openedAt: string, closedAt: string) {
   return `${s}s`;
 }
 
+function formatExchangeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const datePart = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timePart = date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${datePart} \u2022 ${timePart}`;
+}
+
 /** Merges closed leveraged positions and settled scalp contracts into one report list. */
 export function buildHistory(positions: PositionRow[], contracts: ContractRow[]): HistoryEntry[] {
   const fromPositions = positions
