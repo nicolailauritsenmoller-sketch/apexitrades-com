@@ -825,7 +825,7 @@ function SwapTab({
           if (value > available) return toast.error("Amount exceeds your available balance.");
           mutation.mutate({ from, to, amount: value });
         }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-[0.99] disabled:opacity-60"
       >
         <Repeat className="size-4" strokeWidth={2.8} />
         Swap instantly

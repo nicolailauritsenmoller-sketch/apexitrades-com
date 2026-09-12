@@ -184,7 +184,7 @@ function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
     border: "#2A3039",
     bull: "#16A34A",
     bear: "#DC2626",
-    primary: "#0052FF",
+    primary: "#FCD535",
   });
 
   useEffect(() => {

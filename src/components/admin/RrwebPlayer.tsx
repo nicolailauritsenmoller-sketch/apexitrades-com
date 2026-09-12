@@ -28,7 +28,7 @@ export default function RrwebPlayer({ events }: { events: any[] }) {
           autoPlay: true,
           showController: true,
           speedOption: [1, 2, 4],
-          mouseTail: { strokeStyle: "#0052FF" },
+          mouseTail: { strokeStyle: "#FCD535" },
         },
       });
     })();

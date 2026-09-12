@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Scalp crypto, stocks, futures, forex and gold on live market data with multi-currency wallets.",
       },
       { name: "author", content: "Velocity Trade" },
-      { name: "theme-color", content: "#0052FF" },
+      { name: "theme-color", content: "#0B0E11" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Velocity Trade" },
