@@ -20,6 +20,7 @@ import {
   formatPrice,
 } from "@/lib/instruments";
 import { type Timeframe } from "@/lib/market-types";
+import { TAKER_FEE_PCT } from "@/lib/limits";
 
 export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   loader: ({ params }) => {
@@ -296,6 +297,18 @@ function Terminal() {
               <dt className="text-muted-foreground">Est. liquidation · short</dt>
               <dd className="num text-bear">
                 {liqShort != null ? formatPrice(liqShort, symbol) : "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Est. trading fee ({(TAKER_FEE_PCT * 100).toFixed(2)}%)
+              </dt>
+              <dd className="num">{formatMoney(notional * TAKER_FEE_PCT, inst.currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total cost</dt>
+              <dd className="num font-semibold">
+                {formatMoney(margin + notional * TAKER_FEE_PCT, inst.currency)}
               </dd>
             </div>
             {insufficientMargin && (
