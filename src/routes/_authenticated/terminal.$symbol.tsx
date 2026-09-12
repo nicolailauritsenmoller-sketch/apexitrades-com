@@ -168,6 +168,13 @@ function Terminal() {
     (i) => i.assetClass === inst.assetClass && i.symbol !== symbol,
   ).slice(0, 8);
 
+  // Live prices for the "You may be interested in" list on mobile.
+  const { quotes: relatedOnly } = useQuotes(
+    related.map((i) => i.symbol),
+    15000,
+  );
+  const relatedQuotes = { ...relatedOnly, ...quotes };
+
 
   const formatVolume = (n?: number) => {
     if (n == null || n === 0) return "—";
