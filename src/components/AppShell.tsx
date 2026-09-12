@@ -120,8 +120,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={to}
                 params={params}
                 activeOptions={{ exact }}
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                activeProps={{ className: "bg-secondary text-foreground" }}
+                className="flex items-center gap-2 border-b-2 border-transparent px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                activeProps={{ className: "border-primary text-foreground" }}
               >
                 <Icon className="size-4" />
                 {t(label as TranslationKey)}

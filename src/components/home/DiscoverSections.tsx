@@ -81,6 +81,8 @@ export function ExploreTokensSection() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {TOKENS.map((t) => {
           const q = quotes[t.symbol];
+          const isStablecoin = t.symbol === "USDTUSD";
+          const price = q?.price ?? (isStablecoin ? 1 : undefined);
           const chg = q?.changePercent ?? 0;
           return (
             <Link
@@ -96,10 +98,10 @@ export function ExploreTokensSection() {
               </div>
               <div className="shrink-0 text-right">
                 <p className="num text-sm font-semibold">
-                  {q ? formatPrice(q.price, t.symbol) : "—"}
+                  {price !== undefined ? `${isStablecoin ? "$" : ""}${formatPrice(price, t.symbol)}` : "—"}
                 </p>
                 <p className={`num text-xs ${chg >= 0 ? "text-bull" : "text-bear"}`}>
-                  {q ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}
+                  {q || isStablecoin ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}
                 </p>
               </div>
             </Link>

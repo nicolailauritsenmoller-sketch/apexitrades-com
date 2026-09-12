@@ -491,6 +491,8 @@ export const CURRENCIES = ["USD", "EUR", "GBP", "USDT", "BTC", "ETH"] as const;
 
 /** Friendly tickers for symbols whose feed code is not user-facing. */
 const DISPLAY_ALIAS: Record<string, string> = {
+  MATICUSDT: "MATIC/USDT",
+  USDTUSD: "USDT/USD",
   "^GSPC": "US500",
   "^NDX": "US100",
   "^DJI": "US30",
