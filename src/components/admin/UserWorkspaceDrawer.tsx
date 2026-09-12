@@ -81,6 +81,10 @@ export function UserWorkspaceDrawer({
                   userId={userId}
                   tradingFrozen={Boolean(d.profile?.trading_frozen)}
                   withdrawalsDisabled={Boolean(d.profile?.withdrawals_disabled)}
+                  accountFrozen={Boolean(d.profile?.account_frozen)}
+                  suspensionStatus={d.profile?.suspension_status ?? "active"}
+                  suspendedUntil={d.profile?.suspended_until ?? null}
+                  suspensionReason={d.profile?.suspension_reason ?? null}
                   onChanged={() => void q.refetch()}
                 />
               </Section>
