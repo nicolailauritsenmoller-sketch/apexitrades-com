@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { getActiveAnnouncements, type Announcement } from "@/lib/announcements.functions";
 import { useHasSession } from "@/lib/use-session";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
@@ -180,8 +181,8 @@ function NotificationsPage() {
                 >
                   <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">{a.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
+                     <p className="text-sm font-semibold">{institutionalizeCopy(a.title)}</p>
+                     <p className="mt-1 text-sm text-muted-foreground">{institutionalizeCopy(a.body)}</p>
                     <p className="mt-2 text-[11px] text-muted-foreground">
                       {timeAgo(a.createdAt)}
                     </p>
@@ -236,7 +237,7 @@ function NotificationsPage() {
                         isUnread ? "font-bold text-foreground" : "font-medium text-muted-foreground"
                       }`}
                     >
-                      {n.title}
+                       {institutionalizeCopy(n.title)}
                     </span>
                     <span className="shrink-0 text-[11px] text-muted-foreground">
                       {timeAgo(n.created_at)}
@@ -247,7 +248,7 @@ function NotificationsPage() {
                       isOpen ? "text-foreground" : "line-clamp-2 text-muted-foreground"
                     }`}
                   >
-                    {n.body}
+                     {institutionalizeCopy(n.body)}
                   </span>
                   {n.kind ? (
                     <span className="mt-2 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">

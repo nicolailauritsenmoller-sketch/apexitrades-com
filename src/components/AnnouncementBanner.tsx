@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Info, ShieldAlert, X } from "lucide-react";
 import { getActiveAnnouncements, type Announcement } from "@/lib/announcements.functions";
 import { useHasSession } from "@/lib/use-session";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 
 const STORAGE_KEY = "vt.dismissed-announcements";
 
@@ -78,8 +79,8 @@ export function AnnouncementBanner() {
           >
             <Icon className="mt-0.5 size-4 shrink-0" />
             <div className="min-w-0 flex-1 text-sm">
-              <span className="font-semibold">{a.title}</span>{" "}
-              <span className="text-muted-foreground">{a.body}</span>
+               <span className="font-semibold">{institutionalizeCopy(a.title)}</span>{" "}
+               <span className="text-muted-foreground">{institutionalizeCopy(a.body)}</span>
             </div>
             {a.severity === "critical" ? (
               <span className="shrink-0 rounded-full border border-bear/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-bear">
