@@ -804,6 +804,45 @@ export type Database = {
         }
         Relationships: []
       }
+      session_replays: {
+        Row: {
+          chunk_index: number
+          created_at: string
+          device_id: string | null
+          event_count: number
+          events: Json
+          id: string
+          route: string | null
+          session_key: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          chunk_index?: number
+          created_at?: string
+          device_id?: string | null
+          event_count?: number
+          events?: Json
+          id?: string
+          route?: string | null
+          session_key: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          chunk_index?: number
+          created_at?: string
+          device_id?: string | null
+          event_count?: number
+          events?: Json
+          id?: string
+          route?: string | null
+          session_key?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_ticket_messages: {
         Row: {
           attachment_name: string | null

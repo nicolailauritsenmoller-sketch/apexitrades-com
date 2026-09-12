@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getReplayEvents, listUserReplays } from "@/lib/replay.functions";
 import {
   getTelemetryOverview,
   getUserTelemetry,
@@ -207,6 +208,69 @@ function ReplayModal({
   );
 }
 
+const RrwebPlayer = lazy(() => import("@/components/admin/RrwebPlayer"));
+
+/** Full visual screen playback of one recorded rrweb session. */
+function ScreenReplayModal({
+  userId,
+  session,
+  device,
+  onClose,
+}: {
+  userId: string;
+  session: { sessionKey: string; route: string | null; startedAt: string; events: number };
+  device?: string | null;
+  onClose: () => void;
+}) {
+  const fetchEvents = useServerFn(getReplayEvents);
+  const q = useQuery({
+    queryKey: ["replay-events", userId, session.sessionKey],
+    queryFn: () => fetchEvents({ data: { userId, sessionKey: session.sessionKey } }),
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-background/85 p-4 backdrop-blur">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-border bg-card p-4">
+        <header className="mb-3 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate font-display text-sm font-semibold">
+              Screen recording · {session.route ?? "—"}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {new Date(session.startedAt).toLocaleString()} · {session.events} events
+            </p>
+            {device ? (
+              <span className="mt-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium">
+                {device}
+              </span>
+            ) : null}
+          </div>
+          <button
+            onClick={onClose}
+            className="touch-manipulation rounded-md p-1.5 hover:bg-secondary"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+
+        {q.isLoading ? (
+          <div className="h-64 animate-pulse rounded-lg border border-border bg-secondary/40" />
+        ) : (
+          <ClientOnly fallback={<div className="h-64 rounded-lg border border-border" />}>
+            <Suspense
+              fallback={
+                <div className="h-64 animate-pulse rounded-lg border border-border bg-secondary/40" />
+              }
+            >
+              <RrwebPlayer events={q.data?.events ?? []} />
+            </Suspense>
+          </ClientOnly>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }) {
   const qc = useQueryClient();
   const fetchUser = useServerFn(getUserTelemetry);
@@ -217,6 +281,13 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
     refetchInterval: 15_000,
   });
   const [replay, setReplay] = useState<any | null>(null);
+  const fetchReplays = useServerFn(listUserReplays);
+  const replays = useQuery({
+    queryKey: ["screen-replays", userId],
+    queryFn: () => fetchReplays({ data: { userId } }),
+    refetchInterval: 20_000,
+  });
+  const [screen, setScreen] = useState<any | null>(null);
 
   const endAll = useMutation({
     mutationFn: () => killAll({ data: { userId } }),
@@ -322,8 +393,46 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
 
           return (
             <>
+              <h3 className="mb-2 mt-5 text-[11px] uppercase tracking-widest text-muted-foreground">
+                Screen recordings (video playback)
+              </h3>
+              <ul className="space-y-2 text-xs">
+                {(replays.data ?? []).map((r) => (
+                  <li
+                    key={r.sessionKey}
+                    className="flex items-center justify-between gap-3 border-b border-border pb-2"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate">{r.route ?? "—"}</span>
+                      <span className="block truncate text-muted-foreground">
+                        {timeAgo(r.lastAt)} · {r.events} events · {r.chunks} chunk
+                        {r.chunks === 1 ? "" : "s"}
+                      </span>
+                    </span>
+                    <button
+                      onClick={() => setScreen(r)}
+                      className="shrink-0 touch-manipulation rounded-md border border-primary/40 bg-primary/10 px-2 py-1 font-semibold text-primary"
+                    >
+                      Watch
+                    </button>
+                  </li>
+                ))}
+                {(replays.data ?? []).length === 0 && (
+                  <p className="text-muted-foreground">No screen recordings captured yet.</p>
+                )}
+              </ul>
+
+              {screen && (
+                <ScreenReplayModal
+                  userId={userId}
+                  session={screen}
+                  device={primaryDevice}
+                  onClose={() => setScreen(null)}
+                />
+              )}
+
               <h3 className="mb-2 mt-5 flex items-center gap-2 text-[11px] uppercase tracking-widest text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-bull" /> Live session recordings
+                <span className="size-1.5 rounded-full bg-bull" /> Interaction log
                 {primaryDevice ? (
                   <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[10px] normal-case tracking-normal">
                     {primaryDevice}
