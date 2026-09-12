@@ -140,6 +140,7 @@ export function RolesPanel() {
                     <div className="flex justify-end gap-1.5">
                       {(["admin", "finance", "agent"] as const).map((role) => {
                         const has = u.roles.includes(role);
+                        const roleLabel = role === "admin" ? "Control Center" : role;
                         return (
                           <button
                             key={role}
@@ -154,7 +155,7 @@ export function RolesPanel() {
                             }`}
                           >
                             <ShieldCheck className="size-3" />
-                            {has ? `Revoke ${role}` : `Grant ${role}`}
+                            {has ? `Revoke ${roleLabel}` : `Grant ${roleLabel}`}
                           </button>
                         );
                       })}

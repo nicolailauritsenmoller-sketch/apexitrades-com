@@ -459,7 +459,7 @@ function DepositTab({
               </button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
-                Balances are credited only after an administrator confirms your transfer on-chain.
+                Balances are credited after on-chain verification and clearing review are complete.
               </p>
             </div>
           </>

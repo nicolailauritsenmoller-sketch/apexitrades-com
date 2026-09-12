@@ -41,7 +41,7 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
     .select("role")
     .eq("user_id", context.userId);
   const roles = (data ?? []).map((r: { role: string }) => r.role);
-  if (!roles.includes("admin")) throw new Error("Forbidden: admin access required.");
+  if (!roles.includes("admin")) throw new Error("Forbidden: Control Center access required.");
 }
 
 /** Banners shown to signed-in users. */

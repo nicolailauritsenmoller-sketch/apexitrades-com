@@ -69,7 +69,7 @@ export function AuditLogPanel() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
-          <ScrollText className="size-4" /> Admin activity audit log
+          <ScrollText className="size-4" /> Operations activity audit log
           <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
             {rows.length}
           </span>

@@ -319,7 +319,7 @@ export function UserAccountControls({
 
       <div className="rounded-lg border border-border/70 p-2">
         <p className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-          <NotebookPen className="size-3" /> Admin notes
+          <NotebookPen className="size-3" /> Internal risk notes
         </p>
         <textarea
           value={note}

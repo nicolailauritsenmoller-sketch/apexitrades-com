@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     retry: false,
     staleTime: 60_000,
   });
-  const isStaff = Boolean(access.data?.isStaff);
+  const isAdmin = access.data?.isAdmin === true;
 
   // Warm every top-level route chunk once the app is idle so tab switches are instant.
   useEffect(() => {
@@ -130,7 +130,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
-            {isStaff ? (
+            {isAdmin ? (
               <Link
                 to="/sys-portal-x97"
                 className="hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
