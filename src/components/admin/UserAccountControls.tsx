@@ -111,8 +111,11 @@ export function UserAccountControls({
   });
 
   const controls = useMutation({
-    mutationFn: (patch: { tradingFrozen?: boolean; withdrawalsDisabled?: boolean }) =>
-      setControls({ data: { userId, ...patch } }),
+    mutationFn: (patch: {
+      tradingFrozen?: boolean;
+      withdrawalsDisabled?: boolean;
+      accountFrozen?: boolean;
+    }) => setControls({ data: { userId, ...patch } }),
     onSuccess: () => {
       toast.success("Account controls updated.");
       onChanged();
