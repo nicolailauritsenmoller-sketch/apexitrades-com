@@ -255,12 +255,12 @@ function ProfileHome() {
         </div>
       </section>
 
-      {access.data?.isStaff ? (
+      {access.data?.isAdmin === true ? (
         <Link
           to="/sys-portal-x97"
           className="inline-flex touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
         >
-          <ShieldCheck className="size-4" /> Open Admin Panel
+          <ShieldCheck className="size-4" /> Open Control Center
         </Link>
       ) : null}
 

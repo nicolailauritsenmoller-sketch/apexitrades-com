@@ -95,17 +95,17 @@ export function statusMessage(type: TxType, status: TxStatus): string {
   }
   if (status === "failed") {
     return type === "withdrawal"
-      ? "This withdrawal was declined. Any reserved funds remain in your wallet — contact support for the full reason."
-      : "This deposit could not be confirmed. Please check the transaction details and contact support.";
+      ? "This withdrawal did not pass the compliance check. Reserved funds were returned to your wallet. Contact Institutional Support for details."
+      : "This deposit could not be verified. Check the transaction details or contact Institutional Support.";
   }
   if (status === "successful") {
     return type === "withdrawal"
-      ? "Your withdrawal request has been processed. The funds will be transferred to your destination wallet shortly."
-      : "Your deposit has been confirmed and credited to your wallet balance.";
+      ? "Transaction settled. Funds are being transferred to your destination wallet."
+      : "Verification complete. Your deposit has been credited to your wallet balance.";
   }
   return type === "withdrawal"
-    ? "Your withdrawal request has been processed. The funds will be transferred to your destination wallet shortly."
-    : "Your deposit is being reviewed. Your balance is credited as soon as the transfer is confirmed.";
+    ? "Your withdrawal is pending clearing house settlement."
+    : "Your deposit is under security review. Your balance is credited after transfer verification.";
 }
 
 /** Approximate on-chain fee (USD) per settlement rail, used for the receipt row. */

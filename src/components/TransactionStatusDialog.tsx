@@ -16,6 +16,7 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TicketDialog } from "@/components/support/TicketDialog";
+import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   assetName,
   confirmationsFor,
@@ -269,7 +270,7 @@ export function TransactionStatusDialog({
                 })}
               />
             )}
-            {tx.note && <Row label="Note from desk" value={tx.note} wrap />}
+            {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
           </div>
 
           {/* Status */}
@@ -318,7 +319,9 @@ export function TransactionStatusDialog({
                   {showReason ? "Hide failure reason" : "View failure reason"}
                 </button>
                 {showReason && (
-                  <p className="mt-2 text-muted-foreground">{failureReason(tx.type, tx.note)}</p>
+                   <p className="mt-2 text-muted-foreground">
+                     {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                   </p>
                 )}
               </div>
             )}
@@ -346,7 +349,7 @@ export function TransactionStatusDialog({
               className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
             >
               <LifeBuoy className="size-4" />
-              Contact Customer Support
+              Contact Institutional Support
             </button>
             <button
               onClick={() => onOpenChange(false)}

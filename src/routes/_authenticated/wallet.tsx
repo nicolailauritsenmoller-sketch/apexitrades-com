@@ -455,11 +455,11 @@ function DepositTab({
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform active:scale-[0.99] disabled:opacity-60"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
-                Submit deposit for approval
+                Submit for security review
               </button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
-                Balances are credited only after an administrator confirms your transfer on-chain.
+                Balances are credited after on-chain verification and clearing review are complete.
               </p>
             </div>
           </>

@@ -33,7 +33,7 @@ export async function assertStaff(context: Ctx) {
 
 export async function assertAdmin(context: Ctx) {
   const roles = await myRoles(context);
-  if (!roles.includes("admin")) throw new Error("Forbidden: admin access required.");
+  if (!roles.includes("admin")) throw new Error("Forbidden: Control Center access required.");
 }
 
 /** Service-role client — the only way privileged tables can be written. */

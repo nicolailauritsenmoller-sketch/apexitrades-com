@@ -134,12 +134,13 @@ export function RolesPanel() {
                   </td>
                   <td className="px-4 py-2 num text-xs">{u.creditScore}</td>
                   <td className="px-4 py-2 text-xs capitalize text-muted-foreground">
-                    {u.roles.join(", ")}
+                    {u.roles.map((role) => (role === "admin" ? "Control Center" : role)).join(", ")}
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex justify-end gap-1.5">
                       {(["admin", "finance", "agent"] as const).map((role) => {
                         const has = u.roles.includes(role);
+                        const roleLabel = role === "admin" ? "Control Center" : role;
                         return (
                           <button
                             key={role}
@@ -154,7 +155,7 @@ export function RolesPanel() {
                             }`}
                           >
                             <ShieldCheck className="size-3" />
-                            {has ? `Revoke ${role}` : `Grant ${role}`}
+                            {has ? `Revoke ${roleLabel}` : `Grant ${roleLabel}`}
                           </button>
                         );
                       })}

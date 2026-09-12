@@ -425,7 +425,7 @@ export const forcePasswordReset = createServerFn({ method: "POST" })
       db,
       data.userId,
       "Password reset required",
-      "An administrator initiated a password reset on your account. Check your email to set a new password.",
+      "Security Operations initiated a password reset on your account. Check your email to set a new password.",
       "warning",
     );
     await audit(context, "user.password_reset", data.userId, { email: user.user.email });

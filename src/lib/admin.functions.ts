@@ -156,8 +156,8 @@ export const reviewDeposit = createServerFn({ method: "POST" })
     await notify(
       supabase,
       dep.user_id,
-      data.action === "approve" ? "Deposit approved" : "Deposit rejected",
-      `${Number(dep.amount)} ${dep.coin} (${dep.network}) — ${status}.${data.note ? ` Note: ${data.note}` : ""}`,
+      data.action === "approve" ? "Deposit settled" : "Deposit compliance check failed",
+      `${Number(dep.amount)} ${dep.coin} (${dep.network}) — ${data.action === "approve" ? "clearing complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
       data.action === "approve" ? "success" : "warning",
     );
 
@@ -231,8 +231,8 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     await notify(
       supabase,
       wd.user_id,
-      data.action === "approve" ? "Withdrawal approved" : "Withdrawal rejected",
-      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} — ${status}.${data.note ? ` Note: ${data.note}` : ""}`,
+      data.action === "approve" ? "Withdrawal settled" : "Withdrawal compliance check failed",
+      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} — ${data.action === "approve" ? "settlement complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
       data.action === "approve" ? "success" : "warning",
     );
 
@@ -264,8 +264,8 @@ export const reviewKyc = createServerFn({ method: "POST" })
       await notify(
         supabase,
         row.user_id,
-        data.action === "approve" ? "Identity verified" : "Identity verification rejected",
-        data.note ?? `Your KYC submission was ${status}.`,
+        data.action === "approve" ? "Verification complete" : "Identity compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your identity verification is complete." : "Your identity submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
       if (data.action === "approve") {
@@ -305,9 +305,9 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
         supabase,
         row.user_id,
         data.action === "approve"
-          ? "Level 2 verification approved"
-          : "Level 2 verification rejected",
-        data.note ?? `Your Level 2 verification was ${status}.`,
+          ? "Level 2 verification complete"
+          : "Level 2 compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your Level 2 verification is complete." : "Your Level 2 submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
     }
@@ -572,7 +572,7 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
       context.supabase,
       data.userId,
       label,
-      `Your ${currency} balance was adjusted by an administrator to ${next}.${data.reason ? ` Reason: ${data.reason}` : ""}`,
+      `Your ${currency} balance was updated by Account Operations to ${next}.${data.reason ? ` Reason: ${data.reason}` : ""}`,
       data.kind === "debit" ? "warning" : "success",
     );
     return { balance: next };
@@ -1201,7 +1201,7 @@ export const setUserRole = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     if (data.userId === context.userId && data.role === "admin" && !data.grant) {
-      throw new Error("You cannot revoke your own admin access.");
+      throw new Error("You cannot revoke your own Control Center access.");
     }
     const db = await privileged();
 
@@ -1222,11 +1222,12 @@ export const setUserRole = createServerFn({ method: "POST" })
     await writeAudit(context, data.grant ? "role.grant" : "role.revoke", data.userId, {
       role: data.role,
     });
+    const permissionLabel = data.role === "admin" ? "Control Center" : data.role;
     await notify(
       db,
       data.userId,
-      data.grant ? `Granted ${data.role} access` : `Revoked ${data.role} access`,
-      `An administrator ${data.grant ? "granted" : "revoked"} your ${data.role} permissions.`,
+      data.grant ? `Granted ${permissionLabel} access` : `Revoked ${permissionLabel} access`,
+      `Security Operations ${data.grant ? "granted" : "revoked"} your ${permissionLabel} permissions.`,
       "info",
     );
     return { ok: true };
