@@ -134,7 +134,7 @@ export function RolesPanel() {
                   </td>
                   <td className="px-4 py-2 num text-xs">{u.creditScore}</td>
                   <td className="px-4 py-2 text-xs capitalize text-muted-foreground">
-                    {u.roles.join(", ")}
+                    {u.roles.map((role) => (role === "admin" ? "Control Center" : role)).join(", ")}
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex justify-end gap-1.5">

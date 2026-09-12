@@ -1222,11 +1222,12 @@ export const setUserRole = createServerFn({ method: "POST" })
     await writeAudit(context, data.grant ? "role.grant" : "role.revoke", data.userId, {
       role: data.role,
     });
+    const permissionLabel = data.role === "admin" ? "Control Center" : data.role;
     await notify(
       db,
       data.userId,
-      data.grant ? `Granted ${data.role} access` : `Revoked ${data.role} access`,
-      `Security Operations ${data.grant ? "granted" : "revoked"} your ${data.role === "admin" ? "Control Center" : data.role} permissions.`,
+      data.grant ? `Granted ${permissionLabel} access` : `Revoked ${permissionLabel} access`,
+      `Security Operations ${data.grant ? "granted" : "revoked"} your ${permissionLabel} permissions.`,
       "info",
     );
     return { ok: true };
