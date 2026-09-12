@@ -19,6 +19,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authenticated/sys-portal-x97'
@@ -88,6 +89,12 @@ const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   path: '/markets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPortfolioRoute = AuthenticatedPortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
@@ -207,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
@@ -237,6 +245,7 @@ export interface FileRoutesByTo {
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
   '/wallet': typeof AuthenticatedWalletRoute
@@ -268,6 +277,7 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/assets'
     | '/dashboard'
     | '/markets'
+    | '/notifications'
     | '/portfolio'
     | '/profile'
     | '/sys-portal-x97'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/assets'
     | '/dashboard'
     | '/markets'
+    | '/notifications'
     | '/portfolio'
     | '/sys-portal-x97'
     | '/wallet'
@@ -360,6 +372,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assets'
     | '/_authenticated/dashboard'
     | '/_authenticated/markets'
+    | '/_authenticated/notifications'
     | '/_authenticated/portfolio'
     | '/_authenticated/profile'
     | '/_authenticated/sys-portal-x97'
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       path: '/markets'
       fullPath: '/markets'
       preLoaderRoute: typeof AuthenticatedMarketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/portfolio': {
@@ -640,6 +660,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedSysPortalX97Route: typeof AuthenticatedSysPortalX97Route
@@ -652,6 +673,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedSysPortalX97Route: AuthenticatedSysPortalX97Route,
