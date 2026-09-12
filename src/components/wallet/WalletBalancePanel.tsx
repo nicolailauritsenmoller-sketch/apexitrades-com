@@ -35,8 +35,8 @@ const ACTIONS = [
     id: "swap",
     label: "Swap",
     icon: Repeat,
-    active: "bg-blue-600 text-white shadow-lg shadow-blue-600/25",
-    idle: "bg-blue-600/15 text-blue-500 hover:bg-blue-600/25",
+    active: "bg-primary text-primary-foreground shadow-lg shadow-primary/25",
+    idle: "bg-primary/15 text-primary hover:bg-primary/25",
   },
 ] as const;
 
