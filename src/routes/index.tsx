@@ -291,10 +291,10 @@ function Landing() {
             Create your account in under a minute and start scalping on real market data.
           </p>
           <Link
-            to="/auth"
+            to={authed ? "/dashboard" : "/auth"}
             className="mt-7 inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground"
           >
-            Create account <ArrowUpRight className="size-4" />
+            {authed ? "Go to terminal" : "Create account"} <ArrowUpRight className="size-4" />
           </Link>
         </div>
       </section>
