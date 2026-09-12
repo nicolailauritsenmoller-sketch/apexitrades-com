@@ -199,6 +199,14 @@ function Landing() {
                       <span className="ml-auto shrink-0">
                         {hydrated && quotes[s] ? formatPrice(quotes[s]!.price, s) : "—"}
                       </span>
+                      <Link
+                        to={authed ? "/terminal/$symbol" : "/auth"}
+                        params={authed ? { symbol: s } : undefined}
+                        aria-label={`Trade ${displaySymbol(s)}`}
+                        className="shrink-0 touch-manipulation rounded-lg border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary transition-colors hover:bg-secondary"
+                      >
+                        Trade
+                      </Link>
                     </li>
                   ))}
                 </ul>
