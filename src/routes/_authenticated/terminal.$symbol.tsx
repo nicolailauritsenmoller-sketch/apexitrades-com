@@ -298,6 +298,18 @@ function Terminal() {
                 {liqShort != null ? formatPrice(liqShort, symbol) : "—"}
               </dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">
+                Est. trading fee ({(TAKER_FEE_PCT * 100).toFixed(2)}%)
+              </dt>
+              <dd className="num">{formatMoney(notional * TAKER_FEE_PCT, inst.currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total cost</dt>
+              <dd className="num font-semibold">
+                {formatMoney(margin + notional * TAKER_FEE_PCT, inst.currency)}
+              </dd>
+            </div>
             {insufficientMargin && (
               <p className="pt-1 text-[11px] text-bear">
                 Margin exceeds your {inst.currency} balance of{" "}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export const MAX_FILE_MB = 10;
+export const MAX_FILE_MB = 5;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
 export const DOC_TYPES = [...IMAGE_TYPES, "application/pdf"];
 
