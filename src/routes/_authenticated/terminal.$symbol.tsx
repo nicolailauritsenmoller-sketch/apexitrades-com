@@ -8,6 +8,8 @@ import { AppShell } from "@/components/AppShell";
 import { TradingViewChart } from "@/components/trading/TradingViewChart";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
 import { OrderBook } from "@/components/trading/OrderBook";
+import { MobileOrderEntry } from "@/components/trading/MobileOrderEntry";
+import { MobileTradeTabs } from "@/components/trading/MobileTradeTabs";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
@@ -228,13 +230,13 @@ function Terminal() {
           />
         </div>
 
-        <div className="min-w-0 max-w-full lg:col-span-2 xl:col-span-1">
+        <div className="hidden min-w-0 max-w-full lg:col-span-2 lg:block xl:col-span-1">
           <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} />
         </div>
 
 
 
-        <div className="panel min-w-0 max-w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-9rem)]">
+        <div className="panel hidden min-w-0 max-w-full overflow-y-auto p-4 lg:block lg:max-h-[calc(100vh-9rem)]">
 
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
@@ -383,6 +385,31 @@ function Terminal() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 lg:hidden">
+        <MobileOrderEntry
+          symbol={symbol}
+          price={quote?.price}
+          balance={wallet?.balance}
+          orderPrice={orderPriceValue}
+          onOrderPriceChange={setOrderPriceValue}
+          onSubmit={(side, q) => {
+            setQuantity(String(q));
+            orderMutation.mutate(side, q);
+          }}
+          pending={orderMutation.isPending}
+        />
+        <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} compact />
+      </div>
+
+      <div className="lg:hidden">
+        <MobileTradeTabs
+          openPositions={openHere}
+          holdings={positions.filter((p) => p.status === "open")}
+          quotes={relatedQuotes}
+          related={related}
+        />
       </div>
 
       <div className="mt-4 grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
