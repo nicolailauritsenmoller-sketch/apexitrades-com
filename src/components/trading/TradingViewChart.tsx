@@ -170,6 +170,12 @@ function toRgb(color: string): string {
   return color;
 }
 
+function withAlpha(color: string, alpha: number): string {
+  const rgb = color.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+  if (rgb) return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})`;
+  return color;
+}
+
 function useThemeColors(ref: React.RefObject<HTMLElement | null>) {
   const [colors, setColors] = useState<themeColors>({
     background: "#0A0D12",
@@ -435,8 +441,8 @@ function TradingViewChartInner({
     } else if (chartType === "area") {
       series = chart.addSeries(lib.AreaSeries, {
         lineColor: colors.primary,
-        topColor: `${colors.primary}33`,
-        bottomColor: `${colors.primary}05`,
+        topColor: withAlpha(colors.primary, 0.2),
+        bottomColor: withAlpha(colors.primary, 0.02),
         lineWidth: 2,
       });
     } else if (chartType === "bars") {
@@ -474,8 +480,8 @@ function TradingViewChartInner({
     } else if (chartType === "area") {
       series.applyOptions({
         lineColor: colors.primary,
-        topColor: `${colors.primary}33`,
-        bottomColor: `${colors.primary}05`,
+        topColor: withAlpha(colors.primary, 0.2),
+        bottomColor: withAlpha(colors.primary, 0.02),
       });
     } else if (chartType === "bars") {
       series.applyOptions({ upColor: colors.bull, downColor: colors.bear });
