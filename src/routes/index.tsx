@@ -152,22 +152,22 @@ function Landing() {
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div className="min-w-0">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              A professional terminal, without the capital risk
+              A professional desk, without the capital risk
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Velocity Trade streams live prices from crypto exchanges and global market data providers,
+              Velocity Trade streams live prices from global exchanges and market data providers,
               then settles your orders against those quotes in your multi-currency wallets.
-              You get the workflow of a professional desk — charting, order tickets, timed scalp
-              contracts, position management and verified withdrawals — while you build the habits
-              that matter.
+              You get the workflow of an institutional desk — charting, order tickets, micro-duration
+              contracts, position management and verified withdrawals — inside a risk-free paper
+              trading engine.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { k: "5", v: "Asset classes" },
-              { k: "5", v: "Wallet currencies" },
-              { k: "20x", v: "Max leverage" },
-              { k: "60s", v: "Fastest contract" },
+              { k: "5", v: "Universal Multi-Asset Coverage" },
+              { k: "5", v: "Multi-Fiat & Digital Asset Settlement" },
+              { k: "20x", v: "Max Leverage" },
+              { k: "60s", v: "Micro-Duration Contract" },
             ].map((s) => (
               <div key={s.v} className="rounded-2xl border border-border bg-surface p-4">
                 <p className="num text-2xl font-bold text-primary">{s.k}</p>
