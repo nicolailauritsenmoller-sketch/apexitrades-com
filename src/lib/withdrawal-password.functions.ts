@@ -64,3 +64,74 @@ export const setWithdrawalPassword = createServerFn({ method: "POST" })
     }
     return { ok: true, message: payload.message ?? "Withdrawal password updated." };
   });
+
+/**
+ * Recovery path for a forgotten withdrawal password. Re-authenticates with the
+ * account password (plus an authenticator code when 2FA is on) and sets a new
+ * withdrawal password immediately, bypassing the 7-working-day change cooldown.
+ */
+export const resetWithdrawalPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        accountPassword: z.string().min(1).max(200),
+        newPassword: z.string().min(6).max(64),
+        totpCode: z.string().max(32).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
+    const email = ((profile as any)?.email as string | null) ?? null;
+    if (!email) throw new Error("No email on file for this account. Contact support.");
+
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!;
+    const auth = createClient(process.env["SUPABASE_URL"]!, key, {
+      auth: { persistSession: false },
+      global: {
+        fetch: (input: any, init: any) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+
+    const { data: signIn, error: signInError } = await auth.auth.signInWithPassword({
+      email,
+      password: data.accountPassword,
+    });
+    if (signInError || signIn?.user?.id !== userId) {
+      throw new Error("Account password is incorrect.");
+    }
+    await auth.auth.signOut();
+
+    const { isTwoFactorEnabled, assertTotpValid } = await import("./two-factor.server");
+    if (await isTwoFactorEnabled(userId)) {
+      await assertTotpValid(userId, data.totpCode ?? "");
+    }
+
+    const hash = await hashWithdrawalPassword(userId, data.newPassword);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("profiles")
+      .update({
+        withdrawal_password_hash: hash,
+        withdrawal_password_updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+    if (error) throw new Error(error.message);
+
+    return { ok: true, message: "Withdrawal password reset." };
+  });
