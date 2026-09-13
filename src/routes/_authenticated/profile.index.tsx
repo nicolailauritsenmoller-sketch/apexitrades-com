@@ -168,7 +168,9 @@ function ProfileHome() {
                 {profile?.displayName ?? "Trader"}
               </h1>
               {status === "approved" ? (
-                <VerifiedBadge />
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
+                  <BadgeCheck className="size-3" /> Verified Trader
+                </span>
               ) : (
                 <span
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
