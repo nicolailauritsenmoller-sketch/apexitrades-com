@@ -183,46 +183,44 @@ export function TransactionStatusDialog({
 
           {/* Amount */}
           <div className="border-b border-border px-4 py-7 text-center">
-            <p className="num text-[15px] text-muted-foreground">{amountText}</p>
-            <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
-              {fiatText}
-            </p>
-            {isSwap && tx.status === "successful" && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your new balance has been updated.
-              </p>
+            {isSwap && swap ? (
+              <>
+                <p className="num text-[34px] font-bold leading-tight tracking-tight text-bull">
+                  {swapHeroText}
+                </p>
+                {swapUsdText && (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">{swapUsdText}</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="num text-[15px] text-muted-foreground">{amountText}</p>
+                <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
+                  {fiatText}
+                </p>
+              </>
             )}
           </div>
 
-          {/* Swap details card */}
+          {/* Swap receipt */}
           {isSwap && swap && (
-            <div className="border-b border-border px-4 py-4">
-              <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                <p className="text-[15px] font-bold">Swap Successful</p>
-                <div className="mt-3 flex items-center justify-center gap-2 text-[15px] font-semibold">
-                  <AssetIcon currency={swap.fromAsset} size={20} />
-                  <span className="num">
-                    {swap.fromAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
-                    {swap.fromAsset}
-                  </span>
-                  <span className="text-muted-foreground">→</span>
-                  <AssetIcon currency={swap.toAsset} size={20} />
-                  <span className="num">
-                    {swap.toAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
-                    {swap.toAsset}
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-bull/40 bg-bull/10 px-2.5 py-1 text-xs font-bold text-bull">
-                    <Check className="size-3.5" strokeWidth={3} />
-                    Completed
-                  </span>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Your {swap.toAsset} balance has been updated.
-                </p>
-              </div>
+            <div className="divide-y divide-border/50 border-b border-border px-4">
+              <Row
+                label="You sold"
+                value={`${fmtAsset(swap.fromAmount, swap.fromAsset)} ${swap.fromAsset}`}
+                icon={<AssetIcon currency={swap.fromAsset} size={20} />}
+              />
+              <Row
+                label="You received"
+                value={`${fmtAsset(swap.toAmount, swap.toAsset)} ${swap.toAsset}`}
+                icon={<AssetIcon currency={swap.toAsset} size={20} />}
+              />
+              <Row
+                label="Exchange rate"
+                value={`1 ${swap.fromAsset} = ${swap.rate.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${swap.toAsset}`}
+              />
+              <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
+              <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
             </div>
           )}
 
