@@ -372,19 +372,41 @@ export function TransactionStatusDialog({
               </p>
             )}
 
-            <button
-              onClick={() => setTicketOpen(true)}
-              className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
-            >
-              <LifeBuoy className="size-4" />
-              Contact Institutional Support
-            </button>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
-            >
-              Done
-            </button>
+            {isSwap ? (
+              <>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Back to Assets
+                </button>
+                <button
+                  onClick={() => {
+                    onOpenChange(false);
+                    void navigate({ to: "/wallet", search: { tab: "swap" } });
+                  }}
+                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
+                >
+                  Make Another Swap
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setTicketOpen(true)}
+                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
+                >
+                  <LifeBuoy className="size-4" />
+                  Contact Institutional Support
+                </button>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
+                >
+                  Done
+                </button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
