@@ -315,9 +315,12 @@ export function TransactionStatusDialog({
             <span className="text-[17px] font-semibold">Status</span>
             <span className={`ml-auto text-[17px] font-semibold ${statusText}`}>{statusLabel}</span>
           </div>
+          )}
 
           <div className="space-y-3 px-4 pb-5 pt-4">
-            <p className="text-xs text-muted-foreground">{statusMessage(tx.type, tx.status)}</p>
+            {!isSwap && (
+              <p className="text-xs text-muted-foreground">{statusMessage(tx.type, tx.status)}</p>
+            )}
 
             {isTransfer && tx.status === "pending" && (
               <div className="flex items-start gap-2 rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
