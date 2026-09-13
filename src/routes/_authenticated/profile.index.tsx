@@ -7,6 +7,7 @@ import {
   Bell,
   ChevronRight,
   Copy,
+  Headphones,
   HelpCircle,
   LogOut,
   MessageSquare,
@@ -151,16 +152,23 @@ function ProfileHome() {
     <>
       {/* Identity card */}
       <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <UserAvatar className="size-16" alt="Account avatar" />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-lg font-bold tracking-tight">
-                {profile?.displayName ?? "Trader"}
-              </h1>
+            <h1 className="font-display text-lg font-bold tracking-tight">
+              {profile?.displayName ?? "Trader"}
+            </h1>
+            <button
+              onClick={() => profile?.uid && copy(profile.uid, "UID")}
+              className="mt-0.5 inline-flex touch-manipulation items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              ID: {profile?.uid ?? "—"}
+              <Copy className="size-3" />
+            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               {status === "approved" ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
-                  <BadgeCheck className="size-3" /> Verified Trader
+                  <BadgeCheck className="size-3" /> Verified
                 </span>
               ) : (
                 <span
@@ -169,18 +177,14 @@ function ProfileHome() {
                   {KYC_LABEL[status] ?? status}
                 </span>
               )}
+              <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Regular
+              </span>
             </div>
           </div>
         </div>
 
         <p className="mt-3 truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
-        <button
-          onClick={() => profile?.uid && copy(profile.uid, "UID")}
-          className="mt-2 inline-flex touch-manipulation items-center gap-1.5 rounded-md bg-secondary px-2.5 py-1.5 font-mono text-xs font-bold tracking-wide"
-        >
-          UID: #{profile?.uid ?? "—"}
-          <Copy className="size-3" />
-        </button>
 
         <div className="mt-4 border-t border-border pt-4">
           <p className="text-xs text-muted-foreground">Credit Score</p>
@@ -196,6 +200,25 @@ function ProfileHome() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Support banner */}
+      <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-full bg-secondary text-primary">
+            <Headphones className="size-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold">Velocity Support</p>
+            <p className="text-xs text-muted-foreground">24/7 live assistance</p>
+          </div>
+        </div>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat", { detail: {} }))}
+          className="touch-manipulation rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+        >
+          Get Support
+        </button>
       </section>
 
       {/* Quick tiles */}
