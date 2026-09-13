@@ -11,8 +11,8 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
-  Check,
 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TicketDialog } from "@/components/support/TicketDialog";
@@ -38,6 +38,26 @@ function copy(value: string, label: string) {
 
 const usd = (n: number, digits = 2) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+
+const FIAT = new Set([
+  "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "AED", "NGN", "KES",
+  "ZAR", "INR", "BRL", "TRY", "CNY", "HKD", "SGD", "SEK", "NOK", "DKK",
+]);
+
+/** Fiat → 2 decimals, crypto → up to 6 significant decimals. */
+const fmtAsset = (n: number, asset: string) =>
+  n.toLocaleString("en-US", {
+    minimumFractionDigits: FIAT.has(asset.toUpperCase()) ? 2 : 0,
+    maximumFractionDigits: FIAT.has(asset.toUpperCase()) ? 2 : 6,
+  });
+
+/** Exchange-style "Sep 13, 2026 • 06:13 PM". */
+const fmtDateTime = (iso: string) => {
+  const d = new Date(iso);
+  const date = d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const time = d.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+  return `${date} • ${time}`;
+};
 
 function Row({
   label,
@@ -92,6 +112,7 @@ export function TransactionStatusDialog({
 }) {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [showReason, setShowReason] = useState(false);
+  const navigate = useNavigate();
   if (!tx) return null;
 
   const isOut = tx.type === "withdrawal";
@@ -137,6 +158,9 @@ export function TransactionStatusDialog({
     maximumFractionDigits: 8,
   })} ${tx.asset}`;
   const fiatText = priceUsd ? `${sign}${usd(tx.amount * priceUsd)}` : assetName(tx.asset);
+  // Swap header: received amount prominent, USD equivalent underneath (no + prefix).
+  const swapHeroText = swap ? `+${fmtAsset(swap.toAmount, swap.toAsset)} ${swap.toAsset}` : "";
+  const swapUsdText = priceUsd ? `≈ ${usd(swap ? swap.toAmount * priceUsd : 0)} USD` : null;
 
   return (
     <>
@@ -159,51 +183,50 @@ export function TransactionStatusDialog({
 
           {/* Amount */}
           <div className="border-b border-border px-4 py-7 text-center">
-            <p className="num text-[15px] text-muted-foreground">{amountText}</p>
-            <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
-              {fiatText}
-            </p>
-            {isSwap && tx.status === "successful" && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your new balance has been updated.
-              </p>
+            {isSwap && swap ? (
+              <>
+                <p className="num text-[34px] font-bold leading-tight tracking-tight text-bull">
+                  {swapHeroText}
+                </p>
+                {swapUsdText && (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">{swapUsdText}</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="num text-[15px] text-muted-foreground">{amountText}</p>
+                <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
+                  {fiatText}
+                </p>
+              </>
             )}
           </div>
 
-          {/* Swap details card */}
+          {/* Swap receipt */}
           {isSwap && swap && (
-            <div className="border-b border-border px-4 py-4">
-              <div className="rounded-2xl border border-border bg-secondary/40 p-4">
-                <p className="text-[15px] font-bold">Swap Successful</p>
-                <div className="mt-3 flex items-center justify-center gap-2 text-[15px] font-semibold">
-                  <AssetIcon currency={swap.fromAsset} size={20} />
-                  <span className="num">
-                    {swap.fromAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
-                    {swap.fromAsset}
-                  </span>
-                  <span className="text-muted-foreground">→</span>
-                  <AssetIcon currency={swap.toAsset} size={20} />
-                  <span className="num">
-                    {swap.toAmount.toLocaleString("en-US", { maximumFractionDigits: 8 })}{" "}
-                    {swap.toAsset}
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-bull/40 bg-bull/10 px-2.5 py-1 text-xs font-bold text-bull">
-                    <Check className="size-3.5" strokeWidth={3} />
-                    Completed
-                  </span>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Your {swap.toAsset} balance has been updated.
-                </p>
-              </div>
+            <div className="divide-y divide-border/50 border-b border-border px-4">
+              <Row
+                label="You sold"
+                value={`${fmtAsset(swap.fromAmount, swap.fromAsset)} ${swap.fromAsset}`}
+                icon={<AssetIcon currency={swap.fromAsset} size={20} />}
+              />
+              <Row
+                label="You received"
+                value={`${fmtAsset(swap.toAmount, swap.toAsset)} ${swap.toAsset}`}
+                icon={<AssetIcon currency={swap.toAsset} size={20} />}
+              />
+              <Row
+                label="Exchange rate"
+                value={`1 ${swap.fromAsset} = ${swap.rate.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${swap.toAsset}`}
+              />
+              <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
+              <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
             </div>
           )}
 
 
           {/* Details */}
+          {!isSwap && (
           <div className="divide-y divide-border/50 border-b border-border px-4">
             {tx.address && (
               <Row
@@ -272,8 +295,10 @@ export function TransactionStatusDialog({
             )}
             {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
           </div>
+          )}
 
           {/* Status */}
+          {!isSwap && (
           <div className="flex items-center gap-4 border-b border-border px-4 py-5">
             <div className="relative shrink-0">
               <div
@@ -290,9 +315,12 @@ export function TransactionStatusDialog({
             <span className="text-[17px] font-semibold">Status</span>
             <span className={`ml-auto text-[17px] font-semibold ${statusText}`}>{statusLabel}</span>
           </div>
+          )}
 
           <div className="space-y-3 px-4 pb-5 pt-4">
-            <p className="text-xs text-muted-foreground">{statusMessage(tx.type, tx.status)}</p>
+            {!isSwap && (
+              <p className="text-xs text-muted-foreground">{statusMessage(tx.type, tx.status)}</p>
+            )}
 
             {isTransfer && tx.status === "pending" && (
               <div className="flex items-start gap-2 rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
@@ -344,19 +372,41 @@ export function TransactionStatusDialog({
               </p>
             )}
 
-            <button
-              onClick={() => setTicketOpen(true)}
-              className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
-            >
-              <LifeBuoy className="size-4" />
-              Contact Institutional Support
-            </button>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
-            >
-              Done
-            </button>
+            {isSwap ? (
+              <>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Back to Assets
+                </button>
+                <button
+                  onClick={() => {
+                    onOpenChange(false);
+                    void navigate({ to: "/wallet", search: { tab: "swap" } });
+                  }}
+                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
+                >
+                  Make Another Swap
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setTicketOpen(true)}
+                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
+                >
+                  <LifeBuoy className="size-4" />
+                  Contact Institutional Support
+                </button>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
+                >
+                  Done
+                </button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
