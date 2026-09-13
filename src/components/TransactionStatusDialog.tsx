@@ -219,10 +219,16 @@ export function TransactionStatusDialog({
               </>
             ) : (
               <>
-                <p className="num text-[15px] text-muted-foreground">{amountText}</p>
-                <p className="num mt-1 text-[34px] font-bold leading-tight tracking-tight">
-                  {fiatText}
+                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : ""}`}>
+                  -{fmtAsset(tx.amount, tx.asset)} {tx.asset}
                 </p>
+                {priceUsd ? (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">
+                    ≈ {usd(tx.amount * priceUsd)} USD
+                  </p>
+                ) : (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">{assetName(tx.asset)}</p>
+                )}
               </>
             )}
           </div>
@@ -267,8 +273,8 @@ export function TransactionStatusDialog({
             )}
             {tx.address && (
               <Row
-                label={isOut ? "Destination address" : "Deposit address"}
-                value={shortenAddress(tx.address, 8, 8)}
+                label={isOut ? "To" : "Deposit address"}
+                value={shortenAddress(tx.address, 6, 4)}
                 copyValue={tx.address}
               />
             )}
@@ -329,7 +335,17 @@ export function TransactionStatusDialog({
               </span>
             </div>
             <span className="text-[17px] font-semibold">Status</span>
-            <span className={`ml-auto text-[17px] font-semibold ${statusText}`}>{statusLabel}</span>
+            <span
+              className={`ml-auto rounded-full px-3 py-1 text-[13px] font-bold ${
+                tx.status === "successful"
+                  ? "bg-bull/15 text-bull"
+                  : tx.status === "failed"
+                    ? "bg-bear/15 text-bear"
+                    : "bg-warning/15 text-warning"
+              }`}
+            >
+              {statusLabel}
+            </span>
           </div>
           )}
 
@@ -377,7 +393,7 @@ export function TransactionStatusDialog({
                  rel="noreferrer noopener"
                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
               >
-                View on Explorer
+                View on Block Explorer
                 <ExternalLink className="size-4" />
               </a>
             )}
@@ -412,7 +428,7 @@ export function TransactionStatusDialog({
                   onClick={() => onOpenChange(false)}
                   className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                  Back to Assets
+                  {isOut ? "Back to Wallet" : "Back to Assets"}
                 </button>
                 {tx.status !== "successful" && (
                   <button
