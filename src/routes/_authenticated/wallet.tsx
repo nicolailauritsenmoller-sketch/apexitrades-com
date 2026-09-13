@@ -14,6 +14,7 @@ import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
+  formatExchangeDateTime,
   shortenAddress,
   toTxStatus,
   type TransactionRecord,
@@ -238,7 +239,7 @@ function WalletPage() {
                     : t.title}
                 </div>
                 <div className="truncate text-[11px] text-muted-foreground">
-                  {t.subtitle} · {new Date(t.createdAt).toLocaleString()}
+                  {t.subtitle} · {formatExchangeDateTime(t.createdAt)}
                 </div>
               </div>
               <span
@@ -433,7 +434,7 @@ function DepositTab({
               <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
                 <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
                 <span>
-                  Depositing <span className="num font-semibold">{amount || "0.00"}</span>{" "}
+                  Funding <span className="num font-semibold">{amount || "0.00"}</span>{" "}
                   {addr.coin} via {addr.network}
                 </span>
               </div>
@@ -455,7 +456,7 @@ function DepositTab({
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-[0.99] disabled:opacity-60"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
-                Submit for security review
+                Submit Clearing Review
               </button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
@@ -810,11 +811,33 @@ function SwapTab({
         <p className="text-[11px] text-bear">Amount exceeds your available {from} balance.</p>
       )}
 
-      <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
-        <AssetIcon symbol={to} currency={to} size={22} />
-        <span>
-          You receive ≈ <span className="num font-semibold">{estimate.toFixed(8)}</span> {to}
-        </span>
+      <div className="space-y-2 rounded-md bg-secondary/50 p-3 text-xs">
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Live market rate</span>
+          <span className="num text-foreground">
+            {rate ? `1 ${from} = ${rate.toFixed(8)} ${to}` : quote.isLoading ? "Fetching…" : "—"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Conversion fee</span>
+          <span className="num text-foreground">0.00 {from} (0%)</span>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Network fee</span>
+          <span className="num text-foreground">None — internal transfer</span>
+        </div>
+        <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <AssetIcon symbol={to} currency={to} size={20} />
+            You receive
+          </span>
+          <span className="num font-semibold">
+            ≈ {estimate.toFixed(8)} {to}
+          </span>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          Rates refresh every 15 seconds and are applied at the moment you confirm.
+        </p>
       </div>
 
       <button
