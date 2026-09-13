@@ -433,7 +433,11 @@ export function TransactionStatusDialog({
                 {tx.status !== "successful" && (
                   <button
                     onClick={() => setTicketOpen(true)}
-                    className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    className={`flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-3.5 text-[15px] font-bold transition-colors ${
+                      tx.status === "failed"
+                        ? "border border-border text-foreground hover:bg-secondary/60"
+                        : "text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     <LifeBuoy className="size-4" />
                     Contact Institutional Support
