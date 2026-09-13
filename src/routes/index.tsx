@@ -278,16 +278,17 @@ function Landing() {
       <section className="relative z-10 w-full max-w-full border-t border-border bg-surface/70 backdrop-blur-sm">
         <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Ready to trade the live tape?
+            Start trading on institutional infrastructure
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Create your account in under a minute and start scalping on real market data.
+            Create your account in under a minute and access live market data across global asset
+            classes.
           </p>
           <Link
             to={authed ? "/dashboard" : "/auth"}
             className="mt-7 inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground"
           >
-            {authed ? "Go to terminal" : "Create account"} <ArrowUpRight className="size-4" />
+            {authed ? "Go to terminal" : "Create Free Account"} <ArrowUpRight className="size-4" />
           </Link>
         </div>
       </section>
