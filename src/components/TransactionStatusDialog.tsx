@@ -402,11 +402,7 @@ export function TransactionStatusDialog({
             )}
             {!explorer && isTransfer && tx.status !== "failed" && (
               <p className="text-center text-xs text-muted-foreground">
-                {(() => {
-                  const name = explorerName(tx.network);
-                  const article = /^[aeiou]/i.test(name) ? "An" : "A";
-                  return `${article} ${name} link will appear once the transaction hash is published.`;
-                })()}
+                A block explorer link will appear once the transaction hash is published on-chain.
               </p>
             )}
 
