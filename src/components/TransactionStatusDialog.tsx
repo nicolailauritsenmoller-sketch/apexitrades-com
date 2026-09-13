@@ -226,6 +226,7 @@ export function TransactionStatusDialog({
 
 
           {/* Details */}
+          {!isSwap && (
           <div className="divide-y divide-border/50 border-b border-border px-4">
             {tx.address && (
               <Row
@@ -294,8 +295,10 @@ export function TransactionStatusDialog({
             )}
             {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
           </div>
+          )}
 
           {/* Status */}
+          {!isSwap && (
           <div className="flex items-center gap-4 border-b border-border px-4 py-5">
             <div className="relative shrink-0">
               <div
