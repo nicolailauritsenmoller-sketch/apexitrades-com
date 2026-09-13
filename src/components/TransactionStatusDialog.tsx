@@ -335,7 +335,17 @@ export function TransactionStatusDialog({
               </span>
             </div>
             <span className="text-[17px] font-semibold">Status</span>
-            <span className={`ml-auto text-[17px] font-semibold ${statusText}`}>{statusLabel}</span>
+            <span
+              className={`ml-auto rounded-full px-3 py-1 text-[13px] font-bold ${
+                tx.status === "successful"
+                  ? "bg-bull/15 text-bull"
+                  : tx.status === "failed"
+                    ? "bg-bear/15 text-bear"
+                    : "bg-warning/15 text-warning"
+              }`}
+            >
+              {statusLabel}
+            </span>
           </div>
           )}
 
