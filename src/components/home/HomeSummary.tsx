@@ -42,7 +42,7 @@ export function HomeActionBar() {
         <button
           type="button"
           onClick={() => setFundingOpen(true)}
-          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
+          className="flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl bg-yellow-400 px-3 py-0 text-sm font-semibold text-black transition-transform active:scale-[0.97]"
         >
           <ArrowDownToLine className="size-4" strokeWidth={2.6} />
           Add funds
@@ -50,7 +50,7 @@ export function HomeActionBar() {
         <Link
           to="/wallet"
           search={{ tab: "withdraw" }}
-          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-bear px-3 py-3 text-sm font-bold text-bear-foreground transition-transform active:scale-[0.97]"
+          className="flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/20 px-3 py-0 text-sm font-semibold text-red-400 transition-transform hover:bg-red-500/30 active:scale-[0.97]"
         >
           <ArrowUpFromLine className="size-4" strokeWidth={2.6} />
           Withdraw
@@ -58,7 +58,7 @@ export function HomeActionBar() {
         <Link
           to="/trade"
           search={{ symbol: "BTCUSDT" }}
-          className="flex touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.97]"
+          className="flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/80 px-3 py-0 text-sm font-semibold text-white transition-transform hover:bg-zinc-700/80 active:scale-[0.97]"
         >
           <CandlestickChart className="size-4" strokeWidth={2.6} />
           Trade
