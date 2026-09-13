@@ -128,7 +128,7 @@ function Markets() {
         {[
           { label: "Crypto", symbol: "BTCUSDT" },
           { label: "Stocks", symbol: "AAPL" },
-          { label: "Gold", symbol: "XAUUSD" },
+          { label: "Gold", symbol: "XAUUSD=X" },
         ].map(({ label, symbol }) => {
           const s = summary[symbol];
           const up = (s?.changePercent ?? 0) >= 0;
