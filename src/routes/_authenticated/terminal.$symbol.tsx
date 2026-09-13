@@ -168,12 +168,6 @@ function Terminal() {
     (i) => i.assetClass === inst.assetClass && i.symbol !== symbol,
   ).slice(0, 8);
 
-  // Live prices for the "You may be interested in" list on mobile.
-  const { quotes: relatedOnly } = useQuotes(
-    related.map((i) => i.symbol),
-    15000,
-  );
-  const relatedQuotes = { ...relatedOnly, ...quotes };
 
 
   const formatVolume = (n?: number) => {
@@ -414,15 +408,6 @@ function Terminal() {
         <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} compact />
       </div>
 
-      <div className="lg:hidden">
-        <MobileTradeTabs
-          openPositions={openHere}
-          holdings={positions.filter((p) => p.status === "open")}
-          quotes={relatedQuotes}
-          related={related}
-        />
-      </div>
-
       <div className="mt-4 grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="hidden lg:block" />
         <div className="min-w-0 max-w-full">
@@ -430,15 +415,27 @@ function Terminal() {
         </div>
       </div>
 
-      <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
-        Open positions · {displaySymbol(symbol)}
-      </h2>
-      <div className="panel mb-10 w-full max-w-full overflow-x-auto">
-        <PositionsTable
-          positions={openHere}
+      <div className="mb-10 lg:hidden">
+        <MobileTradeTabs
+          openPositions={positions.filter((p) => p.status === "open")}
+          orders={openHere}
+          history={positions.filter((p) => p.status !== "open")}
+          wallets={wallets}
           quotes={quotes}
-          emptyLabel="No open positions on this instrument."
         />
+      </div>
+
+      <div className="hidden lg:block">
+        <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
+          Open positions · {displaySymbol(symbol)}
+        </h2>
+        <div className="panel mb-10 w-full max-w-full overflow-x-auto">
+          <PositionsTable
+            positions={openHere}
+            quotes={quotes}
+            emptyLabel="No open positions on this instrument."
+          />
+        </div>
       </div>
       </div>
     </AppShell>

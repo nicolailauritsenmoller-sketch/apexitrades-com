@@ -1,42 +1,66 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
-import { displaySymbol, formatPrice, type Instrument } from "@/lib/instruments";
+import { formatMoney } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
+import { getContracts } from "@/lib/contracts.functions";
+import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
+import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { LivePnl } from "@/components/LivePnl";
 
-type Tab = "orders" | "holdings" | "bots";
+type Tab = "positions" | "orders" | "history" | "assets";
 
-function volume(n?: number) {
-  if (!n) return "—";
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(2)}K`;
-  return n.toFixed(2);
-}
+export type WalletRow = { currency: string; balance: number };
 
-/** Mobile lower section: scrollable tabs plus a related-markets list. */
+/**
+ * Mobile consolidated activity panel: positions, orders, history and
+ * tradeable balances in a single tabbed card below the execution stack.
+ */
 export function MobileTradeTabs({
   openPositions,
-  holdings,
+  orders,
+  history,
+  wallets,
   quotes,
-  related,
 }: {
   openPositions: PositionRow[];
-  holdings: PositionRow[];
+  orders: PositionRow[];
+  history: PositionRow[];
+  wallets: WalletRow[];
   quotes: Record<string, Quote>;
-  related: Instrument[];
 }) {
-  const [tab, setTab] = useState<Tab>("orders");
+  const [tab, setTab] = useState<Tab>("positions");
+  const [summary, setSummary] = useState<TradeSummary | null>(null);
+
+  const fetchContracts = useServerFn(getContracts);
+  const contracts = useQuery({
+    queryKey: ["contracts"],
+    queryFn: () => fetchContracts(),
+    refetchInterval: 15_000,
+  });
+  const settled = (contracts.data ?? [])
+    .filter((c) => c.status === "settled")
+    .slice(0, 10);
+
+  const funded = wallets.filter((w) => w.balance > 0);
+  const usdt = wallets.find((w) => w.currency === "USDT");
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "orders", label: `Open Orders (${openPositions.length})` },
-    { id: "holdings", label: "Holdings" },
-    { id: "bots", label: "Bots" },
+    { id: "positions", label: `Open Positions (${openPositions.length})` },
+    { id: "orders", label: `Open Orders (${orders.length})` },
+    { id: "history", label: "History" },
+    { id: "assets", label: "Assets" },
   ];
 
   return (
     <section className="mt-4">
+      {summary && (
+        <TradeCloseSummary summary={summary} onClose={() => setSummary(null)} />
+      )}
+
       <div className="-mx-1 flex gap-4 overflow-x-auto border-b border-border px-1">
         {tabs.map((t) => (
           <button
@@ -55,57 +79,112 @@ export function MobileTradeTabs({
       </div>
 
       <div className="panel mt-3 overflow-x-auto">
-        {tab === "bots" ? (
-          <p className="p-4 text-xs text-muted-foreground">
-            Trading bots are not enabled on your account yet.
-          </p>
-        ) : (
+        {tab === "positions" && (
           <PositionsTable
-            positions={tab === "orders" ? openPositions : holdings}
+            positions={openPositions}
             quotes={quotes}
-            emptyLabel={tab === "orders" ? "No open orders." : "No holdings yet."}
+            emptyLabel="No open positions."
           />
         )}
-      </div>
 
-      <h3 className="mb-2 mt-6 text-xs uppercase tracking-widest text-muted-foreground">
-        You may be interested in
-      </h3>
-      <ul className="panel divide-y divide-border">
-        {related.map((i) => {
-          const q = quotes[i.symbol];
-          const up = (q?.changePercent ?? 0) >= 0;
-          return (
-            <li key={i.symbol}>
-              <Link
-                to="/terminal/$symbol"
-                params={{ symbol: i.symbol }}
-                className="flex touch-manipulation items-center gap-3 px-3 py-2.5"
-              >
-                <AssetIcon symbol={i.symbol} size={26} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-semibold">{displaySymbol(i.symbol)}</div>
-                  <div className="num text-[10px] text-muted-foreground">
-                    Vol {volume(q?.volume)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="num text-xs">
-                    {q ? formatPrice(q.price, i.symbol) : "—"}
-                  </div>
-                </div>
-                <span
-                  className={`num shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                    up ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-                  }`}
-                >
-                  {q ? `${up ? "+" : ""}${q.changePercent.toFixed(2)}%` : "—"}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+        {tab === "orders" && (
+          <PositionsTable
+            positions={orders}
+            quotes={quotes}
+            emptyLabel="No open orders on this instrument."
+          />
+        )}
+
+        {tab === "history" && (
+          <div className="divide-y divide-border">
+            {settled.length > 0 && (
+              <ul className="space-y-1.5 p-3 text-xs">
+                {settled.map((c) => {
+                  const net = (c.payout ?? 0) - c.stake;
+                  return (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSummary(
+                            buildContractSummary({
+                              id: c.id,
+                              symbol: c.symbol,
+                              displaySymbol: c.displaySymbol,
+                              direction: c.direction,
+                              stake: c.stake,
+                              currency: c.currency,
+                              entryPrice: c.entryPrice,
+                              exitPrice: c.exitPrice ?? c.entryPrice,
+                              payout: c.payout ?? 0,
+                              result: (c.result ?? "draw") as "win" | "loss" | "draw",
+                              openedAt: c.openedAt,
+                              closedAt: c.settledAt ?? c.expiresAt,
+                            }),
+                          )
+                        }
+                        className="flex w-full touch-manipulation items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-secondary/60"
+                      >
+                        <span className="truncate text-muted-foreground">
+                          {c.displaySymbol} ·{" "}
+                          {c.direction === "up" ? "Call / Higher" : "Put / Lower"}
+                        </span>
+                        <LivePnl value={net} currency={c.currency} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {history.length > 0 || settled.length > 0 ? (
+              <PositionsTable
+                positions={history}
+                quotes={quotes}
+                emptyLabel=""
+              />
+            ) : (
+              <p className="p-4 text-xs text-muted-foreground">
+                No settled trades yet.
+              </p>
+            )}
+          </div>
+        )}
+
+        {tab === "assets" && (
+          <div className="p-3">
+            <div className="mb-3 flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2.5">
+              <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Wallet className="size-3.5" /> Tradeable balance
+              </span>
+              <span className="num text-sm font-semibold">
+                {usdt ? formatMoney(usdt.balance, "USDT") : "—"}
+              </span>
+            </div>
+            {funded.length === 0 ? (
+              <p className="py-2 text-xs text-muted-foreground">
+                No funded wallets yet. Deposit to start trading.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {funded.map((w) => (
+                  <li
+                    key={w.currency}
+                    className="flex items-center justify-between gap-2 py-2 text-xs"
+                  >
+                    <span className="flex min-w-0 items-center gap-2 font-medium">
+                      <AssetIcon symbol={w.currency} size={18} />
+                      <span className="truncate">{w.currency}</span>
+                    </span>
+                    <span className="num shrink-0">
+                      {formatMoney(w.balance, w.currency)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
