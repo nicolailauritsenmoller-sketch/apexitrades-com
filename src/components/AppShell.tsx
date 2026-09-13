@@ -41,8 +41,8 @@ const NAV = [
 ] as const;
 
 const MOBILE_NAV = [
-  { to: "/dashboard", params: {}, label: "nav.home", icon: Home, exact: true },
-  { to: "/portfolio", params: {}, label: "nav.portfolio", icon: LayoutDashboard, exact: false },
+  { to: "/dashboard", params: {}, label: "nav.home", icon: Home, exact: true, center: false },
+  { to: "/portfolio", params: {}, label: "nav.portfolio", icon: LayoutDashboard, exact: false, center: false },
   {
     to: "/terminal/$symbol",
     params: { symbol: "BTCUSDT" },
@@ -51,8 +51,8 @@ const MOBILE_NAV = [
     exact: false,
     center: true,
   },
-  { to: "/markets", params: {}, label: "nav.markets", icon: Compass, exact: false },
-  { to: "/wallet", params: {}, label: "nav.assets", icon: Wallet, exact: false },
+  { to: "/markets", params: {}, label: "nav.markets", icon: Compass, exact: false, center: false },
+  { to: "/wallet", params: {}, label: "nav.assets", icon: Wallet, exact: false, center: false },
 ] as const;
 
 
