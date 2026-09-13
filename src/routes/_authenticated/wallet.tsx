@@ -239,7 +239,7 @@ function WalletPage() {
                     : t.title}
                 </div>
                 <div className="truncate text-[11px] text-muted-foreground">
-                  {t.subtitle} · {new Date(t.createdAt).toLocaleString()}
+                  {t.subtitle} · {formatExchangeDateTime(t.createdAt)}
                 </div>
               </div>
               <span
@@ -434,7 +434,7 @@ function DepositTab({
               <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
                 <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
                 <span>
-                  Depositing <span className="num font-semibold">{amount || "0.00"}</span>{" "}
+                  Funding <span className="num font-semibold">{amount || "0.00"}</span>{" "}
                   {addr.coin} via {addr.network}
                 </span>
               </div>
@@ -456,7 +456,7 @@ function DepositTab({
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-[0.99] disabled:opacity-60"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
-                Submit for security review
+                Submit Clearing Review
               </button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
