@@ -122,7 +122,6 @@ function ProfileHome() {
 
   const fetchOverview = useServerFn(getProfileOverview);
   const fetchKyc = useServerFn(getMyKyc);
-  const fetchAccess = useServerFn(getMyAccess);
 
   const overview = useQuery({
     queryKey: ["profile-overview"],
@@ -130,12 +129,6 @@ function ProfileHome() {
     refetchInterval: 30_000,
   });
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
-  const access = useQuery({
-    queryKey: ["my-access"],
-    queryFn: () => fetchAccess(),
-    retry: false,
-    staleTime: 60_000,
-  });
 
   const profile = overview.data?.profile;
 
