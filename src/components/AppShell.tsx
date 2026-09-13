@@ -174,21 +174,38 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile taskbar */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
-        <ul className="mx-auto grid max-w-lg grid-cols-5">
-          {NAV.map(({ to, params, label, icon: Icon, exact }) => (
-            <li key={to}>
-              <Link
-                to={to}
-                params={params}
-                activeOptions={{ exact }}
-                className="flex min-h-[56px] touch-manipulation flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors active:bg-secondary/60"
-                activeProps={{ className: "text-primary" }}
-              >
-                <Icon className="size-5" />
-                {t(label as TranslationKey)}
-              </Link>
-            </li>
-          ))}
+        <ul className="mx-auto grid max-w-lg grid-cols-5 items-end">
+          {MOBILE_NAV.map(({ to, params, label, icon: Icon, exact, center }) =>
+            center ? (
+              <li key={to} className="relative flex justify-center pb-1">
+                <Link
+                  to={to}
+                  params={params}
+                  activeOptions={{ exact }}
+                  className="flex touch-manipulation flex-col items-center gap-1 text-[10px] font-medium text-muted-foreground transition-colors"
+                  activeProps={{ className: "text-primary" }}
+                >
+                  <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 ring-4 ring-background transition-transform active:scale-95">
+                    <Icon className="size-5" strokeWidth={2.4} />
+                  </span>
+                  {t(label as TranslationKey)}
+                </Link>
+              </li>
+            ) : (
+              <li key={to}>
+                <Link
+                  to={to}
+                  params={params}
+                  activeOptions={{ exact }}
+                  className="flex min-h-[56px] touch-manipulation flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors active:bg-secondary/60"
+                  activeProps={{ className: "text-primary" }}
+                >
+                  <Icon className="size-5" />
+                  {t(label as TranslationKey)}
+                </Link>
+              </li>
+            )
+          )}
         </ul>
       </nav>
 
