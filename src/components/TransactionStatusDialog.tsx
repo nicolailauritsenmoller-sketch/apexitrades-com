@@ -375,20 +375,11 @@ export function TransactionStatusDialog({
             )}
 
             {tx.status === "failed" && (
-              <div className="rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowReason((v) => !v)}
-                  className="flex w-full touch-manipulation items-center gap-2 text-left font-semibold text-bear"
-                >
-                  <AlertTriangle className="size-4 shrink-0" />
-                  {showReason ? "Hide failure reason" : "View failure reason"}
-                </button>
-                {showReason && (
-                   <p className="mt-2 text-muted-foreground">
-                     {institutionalizeCopy(failureReason(tx.type, tx.note))}
-                   </p>
-                )}
+              <div className="flex items-start gap-2 rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs text-bear">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                <span className="font-medium">
+                  Reason: {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                </span>
               </div>
             )}
 
