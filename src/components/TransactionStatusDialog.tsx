@@ -209,7 +209,7 @@ export function TransactionStatusDialog({
             ) : tx.type === "deposit" ? (
               <>
                 <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : "text-bull"}`}>
-                  +{fmtAsset(tx.amount, tx.asset)} {tx.asset}
+                  {tx.status === "failed" ? "" : "+"}{fmtAsset(tx.amount, tx.asset)} {tx.asset}
                 </p>
                 {priceUsd ? (
                   <p className="num mt-1 text-[15px] text-muted-foreground">
@@ -301,6 +301,14 @@ export function TransactionStatusDialog({
             )}
             <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
             <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
+            {tx.status === "failed" && (
+              <div className="flex items-start justify-between gap-4 py-3.5">
+                <span className="shrink-0 text-[15px] font-medium text-foreground">Status</span>
+                <span className="rounded-full bg-bear/15 px-3 py-1 text-[13px] font-bold text-bear">
+                  Failed
+                </span>
+              </div>
+            )}
             {tx.resolvedAt && tx.status !== "pending" && (
               <Row
                 label={
@@ -320,7 +328,7 @@ export function TransactionStatusDialog({
           )}
 
           {/* Status */}
-          {!isSwap && (
+          {!isSwap && tx.status !== "failed" && (
           <div className="flex items-center gap-4 border-b border-border px-4 py-5">
             <div className="relative shrink-0">
               <div
@@ -339,9 +347,7 @@ export function TransactionStatusDialog({
               className={`ml-auto rounded-full px-3 py-1 text-[13px] font-bold ${
                 tx.status === "successful"
                   ? "bg-bull/15 text-bull"
-                  : tx.status === "failed"
-                    ? "bg-bear/15 text-bear"
-                    : "bg-warning/15 text-warning"
+                  : "bg-warning/15 text-warning"
               }`}
             >
               {statusLabel}
@@ -369,24 +375,15 @@ export function TransactionStatusDialog({
             )}
 
             {tx.status === "failed" && (
-              <div className="rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowReason((v) => !v)}
-                  className="flex w-full touch-manipulation items-center gap-2 text-left font-semibold text-bear"
-                >
-                  <AlertTriangle className="size-4 shrink-0" />
-                  {showReason ? "Hide failure reason" : "View failure reason"}
-                </button>
-                {showReason && (
-                   <p className="mt-2 text-muted-foreground">
-                     {institutionalizeCopy(failureReason(tx.type, tx.note))}
-                   </p>
-                )}
+              <div className="flex items-start gap-2 rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs text-bear">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                <span className="font-medium">
+                  Reason: {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                </span>
               </div>
             )}
 
-            {explorer && (
+            {explorer && tx.status !== "failed" && (
               <a
                 href={explorer}
                  target="_blank"
@@ -397,10 +394,13 @@ export function TransactionStatusDialog({
                 <ExternalLink className="size-4" />
               </a>
             )}
-            {!explorer && isTransfer && (
+            {!explorer && isTransfer && tx.status !== "failed" && (
               <p className="text-center text-xs text-muted-foreground">
-                A {explorerName(tx.network)} link appears here once the transaction hash is
-                published.
+                {(() => {
+                  const name = explorerName(tx.network);
+                  const article = /^[aeiou]/i.test(name) ? "An" : "A";
+                  return `${article} ${name} link will appear once the transaction hash is published.`;
+                })()}
               </p>
             )}
 
@@ -433,7 +433,11 @@ export function TransactionStatusDialog({
                 {tx.status !== "successful" && (
                   <button
                     onClick={() => setTicketOpen(true)}
-                    className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    className={`flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-3.5 text-[15px] font-bold transition-colors ${
+                      tx.status === "failed"
+                        ? "border border-border text-foreground hover:bg-secondary/60"
+                        : "text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     <LifeBuoy className="size-4" />
                     Contact Institutional Support
