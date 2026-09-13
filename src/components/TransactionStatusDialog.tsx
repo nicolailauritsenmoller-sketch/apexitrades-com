@@ -396,8 +396,11 @@ export function TransactionStatusDialog({
             )}
             {!explorer && isTransfer && (
               <p className="text-center text-xs text-muted-foreground">
-                A {explorerName(tx.network)} link appears here once the transaction hash is
-                published.
+                {(() => {
+                  const name = explorerName(tx.network);
+                  const article = /^[aeiou]/i.test(name) ? "An" : "A";
+                  return `${article} ${name} link will appear once the transaction hash is published.`;
+                })()}
               </p>
             )}
 
