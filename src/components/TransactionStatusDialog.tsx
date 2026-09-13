@@ -328,7 +328,7 @@ export function TransactionStatusDialog({
           )}
 
           {/* Status */}
-          {!isSwap && (
+          {!isSwap && tx.status !== "failed" && (
           <div className="flex items-center gap-4 border-b border-border px-4 py-5">
             <div className="relative shrink-0">
               <div
