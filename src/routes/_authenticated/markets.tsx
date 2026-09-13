@@ -81,7 +81,7 @@ function Markets() {
     8000,
   );
 
-  const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD"], 8000).quotes;
+  const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD=X"], 8000).quotes;
 
   return (
     <AppShell>
