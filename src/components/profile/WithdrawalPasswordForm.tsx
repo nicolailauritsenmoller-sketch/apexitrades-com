@@ -5,12 +5,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { PasswordInput } from "@/components/PasswordInput";
 import {
   getWithdrawalPasswordStatus,
+  resetWithdrawalPassword,
   setWithdrawalPassword,
 } from "@/lib/withdrawal-password.functions";
 
 export function WithdrawalPasswordForm() {
   const fetchStatus = useServerFn(getWithdrawalPasswordStatus);
   const save = useServerFn(setWithdrawalPassword);
+  const reset = useServerFn(resetWithdrawalPassword);
   const qc = useQueryClient();
 
   const status = useQuery({
