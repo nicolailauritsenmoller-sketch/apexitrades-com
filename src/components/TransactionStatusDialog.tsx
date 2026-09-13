@@ -373,11 +373,11 @@ export function TransactionStatusDialog({
             {explorer && (
               <a
                 href={explorer}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/70"
+                 target="_blank"
+                 rel="noreferrer noopener"
+                 className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
               >
-                View on block explorer
+                View on Explorer
                 <ExternalLink className="size-4" />
               </a>
             )}
@@ -409,18 +409,20 @@ export function TransactionStatusDialog({
             ) : (
               <>
                 <button
-                  onClick={() => setTicketOpen(true)}
-                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
-                >
-                  <LifeBuoy className="size-4" />
-                  Contact Institutional Support
-                </button>
-                <button
                   onClick={() => onOpenChange(false)}
-                  className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
+                  className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                  Done
+                  Back to Assets
                 </button>
+                {tx.status !== "successful" && (
+                  <button
+                    onClick={() => setTicketOpen(true)}
+                    className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    <LifeBuoy className="size-4" />
+                    Contact Institutional Support
+                  </button>
+                )}
               </>
             )}
           </div>
