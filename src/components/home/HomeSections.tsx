@@ -143,8 +143,8 @@ export function GlobalMembershipSection() {
             Join a worldwide trading community
           </h2>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Membership unlocks the full terminal: multi-currency wallets, five asset classes,
-            verified withdrawals and round-the-clock support.
+            Membership unlocks the full terminal: multi-currency wallets, universal multi-asset
+            coverage, verified withdrawals and round-the-clock support.
           </p>
         </div>
 
