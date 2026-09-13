@@ -383,7 +383,7 @@ export function TransactionStatusDialog({
               </div>
             )}
 
-            {explorer && (
+            {explorer && tx.status !== "failed" && (
               <a
                 href={explorer}
                  target="_blank"
@@ -394,7 +394,7 @@ export function TransactionStatusDialog({
                 <ExternalLink className="size-4" />
               </a>
             )}
-            {!explorer && isTransfer && (
+            {!explorer && isTransfer && tx.status !== "failed" && (
               <p className="text-center text-xs text-muted-foreground">
                 {(() => {
                   const name = explorerName(tx.network);
