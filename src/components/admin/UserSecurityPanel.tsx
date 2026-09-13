@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Search, ShieldAlert, X } from "lucide-react";
 import { getUserSecurityDirectory } from "@/lib/admin-ops.functions";
 import { UserAccountControls } from "@/components/admin/UserAccountControls";
+import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
 
 type Row = Awaited<ReturnType<typeof getUserSecurityDirectory>>[number];
 
@@ -210,6 +211,14 @@ export function UserSecurityPanel() {
             suspensionReason={selected.suspensionReason}
             onChanged={() => void directory.refetch()}
           />
+
+          <div className="mt-3">
+            <AccountMaintenancePanel
+              userId={selected.id}
+              userName={(selected as any).displayName ?? (selected as any).display_name ?? null}
+              onDone={() => void directory.refetch()}
+            />
+          </div>
         </div>
       )}
     </div>
