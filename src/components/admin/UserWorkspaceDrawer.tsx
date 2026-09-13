@@ -91,6 +91,14 @@ export function UserWorkspaceDrawer({
               </Section>
 
 
+              <Section title="Account maintenance">
+                <AccountMaintenancePanel
+                  userId={userId}
+                  userName={d.profile?.display_name}
+                  onDone={() => void q.refetch()}
+                />
+              </Section>
+
               <Section title="Balances">
                 <button
                   onClick={() => setAdjusting(true)}
