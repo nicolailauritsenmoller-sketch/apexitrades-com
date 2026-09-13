@@ -3,25 +3,43 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Keeps balances and transaction history in sync with the backend in real time.
- * Refunds from declined/rejected withdrawals land instantly, without a refresh.
+ * Keeps balances, transaction history and trade activity in sync with the
+ * backend in real time. Refunds from declined/rejected withdrawals — and admin
+ * activity resets — land instantly, without a refresh.
  */
 export function useWalletRealtime(channelName = "wallet-live") {
   const qc = useQueryClient();
 
   useEffect(() => {
     const refresh = () => {
-      qc.invalidateQueries({ queryKey: ["wallet-activity"] });
-      qc.invalidateQueries({ queryKey: ["portfolio-value"] });
-      qc.invalidateQueries({ queryKey: ["portfolio"] });
+      for (const key of [
+        "wallet-activity",
+        "portfolio-value",
+        "portfolio",
+        "contracts",
+        "positions",
+        "my-tickets",
+        "support-threads",
+        "support-tickets",
+      ]) {
+        qc.invalidateQueries({ queryKey: [key] });
+      }
     };
 
-    const channel = supabase
-      .channel(channelName)
-      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "wallets" }, refresh)
-      .subscribe();
+    const channel = supabase.channel(channelName);
+    for (const table of [
+      "withdrawals",
+      "deposits",
+      "wallets",
+      "swaps",
+      "contracts",
+      "positions",
+      "support_tickets",
+      "chat_sessions",
+    ]) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, refresh);
+    }
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);
