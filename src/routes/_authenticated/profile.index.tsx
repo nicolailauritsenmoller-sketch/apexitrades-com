@@ -17,7 +17,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { KYC_LABEL, KYC_TONE, copy } from "@/components/profile/ui";
 import { getProfileOverview } from "@/lib/profile.functions";
 import { getMyKyc } from "@/lib/kyc.functions";
