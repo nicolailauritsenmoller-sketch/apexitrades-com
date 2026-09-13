@@ -65,12 +65,15 @@ function Row({
   copyValue,
   wrap,
   icon,
+  href,
 }: {
   label: string;
   value: string;
   copyValue?: string;
   wrap?: boolean;
   icon?: React.ReactNode;
+  /** External reference link (e.g. block explorer) rendered as an icon button. */
+  href?: string;
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-3.5">
@@ -91,6 +94,17 @@ function Row({
           >
             <Copy className="size-3.5" />
           </button>
+        )}
+        {href && (
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={`View ${label} on explorer`}
+            className="shrink-0 touch-manipulation rounded p-1 text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
         )}
       </span>
     </div>
@@ -127,9 +141,9 @@ export function TransactionStatusDialog({
   const swap = tx.swap;
   const title =
     tx.type === "withdrawal"
-      ? `Sent ${tx.asset}`
+      ? "Withdrawal details"
       : tx.type === "deposit"
-        ? `Received ${tx.asset}`
+        ? "Deposit details"
         : "Swap successful";
 
   const statusLabel =
