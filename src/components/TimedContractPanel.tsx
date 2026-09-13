@@ -108,10 +108,6 @@ export function TimedContractPanel({
     () => (contracts.data ?? []).filter((c) => c.status === "open"),
     [contracts.data],
   );
-  const settled = useMemo(
-    () => (contracts.data ?? []).filter((c) => c.status === "settled").slice(0, 5),
-    [contracts.data],
-  );
 
   const now = useNow(openContracts.length > 0);
   const { quotes } = useQuotes(
@@ -268,49 +264,6 @@ export function TimedContractPanel({
         </div>
       )}
 
-      {settled.length > 0 && (
-        <div className="border-t border-border px-4 py-3">
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Recent settlements
-          </h3>
-          <ul className="space-y-1.5 text-xs">
-            {settled.map((c) => {
-              const net = (c.payout ?? 0) - c.stake;
-              return (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSummary(
-                        buildContractSummary({
-                          id: c.id,
-                          symbol: c.symbol,
-                          displaySymbol: c.displaySymbol,
-                          direction: c.direction,
-                          stake: c.stake,
-                          currency: c.currency,
-                          entryPrice: c.entryPrice,
-                          exitPrice: c.exitPrice ?? c.entryPrice,
-                          payout: c.payout ?? 0,
-                          result: (c.result ?? "draw") as "win" | "loss" | "draw",
-                          openedAt: c.openedAt,
-                          closedAt: c.settledAt ?? c.expiresAt,
-                        }),
-                      )
-                    }
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-secondary/60"
-                  >
-                    <span className="truncate text-muted-foreground">
-                      {c.displaySymbol} · {sideLabel(c.direction)}
-                    </span>
-                    <LivePnl value={net} currency={c.currency} />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
