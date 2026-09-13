@@ -17,11 +17,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { KYC_LABEL, KYC_TONE, copy } from "@/components/profile/ui";
 import { getProfileOverview } from "@/lib/profile.functions";
 import { getMyKyc } from "@/lib/kyc.functions";
-import { getMyAccess } from "@/lib/admin.functions";
 import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
 import { registerCurrentDevice } from "@/lib/sessions";
 import { supabase } from "@/integrations/supabase/client";
@@ -124,7 +122,6 @@ function ProfileHome() {
 
   const fetchOverview = useServerFn(getProfileOverview);
   const fetchKyc = useServerFn(getMyKyc);
-  const fetchAccess = useServerFn(getMyAccess);
 
   const overview = useQuery({
     queryKey: ["profile-overview"],
@@ -132,12 +129,6 @@ function ProfileHome() {
     refetchInterval: 30_000,
   });
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
-  const access = useQuery({
-    queryKey: ["my-access"],
-    queryFn: () => fetchAccess(),
-    retry: false,
-    staleTime: 60_000,
-  });
 
   const profile = overview.data?.profile;
 
@@ -168,7 +159,9 @@ function ProfileHome() {
                 {profile?.displayName ?? "Trader"}
               </h1>
               {status === "approved" ? (
-                <VerifiedBadge />
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
+                  <BadgeCheck className="size-3" /> Verified Trader
+                </span>
               ) : (
                 <span
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}
@@ -254,15 +247,6 @@ function ProfileHome() {
           <ListRow to="/profile/support" icon={MessageSquare} label="Contact Support" last />
         </div>
       </section>
-
-      {access.data?.isAdmin === true ? (
-        <Link
-          to="/sys-portal-x97"
-          className="inline-flex touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
-        >
-          <ShieldCheck className="size-4" /> Open Control Center
-        </Link>
-      ) : null}
 
       <button
         onClick={handleSignOut}
