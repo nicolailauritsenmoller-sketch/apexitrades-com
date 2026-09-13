@@ -162,16 +162,16 @@ export function TimedContractPanel({
         <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Duration
         </label>
-        <div className="mb-3 inline-flex rounded-lg border border-border p-0.5">
+        <div className="mb-3 flex flex-wrap gap-1 rounded-lg border border-border p-1">
           {CONTRACT_TIERS.map((t) => (
             <button
-              key={t.seconds}
+              key={t.id}
               onClick={() => {
                 setTier(t);
                 if (Number(amount) < t.minInvestment) setAmount(String(t.minInvestment));
               }}
-              className={`min-w-[3.5rem] rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                tier.seconds === t.seconds
+              className={`min-w-[3.25rem] flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors sm:flex-none sm:px-3 ${
+                tier.id === t.id
                   ? "bg-surface-raised text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
