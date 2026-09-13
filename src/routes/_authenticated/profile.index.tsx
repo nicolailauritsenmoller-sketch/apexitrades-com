@@ -256,15 +256,6 @@ function ProfileHome() {
         </div>
       </section>
 
-      {access.data?.isAdmin === true ? (
-        <Link
-          to="/sys-portal-x97"
-          className="inline-flex touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
-        >
-          <ShieldCheck className="size-4" /> Open Control Center
-        </Link>
-      ) : null}
-
       <button
         onClick={handleSignOut}
         className="mt-2 flex w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-3.5 text-sm font-semibold text-destructive-foreground transition-opacity hover:opacity-90"
