@@ -18,12 +18,12 @@ export const Route = createFileRoute("/_authenticated/assets")({
       {
         name: "description",
         content:
-          "Track multi-currency balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
+          "Track multi-fiat and digital asset balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
       },
       { property: "og:title", content: "Assets & wallets — Velocity Trade" },
       {
         property: "og:description",
-        content: "Multi-currency wallets, open exposure and every tradable asset in one place.",
+        content: "Multi-fiat and digital asset settlement, open exposure and every tradable asset in one place.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/profile/help")({
       {
         name: "description",
         content:
-          "Search the Velocity Trade knowledge base: deposits, withdrawals, scalp contracts, leverage, verification and account security.",
+          "Search the Velocity Trade knowledge base: deposits, withdrawals, micro-duration contracts, leverage, verification and account security.",
       },
       { property: "og:title", content: "Help Center — Velocity Trade" },
       {

@@ -58,7 +58,7 @@ export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
     <div className="p-8 text-sm">
       Unknown instrument.{" "}
       <Link to="/markets" className="text-primary underline">
-        Browse markets
+        Explore Markets
       </Link>
     </div>
   ),

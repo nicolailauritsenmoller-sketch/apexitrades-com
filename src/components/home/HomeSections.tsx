@@ -101,7 +101,7 @@ export function useMembershipStats() {
 
 const BENEFITS = [
   { icon: KeyRound, title: "Account access", body: "One login for wallets, positions and identity verification across every device." },
-  { icon: LineChart, title: "Trading tools", body: "Professional candlestick charting, timed scalp contracts and leverage up to 20x." },
+  { icon: LineChart, title: "Trading tools", body: "Professional candlestick charting, micro-duration contracts and leverage up to 20x." },
   { icon: Wallet, title: "Market access", body: "Crypto, US equities, index and commodity futures, major forex pairs and metals." },
   { icon: ShieldCheck, title: "Security features", body: "Session and device monitoring, verified withdrawals and encrypted document storage." },
   { icon: Headphones, title: "Customer support", body: "In-app live chat with agents who can see your account context immediately." },
@@ -143,8 +143,8 @@ export function GlobalMembershipSection() {
             Join a worldwide trading community
           </h2>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Membership unlocks the full terminal: multi-currency wallets, five asset classes,
-            verified withdrawals and round-the-clock support.
+            Membership unlocks the full terminal: multi-currency wallets, universal multi-asset
+            coverage, verified withdrawals and round-the-clock support.
           </p>
         </div>
 

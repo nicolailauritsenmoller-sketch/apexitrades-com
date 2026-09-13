@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LineChart } from "lucide-react";
+import { LineChart, ShieldCheck, Lock, BadgeCheck } from "lucide-react";
 import { openCookieSettings } from "@/lib/consent";
 import { TrustCertificates } from "@/components/TrustBadges";
 
@@ -48,8 +48,8 @@ export function SiteFooter() {
             <span className="font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            A multi-currency trading terminal for crypto, stocks, futures, forex and gold. Live
-            market data with instant execution.
+            An institutional-grade multi-asset trading terminal for crypto, equities, futures, FX
+            and metals. Live market data with low-latency execution.
           </p>
         </div>
 
@@ -83,6 +83,23 @@ export function SiteFooter() {
             </ul>
           </nav>
         ))}
+      </div>
+
+      <div className="border-t border-border bg-muted/30 px-4 py-4">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] font-medium text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <BadgeCheck className="size-3.5" />
+            ISO 27001
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="size-3.5" />
+            SOC 2 Type II
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Lock className="size-3.5" />
+            256-Bit SSL Encryption
+          </span>
+        </div>
       </div>
 
       <div className="border-t border-border px-4 py-5 text-center text-xs text-muted-foreground">

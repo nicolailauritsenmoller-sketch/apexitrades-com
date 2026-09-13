@@ -34,17 +34,17 @@ const MARKET_GROUPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Velocity Trade — Scalp Crypto, Stocks, Futures, Forex & Gold" },
+      { title: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
       {
         name: "description",
         content:
-          "A multi-currency trading terminal on live market data. Scalp crypto, trade stocks, futures, forex and gold with USD, EUR, GBP, USDT and BTC wallets.",
+          "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
-      { property: "og:title", content: "Velocity Trade — Multi-Currency Trading" },
+      { property: "og:title", content: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
       {
         property: "og:description",
         content:
-          "Live prices, leverage, and multi-currency wallets across crypto, stocks, futures, forex and gold.",
+          "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
     ],
   }),
@@ -91,7 +91,7 @@ function Landing() {
               to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              {authed ? "Go to terminal" : "Open account"}
+              {authed ? "Go to terminal" : "Get Started"}
             </Link>
           </div>
         </div>
@@ -121,28 +121,27 @@ function Landing() {
         <div className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:py-24">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span className="live-dot size-1.5 rounded-full bg-bull" />
-            Live market data · instant execution
+            Live market data · low-latency execution
           </span>
           <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.05] sm:text-6xl">
-            One terminal for <span className="text-primary">scalping crypto</span>, stocks,
-            futures, forex and gold
+            Institutional-Grade <span className="text-primary">Multi-Asset</span> Trading Terminal
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">
-            Real prices from live exchanges. Multi-currency wallets in USD, EUR, GBP, USDT and BTC.
-            Leverage up to 20x — with zero real money at risk.
+          <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground">
+            Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time
+            exchange liquidity, low-latency execution, and advanced risk controls.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
               to={authed ? "/dashboard" : "/auth"}
               className="glow-primary inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              {authed ? "Go to terminal" : "Start trading free"} <ArrowUpRight className="size-4" />
+              {authed ? "Go to terminal" : "Create Free Account"} <ArrowUpRight className="size-4" />
             </Link>
             <Link
               to="/markets"
               className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl border border-border bg-surface px-6 text-sm font-semibold transition-colors hover:bg-surface-raised"
             >
-              Browse markets
+              Explore Markets
             </Link>
           </div>
         </div>
@@ -153,22 +152,22 @@ function Landing() {
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
           <div className="min-w-0">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              A professional terminal, without the capital risk
+              A professional desk, without the capital risk
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Velocity Trade streams live prices from crypto exchanges and global market data providers,
+              Velocity Trade streams live prices from global exchanges and market data providers,
               then settles your orders against those quotes in your multi-currency wallets.
-              You get the workflow of a professional desk — charting, order tickets, timed scalp
-              contracts, position management and verified withdrawals — while you build the habits
-              that matter.
+              You get the workflow of an institutional desk — charting, order tickets, micro-duration
+              contracts, position management and verified withdrawals — inside a risk-free paper
+              trading engine.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { k: "5", v: "Asset classes" },
-              { k: "5", v: "Wallet currencies" },
-              { k: "20x", v: "Max leverage" },
-              { k: "60s", v: "Fastest contract" },
+              { k: "5", v: "Universal Multi-Asset Coverage" },
+              { k: "5", v: "Multi-Fiat & Digital Asset Settlement" },
+              { k: "20x", v: "Max Leverage" },
+              { k: "60s", v: "Micro-Duration Contract" },
             ].map((s) => (
               <div key={s.v} className="rounded-2xl border border-border bg-surface p-4">
                 <p className="num text-2xl font-bold text-primary">{s.k}</p>
@@ -213,40 +212,37 @@ function Landing() {
         </div>
       </section>
 
-      {/* 4. Trading features */}
+      {/* 4. Platform feature highlights */}
       <section className="relative z-10 w-full max-w-full overflow-hidden">
         <div className="relative mx-auto w-full max-w-6xl px-4 py-16">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Trading features</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: Gauge,
-              title: "Scalping terminal",
-              body: "1m–1d timeframes, one-click Buy Long / Sell Short and instant fills at the live mid price.",
-            },
-            {
-              icon: Layers,
-              title: "Five asset classes",
-              body: "Crypto pairs, US equities, index & commodity futures, major FX and precious metals.",
-            },
-            {
-              icon: ShieldCheck,
-              title: "Multi-currency wallets",
-              body: "Margin is drawn and settled in the instrument's own currency, tracked per wallet.",
-            },
-            {
-              icon: Zap,
-              title: "Real prices, no risk",
-              body: "Every quote is live and every fill is timestamped against the tape.",
-            },
-          ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="min-w-0 rounded-2xl border border-border bg-surface p-5">
-              <Icon className="size-5 text-primary" />
-              <h3 className="mt-4 text-base font-semibold">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-            </div>
-          ))}
-        </div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Built for Precision, Execution, and Control
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Gauge,
+                title: "Real-Time Exchange Data Stream",
+                body: "Streaming order book depth, live candles, and continuous tick updates from global liquidity venues.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Institutional Security Standards",
+                body: "End-to-end encryption, multi-signature cold wallet architecture, and continuous session monitoring.",
+              },
+              {
+                icon: Zap,
+                title: "Instant Clearing & Settlement",
+                body: "Seamless order routing with real-time PnL tracking and transparent fee structures.",
+              },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="min-w-0 rounded-2xl border border-border bg-surface p-5">
+                <Icon className="size-5 text-primary" />
+                <h3 className="mt-4 text-base font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -282,16 +278,17 @@ function Landing() {
       <section className="relative z-10 w-full max-w-full border-t border-border bg-surface/70 backdrop-blur-sm">
         <div className="mx-auto w-full max-w-4xl px-4 py-16 text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Ready to trade the live tape?
+            Start trading on institutional infrastructure
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Create your account in under a minute and start scalping on real market data.
+            Create your account in under a minute and access live market data across global asset
+            classes.
           </p>
           <Link
             to={authed ? "/dashboard" : "/auth"}
             className="mt-7 inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground"
           >
-            {authed ? "Go to terminal" : "Create account"} <ArrowUpRight className="size-4" />
+            {authed ? "Go to terminal" : "Create Free Account"} <ArrowUpRight className="size-4" />
           </Link>
         </div>
       </section>
