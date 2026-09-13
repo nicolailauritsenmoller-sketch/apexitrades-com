@@ -26,12 +26,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       {
         name: "description",
         content:
-          "Your total balance, watchlist, top market movers and recent account activity in one mobile-first trading home screen.",
+          "Your total balance, watchlist, and top market movers in one mobile-first trading home screen.",
       },
       { property: "og:title", content: "Home — Velocity Trade" },
       {
         property: "og:description",
-        content: "Balance, watchlist, movers and recent activity at a glance.",
+        content: "Balance, watchlist, and movers at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
