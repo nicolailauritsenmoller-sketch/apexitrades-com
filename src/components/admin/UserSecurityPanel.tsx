@@ -210,6 +210,14 @@ export function UserSecurityPanel() {
             suspensionReason={selected.suspensionReason}
             onChanged={() => void directory.refetch()}
           />
+
+          <div className="mt-3">
+            <AccountMaintenancePanel
+              userId={selected.id}
+              userName={(selected as any).displayName ?? (selected as any).display_name ?? null}
+              onDone={() => void directory.refetch()}
+            />
+          </div>
         </div>
       )}
     </div>
