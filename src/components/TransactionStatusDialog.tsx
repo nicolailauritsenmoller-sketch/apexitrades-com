@@ -273,8 +273,8 @@ export function TransactionStatusDialog({
             )}
             {tx.address && (
               <Row
-                label={isOut ? "Destination address" : "Deposit address"}
-                value={shortenAddress(tx.address, 8, 8)}
+                label={isOut ? "To" : "Deposit address"}
+                value={shortenAddress(tx.address, 6, 4)}
                 copyValue={tx.address}
               />
             )}
