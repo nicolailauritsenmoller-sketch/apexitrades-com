@@ -281,8 +281,13 @@ export function TransactionStatusDialog({
             {isOut && priceUsd ? (
               <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} />
             ) : null}
-            {isOut && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
-            {isTransfer && (
+            {isOut && (
+              <Row
+                label="Network fee"
+                value={tx.status === "failed" ? "$0.00" : usd(fee, fee < 0.01 ? 4 : 2)}
+              />
+            )}
+            {isTransfer && tx.status !== "failed" && (
               <Row
                 label="Confirmations"
                 value={`${tx.status === "successful" ? required : confirmations} / ${required}`}
@@ -305,7 +310,7 @@ export function TransactionStatusDialog({
               <div className="flex items-start justify-between gap-4 py-3.5">
                 <span className="shrink-0 text-[15px] font-medium text-foreground">Status</span>
                 <span className="rounded-full bg-bear/15 px-3 py-1 text-[13px] font-bold text-bear">
-                  Failed
+                  {tx.type === "withdrawal" ? "Failed (Refunded)" : "Failed"}
                 </span>
               </div>
             )}
