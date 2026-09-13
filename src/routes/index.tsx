@@ -121,28 +121,27 @@ function Landing() {
         <div className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:py-24">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             <span className="live-dot size-1.5 rounded-full bg-bull" />
-            Live market data · instant execution
+            Live market data · low-latency execution
           </span>
           <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.05] sm:text-6xl">
-            One terminal for <span className="text-primary">scalping crypto</span>, stocks,
-            futures, forex and gold
+            Institutional-Grade <span className="text-primary">Multi-Asset</span> Trading Terminal
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">
-            Real prices from live exchanges. Multi-currency wallets in USD, EUR, GBP, USDT and BTC.
-            Leverage up to 20x — with zero real money at risk.
+          <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground">
+            Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time
+            exchange liquidity, low-latency execution, and advanced risk controls.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
               to={authed ? "/dashboard" : "/auth"}
               className="glow-primary inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              {authed ? "Go to terminal" : "Start trading free"} <ArrowUpRight className="size-4" />
+              {authed ? "Go to terminal" : "Create Free Account"} <ArrowUpRight className="size-4" />
             </Link>
             <Link
               to="/markets"
               className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl border border-border bg-surface px-6 text-sm font-semibold transition-colors hover:bg-surface-raised"
             >
-              Browse markets
+              Explore Markets
             </Link>
           </div>
         </div>
