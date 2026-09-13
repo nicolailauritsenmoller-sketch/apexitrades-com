@@ -219,8 +219,8 @@ export function TransactionStatusDialog({
               </>
             ) : (
               <>
-                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : ""}`}>
-                  -{fmtAsset(tx.amount, tx.asset)} {tx.asset}
+                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-foreground" : ""}`}>
+                  {tx.status === "failed" ? "" : "-"}{fmtAsset(tx.amount, tx.asset)} {tx.asset}
                 </p>
                 {priceUsd ? (
                   <p className="num mt-1 text-[15px] text-muted-foreground">
@@ -281,8 +281,13 @@ export function TransactionStatusDialog({
             {isOut && priceUsd ? (
               <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} />
             ) : null}
-            {isOut && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
-            {isTransfer && (
+            {isOut && (
+              <Row
+                label="Network fee"
+                value={tx.status === "failed" ? "$0.00" : usd(fee, fee < 0.01 ? 4 : 2)}
+              />
+            )}
+            {isTransfer && tx.status !== "failed" && (
               <Row
                 label="Confirmations"
                 value={`${tx.status === "successful" ? required : confirmations} / ${required}`}
@@ -305,7 +310,7 @@ export function TransactionStatusDialog({
               <div className="flex items-start justify-between gap-4 py-3.5">
                 <span className="shrink-0 text-[15px] font-medium text-foreground">Status</span>
                 <span className="rounded-full bg-bear/15 px-3 py-1 text-[13px] font-bold text-bear">
-                  Failed
+                  {tx.type === "withdrawal" ? "Failed (Refunded)" : "Failed"}
                 </span>
               </div>
             )}
@@ -375,10 +380,16 @@ export function TransactionStatusDialog({
             )}
 
             {tx.status === "failed" && (
-              <div className="flex items-start gap-2 rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs text-bear">
+              <div className={`flex items-start gap-2 rounded-xl border p-3 text-xs ${
+                tx.type === "withdrawal"
+                  ? "border-warning/40 bg-warning/10 text-warning"
+                  : "border-bear/40 bg-bear/10 text-bear"
+              }`}>
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                 <span className="font-medium">
-                  Reason: {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                  {tx.type === "withdrawal"
+                    ? "This withdrawal did not pass compliance checks. Reserved funds have been credited back to your wallet."
+                    : `Reason: ${institutionalizeCopy(failureReason(tx.type, tx.note))}`}
                 </span>
               </div>
             )}
@@ -396,11 +407,7 @@ export function TransactionStatusDialog({
             )}
             {!explorer && isTransfer && tx.status !== "failed" && (
               <p className="text-center text-xs text-muted-foreground">
-                {(() => {
-                  const name = explorerName(tx.network);
-                  const article = /^[aeiou]/i.test(name) ? "An" : "A";
-                  return `${article} ${name} link will appear once the transaction hash is published.`;
-                })()}
+                A block explorer link will appear once the transaction hash is published on-chain.
               </p>
             )}
 
