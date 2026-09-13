@@ -129,20 +129,20 @@ export function WalletBalancePanel({
           type="button"
           onClick={() => setHideZero((v) => !v)}
           aria-pressed={hideZero}
-          className="flex shrink-0 touch-manipulation items-center gap-2 text-xs font-semibold"
+          className="flex shrink-0 touch-manipulation items-center gap-2 text-xs text-zinc-400"
         >
           <span
-            className={`relative h-6 w-11 rounded-full transition-colors ${
-              hideZero ? "bg-primary" : "bg-secondary"
+            className={`relative h-5 w-9 rounded-full transition-colors ${
+              hideZero ? "bg-primary" : "bg-zinc-800"
             }`}
           >
             <span
-              className={`absolute top-0.5 size-5 rounded-full bg-background transition-all ${
-                hideZero ? "left-[22px]" : "left-0.5"
+              className={`absolute top-0.5 size-4 rounded-full bg-background transition-all ${
+                hideZero ? "left-[18px]" : "left-0.5"
               }`}
             />
           </span>
-          Hide 0 balance
+          Hide zero balances
         </button>
       </div>
 
