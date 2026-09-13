@@ -112,7 +112,6 @@ function Home() {
 
       <WatchlistSection />
       <TopMoversSection />
-      <RecentActivitySection />
 
       <ExploreTokensSection />
       <DiscoverPerpsSection />
