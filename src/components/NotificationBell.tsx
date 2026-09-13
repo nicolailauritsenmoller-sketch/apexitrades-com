@@ -60,7 +60,7 @@ export function NotificationBell() {
     >
       <MessageSquareText className="size-4" />
       {unread > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[18px] place-items-center rounded-full bg-[#FCD535] px-1 text-[10px] font-bold leading-none text-[#12161C]">
+        <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
           {unread > 99 ? "99+" : unread}
         </span>
       )}
