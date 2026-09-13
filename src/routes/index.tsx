@@ -34,17 +34,17 @@ const MARKET_GROUPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Velocity Trade — Scalp Crypto, Stocks, Futures, Forex & Gold" },
+      { title: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
       {
         name: "description",
         content:
-          "A multi-currency trading terminal on live market data. Scalp crypto, trade stocks, futures, forex and gold with USD, EUR, GBP, USDT and BTC wallets.",
+          "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
-      { property: "og:title", content: "Velocity Trade — Multi-Currency Trading" },
+      { property: "og:title", content: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
       {
         property: "og:description",
         content:
-          "Live prices, leverage, and multi-currency wallets across crypto, stocks, futures, forex and gold.",
+          "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
     ],
   }),
