@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Search, ShieldAlert, X } from "lucide-react";
 import { getUserSecurityDirectory } from "@/lib/admin-ops.functions";
 import { UserAccountControls } from "@/components/admin/UserAccountControls";
+import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
 
 type Row = Awaited<ReturnType<typeof getUserSecurityDirectory>>[number];
 
