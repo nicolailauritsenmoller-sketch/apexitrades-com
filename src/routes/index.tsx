@@ -212,40 +212,37 @@ function Landing() {
         </div>
       </section>
 
-      {/* 4. Trading features */}
+      {/* 4. Platform feature highlights */}
       <section className="relative z-10 w-full max-w-full overflow-hidden">
         <div className="relative mx-auto w-full max-w-6xl px-4 py-16">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Trading features</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: Gauge,
-              title: "Scalping terminal",
-              body: "1m–1d timeframes, one-click Buy Long / Sell Short and instant fills at the live mid price.",
-            },
-            {
-              icon: Layers,
-              title: "Five asset classes",
-              body: "Crypto pairs, US equities, index & commodity futures, major FX and precious metals.",
-            },
-            {
-              icon: ShieldCheck,
-              title: "Multi-currency wallets",
-              body: "Margin is drawn and settled in the instrument's own currency, tracked per wallet.",
-            },
-            {
-              icon: Zap,
-              title: "Real prices, no risk",
-              body: "Every quote is live and every fill is timestamped against the tape.",
-            },
-          ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="min-w-0 rounded-2xl border border-border bg-surface p-5">
-              <Icon className="size-5 text-primary" />
-              <h3 className="mt-4 text-base font-semibold">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-            </div>
-          ))}
-        </div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Built for Precision, Execution, and Control
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Gauge,
+                title: "Real-Time Exchange Data Stream",
+                body: "Streaming order book depth, live candles, and continuous tick updates from global liquidity venues.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Institutional Security Standards",
+                body: "End-to-end encryption, multi-signature cold wallet architecture, and continuous session monitoring.",
+              },
+              {
+                icon: Zap,
+                title: "Instant Clearing & Settlement",
+                body: "Seamless order routing with real-time PnL tracking and transparent fee structures.",
+              },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="min-w-0 rounded-2xl border border-border bg-surface p-5">
+                <Icon className="size-5 text-primary" />
+                <h3 className="mt-4 text-base font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
