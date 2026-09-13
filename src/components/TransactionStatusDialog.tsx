@@ -393,7 +393,7 @@ export function TransactionStatusDialog({
                  rel="noreferrer noopener"
                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
               >
-                View on Explorer
+                View on Block Explorer
                 <ExternalLink className="size-4" />
               </a>
             )}
@@ -428,7 +428,7 @@ export function TransactionStatusDialog({
                   onClick={() => onOpenChange(false)}
                   className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                  Back to Assets
+                  {isOut ? "Back to Wallet" : "Back to Assets"}
                 </button>
                 {tx.status !== "successful" && (
                   <button
