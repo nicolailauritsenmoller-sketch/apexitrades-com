@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LineChart } from "lucide-react";
+import { LineChart, ShieldCheck, Lock, BadgeCheck } from "lucide-react";
 import { openCookieSettings } from "@/lib/consent";
 import { TrustCertificates } from "@/components/TrustBadges";
 
