@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuotes } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -8,7 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
-import { useQuotes as useMarketQuotes } from "@/hooks/useMarket";
+import { useQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
 import {
   Drawer,
