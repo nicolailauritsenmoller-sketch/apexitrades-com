@@ -34,6 +34,7 @@ const en = {
   "nav.markets": "Markets",
   "nav.trade": "Trade",
   "nav.wallet": "Assets",
+  "nav.assets": "Assets",
   "nav.profile": "Profile",
   "nav.admin": "Control Center",
   "nav.signOut": "Sign out",
