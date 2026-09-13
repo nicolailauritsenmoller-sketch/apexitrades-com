@@ -301,6 +301,14 @@ export function TransactionStatusDialog({
             )}
             <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
             <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
+            {tx.status === "failed" && (
+              <div className="flex items-start justify-between gap-4 py-3.5">
+                <span className="shrink-0 text-[15px] font-medium text-foreground">Status</span>
+                <span className="rounded-full bg-bear/15 px-3 py-1 text-[13px] font-bold text-bear">
+                  Failed
+                </span>
+              </div>
+            )}
             {tx.resolvedAt && tx.status !== "pending" && (
               <Row
                 label={
