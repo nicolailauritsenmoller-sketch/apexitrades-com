@@ -54,21 +54,38 @@ export function toTxStatus(raw: string): TxStatus {
 
 export const STATUS_STYLE: Record<TxStatus, { label: string; badge: string; dot: string }> = {
   pending: {
-    label: "Pending",
-    badge: "border-amber-400/40 bg-amber-400/10 text-amber-400",
+    label: "Pending clearing",
+    badge: "border-amber-400/60 bg-amber-400/20 text-amber-300",
     dot: "bg-amber-400",
   },
   successful: {
     label: "Successful",
-    badge: "border-bull/40 bg-bull/10 text-bull",
+    badge: "border-bull/60 bg-bull/20 text-bull",
     dot: "bg-bull",
   },
   failed: {
     label: "Failed",
-    badge: "border-bear/40 bg-bear/10 text-bear",
+    badge: "border-bear/60 bg-bear/20 text-bear",
     dot: "bg-bear",
   },
 };
+
+/** Institutional exchange timestamp, e.g. "Sep 04, 2026 • 03:02 AM". */
+export function formatExchangeDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const date = d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${date} • ${time}`;
+}
 
 const FIAT = new Set(["USD", "EUR", "GBP"]);
 
