@@ -232,19 +232,19 @@ export function TimedContractPanel({
         </dl>
 
         <div className="grid grid-cols-2 gap-2">
-          <button
+        <button
             onClick={() => placeMutation.mutate("up")}
             disabled={disabled}
             className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-bull py-2.5 text-sm font-semibold text-bull-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            <TrendingUp className="size-4" /> Call / Higher
+            <TrendingUp className="size-4" /> Buy / Long
           </button>
           <button
             onClick={() => placeMutation.mutate("down")}
             disabled={disabled}
             className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-bear py-2.5 text-sm font-semibold text-bear-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            <TrendingDown className="size-4" /> Put / Lower
+            <TrendingDown className="size-4" /> Sell / Short
           </button>
         </div>
       </div>
@@ -289,7 +289,7 @@ function ContractCard({
           ? profit
           : -contract.stake;
 
-  const sideLabel = contract.direction === "up" ? "Call / Higher" : "Put / Lower";
+  const sideLabel = contract.direction === "up" ? "Buy / Long" : "Sell / Short";
   const sideClass = contract.direction === "up" ? "text-bull" : "text-bear";
 
   return (
