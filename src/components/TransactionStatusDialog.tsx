@@ -219,8 +219,8 @@ export function TransactionStatusDialog({
               </>
             ) : (
               <>
-                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : ""}`}>
-                  -{fmtAsset(tx.amount, tx.asset)} {tx.asset}
+                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-foreground" : ""}`}>
+                  {tx.status === "failed" ? "" : "-"}{fmtAsset(tx.amount, tx.asset)} {tx.asset}
                 </p>
                 {priceUsd ? (
                   <p className="num mt-1 text-[15px] text-muted-foreground">
