@@ -131,8 +131,6 @@ export function TimedContractPanel({
   const expectedProfit = (stake * tier.profitPct) / 100;
   const disabled = belowMin || overBalance || placeMutation.isPending;
 
-  const sideLabel = (direction: "up" | "down") =>
-    direction === "up" ? "Call / Higher" : "Put / Lower";
 
   return (
     <div className="panel overflow-hidden border border-border bg-card p-0">
