@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
-import { displaySymbol, formatMoney, formatPrice } from "@/lib/instruments";
+import { formatMoney } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
 import { getContracts } from "@/lib/contracts.functions";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
