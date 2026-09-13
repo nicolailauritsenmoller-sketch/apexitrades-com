@@ -811,11 +811,33 @@ function SwapTab({
         <p className="text-[11px] text-bear">Amount exceeds your available {from} balance.</p>
       )}
 
-      <div className="flex items-center gap-2 rounded-md bg-secondary/50 p-3 text-sm">
-        <AssetIcon symbol={to} currency={to} size={22} />
-        <span>
-          You receive ≈ <span className="num font-semibold">{estimate.toFixed(8)}</span> {to}
-        </span>
+      <div className="space-y-2 rounded-md bg-secondary/50 p-3 text-xs">
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Live market rate</span>
+          <span className="num text-foreground">
+            {rate ? `1 ${from} = ${rate.toFixed(8)} ${to}` : quote.isLoading ? "Fetching…" : "—"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Conversion fee</span>
+          <span className="num text-foreground">0.00 {from} (0%)</span>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground">
+          <span>Network fee</span>
+          <span className="num text-foreground">None — internal transfer</span>
+        </div>
+        <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <AssetIcon symbol={to} currency={to} size={20} />
+            You receive
+          </span>
+          <span className="num font-semibold">
+            ≈ {estimate.toFixed(8)} {to}
+          </span>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          Rates refresh every 15 seconds and are applied at the moment you confirm.
+        </p>
       </div>
 
       <button
