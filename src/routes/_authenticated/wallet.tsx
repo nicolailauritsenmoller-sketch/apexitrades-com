@@ -14,6 +14,7 @@ import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
+  formatExchangeDateTime,
   shortenAddress,
   toTxStatus,
   type TransactionRecord,
