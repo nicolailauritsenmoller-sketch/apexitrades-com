@@ -375,10 +375,16 @@ export function TransactionStatusDialog({
             )}
 
             {tx.status === "failed" && (
-              <div className="flex items-start gap-2 rounded-xl border border-bear/40 bg-bear/10 p-3 text-xs text-bear">
+              <div className={`flex items-start gap-2 rounded-xl border p-3 text-xs ${
+                tx.type === "withdrawal"
+                  ? "border-warning/40 bg-warning/10 text-warning"
+                  : "border-bear/40 bg-bear/10 text-bear"
+              }`}>
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                 <span className="font-medium">
-                  Reason: {institutionalizeCopy(failureReason(tx.type, tx.note))}
+                  {tx.type === "withdrawal"
+                    ? "This withdrawal did not pass compliance checks. Reserved funds have been credited back to your wallet."
+                    : `Reason: ${institutionalizeCopy(failureReason(tx.type, tx.note))}`}
                 </span>
               </div>
             )}
