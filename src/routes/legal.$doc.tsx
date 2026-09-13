@@ -18,8 +18,8 @@ const EXTRA_DOCS: Record<string, { title: string; body: string[] }> = {
   about: {
     title: "About Velocity Trade",
     body: [
-      "Velocity Trade is a multi-currency trading environment covering crypto, equities, futures, forex and precious metals on live market data.",
-      "The platform combines a professional charting terminal, timed scalp contracts, multi-currency wallets and a full compliance workflow for identity verification.",
+      "Velocity Trade is a multi-asset trading environment covering crypto, equities, futures, forex and precious metals on live market data.",
+      "The platform combines a professional charting terminal, micro-duration contracts, multi-fiat and digital asset settlement, and a full compliance workflow for identity verification.",
       "Prices are sourced live from public market venues so execution reflects real market structure.",
     ],
   },
