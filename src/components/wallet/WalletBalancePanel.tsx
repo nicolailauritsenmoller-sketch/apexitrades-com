@@ -21,22 +21,22 @@ const ACTIONS = [
     id: "deposit",
     label: "Add funds",
     icon: ArrowDownToLine,
-    active: "bg-primary text-primary-foreground shadow-lg shadow-primary/25",
-    idle: "bg-primary/15 text-primary hover:bg-primary/25",
+    className:
+      "bg-yellow-400 text-black font-semibold hover:bg-yellow-300 active:scale-[0.97]",
   },
   {
     id: "withdraw",
     label: "Withdraw",
     icon: ArrowUpFromLine,
-    active: "bg-rose-600 text-white shadow-lg shadow-rose-600/25",
-    idle: "bg-rose-600/15 text-rose-500 hover:bg-rose-600/25",
+    className:
+      "border border-red-500/30 bg-red-500/20 text-red-400 hover:bg-red-500/30 active:scale-[0.97]",
   },
   {
     id: "swap",
     label: "Swap",
     icon: Repeat,
-    active: "bg-primary text-primary-foreground shadow-lg shadow-primary/25",
-    idle: "bg-primary/15 text-primary hover:bg-primary/25",
+    className:
+      "border border-zinc-700 bg-zinc-800/80 text-white hover:bg-zinc-700/80 active:scale-[0.97]",
   },
 ] as const;
 
@@ -97,15 +97,13 @@ export function WalletBalancePanel({
           />
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {ACTIONS.map(({ id, label, icon: Icon, active: on, idle }) => (
+        <div className="mt-4 grid grid-cols-3 gap-2.5">
+          {ACTIONS.map(({ id, label, icon: Icon, className }) => (
             <button
               key={id}
               type="button"
               onClick={() => onSelect(id)}
-              className={`flex touch-manipulation items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-bold transition-all active:scale-[0.98] ${
-                active === id ? on : idle
-              }`}
+              className={`flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl px-3 py-0 text-sm transition-transform ${className}`}
             >
               <Icon className="size-4" strokeWidth={2.6} />
               {label}
