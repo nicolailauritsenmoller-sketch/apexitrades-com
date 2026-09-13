@@ -40,6 +40,21 @@ const NAV = [
   { to: "/wallet", params: {}, label: "nav.wallet", icon: Wallet, exact: false },
 ] as const;
 
+const MOBILE_NAV = [
+  { to: "/dashboard", params: {}, label: "nav.home", icon: Home, exact: true },
+  { to: "/portfolio", params: {}, label: "nav.portfolio", icon: LayoutDashboard, exact: false },
+  {
+    to: "/terminal/$symbol",
+    params: { symbol: "BTCUSDT" },
+    label: "nav.trade",
+    icon: LineChart,
+    exact: false,
+    center: true,
+  },
+  { to: "/markets", params: {}, label: "nav.markets", icon: Compass, exact: false },
+  { to: "/wallet", params: {}, label: "nav.assets", icon: Wallet, exact: false },
+] as const;
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
