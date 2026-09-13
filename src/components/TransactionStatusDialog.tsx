@@ -112,6 +112,7 @@ export function TransactionStatusDialog({
 }) {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [showReason, setShowReason] = useState(false);
+  const navigate = useNavigate();
   if (!tx) return null;
 
   const isOut = tx.type === "withdrawal";
@@ -157,6 +158,9 @@ export function TransactionStatusDialog({
     maximumFractionDigits: 8,
   })} ${tx.asset}`;
   const fiatText = priceUsd ? `${sign}${usd(tx.amount * priceUsd)}` : assetName(tx.asset);
+  // Swap header: received amount prominent, USD equivalent underneath (no + prefix).
+  const swapHeroText = swap ? `+${fmtAsset(swap.toAmount, swap.toAsset)} ${swap.toAsset}` : "";
+  const swapUsdText = priceUsd ? `≈ ${usd(swap ? swap.toAmount * priceUsd : 0)} USD` : null;
 
   return (
     <>
