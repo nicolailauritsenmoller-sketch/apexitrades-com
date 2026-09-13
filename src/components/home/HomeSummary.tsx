@@ -1,20 +1,15 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useQuotes } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
   CandlestickChart,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Repeat,
   ChevronRight,
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
-import { useQuotes } from "@/hooks/useMarket";
+import { useQuotes as useMarketQuotes } from "@/hooks/useMarket";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
-import { getWalletActivity } from "@/lib/wallet.functions";
 import {
   Drawer,
   DrawerContent,
