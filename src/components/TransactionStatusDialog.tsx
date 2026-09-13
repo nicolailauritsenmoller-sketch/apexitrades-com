@@ -253,16 +253,11 @@ export function TransactionStatusDialog({
           {/* Details */}
           {!isSwap && (
           <div className="divide-y divide-border/50 border-b border-border px-4">
-            {tx.address && (
-              <Row
-                label={isOut ? "To" : "Deposit address"}
-                value={tx.address}
-                copyValue={tx.address}
-                wrap
-              />
-            )}
-            {priceUsd ? <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} /> : null}
-            <Row label="Asset" value={`${assetName(tx.asset)} (${tx.asset})`} />
+            <Row
+              label="Asset"
+              value={`${assetName(tx.asset)} (${tx.asset})`}
+              icon={<AssetIcon currency={tx.asset} size={20} />}
+            />
             {tx.network && (
               <Row
                 label="Network"
@@ -270,15 +265,21 @@ export function TransactionStatusDialog({
                 icon={<AssetIcon currency={tx.asset} size={20} />}
               />
             )}
-            {isTransfer && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
+            {tx.address && (
+              <Row
+                label={isOut ? "Destination address" : "Deposit address"}
+                value={shortenAddress(tx.address, 8, 8)}
+                copyValue={tx.address}
+              />
+            )}
+            {isOut && priceUsd ? (
+              <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} />
+            ) : null}
+            {isOut && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
             {isTransfer && (
               <Row
                 label="Confirmations"
-                value={
-                  tx.status === "successful"
-                    ? String(required)
-                    : `${confirmations} / ${required}`
-                }
+                value={`${tx.status === "successful" ? required : confirmations} / ${required}`}
               />
             )}
             {isTransfer && tx.status === "pending" && (
@@ -289,33 +290,23 @@ export function TransactionStatusDialog({
                 label="Transaction hash"
                 value={shortenAddress(tx.txHash, 6, 6)}
                 copyValue={tx.txHash}
+                href={explorer ?? undefined}
               />
             )}
             <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
-            <Row
-              label="Date"
-              value={new Date(tx.createdAt).toLocaleString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            />
+            <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
             {tx.resolvedAt && tx.status !== "pending" && (
               <Row
                 label={
-                  tx.status === "failed" && tx.type === "withdrawal"
-                    ? "Refunded"
-                    : "Reviewed"
+                  tx.status === "failed"
+                    ? tx.type === "withdrawal"
+                      ? "Refunded"
+                      : "Declined"
+                    : tx.type === "deposit"
+                      ? "Block confirmed"
+                      : "Completed at"
                 }
-                value={new Date(tx.resolvedAt).toLocaleString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                value={fmtDateTime(tx.resolvedAt)}
               />
             )}
             {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
