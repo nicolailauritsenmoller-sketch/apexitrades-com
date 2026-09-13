@@ -11,8 +11,8 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
-  Check,
 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TicketDialog } from "@/components/support/TicketDialog";
@@ -38,6 +38,26 @@ function copy(value: string, label: string) {
 
 const usd = (n: number, digits = 2) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+
+const FIAT = new Set([
+  "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "AED", "NGN", "KES",
+  "ZAR", "INR", "BRL", "TRY", "CNY", "HKD", "SGD", "SEK", "NOK", "DKK",
+]);
+
+/** Fiat → 2 decimals, crypto → up to 6 significant decimals. */
+const fmtAsset = (n: number, asset: string) =>
+  n.toLocaleString("en-US", {
+    minimumFractionDigits: FIAT.has(asset.toUpperCase()) ? 2 : 0,
+    maximumFractionDigits: FIAT.has(asset.toUpperCase()) ? 2 : 6,
+  });
+
+/** Exchange-style "Sep 13, 2026 • 06:13 PM". */
+const fmtDateTime = (iso: string) => {
+  const d = new Date(iso);
+  const date = d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const time = d.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+  return `${date} • ${time}`;
+};
 
 function Row({
   label,
