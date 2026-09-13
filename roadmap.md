@@ -1,7 +1,7 @@
 # Velocity Trade Roadmap
 
 ## In Progress
-- [ ] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
+- [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
 
 ## Completed
 - [x] Refine dashboard funding and trade actions, ticker and stablecoin formatting, safe news links, and active navigation styling.
