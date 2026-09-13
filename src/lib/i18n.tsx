@@ -102,6 +102,7 @@ type Dict = Partial<Record<TranslationKey, string>>;
 
 const es: Dict = {
   "nav.home": "Inicio", "nav.portfolio": "Cartera", "nav.markets": "Mercados", "nav.trade": "Operar", "nav.wallet": "Billetera", "nav.profile": "Perfil", "nav.admin": "Centro de control", "nav.signOut": "Cerrar sesión", "nav.liveAccount": "Cuenta real",
+  "nav.assets": "Activos",
   "common.search": "Buscar", "common.save": "Guardar", "common.cancel": "Cancelar", "common.close": "Cerrar", "common.confirm": "Confirmar", "common.loading": "Cargando", "common.total": "Total", "common.balance": "Saldo", "common.price": "Precio", "common.change24h": "Cambio 24h", "common.amount": "Importe", "common.asset": "Activo", "common.value": "Valor", "common.settings": "Ajustes", "common.support": "Soporte", "common.language": "Idioma", "common.theme": "Tema", "common.currency": "Moneda de visualización", "common.preferences": "Preferencias", "common.appearance": "Apariencia",
   "dashboard.title": "Inicio", "dashboard.totalFunds": "Fondos totales", "dashboard.buy": "Comprar", "dashboard.swap": "Intercambiar", "dashboard.deposit": "Depositar", "dashboard.withdraw": "Retirar", "dashboard.watchlist": "Lista de seguimiento", "dashboard.news": "Noticias del mercado",
   "portfolio.title": "Cartera", "portfolio.totalValue": "Valor total de la cartera", "portfolio.performance": "Rendimiento", "portfolio.allocation": "Distribución de activos", "portfolio.positions": "Posiciones abiertas", "portfolio.history": "Historial de operaciones",
@@ -114,6 +115,7 @@ const es: Dict = {
 
 const fr: Dict = {
   "nav.home": "Accueil", "nav.portfolio": "Portefeuille", "nav.markets": "Marchés", "nav.trade": "Trader", "nav.wallet": "Portemonnaie", "nav.profile": "Profil", "nav.admin": "Centre de contrôle", "nav.signOut": "Déconnexion", "nav.liveAccount": "Compte réel",
+  "nav.assets": "Actifs",
   "common.search": "Rechercher", "common.save": "Enregistrer", "common.cancel": "Annuler", "common.close": "Fermer", "common.confirm": "Confirmer", "common.loading": "Chargement", "common.total": "Total", "common.balance": "Solde", "common.price": "Prix", "common.change24h": "Variation 24h", "common.amount": "Montant", "common.asset": "Actif", "common.value": "Valeur", "common.settings": "Paramètres", "common.support": "Assistance", "common.language": "Langue", "common.theme": "Thème", "common.currency": "Devise d'affichage", "common.preferences": "Préférences", "common.appearance": "Apparence",
   "dashboard.title": "Accueil", "dashboard.totalFunds": "Fonds totaux", "dashboard.buy": "Acheter", "dashboard.swap": "Échanger", "dashboard.deposit": "Dépôt", "dashboard.withdraw": "Retrait", "dashboard.watchlist": "Liste de suivi", "dashboard.news": "Actualités du marché",
   "portfolio.title": "Portefeuille", "portfolio.totalValue": "Valeur totale du portefeuille", "portfolio.performance": "Performance", "portfolio.allocation": "Répartition des actifs", "portfolio.positions": "Positions ouvertes", "portfolio.history": "Historique des trades",
@@ -126,6 +128,7 @@ const fr: Dict = {
 
 const de: Dict = {
   "nav.home": "Start", "nav.portfolio": "Portfolio", "nav.markets": "Märkte", "nav.trade": "Handeln", "nav.wallet": "Wallet", "nav.profile": "Profil", "nav.admin": "Kontrollzentrum", "nav.signOut": "Abmelden", "nav.liveAccount": "Echtkonto",
+  "nav.assets": "Vermögenswerte",
   "common.search": "Suchen", "common.save": "Speichern", "common.cancel": "Abbrechen", "common.close": "Schließen", "common.confirm": "Bestätigen", "common.loading": "Lädt", "common.total": "Gesamt", "common.balance": "Guthaben", "common.price": "Preis", "common.change24h": "24-Std-Änderung", "common.amount": "Betrag", "common.asset": "Wert", "common.value": "Wert", "common.settings": "Einstellungen", "common.support": "Support", "common.language": "Sprache", "common.theme": "Design", "common.currency": "Anzeigewährung", "common.preferences": "Einstellungen", "common.appearance": "Erscheinungsbild",
   "dashboard.title": "Start", "dashboard.totalFunds": "Gesamtguthaben", "dashboard.buy": "Kaufen", "dashboard.swap": "Tauschen", "dashboard.deposit": "Einzahlen", "dashboard.withdraw": "Auszahlen", "dashboard.watchlist": "Watchlist", "dashboard.news": "Marktnachrichten",
   "portfolio.title": "Portfolio", "portfolio.totalValue": "Gesamter Portfoliowert", "portfolio.performance": "Wertentwicklung", "portfolio.allocation": "Vermögensaufteilung", "portfolio.positions": "Offene Positionen", "portfolio.history": "Handelsverlauf",
@@ -138,6 +141,7 @@ const de: Dict = {
 
 const pt: Dict = {
   "nav.home": "Início", "nav.portfolio": "Carteira", "nav.markets": "Mercados", "nav.trade": "Negociar", "nav.wallet": "Carteira digital", "nav.profile": "Perfil", "nav.admin": "Centro de controle", "nav.signOut": "Sair", "nav.liveAccount": "Conta real",
+  "nav.assets": "Ativos",
   "common.search": "Pesquisar", "common.save": "Salvar", "common.cancel": "Cancelar", "common.close": "Fechar", "common.confirm": "Confirmar", "common.loading": "Carregando", "common.total": "Total", "common.balance": "Saldo", "common.price": "Preço", "common.change24h": "Variação 24h", "common.amount": "Valor", "common.asset": "Ativo", "common.value": "Valor", "common.settings": "Configurações", "common.support": "Suporte", "common.language": "Idioma", "common.theme": "Tema", "common.currency": "Moeda de exibição", "common.preferences": "Preferências", "common.appearance": "Aparência",
   "dashboard.title": "Início", "dashboard.totalFunds": "Fundos totais", "dashboard.buy": "Comprar", "dashboard.swap": "Trocar", "dashboard.deposit": "Depositar", "dashboard.withdraw": "Sacar", "dashboard.watchlist": "Lista de observação", "dashboard.news": "Notícias do mercado",
   "portfolio.title": "Carteira", "portfolio.totalValue": "Valor total da carteira", "portfolio.performance": "Desempenho", "portfolio.allocation": "Alocação de ativos", "portfolio.positions": "Posições abertas", "portfolio.history": "Histórico de negociações",
@@ -150,6 +154,7 @@ const pt: Dict = {
 
 const it: Dict = {
   "nav.home": "Home", "nav.portfolio": "Portafoglio", "nav.markets": "Mercati", "nav.trade": "Opera", "nav.wallet": "Wallet", "nav.profile": "Profilo", "nav.admin": "Centro di controllo", "nav.signOut": "Esci", "nav.liveAccount": "Conto reale",
+  "nav.assets": "Attività",
   "common.search": "Cerca", "common.save": "Salva", "common.cancel": "Annulla", "common.close": "Chiudi", "common.confirm": "Conferma", "common.loading": "Caricamento", "common.total": "Totale", "common.balance": "Saldo", "common.price": "Prezzo", "common.change24h": "Variazione 24h", "common.amount": "Importo", "common.asset": "Asset", "common.value": "Valore", "common.settings": "Impostazioni", "common.support": "Assistenza", "common.language": "Lingua", "common.theme": "Tema", "common.currency": "Valuta di visualizzazione", "common.preferences": "Preferenze", "common.appearance": "Aspetto",
   "dashboard.title": "Home", "dashboard.totalFunds": "Fondi totali", "dashboard.buy": "Compra", "dashboard.swap": "Scambia", "dashboard.deposit": "Deposita", "dashboard.withdraw": "Preleva", "dashboard.watchlist": "Watchlist", "dashboard.news": "Notizie di mercato",
   "portfolio.title": "Portafoglio", "portfolio.totalValue": "Valore totale del portafoglio", "portfolio.performance": "Performance", "portfolio.allocation": "Allocazione degli asset", "portfolio.positions": "Posizioni aperte", "portfolio.history": "Storico operazioni",
@@ -162,6 +167,7 @@ const it: Dict = {
 
 const zh: Dict = {
   "nav.home": "首页", "nav.portfolio": "投资组合", "nav.markets": "行情", "nav.trade": "交易", "nav.wallet": "钱包", "nav.profile": "我的", "nav.admin": "控制中心", "nav.signOut": "退出登录", "nav.liveAccount": "实盘账户",
+  "nav.assets": "资产",
   "common.search": "搜索", "common.save": "保存", "common.cancel": "取消", "common.close": "关闭", "common.confirm": "确认", "common.loading": "加载中", "common.total": "合计", "common.balance": "余额", "common.price": "价格", "common.change24h": "24小时涨跌", "common.amount": "数量", "common.asset": "资产", "common.value": "价值", "common.settings": "设置", "common.support": "客服", "common.language": "语言", "common.theme": "主题", "common.currency": "显示币种", "common.preferences": "偏好设置", "common.appearance": "外观",
   "dashboard.title": "首页", "dashboard.totalFunds": "总资金", "dashboard.buy": "买入", "dashboard.swap": "兑换", "dashboard.deposit": "充值", "dashboard.withdraw": "提现", "dashboard.watchlist": "自选", "dashboard.news": "市场资讯",
   "portfolio.title": "投资组合", "portfolio.totalValue": "投资组合总价值", "portfolio.performance": "收益表现", "portfolio.allocation": "资产配置", "portfolio.positions": "持仓", "portfolio.history": "交易记录",
@@ -174,6 +180,7 @@ const zh: Dict = {
 
 const ja: Dict = {
   "nav.home": "ホーム", "nav.portfolio": "ポートフォリオ", "nav.markets": "マーケット", "nav.trade": "取引", "nav.wallet": "ウォレット", "nav.profile": "プロフィール", "nav.admin": "コントロールセンター", "nav.signOut": "ログアウト", "nav.liveAccount": "ライブ口座",
+  "nav.assets": "資産",
   "common.search": "検索", "common.save": "保存", "common.cancel": "キャンセル", "common.close": "閉じる", "common.confirm": "確認", "common.loading": "読み込み中", "common.total": "合計", "common.balance": "残高", "common.price": "価格", "common.change24h": "24時間変動", "common.amount": "数量", "common.asset": "資産", "common.value": "評価額", "common.settings": "設定", "common.support": "サポート", "common.language": "言語", "common.theme": "テーマ", "common.currency": "表示通貨", "common.preferences": "環境設定", "common.appearance": "外観",
   "dashboard.title": "ホーム", "dashboard.totalFunds": "総資金", "dashboard.buy": "購入", "dashboard.swap": "スワップ", "dashboard.deposit": "入金", "dashboard.withdraw": "出金", "dashboard.watchlist": "ウォッチリスト", "dashboard.news": "マーケットニュース",
   "portfolio.title": "ポートフォリオ", "portfolio.totalValue": "ポートフォリオ総額", "portfolio.performance": "パフォーマンス", "portfolio.allocation": "資産配分", "portfolio.positions": "保有ポジション", "portfolio.history": "取引履歴",
@@ -186,6 +193,7 @@ const ja: Dict = {
 
 const ko: Dict = {
   "nav.home": "홈", "nav.portfolio": "포트폴리오", "nav.markets": "마켓", "nav.trade": "거래", "nav.wallet": "지갑", "nav.profile": "프로필", "nav.admin": "제어 센터", "nav.signOut": "로그아웃", "nav.liveAccount": "실계좌",
+  "nav.assets": "자산",
   "common.search": "검색", "common.save": "저장", "common.cancel": "취소", "common.close": "닫기", "common.confirm": "확인", "common.loading": "불러오는 중", "common.total": "합계", "common.balance": "잔액", "common.price": "가격", "common.change24h": "24시간 변동", "common.amount": "수량", "common.asset": "자산", "common.value": "평가액", "common.settings": "설정", "common.support": "고객지원", "common.language": "언어", "common.theme": "테마", "common.currency": "표시 통화", "common.preferences": "환경설정", "common.appearance": "화면",
   "dashboard.title": "홈", "dashboard.totalFunds": "총 자금", "dashboard.buy": "구매", "dashboard.swap": "스왑", "dashboard.deposit": "입금", "dashboard.withdraw": "출금", "dashboard.watchlist": "관심목록", "dashboard.news": "마켓 뉴스",
   "portfolio.title": "포트폴리오", "portfolio.totalValue": "총 포트폴리오 가치", "portfolio.performance": "수익률", "portfolio.allocation": "자산 배분", "portfolio.positions": "보유 포지션", "portfolio.history": "거래 내역",
@@ -198,6 +206,7 @@ const ko: Dict = {
 
 const ar: Dict = {
   "nav.home": "الرئيسية", "nav.portfolio": "المحفظة الاستثمارية", "nav.markets": "الأسواق", "nav.trade": "التداول", "nav.wallet": "المحفظة", "nav.profile": "الملف الشخصي", "nav.admin": "مركز التحكم", "nav.signOut": "تسجيل الخروج", "nav.liveAccount": "حساب حقيقي",
+  "nav.assets": "الأصول",
   "common.search": "بحث", "common.save": "حفظ", "common.cancel": "إلغاء", "common.close": "إغلاق", "common.confirm": "تأكيد", "common.loading": "جارٍ التحميل", "common.total": "الإجمالي", "common.balance": "الرصيد", "common.price": "السعر", "common.change24h": "تغير 24 ساعة", "common.amount": "المبلغ", "common.asset": "الأصل", "common.value": "القيمة", "common.settings": "الإعدادات", "common.support": "الدعم", "common.language": "اللغة", "common.theme": "المظهر", "common.currency": "عملة العرض", "common.preferences": "التفضيلات", "common.appearance": "المظهر",
   "dashboard.title": "الرئيسية", "dashboard.totalFunds": "إجمالي الأموال", "dashboard.buy": "شراء", "dashboard.swap": "مبادلة", "dashboard.deposit": "إيداع", "dashboard.withdraw": "سحب", "dashboard.watchlist": "قائمة المتابعة", "dashboard.news": "أخبار السوق",
   "portfolio.title": "المحفظة الاستثمارية", "portfolio.totalValue": "إجمالي قيمة المحفظة", "portfolio.performance": "الأداء", "portfolio.allocation": "توزيع الأصول", "portfolio.positions": "الصفقات المفتوحة", "portfolio.history": "سجل التداول",
@@ -210,6 +219,7 @@ const ar: Dict = {
 
 const ru: Dict = {
   "nav.home": "Главная", "nav.portfolio": "Портфель", "nav.markets": "Рынки", "nav.trade": "Торговля", "nav.wallet": "Кошелёк", "nav.profile": "Профиль", "nav.admin": "Центр управления", "nav.signOut": "Выйти", "nav.liveAccount": "Реальный счёт",
+  "nav.assets": "Активы",
   "common.search": "Поиск", "common.save": "Сохранить", "common.cancel": "Отмена", "common.close": "Закрыть", "common.confirm": "Подтвердить", "common.loading": "Загрузка", "common.total": "Итого", "common.balance": "Баланс", "common.price": "Цена", "common.change24h": "Изм. за 24ч", "common.amount": "Сумма", "common.asset": "Актив", "common.value": "Стоимость", "common.settings": "Настройки", "common.support": "Поддержка", "common.language": "Язык", "common.theme": "Тема", "common.currency": "Валюта отображения", "common.preferences": "Предпочтения", "common.appearance": "Оформление",
   "dashboard.title": "Главная", "dashboard.totalFunds": "Всего средств", "dashboard.buy": "Купить", "dashboard.swap": "Обмен", "dashboard.deposit": "Пополнить", "dashboard.withdraw": "Вывести", "dashboard.watchlist": "Избранное", "dashboard.news": "Новости рынка",
   "portfolio.title": "Портфель", "portfolio.totalValue": "Общая стоимость портфеля", "portfolio.performance": "Доходность", "portfolio.allocation": "Распределение активов", "portfolio.positions": "Открытые позиции", "portfolio.history": "История сделок",
@@ -222,6 +232,7 @@ const ru: Dict = {
 
 const tr: Dict = {
   "nav.home": "Ana sayfa", "nav.portfolio": "Portföy", "nav.markets": "Piyasalar", "nav.trade": "İşlem", "nav.wallet": "Cüzdan", "nav.profile": "Profil", "nav.admin": "Kontrol merkezi", "nav.signOut": "Çıkış yap", "nav.liveAccount": "Gerçek hesap",
+  "nav.assets": "Varlıklar",
   "common.search": "Ara", "common.save": "Kaydet", "common.cancel": "İptal", "common.close": "Kapat", "common.confirm": "Onayla", "common.loading": "Yükleniyor", "common.total": "Toplam", "common.balance": "Bakiye", "common.price": "Fiyat", "common.change24h": "24s değişim", "common.amount": "Tutar", "common.asset": "Varlık", "common.value": "Değer", "common.settings": "Ayarlar", "common.support": "Destek", "common.language": "Dil", "common.theme": "Tema", "common.currency": "Görüntüleme para birimi", "common.preferences": "Tercihler", "common.appearance": "Görünüm",
   "dashboard.title": "Ana sayfa", "dashboard.totalFunds": "Toplam fon", "dashboard.buy": "Satın al", "dashboard.swap": "Takas", "dashboard.deposit": "Yatır", "dashboard.withdraw": "Çek", "dashboard.watchlist": "İzleme listesi", "dashboard.news": "Piyasa haberleri",
   "portfolio.title": "Portföy", "portfolio.totalValue": "Toplam portföy değeri", "portfolio.performance": "Performans", "portfolio.allocation": "Varlık dağılımı", "portfolio.positions": "Açık pozisyonlar", "portfolio.history": "İşlem geçmişi",
@@ -234,6 +245,7 @@ const tr: Dict = {
 
 const hi: Dict = {
   "nav.home": "होम", "nav.portfolio": "पोर्टफोलियो", "nav.markets": "मार्केट", "nav.trade": "ट्रेड", "nav.wallet": "वॉलेट", "nav.profile": "प्रोफ़ाइल", "nav.admin": "कंट्रोल सेंटर", "nav.signOut": "साइन आउट", "nav.liveAccount": "लाइव खाता",
+  "nav.assets": "संपत्तियाँ",
   "common.search": "खोजें", "common.save": "सहेजें", "common.cancel": "रद्द करें", "common.close": "बंद करें", "common.confirm": "पुष्टि करें", "common.loading": "लोड हो रहा है", "common.total": "कुल", "common.balance": "बैलेंस", "common.price": "मूल्य", "common.change24h": "24घं परिवर्तन", "common.amount": "राशि", "common.asset": "एसेट", "common.value": "मूल्य", "common.settings": "सेटिंग्स", "common.support": "सहायता", "common.language": "भाषा", "common.theme": "थीम", "common.currency": "प्रदर्शन मुद्रा", "common.preferences": "प्राथमिकताएँ", "common.appearance": "रूप",
   "dashboard.title": "होम", "dashboard.totalFunds": "कुल फंड", "dashboard.buy": "खरीदें", "dashboard.swap": "स्वैप", "dashboard.deposit": "जमा करें", "dashboard.withdraw": "निकालें", "dashboard.watchlist": "वॉचलिस्ट", "dashboard.news": "मार्केट समाचार",
   "portfolio.title": "पोर्टफोलियो", "portfolio.totalValue": "कुल पोर्टफोलियो मूल्य", "portfolio.performance": "प्रदर्शन", "portfolio.allocation": "एसेट आवंटन", "portfolio.positions": "खुली पोजिशन", "portfolio.history": "ट्रेड इतिहास",
