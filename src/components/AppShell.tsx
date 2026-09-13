@@ -159,7 +159,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             {router.state.location.pathname.startsWith("/profile") && (
               <>
                 <Link
-                  to="/wallet?tab=deposit"
+                  to="/wallet"
+                  search={{ tab: "deposit" }}
                   aria-label="Scan QR code"
                   className="grid size-9 touch-manipulation place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
