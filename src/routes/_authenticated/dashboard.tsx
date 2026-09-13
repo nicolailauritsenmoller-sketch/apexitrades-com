@@ -12,7 +12,6 @@ import {
   HomeActionBar,
   WatchlistSection,
   TopMoversSection,
-  RecentActivitySection,
 } from "@/components/home/HomeSummary";
 import {
   ExploreTokensSection,
