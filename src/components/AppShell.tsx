@@ -8,6 +8,8 @@ import {
   Home,
   Wallet,
   ShieldCheck,
+  ScanLine,
+  Settings,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";

@@ -7,6 +7,7 @@ import {
   Bell,
   ChevronRight,
   Copy,
+  Headphones,
   HelpCircle,
   LogOut,
   MessageSquare,
