@@ -4,8 +4,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
-import { Copy, ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Check,
+  Clock3,
+  Copy,
+  Loader2,
+  Repeat,
+  ShieldCheck,
+} from "lucide-react";
+import QRCode from "qrcode";
 import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
 import { AssetPicker } from "@/components/AssetPicker";
@@ -76,10 +88,6 @@ export const Route = createFileRoute("/_authenticated/wallet")({
   ),
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
-
-function qrUrl(text: string) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
-}
 
 function WalletPage() {
   const qc = useQueryClient();
@@ -239,13 +247,20 @@ function WalletPage() {
                     : t.title}
                 </div>
                 <div className="truncate text-[11px] text-muted-foreground">
-                  {t.subtitle} · {formatExchangeDateTime(t.createdAt)}
+                  {t.type === "deposit" ? `${t.asset} · ${t.network}` : t.subtitle} ·{" "}
+                  {formatExchangeDateTime(t.createdAt)}
                 </div>
               </div>
               <span
                 className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${style.badge}`}
               >
-                {style.label}
+                {t.type === "deposit"
+                  ? t.status === "successful"
+                    ? "Completed"
+                    : t.status === "failed"
+                      ? "Failed"
+                      : "Pending"
+                  : style.label}
               </span>
             </button>
           );
@@ -269,6 +284,30 @@ function WalletPage() {
 
 type Address = { id: string; coin: string; network: string; address: string; memo: string | null };
 
+const NETWORK_DETAILS: Array<{
+  match: RegExp;
+  label: string;
+  confirmations: number;
+  arrival: string;
+  minimum: string;
+}> = [
+  { match: /erc|ethereum/i, label: "Ethereum (ERC-20)", confirmations: 12, arrival: "~3 minutes", minimum: "0.001 ETH" },
+  { match: /trc|tron/i, label: "Tron (TRC-20)", confirmations: 20, arrival: "~2 minutes", minimum: "10 USDT" },
+  { match: /bep|bsc|binance/i, label: "BNB Smart Chain (BEP-20)", confirmations: 15, arrival: "~3 minutes", minimum: "0.0005 BNB" },
+  { match: /bitcoin|btc/i, label: "Bitcoin", confirmations: 3, arrival: "~30 minutes", minimum: "0.0001 BTC" },
+  { match: /solana|sol/i, label: "Solana", confirmations: 20, arrival: "~1 minute", minimum: "0.01 SOL" },
+];
+
+function depositNetworkDetails(network: string, coin: string) {
+  const known = NETWORK_DETAILS.find((item) => item.match.test(network));
+  return known ?? {
+    label: network,
+    confirmations: 12,
+    arrival: "~10 minutes",
+    minimum: `0.001 ${coin}`,
+  };
+}
+
 function DepositTab({
   addresses,
   onDone,
@@ -278,12 +317,37 @@ function DepositTab({
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
-  const [selected, setSelected] = useState(0);
+  const [selectedId, setSelectedId] = useState(addresses[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [copied, setCopied] = useState(false);
   const submit = useServerFn(requestDeposit);
+
+  const addr = addresses.find((item) => item.id === selectedId) ?? addresses[0];
+  const coins = [...new Set(addresses.map((item) => item.coin))];
+  const selectedCoin = addr?.coin ?? coins[0] ?? "";
+  const coinAddresses = addresses.filter((item) => item.coin === selectedCoin);
+  const networkDetails = addr ? depositNetworkDetails(addr.network, addr.coin) : null;
+
+  useEffect(() => {
+    if (!addr?.address) return;
+    let active = true;
+    setQrDataUrl("");
+    void QRCode.toDataURL(addr.address, {
+      width: 224,
+      margin: 2,
+      errorCorrectionLevel: "M",
+      color: { dark: "#111827", light: "#FFFFFF" },
+    }).then((url) => {
+      if (active) setQrDataUrl(url);
+    });
+    return () => {
+      active = false;
+    };
+  }, [addr?.address]);
 
   const mutation = useMutation({
     mutationFn: async (vars: { coin: string; network: string; amount: number; txHash?: string }) => {
@@ -332,10 +396,6 @@ function DepositTab({
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-
-  const addr = addresses[selected];
-
   if (addresses.length === 0) {
     return (
       <div className="panel p-6 text-sm text-muted-foreground">
@@ -344,61 +404,112 @@ function DepositTab({
     );
   }
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="panel p-5">
-        <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-          Crypto transfer · Select network
-        </div>
-        <div className="grid gap-2">
-          {addresses.map((a, i) => (
-            <button
-              key={a.id}
-              onClick={() => setSelected(i)}
-              className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors ${
-                i === selected ? "border-primary bg-secondary/60" : "border-border hover:bg-secondary/40"
-              }`}
-            >
-              <AssetIcon currency={a.coin} size={28} />
-              <div>
-                <div className="text-sm font-medium">{a.coin}</div>
-                <div className="text-[11px] text-muted-foreground">{a.network}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+  function selectCoin(coin: string) {
+    const first = addresses.find((item) => item.coin === coin);
+    if (first) setSelectedId(first.id);
+  }
 
-      <div className="panel p-5">
-        {addr && (
-          <>
-            <div className="flex flex-col items-center gap-3">
-              <img
-                src={qrUrl(addr.address)}
-                alt={`${addr.coin} ${addr.network} deposit address QR code`}
-                width={180}
-                height={180}
-                loading="lazy"
-                className="rounded-lg bg-white p-2"
-              />
-              <div className="w-full break-all rounded-md bg-secondary p-3 text-center text-xs">
-                {addr.address}
-              </div>
-              {addr.memo && (
-                <p className="text-[11px] text-muted-foreground">Memo/Tag: {addr.memo}</p>
-              )}
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(addr.address);
-                  toast.success("Address copied");
-                }}
-                className="flex items-center gap-2 rounded-md bg-secondary px-3 py-1.5 text-xs hover:bg-secondary/70"
+  async function copyAddress() {
+    if (!addr) return;
+    await navigator.clipboard.writeText(addr.address);
+    setCopied(true);
+    toast.success("Deposit address copied");
+    window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-4">
+      <section className="panel overflow-hidden">
+        <div className="border-b border-border px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <AssetIcon currency={selectedCoin} size={36} />
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold">Deposit cryptocurrency</h2>
+              <p className="text-xs text-muted-foreground">Choose an asset and its transfer network</p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Asset</span>
+              <select
+                value={selectedCoin}
+                onChange={(event) => selectCoin(event.target.value)}
+                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold outline-none focus:border-primary"
               >
-                <Copy className="size-3.5" /> Copy address
-              </button>
+                {coins.map((coin) => <option key={coin} value={coin}>{coin}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Network</span>
+              <select
+                value={addr?.id ?? ""}
+                onChange={(event) => setSelectedId(event.target.value)}
+                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold outline-none focus:border-primary"
+              >
+                {coinAddresses.map((item) => <option key={item.id} value={item.id}>{depositNetworkDetails(item.network, item.coin).label}</option>)}
+              </select>
+            </label>
+          </div>
+        </div>
+
+        {addr && networkDetails && (
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="space-y-5 p-4 sm:p-6">
+              <div className="flex gap-3 rounded-md border border-warning/35 bg-warning/10 p-3.5 text-sm">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+                <div>
+                  <p className="font-semibold">Send only {addr.coin} on {networkDetails.label}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {networkDetails.confirmations} network confirmations required. Assets sent on another network may be permanently lost.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Deposit address</p>
+                <div className="rounded-md border border-border bg-secondary/40 p-3">
+                  <p className="num break-all text-sm font-medium leading-6">{addr.address}</p>
+                  {addr.memo && <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">Memo / tag: <span className="num text-foreground">{addr.memo}</span></p>}
+                </div>
+                <Button type="button" size="lg" className="mt-3 h-12 w-full font-bold" onClick={() => void copyAddress()}>
+                  {copied ? <Check /> : <Copy />}
+                  {copied ? "Address copied" : "Copy address"}
+                </Button>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border">
+                <div className="bg-background p-3">
+                  <dt className="text-[11px] text-muted-foreground">Minimum deposit</dt>
+                  <dd className="num mt-1 text-sm font-semibold">{networkDetails.minimum}</dd>
+                </div>
+                <div className="bg-background p-3">
+                  <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Clock3 className="size-3.5" /> Expected arrival</dt>
+                  <dd className="num mt-1 text-sm font-semibold">{networkDetails.arrival}</dd>
+                </div>
+              </dl>
             </div>
 
-            <div className="mt-5 space-y-3">
+            <div className="flex flex-col items-center justify-center border-t border-border bg-secondary/25 p-6 lg:border-l lg:border-t-0">
+              <div className="flex size-56 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-2 shadow-sm">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt={`${addr.coin} ${networkDetails.label} deposit address QR code`} width={208} height={208} />
+                ) : (
+                  <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="size-4 text-bull" /> Verified deposit address</p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {addr && (
+        <section className="panel p-4 sm:p-6">
+          <div className="mb-4">
+            <h3 className="text-base font-bold">Submit transfer for clearing</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Enter your transfer details after sending funds to the address above.</p>
+          </div>
+            <div className="space-y-3">
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
                   <AssetIcon currency={addr.coin} symbol={addr.coin} size={22} />
@@ -438,7 +549,7 @@ function DepositTab({
                   {addr.coin} via {addr.network}
                 </span>
               </div>
-              <button
+              <Button
                 disabled={mutation.isPending || uploading}
                 onClick={() => {
                   const value = Number(amount);
@@ -453,19 +564,18 @@ function DepositTab({
                     txHash: txHash.trim() || undefined,
                   });
                 }}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-[0.99] disabled:opacity-60"
+                className="h-12 w-full text-sm font-bold"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
-                Submit Clearing Review
-              </button>
+                {mutation.isPending || uploading ? "Submitting…" : "Submit for clearing"}
+              </Button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
-                Balances are credited after on-chain verification and clearing review are complete.
+                Your deposit will appear as Pending in Transaction History and update automatically when clearing is complete.
               </p>
             </div>
-          </>
-        )}
-      </div>
+        </section>
+      )}
     </div>
   );
 }
