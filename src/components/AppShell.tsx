@@ -156,6 +156,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {t("nav.admin")}
               </Link>
             ) : null}
+            {router.state.location.pathname.startsWith("/profile") && (
+              <>
+                <Link
+                  to="/wallet?tab=deposit"
+                  aria-label="Scan QR code"
+                  className="grid size-9 touch-manipulation place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <ScanLine className="size-5" />
+                </Link>
+                <Link
+                  to="/profile/settings"
+                  aria-label="Settings"
+                  className="grid size-9 touch-manipulation place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <Settings className="size-5" />
+                </Link>
+              </>
+            )}
             <InstallAppButton />
             <NotificationBell />
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
