@@ -65,12 +65,15 @@ function Row({
   copyValue,
   wrap,
   icon,
+  href,
 }: {
   label: string;
   value: string;
   copyValue?: string;
   wrap?: boolean;
   icon?: React.ReactNode;
+  /** External reference link (e.g. block explorer) rendered as an icon button. */
+  href?: string;
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-3.5">
@@ -91,6 +94,17 @@ function Row({
           >
             <Copy className="size-3.5" />
           </button>
+        )}
+        {href && (
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={`View ${label} on explorer`}
+            className="shrink-0 touch-manipulation rounded p-1 text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
         )}
       </span>
     </div>
@@ -127,9 +141,9 @@ export function TransactionStatusDialog({
   const swap = tx.swap;
   const title =
     tx.type === "withdrawal"
-      ? `Sent ${tx.asset}`
+      ? "Withdrawal details"
       : tx.type === "deposit"
-        ? `Received ${tx.asset}`
+        ? "Deposit details"
         : "Swap successful";
 
   const statusLabel =
@@ -192,6 +206,17 @@ export function TransactionStatusDialog({
                   <p className="num mt-1 text-[15px] text-muted-foreground">{swapUsdText}</p>
                 )}
               </>
+            ) : tx.type === "deposit" ? (
+              <>
+                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : "text-bull"}`}>
+                  +{fmtAsset(tx.amount, tx.asset)} {tx.asset}
+                </p>
+                {priceUsd ? (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">
+                    ≈ {usd(tx.amount * priceUsd)} USD
+                  </p>
+                ) : null}
+              </>
             ) : (
               <>
                 <p className="num text-[15px] text-muted-foreground">{amountText}</p>
@@ -228,16 +253,11 @@ export function TransactionStatusDialog({
           {/* Details */}
           {!isSwap && (
           <div className="divide-y divide-border/50 border-b border-border px-4">
-            {tx.address && (
-              <Row
-                label={isOut ? "To" : "Deposit address"}
-                value={tx.address}
-                copyValue={tx.address}
-                wrap
-              />
-            )}
-            {priceUsd ? <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} /> : null}
-            <Row label="Asset" value={`${assetName(tx.asset)} (${tx.asset})`} />
+            <Row
+              label="Asset"
+              value={`${assetName(tx.asset)} (${tx.asset})`}
+              icon={<AssetIcon currency={tx.asset} size={20} />}
+            />
             {tx.network && (
               <Row
                 label="Network"
@@ -245,15 +265,21 @@ export function TransactionStatusDialog({
                 icon={<AssetIcon currency={tx.asset} size={20} />}
               />
             )}
-            {isTransfer && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
+            {tx.address && (
+              <Row
+                label={isOut ? "Destination address" : "Deposit address"}
+                value={shortenAddress(tx.address, 8, 8)}
+                copyValue={tx.address}
+              />
+            )}
+            {isOut && priceUsd ? (
+              <Row label="Price" value={usd(priceUsd, priceUsd < 1 ? 6 : 2)} />
+            ) : null}
+            {isOut && <Row label="Network fee" value={usd(fee, fee < 0.01 ? 4 : 2)} />}
             {isTransfer && (
               <Row
                 label="Confirmations"
-                value={
-                  tx.status === "successful"
-                    ? String(required)
-                    : `${confirmations} / ${required}`
-                }
+                value={`${tx.status === "successful" ? required : confirmations} / ${required}`}
               />
             )}
             {isTransfer && tx.status === "pending" && (
@@ -264,33 +290,23 @@ export function TransactionStatusDialog({
                 label="Transaction hash"
                 value={shortenAddress(tx.txHash, 6, 6)}
                 copyValue={tx.txHash}
+                href={explorer ?? undefined}
               />
             )}
             <Row label="Transaction ID" value={shortenAddress(tx.id, 6, 6)} copyValue={tx.id} />
-            <Row
-              label="Date"
-              value={new Date(tx.createdAt).toLocaleString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            />
+            <Row label="Date & time" value={fmtDateTime(tx.createdAt)} />
             {tx.resolvedAt && tx.status !== "pending" && (
               <Row
                 label={
-                  tx.status === "failed" && tx.type === "withdrawal"
-                    ? "Refunded"
-                    : "Reviewed"
+                  tx.status === "failed"
+                    ? tx.type === "withdrawal"
+                      ? "Refunded"
+                      : "Declined"
+                    : tx.type === "deposit"
+                      ? "Block confirmed"
+                      : "Completed at"
                 }
-                value={new Date(tx.resolvedAt).toLocaleString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                value={fmtDateTime(tx.resolvedAt)}
               />
             )}
             {tx.note && <Row label="Compliance note" value={institutionalizeCopy(tx.note)} wrap />}
@@ -357,11 +373,11 @@ export function TransactionStatusDialog({
             {explorer && (
               <a
                 href={explorer}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-secondary py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/70"
+                 target="_blank"
+                 rel="noreferrer noopener"
+                 className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
               >
-                View on block explorer
+                View on Explorer
                 <ExternalLink className="size-4" />
               </a>
             )}
@@ -393,18 +409,20 @@ export function TransactionStatusDialog({
             ) : (
               <>
                 <button
-                  onClick={() => setTicketOpen(true)}
-                  className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full border border-border py-3.5 text-[15px] font-bold text-foreground transition-colors hover:bg-secondary/60"
-                >
-                  <LifeBuoy className="size-4" />
-                  Contact Institutional Support
-                </button>
-                <button
                   onClick={() => onOpenChange(false)}
-                  className="w-full touch-manipulation rounded-full py-2 text-sm font-semibold text-muted-foreground"
+                  className="w-full touch-manipulation rounded-full bg-primary py-3.5 text-[15px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                  Done
+                  Back to Assets
                 </button>
+                {tx.status !== "successful" && (
+                  <button
+                    onClick={() => setTicketOpen(true)}
+                    className="flex w-full touch-manipulation items-center justify-center gap-2 rounded-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    <LifeBuoy className="size-4" />
+                    Contact Institutional Support
+                  </button>
+                )}
               </>
             )}
           </div>
