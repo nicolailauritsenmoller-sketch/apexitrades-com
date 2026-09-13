@@ -59,9 +59,9 @@ export function TimedContractPanel({
     mutationFn: (direction: "up" | "down") =>
       place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.seconds } }),
     onSuccess: (res) => {
-      void logActivity("order", `Opened ${symbol} contract`, { symbol, stake: Number(amount) });
+      void logActivity("order", `Opened ${symbol} scalp contract`, { symbol, stake: Number(amount) });
       toast.success(
-        `Contract open at ${formatPrice(res.entryPrice, symbol)} · target profit ${formatMoney(res.expectedProfit, res.currency)}`,
+        `Contract open at ${formatPrice(res.entryPrice, symbol)} · estimated return ${formatMoney(res.expectedProfit, res.currency)}`,
       );
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
@@ -135,8 +135,11 @@ export function TimedContractPanel({
   const expectedProfit = (stake * tier.profitPct) / 100;
   const disabled = belowMin || overBalance || placeMutation.isPending;
 
+  const sideLabel = (direction: "up" | "down") =>
+    direction === "up" ? "Call / Higher" : "Put / Lower";
+
   return (
-    <div className="panel p-4">
+    <div className="panel overflow-hidden border border-border bg-card p-0">
       {summary && (
         <TradeCloseSummary
           summary={summary}
@@ -151,101 +154,110 @@ export function TimedContractPanel({
           }}
         />
       )}
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
-          <Timer className="size-3.5" /> Timed scalp contract
+
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-foreground">
+          <Timer className="size-3.5 text-primary" /> Scalping
         </h2>
         <span className="num text-xs text-muted-foreground">
           {balance != null ? formatMoney(balance, CONTRACT_CURRENCY) : "—"}
         </span>
       </div>
 
-      <label className="mb-1.5 block text-[11px] uppercase tracking-wider text-muted-foreground">
-        Duration
-      </label>
-      <div className="mb-3 grid grid-cols-3 gap-1.5">
-        {CONTRACT_TIERS.map((t) => (
+      <div className="px-4 py-3">
+        <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Duration
+        </label>
+        <div className="mb-3 inline-flex rounded-lg border border-border p-0.5">
+          {CONTRACT_TIERS.map((t) => (
+            <button
+              key={t.seconds}
+              onClick={() => {
+                setTier(t);
+                if (Number(amount) < t.minInvestment) setAmount(String(t.minInvestment));
+              }}
+              className={`min-w-[3.5rem] rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                tier.seconds === t.seconds
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-3 rounded-md border border-border bg-surface px-3 py-2 text-[11px] text-muted-foreground">
+          Min. investment{" "}
+          <span className="num text-foreground">
+            {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}
+          </span>
+          <span className="mx-1.5 text-border">|</span>
+          Est. return{" "}
+          <span className="num text-bull">{tier.profitPct}%</span>
+          <span className="mx-1.5 text-border">|</span>
+          Est. payout{" "}
+          <span className="num text-foreground">
+            +{formatMoney(expectedProfit, CONTRACT_CURRENCY)}
+          </span>
+        </div>
+
+        <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Investment ({CONTRACT_CURRENCY})
+        </label>
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          inputMode="decimal"
+          aria-invalid={belowMin || overBalance}
+          className={`num mb-2 w-full rounded-md border bg-surface px-3 py-2 text-sm outline-none focus:border-ring ${
+            belowMin || overBalance ? "border-bear" : "border-input"
+          }`}
+        />
+        {belowMin && (
+          <p role="alert" className="mb-2 text-[11px] text-bear">
+            Amount is below the {tier.label} minimum of{" "}
+            {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}.
+          </p>
+        )}
+        {!belowMin && overBalance && (
+          <p role="alert" className="mb-2 text-[11px] text-bear">
+            Not enough {CONTRACT_CURRENCY} balance for this contract.
+          </p>
+        )}
+
+        <dl className="mb-3 space-y-1.5 border-t border-border pt-3 text-xs">
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Estimated return</dt>
+            <dd className="num text-bull">+{formatMoney(expectedProfit, CONTRACT_CURRENCY)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Payout on win</dt>
+            <dd className="num">{formatMoney(stake + expectedProfit, CONTRACT_CURRENCY)}</dd>
+          </div>
+        </dl>
+
+        <div className="grid grid-cols-2 gap-2">
           <button
-            key={t.seconds}
-            onClick={() => {
-              setTier(t);
-              if (Number(amount) < t.minInvestment) setAmount(String(t.minInvestment));
-            }}
-            className={`rounded px-1 py-1.5 text-[11px] leading-tight transition-colors ${
-              tier.seconds === t.seconds
-                ? "bg-primary text-primary-foreground"
-                : "border border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
-            }`}
+            onClick={() => placeMutation.mutate("up")}
+            disabled={disabled}
+            className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-bull py-2.5 text-sm font-semibold text-bull-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
           >
-            <span className="block font-semibold">{t.label}</span>
-            <span className="num block opacity-80">+{t.profitPct}%</span>
+            <TrendingUp className="size-4" /> Call / Higher
           </button>
-        ))}
-      </div>
-
-      <div className="mb-3 rounded-md border border-border bg-surface px-3 py-2 text-[11px] text-muted-foreground">
-        Minimum investment{" "}
-        <span className="num text-foreground">
-          {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}
-        </span>{" "}
-        · expected profit <span className="num text-bull">{tier.profitPct}%</span>
-      </div>
-
-      <label className="mb-1.5 block text-[11px] uppercase tracking-wider text-muted-foreground">
-        Investment ({CONTRACT_CURRENCY})
-      </label>
-      <input
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        inputMode="decimal"
-        aria-invalid={belowMin || overBalance}
-        className={`num mb-2 w-full rounded-md border bg-surface px-3 py-2 text-sm outline-none focus:border-ring ${
-          belowMin || overBalance ? "border-bear" : "border-input"
-        }`}
-      />
-      {belowMin && (
-        <p role="alert" className="mb-2 text-[11px] text-bear">
-          Amount is below the {tier.label} minimum of{" "}
-          {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}.
-        </p>
-      )}
-      {!belowMin && overBalance && (
-        <p role="alert" className="mb-2 text-[11px] text-bear">
-          Not enough {CONTRACT_CURRENCY} balance for this contract.
-        </p>
-      )}
-
-      <dl className="mb-3 space-y-1.5 border-t border-border pt-3 text-xs">
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">Expected profit</dt>
-          <dd className="num text-bull">+{formatMoney(expectedProfit, CONTRACT_CURRENCY)}</dd>
+          <button
+            onClick={() => placeMutation.mutate("down")}
+            disabled={disabled}
+            className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-bear py-2.5 text-sm font-semibold text-bear-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            <TrendingDown className="size-4" /> Put / Lower
+          </button>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">Payout on win</dt>
-          <dd className="num">{formatMoney(stake + expectedProfit, CONTRACT_CURRENCY)}</dd>
-        </div>
-      </dl>
-
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => placeMutation.mutate("up")}
-          disabled={disabled}
-          className="flex items-center justify-center gap-1.5 rounded-md bg-bull py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          <TrendingUp className="size-4" /> Buy Long
-        </button>
-        <button
-          onClick={() => placeMutation.mutate("down")}
-          disabled={disabled}
-          className="flex items-center justify-center gap-1.5 rounded-md bg-bear py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          <TrendingDown className="size-4" /> Sell Short
-        </button>
       </div>
 
       {openContracts.length > 0 && (
-        <>
-          <h3 className="mb-2 mt-5 text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="border-t border-border px-4 py-3">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Running contracts
           </h3>
           <ul className="space-y-2">
@@ -253,12 +265,12 @@ export function TimedContractPanel({
               <ContractCard key={c.id} contract={c} now={now} mark={quotes[c.symbol]?.price} />
             ))}
           </ul>
-        </>
+        </div>
       )}
 
       {settled.length > 0 && (
-        <>
-          <h3 className="mb-2 mt-5 text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="border-t border-border px-4 py-3">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Recent settlements
           </h3>
           <ul className="space-y-1.5 text-xs">
@@ -289,7 +301,7 @@ export function TimedContractPanel({
                     className="flex w-full items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-secondary/60"
                   >
                     <span className="truncate text-muted-foreground">
-                      {c.displaySymbol} · {c.direction === "up" ? "Buy Long" : "Sell Short"}
+                      {c.displaySymbol} · {sideLabel(c.direction)}
                     </span>
                     <LivePnl value={net} currency={c.currency} />
                   </button>
@@ -297,7 +309,7 @@ export function TimedContractPanel({
               );
             })}
           </ul>
-        </>
+        </div>
       )}
     </div>
   );
@@ -326,15 +338,16 @@ function ContractCard({
           ? profit
           : -contract.stake;
 
+  const sideLabel = contract.direction === "up" ? "Call / Higher" : "Put / Lower";
+  const sideClass = contract.direction === "up" ? "text-bull" : "text-bear";
+
   return (
     <li className="rounded-md border border-border bg-surface p-2.5">
       <div className="flex items-center justify-between text-xs">
         <span className="flex min-w-0 items-center gap-1.5 font-medium">
           <AssetIcon symbol={contract.symbol} size={18} />
           <span className="truncate">{contract.displaySymbol}</span>{" "}
-          <span className={contract.direction === "up" ? "text-bull" : "text-bear"}>
-            {contract.direction === "up" ? "Buy Long" : "Sell Short"}
-          </span>
+          <span className={sideClass}>{sideLabel}</span>
         </span>
         <span className="num tabular-nums">
           {left > 0 ? formatCountdown(left) : "Settling…"}
