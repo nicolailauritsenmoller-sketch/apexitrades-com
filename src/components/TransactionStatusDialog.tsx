@@ -206,6 +206,17 @@ export function TransactionStatusDialog({
                   <p className="num mt-1 text-[15px] text-muted-foreground">{swapUsdText}</p>
                 )}
               </>
+            ) : tx.type === "deposit" ? (
+              <>
+                <p className={`num text-[34px] font-bold leading-tight tracking-tight ${tx.status === "failed" ? "text-bear" : "text-bull"}`}>
+                  +{fmtAsset(tx.amount, tx.asset)} {tx.asset}
+                </p>
+                {priceUsd ? (
+                  <p className="num mt-1 text-[15px] text-muted-foreground">
+                    ≈ {usd(tx.amount * priceUsd)} USD
+                  </p>
+                ) : null}
+              </>
             ) : (
               <>
                 <p className="num text-[15px] text-muted-foreground">{amountText}</p>
