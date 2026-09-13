@@ -5,14 +5,11 @@ export type ContractTier = {
   profitPct: number;
 };
 
-/** Fixed-time contract tiers. Stakes are always settled in USDT. */
+/** Fixed-time scalp contract tiers. Stakes are always settled in USDT. */
 export const CONTRACT_TIERS: ContractTier[] = [
-  { seconds: 60, label: "60 Seconds", minInvestment: 100, profitPct: 10 },
-  { seconds: 120, label: "120 Seconds", minInvestment: 2000, profitPct: 15 },
-  { seconds: 180, label: "180 Seconds", minInvestment: 8000, profitPct: 18.3 },
-  { seconds: 3600, label: "1 Hour", minInvestment: 20000, profitPct: 20 },
-  { seconds: 86400, label: "24 Hours", minInvestment: 50000, profitPct: 25 },
-  { seconds: 604800, label: "7 Days", minInvestment: 80000, profitPct: 45 },
+  { seconds: 60, label: "60s", minInvestment: 100, profitPct: 10 },
+  { seconds: 120, label: "120s", minInvestment: 2000, profitPct: 15 },
+  { seconds: 300, label: "300s", minInvestment: 8000, profitPct: 18.3 },
 ];
 
 export const CONTRACT_CURRENCY = "USDT";
