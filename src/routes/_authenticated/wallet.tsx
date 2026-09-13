@@ -411,7 +411,18 @@ function DepositTab({
 
   async function copyAddress() {
     if (!addr) return;
-    await navigator.clipboard.writeText(addr.address);
+    try {
+      await navigator.clipboard.writeText(addr.address);
+    } catch {
+      const field = document.createElement("textarea");
+      field.value = addr.address;
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      document.execCommand("copy");
+      field.remove();
+    }
     setCopied(true);
     toast.success("Deposit address copied");
     window.setTimeout(() => setCopied(false), 1800);
