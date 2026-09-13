@@ -517,7 +517,7 @@ function DepositTab({
       {addr && (
         <section className="panel p-4 sm:p-6">
           <div className="mb-4">
-            <h3 className="text-base font-bold">Submit transfer for clearing</h3>
+            <h3 className="text-base font-bold">Notify Deposit</h3>
             <p className="mt-1 text-xs text-muted-foreground">Enter your transfer details after sending funds to the address above.</p>
           </div>
             <div className="space-y-3">
@@ -578,11 +578,11 @@ function DepositTab({
                 className="h-12 w-full text-sm font-bold"
               >
                 <ArrowDownToLine className="size-4" strokeWidth={2.8} />
-                {mutation.isPending || uploading ? "Submitting…" : "Submit for clearing"}
+                {mutation.isPending || uploading ? "Submitting…" : "Confirm Deposit"}
               </Button>
               <TrustStrip />
               <p className="text-[11px] text-muted-foreground">
-                Your deposit will appear as Pending in Transaction History and update automatically when clearing is complete.
+                Once sent, your deposit will automatically appear as Pending in your Transaction History until network confirmations complete.
               </p>
             </div>
         </section>
