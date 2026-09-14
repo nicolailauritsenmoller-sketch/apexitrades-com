@@ -72,41 +72,59 @@ function Home() {
   const total = value.data?.totalUsdt ?? 0;
   const pct = total > 0 ? (todayPnl / total) * 100 : 0;
 
+  const pnlSign = todayPnl >= 0 ? "+" : "";
+  const pctSign = pct >= 0 ? "+" : "";
+  const pnlDecimals = Math.abs(todayPnl) > 0 && Math.abs(todayPnl) < 0.01 ? 8 : 2;
+
   return (
     <AppShell>
       {/* Balance hero */}
       <section className="panel p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-xs font-medium text-muted-foreground">Total balance</div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <span>Est. Total Value (USD)</span>
+              <ChevronDown className="size-3.5" />
+              <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
+            </div>
+
             <div className="num mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
               {value.isLoading ? (
                 "—"
               ) : hidden ? (
                 "••••••"
               ) : (
-                <>
-                  {total.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  <span className="ml-1.5 text-base font-semibold text-muted-foreground">USDT</span>
-                </>
+                `$${total.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
               )}
             </div>
+
+            <div className="mt-2 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <span>Today&apos;s PNL</span>
+              <ChevronDown className="size-3" />
+            </div>
             <div
-              className={`num mt-1 text-sm font-semibold ${todayPnl >= 0 ? "text-bull" : "text-bear"}`}
+              className={`num text-sm font-semibold ${todayPnl >= 0 ? "text-bull" : "text-bear"}`}
             >
               {hidden
                 ? "••••"
-                : `${todayPnl >= 0 ? "+" : ""}${todayPnl.toFixed(2)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%) Today`}
+                : `${pnlSign}${Math.abs(todayPnl).toLocaleString("en-US", {
+                    minimumFractionDigits: pnlDecimals,
+                    maximumFractionDigits: pnlDecimals,
+                  })} (${pctSign}${pct.toFixed(2)}%)`}
             </div>
           </div>
-          <BalancePrivacyToggle hidden={hidden} onToggle={toggle} />
-        </div>
 
-        <div className="mt-4">
-          <HomeActionBar />
+          <Link
+            to="/wallet"
+            search={{ tab: "deposit" }}
+            className="flex min-h-11 touch-manipulation items-center gap-2 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow-primary transition-transform active:scale-[0.97]"
+          >
+            <ArrowDownToLine className="size-4" strokeWidth={2.6} />
+            Add Funds
+          </Link>
         </div>
       </section>
 
