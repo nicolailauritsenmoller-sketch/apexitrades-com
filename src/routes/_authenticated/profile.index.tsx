@@ -184,6 +184,10 @@ function ProfileHome() {
                 <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-300/25 to-amber-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
                   <Crown className="size-3" /> {VIP_TIER_LABEL[vipTier] ?? "VIP"}
                 </span>
+              ) : isVipPending(vipTier) ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                  <Hourglass className="size-3" /> VIP (Pending)
+                </span>
               ) : (
                 <Link
                   to="/vip-upgrade"
