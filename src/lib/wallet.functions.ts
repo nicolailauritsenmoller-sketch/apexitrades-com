@@ -5,7 +5,7 @@ import { MIN_WITHDRAWAL_CREDIT_SCORE } from "@/lib/limits";
 
 const depositInput = z.object({
   coin: z.string().min(1).max(12),
-  network: z.string().min(1).max(24),
+  network: z.string().min(1).max(48),
   amount: z.number().positive().max(100_000_000),
   txHash: z.string().trim().max(200).optional(),
   receiptPath: z.string().trim().max(400).optional(),
@@ -13,7 +13,7 @@ const depositInput = z.object({
 
 const withdrawInput = z.object({
   coin: z.string().min(1).max(16),
-  network: z.string().min(1).max(24),
+  network: z.string().min(1).max(48),
   amount: z.number().positive().max(100_000_000),
   destinationAddress: z.string().trim().min(8).max(200),
   withdrawalPassword: z.string().max(200).optional(),
