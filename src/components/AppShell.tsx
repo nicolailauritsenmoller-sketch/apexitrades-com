@@ -18,7 +18,7 @@ import { InstallAppButton } from "@/components/PwaInstall";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 import brandLogo from "@/assets/velocity-trade-logo.png";
-import { getMyAccess } from "@/lib/admin.functions";
+import { getMyAccess, getPendingVipRequests } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { logActivity, startDomCapture, startInteractionFlush } from "@/lib/telemetry";
 import { startSessionRecording, stopSessionRecording } from "@/lib/replay-recorder";
@@ -73,6 +73,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
   const isAdmin = access.data?.isAdmin === true;
   const pathname = router.state.location.pathname;
+
+  // Pending VIP membership requests badge on the Control Center entry.
+  const fetchPendingVip = useServerFn(getPendingVipRequests);
+  const pendingVip = useQuery({
+    queryKey: ["admin-vip-pending"],
+    queryFn: () => fetchPendingVip(),
+    enabled: isAdmin,
+    refetchInterval: 15_000,
+  });
+  const pendingVipCount = (pendingVip.data ?? []).length;
 
   // Warm every top-level route chunk once the app is idle so tab switches are instant.
   useEffect(() => {
@@ -149,10 +159,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             {isAdmin ? (
               <Link
                 to="/sys-portal-x97"
-                className="hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
+                className="relative hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
               >
                 <ShieldCheck className="size-4" />
                 {t("nav.admin")}
+                {pendingVipCount > 0 && (
+                  <span
+                    aria-label={`${pendingVipCount} pending VIP requests`}
+                    className="absolute -right-1.5 -top-1.5 grid min-w-4 place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white"
+                  >
+                    {pendingVipCount}
+                  </span>
+                )}
               </Link>
             ) : null}
             <InstallAppButton />
