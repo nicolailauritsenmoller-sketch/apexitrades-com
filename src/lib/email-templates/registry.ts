@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { template as vipWelcomeTemplate } from './vip-welcome'
 
 export interface TemplateEntry {
   component: ComponentType<any>
