@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useDisplayCurrency } from "@/lib/display-currency";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
@@ -100,6 +101,7 @@ function Portfolio() {
     }
   }
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
+  const display = useDisplayCurrency();
   const [range, setRange] = useState<Range>("1M");
   const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
@@ -118,20 +120,16 @@ function Portfolio() {
       <section className="panel touch-manipulation p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs font-medium text-muted-foreground">Total Portfolio Value</div>
+            <div className="text-xs font-medium text-muted-foreground">
+              Est. Total Value ({display.currency})
+            </div>
             <div className="num mt-1 text-3xl font-bold tracking-tight">
               {value.isLoading ? (
                 "—"
               ) : balancesHidden ? (
                 "••••••"
               ) : (
-                <>
-                  {(value.data?.totalUsdt ?? 0).toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  <span className="ml-1.5 text-base font-semibold text-muted-foreground">USDT</span>
-                </>
+                display.format(value.data?.totalUsdt ?? 0)
               )}
             </div>
           </div>
@@ -154,6 +152,7 @@ function Portfolio() {
           amount={todayRealized}
           loading={dailyPnl.isLoading}
           hidden={balancesHidden}
+          format={display.format}
         />
         <PnlCard
           label="Total Unrealized P&L"
@@ -161,6 +160,7 @@ function Portfolio() {
           amount={totalUnrealized}
           loading={isLoading}
           hidden={balancesHidden}
+          format={display.format}
         />
       </div>
 
@@ -169,20 +169,20 @@ function Portfolio() {
         <MiniStat
           label="Unrealized P&L"
           value={
-            balancesHidden ? "••••" : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`
+            balancesHidden ? "••••" : display.formatSigned(totalUnrealized)
           }
-          sub="USDT"
+          sub={display.currency}
           tone={totalUnrealized >= 0 ? "bull" : "bear"}
         />
         <MiniStat
           label="Available Balance"
-          value={balancesHidden || available == null ? "••••" : (available ?? 0).toFixed(2)}
-          sub="USDT"
+          value={balancesHidden || available == null ? "••••" : display.format(available ?? 0)}
+          sub={display.currency}
         />
         <MiniStat
           label="Realized P&L"
-          value={balancesHidden ? "••••" : `${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
-          sub="USDT"
+          value={balancesHidden ? "••••" : display.formatSigned(realized)}
+          sub={display.currency}
           tone={realized >= 0 ? "bull" : "bear"}
         />
       </div>
@@ -199,6 +199,7 @@ function Portfolio() {
         <AssetsOverview
           holdings={value.data?.wallets ?? []}
           totalUsdt={value.data?.totalUsdt ?? 0}
+          formatValue={display.format}
           isLoading={value.isLoading}
           hidden={balancesHidden}
         />
@@ -259,12 +260,14 @@ function PnlCard({
   amount,
   loading,
   hidden,
+  format,
 }: {
   label: string;
   hint: string;
   amount: number;
   loading?: boolean;
   hidden?: boolean;
+  format: (usdt: number) => string;
 }) {
   const positive = amount >= 0;
   return (
@@ -277,10 +280,7 @@ function PnlCard({
           ? "—"
           : hidden
             ? "••••••"
-            : `${positive ? "+" : "-"}$${Math.abs(amount).toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}`}
+            : `${positive ? "+" : "-"}${format(Math.abs(amount))}`}
       </div>
       <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
     </div>

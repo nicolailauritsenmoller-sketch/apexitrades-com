@@ -8,6 +8,7 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { useT } from "@/lib/i18n";
 import { getPortfolioValue } from "@/lib/wallet.functions";
 import { useDailyPnl } from "@/hooks/useDailyPnl";
+import { useDisplayCurrency } from "@/lib/display-currency";
 import {
   WatchlistSection,
   TopMoversSection,
@@ -58,13 +59,15 @@ function Home() {
   const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
 
   const { hidden, toggle } = useBalancePrivacy();
+  const { currency, convert, format } = useDisplayCurrency();
   const total = value.data?.totalUsdt ?? 0;
   const baseline = total - todayPnl;
   const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
 
   const pnlSign = todayPnl >= 0 ? "+" : "";
   const pctSign = pct >= 0 ? "+" : "";
-  const pnlDecimals = Math.abs(todayPnl) > 0 && Math.abs(todayPnl) < 0.01 ? 8 : 2;
+  const convertedPnl = Math.abs(convert(todayPnl));
+  const pnlDecimals = convertedPnl > 0 && convertedPnl < 0.01 ? 8 : undefined;
 
   return (
     <AppShell>
@@ -73,7 +76,7 @@ function Home() {
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span>{t("dashboard.estTotalValue")}</span>
+              <span>Est. Total Value ({currency})</span>
               <ChevronDown className="size-3.5" />
               <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
             </div>
@@ -84,10 +87,7 @@ function Home() {
               ) : hidden ? (
                 "••••••"
               ) : (
-                `$${total.toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+                format(total)
               )}
             </div>
 
@@ -100,10 +100,7 @@ function Home() {
             >
               {hidden
                 ? "••••"
-                : `${pnlSign}$${Math.abs(todayPnl).toLocaleString("en-US", {
-                    minimumFractionDigits: pnlDecimals,
-                    maximumFractionDigits: pnlDecimals,
-                  })} (${pctSign}${pct.toFixed(2)}%)`}
+                : `${pnlSign}${format(Math.abs(todayPnl), { decimals: pnlDecimals })} (${pctSign}${pct.toFixed(2)}%)`}
             </div>
           </div>
 

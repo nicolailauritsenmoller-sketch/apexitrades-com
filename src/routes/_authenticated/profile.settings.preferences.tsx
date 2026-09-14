@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, Coins, Crown, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
+import { useDisplayCurrency, DISPLAY_CURRENCIES } from "@/lib/display-currency";
+import { DisplayCurrencyDialog } from "@/components/DisplayCurrencyDialog";
 import { ThemeSetting } from "@/lib/theme";
 import {
   Select,
@@ -13,7 +16,7 @@ import {
 import { LANGUAGES, useI18n, type LangCode } from "@/lib/i18n";
 import { logActivity } from "@/lib/telemetry";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "BTC", "USDT"];
+
 
 
 export const Route = createFileRoute("/_authenticated/profile/settings/preferences")({
@@ -38,7 +41,8 @@ export const Route = createFileRoute("/_authenticated/profile/settings/preferenc
 });
 
 function PreferenceSettings() {
-  const [currency, setCurrency] = usePreference("displayCurrency", "USD");
+  const { currency } = useDisplayCurrency();
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [, setLanguagePref] = usePreference("language", "en");
   const { lang, setLang, t } = useI18n();
 
@@ -57,30 +61,23 @@ function PreferenceSettings() {
         backLabel="Settings"
       />
 
-      <Section icon={Coins} title={t("common.currency")} description={t("prefs.currencyHelp")}>
-        <div className="flex flex-wrap gap-2">
-          {CURRENCIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => {
-                setCurrency(c);
-                void logActivity("settings", `Changed display currency to ${c}`, {
-                  setting: "displayCurrency",
-                  value: c,
-                });
-              }}
-              className={`min-h-9 touch-manipulation rounded-xl border px-4 text-sm font-semibold transition-colors ${
-                currency === c
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+      <Section icon={Coins} title="Display Currency" description={t("prefs.currencyHelp")}>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex w-full touch-manipulation items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-secondary"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">{currency}</span>
+            <span className="block text-[11px] text-muted-foreground">
+              {DISPLAY_CURRENCIES.find((c) => c.code === currency)?.name ?? "Live converted"}
+            </span>
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </button>
+        <DisplayCurrencyDialog open={pickerOpen} onOpenChange={setPickerOpen} />
       </Section>
+
 
       <Section icon={Languages} title={t("common.language")} description={t("prefs.languageHelp")}>
         <div data-no-translate>

@@ -31,6 +31,7 @@ function usd(value: number) {
   return `$${fmt(value)}`;
 }
 
+
 type CategoryTab = "all" | "crypto" | "stocks" | "commodities" | "fiat";
 
 const TABS: { key: CategoryTab; label: string }[] = [
@@ -70,12 +71,15 @@ export function AssetsOverview({
   isLoading,
   hideEmpty = true,
   hidden = false,
+  formatValue,
 }: {
   holdings: AssetHolding[];
   totalUsdt: number;
   isLoading?: boolean;
   hideEmpty?: boolean;
   hidden?: boolean;
+  /** Formats a USDT-denominated value into the user's display currency. */
+  formatValue?: (usdt: number) => string;
 }) {
   const [hideZero, setHideZero] = useState(hideEmpty);
   const [search, setSearch] = useState("");
@@ -186,7 +190,7 @@ export function AssetsOverview({
                 <div className="text-right">
                   <div className="num text-sm font-semibold">{mv(qty(h.balance, h.currency))}</div>
                   <div className="num text-[11px] text-muted-foreground">
-                    {mv(usd(h.valueUsdt))}
+                    {mv((formatValue ?? usd)(h.valueUsdt))}
                   </div>
                 </div>
                 <ChevronDown
