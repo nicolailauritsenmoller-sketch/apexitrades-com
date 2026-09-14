@@ -1644,12 +1644,19 @@ export const getVipMembers = createServerFn({ method: "POST" })
     if (ids.length === 0) return [];
 
     const { usdtRates } = await import("./rates.server");
-    const [{ data: wallets }, rates] = await Promise.all([
+    const [{ data: wallets }, rates, { data: audits }] = await Promise.all([
       db.from("wallets").select("user_id,currency,balance").in("user_id", ids),
       usdtRates(),
+      db
+        .from("admin_audit_logs")
+        .select("actor_id,actor_name,action,target_user_id,created_at")
+        .in("target_user_id", ids)
+        .in("action", ["vip.approve", "vip.grant"])
+        .order("created_at", { ascending: false }),
     ]);
 
     return ((rows ?? []) as any[]).map((p) => {
+      const approval = ((audits ?? []) as any[]).find((a) => a.target_user_id === p.id) ?? null;
       const equity = ((wallets ?? []) as any[])
         .filter((w) => w.user_id === p.id)
         .reduce((sum, w) => sum + Number(w.balance ?? 0) * ((rates as any)[w.currency] ?? 0), 0);
@@ -1660,6 +1667,69 @@ export const getVipMembers = createServerFn({ method: "POST" })
         email: (p.email ?? null) as string | null,
         equityUsdt: equity,
         promotedAt: (p.vip_upgraded_at ?? p.created_at) as string,
+        approvedById: (approval?.actor_id ?? null) as string | null,
+        approvedByName: (approval?.actor_name ?? null) as string | null,
       };
     });
+  });
+
+
+/**
+ * Archive of declined VIP submissions, reconstructed from the immutable audit
+ * trail. Accounts that were later approved are excluded.
+ */
+export const getDeclinedVipRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+
+    const { data: logs, error } = await db
+      .from("admin_audit_logs")
+      .select("actor_id,actor_name,action,target_user_id,details,created_at")
+      .in("action", ["vip.reject", "vip.revoke"])
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+
+    const latest = new Map<string, any>();
+    for (const row of (logs ?? []) as any[]) {
+      if (!row.target_user_id) continue;
+      if (!latest.has(row.target_user_id)) latest.set(row.target_user_id, row);
+    }
+    const ids = [...latest.keys()];
+    if (ids.length === 0) return [];
+
+    const [{ data: profiles }, { data: deposits }] = await Promise.all([
+      db.from("profiles").select("id,display_name,uid,email,vip_tier").in("id", ids),
+      db
+        .from("deposits")
+        .select("user_id,coin,amount,status,created_at")
+        .in("user_id", ids)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false }),
+    ]);
+
+    return ((profiles ?? []) as any[])
+      // Anyone currently VIP or back in review is no longer a declined record.
+      .filter((p) => (p.vip_tier ?? "regular") === "regular")
+      .map((p) => {
+        const log = latest.get(p.id);
+        const mine = ((deposits ?? []) as any[]).filter((d) => d.user_id === p.id);
+        const usdtTotal = mine
+          .filter((d) => String(d.coin).toUpperCase().startsWith("USD"))
+          .reduce((a, d) => a + Number(d.amount ?? 0), 0);
+        return {
+          userId: p.id as string,
+          displayName: (p.display_name ?? "Trader") as string,
+          uid: (p.uid ?? null) as string | null,
+          email: (p.email ?? null) as string | null,
+          depositUsdt: usdtTotal,
+          reason: (log?.details?.note ?? null) as string | null,
+          action: (log?.action ?? "vip.reject") as string,
+          declinedAt: (log?.created_at ?? null) as string | null,
+          declinedByName: (log?.actor_name ?? null) as string | null,
+        };
+      })
+      .sort((a, b) => String(b.declinedAt).localeCompare(String(a.declinedAt)));
   });
