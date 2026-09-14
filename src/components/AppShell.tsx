@@ -72,6 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     staleTime: 60_000,
   });
   const isAdmin = access.data?.isAdmin === true;
+  const pathname = router.state.location.pathname;
 
   // Warm every top-level route chunk once the app is idle so tab switches are instant.
   useEffect(() => {
@@ -155,7 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ) : null}
             <InstallAppButton />
-            <NotificationBell />
+            {pathname === "/" || pathname === "/dashboard" ? <NotificationBell /> : null}
             <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:flex">
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               {t("nav.liveAccount")}
