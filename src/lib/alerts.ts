@@ -154,8 +154,14 @@ function pickVoice(zh = false): SpeechSynthesisVoice | null {
 }
 
 /** Speaks a phrase once, picking a Mandarin voice for Chinese text. */
-export function speak(text: string) {
+export function speak(text: string, retried = false) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  // Voices load asynchronously on first use; retry once they arrive.
+  if (!retried && window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.addEventListener("voiceschanged", () => speak(text, true), {
+      once: true,
+    });
+  }
   try {
     const zh = isZh(text);
     const u = new SpeechSynthesisUtterance(text);

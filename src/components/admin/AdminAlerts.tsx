@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,6 +85,11 @@ export function AdminAlerts() {
     [sound, push],
   );
 
+  // Latest handlers kept in refs so the realtime channel subscribes exactly once
+  // and never drops events while toggling sound/push.
+  const handlers = useRef({ alert, settle, cue, sound, push });
+  handlers.current = { alert, settle, cue, sound, push };
+
   // Stop the looping chat bell as soon as an agent looks at the support desk.
   useEffect(() => {
     const stop = () => stopChatLoop();
@@ -96,8 +101,15 @@ export function AdminAlerts() {
   }, []);
 
   useEffect(() => {
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    // Proxies read the latest handlers, so the channel never has to be rebuilt.
+    const alert: typeof handlers.current.alert = (...a) => handlers.current.alert(...a);
+    const settle: typeof handlers.current.settle = (...a) => handlers.current.settle(...a);
+    const cue: typeof handlers.current.cue = (...a) => handlers.current.cue(...a);
+    const sound = () => handlers.current.sound;
+    const push = () => handlers.current.push;
     const channel = supabase
-      .channel("desk-alerts")
+      .channel(`desk-alerts-${Date.now()}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "user_sessions" },
@@ -236,20 +248,49 @@ export function AdminAlerts() {
         if (watched) {
           // Conversation is open and focused: single subtle chime, no loop.
           stopChatLoop();
-          if (sound) playSoftPing();
-          if (push) pushNotify("New live chat message", String(r.body).slice(0, 120), "chat");
+          if (sound()) playSoftPing();
+          if (push()) pushNotify("New live chat message", String(r.body).slice(0, 120), "chat");
           toast("New live chat message", { description: String(r.body).slice(0, 120) });
           return;
         }
         alert("chat", "New live chat message", String(r.body).slice(0, 120), true);
       })
-
-      .subscribe();
+      // Priority support: a brand-new ticket thread or a user reply on one.
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "support_ticket_messages" },
+        (p) => {
+          const r = (p.new ?? {}) as any;
+          if (r.sender_role && r.sender_role !== "user") return;
+          window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
+          alert("chat", "New priority support message", String(r.body ?? "").slice(0, 120), true);
+        },
+      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "vip_messages" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        if (r.sender_role && r.sender_role !== "user") return;
+        window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
+        alert("chat", "New VIP chat message", String(r.body ?? "").slice(0, 120), true);
+      })
+      .subscribe((status) => {
+        // Self-heal: a dropped socket (or a reset that severs the connection)
+        // must not leave the console silent.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          retry = setTimeout(() => {
+            try {
+              void channel.subscribe();
+            } catch {
+              /* channel already torn down */
+            }
+          }, 3000);
+        }
+      });
 
     return () => {
+      if (retry) clearTimeout(retry);
       supabase.removeChannel(channel);
     };
-  }, [alert, settle, cue]);
+  }, []);
 
   async function togglePush() {
     if (push) {
