@@ -11,7 +11,6 @@ export const DISPLAY_CURRENCIES = [
   { code: "EUR", name: "Euro", kind: "fiat" as const },
   { code: "GBP", name: "British Pound", kind: "fiat" as const },
   { code: "BTC", name: "Bitcoin", kind: "crypto" as const },
-  { code: "ETH", name: "Ethereum", kind: "crypto" as const },
 ];
 
 export const DEFAULT_DISPLAY_CURRENCY = "USDT";
@@ -19,7 +18,7 @@ export const DEFAULT_DISPLAY_CURRENCY = "USDT";
 const SYMBOL: Record<string, string> = { USD: "$", EUR: "€", GBP: "£" };
 
 function decimalsFor(code: string) {
-  return code === "BTC" || code === "ETH" ? 6 : 2;
+  return code === "BTC" ? 6 : 2;
 }
 
 /** Formats an amount already expressed in `code`. */
