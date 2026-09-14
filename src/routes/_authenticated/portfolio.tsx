@@ -253,6 +253,40 @@ function Portfolio() {
   );
 }
 
+function PnlCard({
+  label,
+  hint,
+  amount,
+  loading,
+  hidden,
+}: {
+  label: string;
+  hint: string;
+  amount: number;
+  loading?: boolean;
+  hidden?: boolean;
+}) {
+  const positive = amount >= 0;
+  return (
+    <div className="panel touch-manipulation p-4">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div
+        className={`num mt-1 text-2xl font-bold tracking-tight ${positive ? "text-bull" : "text-bear"}`}
+      >
+        {loading
+          ? "—"
+          : hidden
+            ? "••••••"
+            : `${positive ? "+" : "-"}$${Math.abs(amount).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+      </div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
+    </div>
+  );
+}
+
 function MiniStat({
   label,
   value,
