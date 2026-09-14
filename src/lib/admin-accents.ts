@@ -101,6 +101,7 @@ export const TAB_ACCENT: Record<string, OpsAccent> = {
   broadcast: "amber",
   ratings: "amber",
   agent: "amber",
+  community: "emerald",
 };
 
 export function tabAccent(id: string): OpsAccent {
