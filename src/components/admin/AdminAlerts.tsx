@@ -101,8 +101,14 @@ export function AdminAlerts() {
   }, []);
 
   useEffect(() => {
+    // Proxies read the latest handlers, so the channel never has to be rebuilt.
+    const alert: typeof handlers.current.alert = (...a) => handlers.current.alert(...a);
+    const settle: typeof handlers.current.settle = (...a) => handlers.current.settle(...a);
+    const cue: typeof handlers.current.cue = (...a) => handlers.current.cue(...a);
+    const sound = () => handlers.current.sound;
+    const push = () => handlers.current.push;
     const channel = supabase
-      .channel("desk-alerts")
+      .channel(`desk-alerts-${Date.now()}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "user_sessions" },
