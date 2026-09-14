@@ -23,6 +23,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authenticated/sys-portal-x97'
+import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authenticated/vip-upgrade'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
@@ -111,6 +112,11 @@ const AuthenticatedSysPortalX97Route =
     path: '/sys-portal-x97',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVipUpgradeRoute = AuthenticatedVipUpgradeRouteImport.update({
+  id: '/vip-upgrade',
+  path: '/vip-upgrade',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
+  '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
+  '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/sys-portal-x97': typeof AuthenticatedSysPortalX97Route
+  '/_authenticated/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
   '/_authenticated/profile/help': typeof AuthenticatedProfileHelpRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/profile'
     | '/sys-portal-x97'
+    | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
     | '/profile/help'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/portfolio'
     | '/sys-portal-x97'
+    | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
     | '/profile/help'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portfolio'
     | '/_authenticated/profile'
     | '/_authenticated/sys-portal-x97'
+    | '/_authenticated/vip-upgrade'
     | '/_authenticated/wallet'
     | '/legal/$doc'
     | '/_authenticated/profile/help'
@@ -505,6 +517,13 @@ declare module '@tanstack/react-router' {
       path: '/sys-portal-x97'
       fullPath: '/sys-portal-x97'
       preLoaderRoute: typeof AuthenticatedSysPortalX97RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vip-upgrade': {
+      id: '/_authenticated/vip-upgrade'
+      path: '/vip-upgrade'
+      fullPath: '/vip-upgrade'
+      preLoaderRoute: typeof AuthenticatedVipUpgradeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/wallet': {
@@ -664,6 +683,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedSysPortalX97Route: typeof AuthenticatedSysPortalX97Route
+  AuthenticatedVipUpgradeRoute: typeof AuthenticatedVipUpgradeRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
 }
@@ -677,6 +697,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedSysPortalX97Route: AuthenticatedSysPortalX97Route,
+  AuthenticatedVipUpgradeRoute: AuthenticatedVipUpgradeRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
 }

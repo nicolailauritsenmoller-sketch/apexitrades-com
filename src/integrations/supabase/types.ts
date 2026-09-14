@@ -717,6 +717,8 @@ export type Database = {
           suspension_status: string
           trading_frozen: boolean
           uid: string | null
+          vip_tier: string
+          vip_upgraded_at: string | null
           withdrawal_password_hash: string | null
           withdrawal_password_updated_at: string | null
           withdrawals_disabled: boolean
@@ -744,6 +746,8 @@ export type Database = {
           suspension_status?: string
           trading_frozen?: boolean
           uid?: string | null
+          vip_tier?: string
+          vip_upgraded_at?: string | null
           withdrawal_password_hash?: string | null
           withdrawal_password_updated_at?: string | null
           withdrawals_disabled?: boolean
@@ -771,6 +775,8 @@ export type Database = {
           suspension_status?: string
           trading_frozen?: boolean
           uid?: string | null
+          vip_tier?: string
+          vip_upgraded_at?: string | null
           withdrawal_password_hash?: string | null
           withdrawal_password_updated_at?: string | null
           withdrawals_disabled?: boolean

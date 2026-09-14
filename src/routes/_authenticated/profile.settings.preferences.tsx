@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Coins, Languages, Palette } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronRight, Coins, Crown, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { ThemeSetting } from "@/lib/theme";
@@ -108,6 +108,20 @@ function PreferenceSettings() {
       <Section icon={Palette} title={t("common.theme")} description={t("prefs.themeHelp")}>
         <ThemeSetting />
       </Section>
+
+      <Link
+        to="/vip-upgrade"
+        className="flex touch-manipulation items-center gap-3 rounded-2xl border border-amber-500/30 bg-card px-4 py-4 transition-colors hover:bg-secondary"
+      >
+        <Crown className="size-[18px] shrink-0 text-amber-500" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">Upgrade to VIP</span>
+          <span className="block text-xs text-muted-foreground">
+            Zero fees, priority account manager and elevated limits.
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </Link>
     </>
   );
 }

@@ -144,6 +144,9 @@ export const reviewDeposit = createServerFn({ method: "POST" })
           .from("wallets")
           .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
       }
+
+      const { maybeActivateVip } = await import("./vip-activation.server");
+      await maybeActivateVip(dep.user_id);
     }
 
     await writeAudit(context, `deposit.${data.action}`, dep.user_id, {

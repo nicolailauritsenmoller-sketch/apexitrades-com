@@ -36,6 +36,13 @@
       "when": 1789180585074,
       "tag": "0004_session_replay_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789344788910,
+      "tag": "0005_add_vip_tier",
+      "breakpoints": true
     }
   ]
 }

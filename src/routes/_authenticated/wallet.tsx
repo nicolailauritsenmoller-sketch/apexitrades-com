@@ -59,9 +59,13 @@ const TAB_IDS = ["deposit", "withdraw", "swap"] as const;
 type TabId = (typeof TAB_IDS)[number];
 
 export const Route = createFileRoute("/_authenticated/wallet")({
-  validateSearch: (search: Record<string, unknown>): { tab: TabId } => {
+  validateSearch: (search: Record<string, unknown>): { tab: TabId; amount?: number } => {
     const t = String(search["tab"] ?? "deposit") as TabId;
-    return { tab: TAB_IDS.includes(t) ? t : "deposit" };
+    const raw = Number(search["amount"]);
+    return {
+      tab: TAB_IDS.includes(t) ? t : "deposit",
+      ...(Number.isFinite(raw) && raw > 0 ? { amount: raw } : {}),
+    };
   },
   head: () => ({
     meta: [
@@ -92,7 +96,7 @@ export const Route = createFileRoute("/_authenticated/wallet")({
 function WalletPage() {
   const qc = useQueryClient();
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
-  const { tab } = Route.useSearch();
+  const { tab, amount: presetAmount } = Route.useSearch();
   const navigate = useNavigate();
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
@@ -206,6 +210,7 @@ function WalletPage() {
       {tab === "deposit" && (
         <DepositTab
           addresses={addresses.data ?? []}
+          initialAmount={presetAmount}
           onDone={refresh}
           onSubmitted={setActiveTx}
         />
@@ -310,15 +315,17 @@ function depositNetworkDetails(network: string, coin: string) {
 
 function DepositTab({
   addresses,
+  initialAmount,
   onDone,
   onSubmitted,
 }: {
   addresses: Address[];
+  initialAmount?: number | undefined;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
   const [selectedId, setSelectedId] = useState(addresses[0]?.id ?? "");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(initialAmount ? String(initialAmount) : "");
   const [txHash, setTxHash] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
