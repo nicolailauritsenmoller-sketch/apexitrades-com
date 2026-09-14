@@ -32,10 +32,13 @@ export const Route = createFileRoute("/_authenticated/profile/settings/")({
 function SettingsHub() {
   const queryClient = useQueryClient();
   const fetchOverview = useServerFn(getProfileOverview);
+  const fetchKyc = useServerFn(getMyKyc);
   const saveProfile = useServerFn(updateProfile);
 
   const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
+  const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
   const profile = overview.data?.profile;
+  const kycStatus = kyc.data?.status ?? "unverified";
 
   const [displayName, setDisplayName] = useState("");
   useEffect(() => {
@@ -95,6 +98,26 @@ function SettingsHub() {
           </p>
         )}
         <p className="mt-3 text-xs text-muted-foreground">Email · {profile?.email ?? "—"}</p>
+
+        <div className="mt-4 border-t border-border pt-4">
+          <Link
+            to="/profile/verification"
+            className="flex touch-manipulation items-center justify-between gap-3 rounded-lg border border-border bg-background p-3 transition-colors hover:bg-secondary"
+          >
+            <span className="flex items-center gap-3">
+              <BadgeCheck className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Identity Verification</span>
+            </span>
+            <span className="flex items-center gap-2">
+              <span
+                className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[kycStatus]}`}
+              >
+                {KYC_LABEL[kycStatus] ?? kycStatus}
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </span>
+          </Link>
+        </div>
       </section>
 
       <div className="grid gap-3 md:grid-cols-2">
