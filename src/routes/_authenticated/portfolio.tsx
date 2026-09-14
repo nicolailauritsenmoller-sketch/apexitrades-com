@@ -47,6 +47,8 @@ export const Route = createFileRoute("/_authenticated/portfolio")({
 });
 
 function Portfolio() {
+  useWalletRealtime("portfolio-live");
+  const qc = useQueryClient();
   const fetchPortfolio = useServerFn(getPortfolio);
   const { data, isLoading } = useQuery({
     queryKey: ["portfolio"],
