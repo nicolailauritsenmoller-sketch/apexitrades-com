@@ -131,7 +131,16 @@ function isZh(text: string) {
 
 function pickVoice(zh = false): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
+  const synth = window.speechSynthesis;
+  // iOS/Safari can leave synthesis paused after interruptions — resume first.
+  if (synth.paused) {
+    try {
+      synth.resume();
+    } catch {
+      /* ignore */
+    }
+  }
+  const voices = synth.getVoices();
   if (!voices.length) return null;
   if (zh) {
     for (const name of ZH_VOICES) {
