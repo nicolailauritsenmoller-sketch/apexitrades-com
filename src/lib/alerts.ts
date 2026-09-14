@@ -231,8 +231,13 @@ export function startChatLoop() {
   loopTimer = setInterval(cycle, 4200);
 }
 
+/** Stops the loop immediately and cancels any queued chime/voice cycle. */
 export function stopChatLoop() {
   stopSpeechLoop();
+  if (voiceTimer) {
+    clearTimeout(voiceTimer);
+    voiceTimer = null;
+  }
   if (!loopTimer) return;
   clearInterval(loopTimer);
   loopTimer = null;
