@@ -28,6 +28,11 @@ export type Preferences = {
   notifySecurityEmail?: boolean;
   notifySecurityPush?: boolean;
   notifyMarketing?: boolean;
+  notificationMatrix?: Record<string, boolean>;
+  quietHoursEnabled?: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  notificationDigest?: boolean;
   chartTimeframe?: string;
   preferredMarkets?: string[];
   lastSymbol?: string;
