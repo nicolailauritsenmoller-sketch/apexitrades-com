@@ -39,7 +39,7 @@ const TABLE_KEYS: Record<string, string[]> = {
   positions: ["desk-trades", "admin-overview", "admin-analytics", "admin-risk-monitor"],
   security_reports: ["admin-user-security", "admin-overview"],
   referrals: ["admin-referrals"],
-  audit_logs: ["admin-audit-logs"],
+  admin_audit_logs: ["admin-audit-logs"],
   announcements: ["admin-announcements", "announcements-active"],
   user_roles: ["admin-user-directory", "admin-users"],
   notifications: ["notifications", "notifications-unread"],
