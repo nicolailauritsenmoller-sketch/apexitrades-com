@@ -1,10 +1,13 @@
 # Velocity Trade Roadmap
 
 ## In Progress
+
 - [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
 - [x] Streamline the Trade Closed Summary and add dedicated order-detail exports.
 
 ## Completed
+
+- [x] Redesign Contact Support as an institutional support desk with search, status, categorized help, tickets, live chat, and VIP concierge.
 - [x] Refine dashboard funding and trade actions, ticker and stablecoin formatting, safe news links, and active navigation styling.
 - [x] Make Dark the pre-rendered default theme while preserving saved Light, Dark, and System preferences without a hydration flash.
 - [x] Remove user-facing “Admin” terminology, restrict Control Center links to true administrators, and institutionalize system messaging.
