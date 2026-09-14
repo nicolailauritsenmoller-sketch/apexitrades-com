@@ -2,7 +2,7 @@
 
 ## In Progress
 - [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
-- [ ] Streamline the Trade Closed Summary and add dedicated order-detail exports.
+- [x] Streamline the Trade Closed Summary and add dedicated order-detail exports.
 
 ## Completed
 - [x] Refine dashboard funding and trade actions, ticker and stablecoin formatting, safe news links, and active navigation styling.
