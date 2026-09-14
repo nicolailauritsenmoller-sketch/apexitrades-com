@@ -131,7 +131,16 @@ function isZh(text: string) {
 
 function pickVoice(zh = false): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
+  const synth = window.speechSynthesis;
+  // iOS/Safari can leave synthesis paused after interruptions — resume first.
+  if (synth.paused) {
+    try {
+      synth.resume();
+    } catch {
+      /* ignore */
+    }
+  }
+  const voices = synth.getVoices();
   if (!voices.length) return null;
   if (zh) {
     for (const name of ZH_VOICES) {
@@ -204,17 +213,31 @@ export function stopSpeechLoop() {
 /* ------------------------- looping chat alert ------------------------- */
 
 let loopTimer: ReturnType<typeof setInterval> | null = null;
+let voiceTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Repeats the chat bell + spoken alert until {@link stopChatLoop} is called. */
+/**
+ * Repeats the alert sequence — subtle high-tech chime first, then the
+ * Siri-style Mandarin voice "来自客户的新消息" — until {@link stopChatLoop}.
+ * Safe to call repeatedly: a running loop is never doubled.
+ */
 export function startChatLoop() {
-  startSpeechLoop();
   if (loopTimer) return;
-  playChime("chat");
-  loopTimer = setInterval(() => playChime("chat"), 1800);
+  stopSpeechLoop();
+  const cycle = () => {
+    playChime("chat");
+    voiceTimer = setTimeout(() => speak(CHAT_ALERT_PHRASE), 700);
+  };
+  cycle();
+  loopTimer = setInterval(cycle, 4200);
 }
 
+/** Stops the loop immediately and cancels any queued chime/voice cycle. */
 export function stopChatLoop() {
   stopSpeechLoop();
+  if (voiceTimer) {
+    clearTimeout(voiceTimer);
+    voiceTimer = null;
+  }
   if (!loopTimer) return;
   clearInterval(loopTimer);
   loopTimer = null;
