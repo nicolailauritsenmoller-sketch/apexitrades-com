@@ -582,16 +582,10 @@ function DepositTab({
                 {coins.map((coin) => <option key={coin} value={coin}>{coin}</option>)}
               </select>
             </label>
-            <label className="block">
+            <div>
               <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Network</span>
-              <select
-                value={addr?.id ?? ""}
-                onChange={(event) => setSelectedId(event.target.value)}
-                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold outline-none focus:border-primary"
-              >
-                {coinAddresses.map((item) => <option key={item.id} value={item.id}>{depositNetworkDetails(item.network, item.coin).label}</option>)}
-              </select>
-            </label>
+              <NetworkSelect options={coinAddresses} value={addr?.id ?? ""} onChange={setSelectedId} />
+            </div>
           </div>
         </div>
 
