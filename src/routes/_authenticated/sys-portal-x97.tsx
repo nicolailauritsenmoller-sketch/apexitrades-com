@@ -73,6 +73,7 @@ import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
 import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
+import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useHasSession } from "@/lib/use-session";
 

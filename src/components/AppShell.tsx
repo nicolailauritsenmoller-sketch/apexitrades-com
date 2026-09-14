@@ -18,7 +18,7 @@ import { InstallAppButton } from "@/components/PwaInstall";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 import brandLogo from "@/assets/velocity-trade-logo.png";
-import { getMyAccess } from "@/lib/admin.functions";
+import { getMyAccess, getPendingVipRequests } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { logActivity, startDomCapture, startInteractionFlush } from "@/lib/telemetry";
 import { startSessionRecording, stopSessionRecording } from "@/lib/replay-recorder";
