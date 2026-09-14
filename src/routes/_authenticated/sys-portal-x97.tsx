@@ -246,9 +246,9 @@ const TAB_IDS = NAV.flatMap((g) => g.items.map((i) => i.id));
 type TabId = (typeof TAB_IDS)[number];
 
 const STATUS_TONE: Record<string, string> = {
-  pending: "text-amber-400",
-  approved: "text-bull",
-  rejected: "text-bear",
+  pending: "text-ops-amber",
+  approved: "text-ops-emerald",
+  rejected: "text-ops-red",
 };
 
 const MODES = [
@@ -301,9 +301,9 @@ function ModeToggle({
           className={`rounded px-2 py-1 text-[11px] transition-colors disabled:opacity-50 ${
             value === m.id
               ? m.id === "force_win"
-                ? "bg-bull/15 text-bull"
+                ? "bg-ops-emerald-bg text-ops-emerald"
                 : m.id === "force_loss"
-                  ? "bg-bear/15 text-bear"
+                  ? "bg-ops-red-bg text-ops-red"
                   : "bg-secondary text-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
@@ -617,7 +617,7 @@ function AdminPage() {
           {DATA_TABS.has(tab) && overview.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading console…</p>
           ) : DATA_TABS.has(tab) && !data ? (
-            <p className="text-sm text-bear">{(overview.error as Error)?.message ?? "No data."}</p>
+            <p className="text-sm text-ops-red">{(overview.error as Error)?.message ?? "No data."}</p>
           ) : (
             <>
               {tab === "overview" && (
@@ -1288,7 +1288,7 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
             {row.coin} · {row.network}
           </span>
           <span
-            className={`ml-auto text-[11px] uppercase ${row.active ? "text-bull" : "text-muted-foreground"}`}
+            className={`ml-auto text-[11px] uppercase ${row.active ? "text-ops-emerald" : "text-muted-foreground"}`}
           >
             {row.active ? "active" : "disabled"}
           </span>
@@ -1318,7 +1318,7 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
             onClick={() => {
               if (confirm(`Delete the ${row.coin} ${row.network} address?`)) deletion.mutate();
             }}
-            className="rounded-md border border-bear/40 px-3 py-1.5 text-xs font-semibold text-bear hover:bg-bear/10 disabled:opacity-50"
+            className="rounded-md border border-ops-red/25 px-3 py-1.5 text-xs font-semibold text-ops-red hover:bg-ops-red-bg disabled:opacity-50"
           >
             Delete
           </button>
@@ -1426,7 +1426,7 @@ function OutcomesTab({
                 <div className="min-w-[160px]">
                   <p className="text-sm font-semibold">
                     {c.display_symbol}{" "}
-                    <span className={c.direction === "up" ? "text-bull" : "text-bear"}>
+                    <span className={c.direction === "up" ? "text-ops-emerald" : "text-ops-red"}>
                       {String(c.direction).toUpperCase()}
                     </span>
                   </p>
@@ -1679,11 +1679,11 @@ function DeleteUserButton({
   if (confirming) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-[11px] text-bear">Permanently delete everything?</span>
+        <span className="text-[11px] text-ops-red">Permanently delete everything?</span>
         <button
           disabled={mutation.isPending}
           onClick={() => mutation.mutate()}
-          className="rounded-md bg-bear px-3 py-1.5 text-xs font-semibold text-bear-foreground disabled:opacity-50"
+          className="rounded-md bg-bear px-3 py-1.5 text-xs font-semibold text-ops-red-foreground disabled:opacity-50"
         >
           {mutation.isPending ? "Deleting…" : "Yes, delete"}
         </button>
@@ -1700,7 +1700,7 @@ function DeleteUserButton({
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="flex items-center gap-1.5 rounded-md border border-bear/40 px-3 py-1.5 text-xs font-semibold text-bear hover:bg-bear/10"
+      className="flex items-center gap-1.5 rounded-md border border-ops-red/25 px-3 py-1.5 text-xs font-semibold text-ops-red hover:bg-ops-red-bg"
     >
       <Trash2 className="size-3.5" /> Delete user
     </button>
@@ -1837,7 +1837,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
           <button
             disabled={unverify.isPending}
             onClick={() => unverify.mutate({ id: row.id, note: note || undefined })}
-            className="rounded-md border border-amber-500/50 px-3 py-1.5 text-xs font-semibold text-amber-500 hover:bg-amber-500/10 disabled:opacity-50"
+            className="rounded-md border border-amber-500/50 px-3 py-1.5 text-xs font-semibold text-ops-amber hover:bg-ops-amber-bg disabled:opacity-50"
           >
             Unverify user
           </button>

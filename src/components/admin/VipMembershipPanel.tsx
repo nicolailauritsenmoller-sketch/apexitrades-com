@@ -50,7 +50,7 @@ export function VipMembershipPanel({
     <div className="space-y-3">
       {pending && (
         <div className="rounded-lg border border-amber-400/60 bg-amber-400/15 p-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-500">
+          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-ops-amber">
             <Hourglass className="size-3.5" /> VIP Membership Request Pending
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -81,7 +81,7 @@ export function VipMembershipPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-xs font-semibold">
-            <Crown className={`size-3.5 ${active ? "text-amber-500" : "text-muted-foreground"}`} />
+            <Crown className={`size-3.5 ${active ? "text-ops-amber" : "text-muted-foreground"}`} />
             VIP status
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">

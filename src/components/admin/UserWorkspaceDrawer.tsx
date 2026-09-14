@@ -62,7 +62,7 @@ export function UserWorkspaceDrawer({
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
           {q.isLoading && <p className="p-4 text-sm text-muted-foreground">Loading workspace…</p>}
           {q.isError && (
-            <p className="p-4 text-sm text-bear">{(q.error as Error)?.message ?? "Failed."}</p>
+            <p className="p-4 text-sm text-ops-red">{(q.error as Error)?.message ?? "Failed."}</p>
           )}
           {d && (
             <>

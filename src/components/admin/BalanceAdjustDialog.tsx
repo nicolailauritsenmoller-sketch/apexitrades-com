@@ -125,7 +125,7 @@ export function BalanceAdjustDialog({
               className={`rounded-md border px-2 py-2 text-xs font-semibold transition-colors ${
                 kind === k.id
                   ? k.id === "debit"
-                    ? "border-bear/50 bg-bear/15 text-bear"
+                    ? "border-ops-red/25 bg-ops-red-bg text-ops-red"
                     : "border-primary/50 bg-primary/15 text-primary"
                   : "border-border text-muted-foreground hover:text-foreground"
               }`}

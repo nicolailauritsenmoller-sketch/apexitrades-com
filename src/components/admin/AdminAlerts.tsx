@@ -57,7 +57,7 @@ export function AdminAlerts() {
       if (push) pushNotify(title, body, win ? "win" : "loss");
       toast(title, {
         description: body,
-        className: win ? "text-bull font-semibold" : "text-bear font-semibold",
+        className: win ? "text-ops-emerald font-semibold" : "text-ops-red font-semibold",
       });
     },
     [sound, push],

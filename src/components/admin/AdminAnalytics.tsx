@@ -432,7 +432,7 @@ export function TradeStatsPanel({ a }: { a: Analytics }) {
                   <td className="capitalize">{c.status}</td>
                   <td
                     className={
-                      c.result === "win" ? "text-bull" : c.result === "loss" ? "text-bear" : ""
+                      c.result === "win" ? "text-ops-emerald" : c.result === "loss" ? "text-ops-red" : ""
                     }
                   >
                     {c.result ?? "—"}

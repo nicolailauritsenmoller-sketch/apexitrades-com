@@ -249,7 +249,7 @@ export function CertificatesPanel() {
             <button
               type="button"
               onClick={() => deleteMutation.mutate(c.id)}
-              className="rounded-md border border-bear/40 px-2 py-1.5 text-bear"
+              className="rounded-md border border-ops-red/25 px-2 py-1.5 text-ops-red"
               aria-label={`Delete ${c.title}`}
             >
               <Trash2 className="size-4" />

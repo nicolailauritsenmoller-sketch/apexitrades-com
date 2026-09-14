@@ -105,8 +105,8 @@ export function EngineSpreadPanel() {
             onClick={() => setCfg((c) => ({ ...c, autoExecution: c['autoExecution'] === false }))}
             className={`touch-manipulation rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${
               cfg['autoExecution'] !== false
-                ? "border-bull/40 bg-bull/15 text-bull"
-                : "border-bear/40 bg-bear/10 text-bear"
+                ? "border-ops-emerald/25 bg-ops-emerald-bg text-ops-emerald"
+                : "border-ops-red/25 bg-ops-red-bg text-ops-red"
             }`}
           >
             {cfg['autoExecution'] !== false ? "On" : "Halted"}

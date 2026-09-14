@@ -19,9 +19,9 @@ type AuditRow = {
 
 const ACTION_TONE = (action: string) =>
   action.includes("reject") || action.includes("delete")
-    ? "bg-bear/15 text-bear"
+    ? "bg-ops-red-bg text-ops-red"
     : action.includes("approve") || action.includes("grant")
-      ? "bg-bull/15 text-bull"
+      ? "bg-ops-emerald-bg text-ops-emerald"
       : "bg-primary/15 text-primary";
 
 const CATEGORIES = [
