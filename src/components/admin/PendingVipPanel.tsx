@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Check, Crown, Hourglass, X } from "lucide-react";
 import { getPendingVipRequests, setUserVipStatus } from "@/lib/admin.functions";
