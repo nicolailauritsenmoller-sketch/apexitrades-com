@@ -95,7 +95,9 @@ function VipUpgradePage() {
               <p className="mt-2 text-xs text-muted-foreground">
                 {already
                   ? "VIP 1 is active on this account."
-                  : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
+                  : awaiting
+                    ? "Threshold reached — your VIP upgrade request is pending review."
+                    : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
               </p>
             </div>
 
