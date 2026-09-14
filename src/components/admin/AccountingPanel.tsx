@@ -24,12 +24,12 @@ export function AccountingPanel() {
   const ledger = (q.data?.ledger ?? []) as any[];
 
   const cards = [
-    { label: "Total deposits", value: money(t.totalDeposits), tone: "text-bull" },
-    { label: "Total withdrawals", value: money(t.totalWithdrawals), tone: "text-bear" },
+    { label: "Total deposits", value: money(t.totalDeposits), tone: "text-ops-emerald" },
+    { label: "Total withdrawals", value: money(t.totalWithdrawals), tone: "text-ops-red" },
     {
       label: "Net deposits",
       value: money(t.netDeposits),
-      tone: t.netDeposits >= 0 ? "text-bull" : "text-bear",
+      tone: t.netDeposits >= 0 ? "text-ops-emerald" : "text-ops-red",
     },
     { label: "Fees collected", value: money(t.tradingFees), tone: "text-primary" },
     { label: "Contract stakes", value: money(t.contractStakes), tone: "" },
@@ -37,12 +37,12 @@ export function AccountingPanel() {
     {
       label: "Trader realised P&L",
       value: money(t.traderRealized),
-      tone: t.traderRealized >= 0 ? "text-bull" : "text-bear",
+      tone: t.traderRealized >= 0 ? "text-ops-emerald" : "text-ops-red",
     },
     {
       label: "System P&L",
       value: money(t.systemPnl),
-      tone: t.systemPnl >= 0 ? "text-bull" : "text-bear",
+      tone: t.systemPnl >= 0 ? "text-ops-emerald" : "text-ops-red",
     },
   ];
 
@@ -167,7 +167,7 @@ export function AccountingPanel() {
                     <td className="px-3 py-2 text-xs capitalize">{String(r.type).replace(/_/g, " ")}</td>
                     <td className="px-3 py-2 text-xs">{r.asset}</td>
                     <td
-                      className={`num px-3 py-2 text-right ${r.amount >= 0 ? "text-bull" : "text-bear"}`}
+                      className={`num px-3 py-2 text-right ${r.amount >= 0 ? "text-ops-emerald" : "text-ops-red"}`}
                     >
                       {Number(r.amount).toFixed(2)}
                     </td>

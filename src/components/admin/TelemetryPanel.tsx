@@ -314,7 +314,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => endAll.mutate()}
-              className="touch-manipulation rounded-md border border-bear/40 px-2 py-1 text-xs text-bear"
+              className="touch-manipulation rounded-md border border-ops-red/25 px-2 py-1 text-xs text-ops-red"
             >
               End all sessions
             </button>
@@ -527,7 +527,7 @@ export function TelemetryPanel() {
             {q.data!.alerts.map((a, i) => (
               <li
                 key={`${a.userId}-${i}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-bear/30 bg-bear/5 px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-lg border border-ops-red/25 bg-bear/5 px-3 py-2"
               >
                 <span className="min-w-0 truncate">
                   <b>{a.name}</b> · {a.kind} — {a.detail}
@@ -574,7 +574,7 @@ export function TelemetryPanel() {
                   <button
                     onClick={() => endOne.mutate(s.id)}
                     title="Terminate session"
-                    className="shrink-0 touch-manipulation rounded-md border border-bear/40 p-1.5 text-bear"
+                    className="shrink-0 touch-manipulation rounded-md border border-ops-red/25 p-1.5 text-ops-red"
                   >
                     <LogOut className="size-3.5" />
                   </button>

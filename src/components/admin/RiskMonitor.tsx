@@ -13,10 +13,10 @@ const n = (v: unknown, d = 2) =>
   Number(v ?? 0).toLocaleString(undefined, { maximumFractionDigits: d });
 
 function riskTone(pct: number) {
-  if (pct >= 80) return { label: "Critical", cls: "bg-bear/20 text-bear" };
-  if (pct >= 50) return { label: "High", cls: "bg-amber-500/20 text-amber-400" };
+  if (pct >= 80) return { label: "Critical", cls: "bg-bear/20 text-ops-red" };
+  if (pct >= 50) return { label: "High", cls: "bg-amber-500/20 text-ops-amber" };
   if (pct >= 25) return { label: "Elevated", cls: "bg-primary/15 text-primary" };
-  return { label: "Healthy", cls: "bg-bull/15 text-bull" };
+  return { label: "Healthy", cls: "bg-ops-emerald-bg text-ops-emerald" };
 }
 
 /** Live leverage/margin risk board with an emergency liquidation control. */
@@ -77,7 +77,7 @@ export function RiskMonitor() {
 
       <section className="rounded-2xl border border-border/70 bg-card/50">
         <header className="flex flex-wrap items-center gap-2 border-b border-border/70 px-4 py-3">
-          <ShieldAlert className="size-4 text-bear" />
+          <ShieldAlert className="size-4 text-ops-red" />
           <h3 className="font-display text-sm font-semibold">Position risk monitor</h3>
           <div className="ml-auto flex items-center gap-2">
             <label className="text-[11px] text-muted-foreground">Min risk {minRisk}%</label>
@@ -159,7 +159,7 @@ export function RiskMonitor() {
                       </td>
                       <td
                         className={`num px-3 py-2.5 text-right font-semibold ${
-                          p.pnl >= 0 ? "text-bull" : "text-bear"
+                          p.pnl >= 0 ? "text-ops-emerald" : "text-ops-red"
                         }`}
                       >
                         {p.pnl >= 0 ? "+" : ""}
@@ -184,7 +184,7 @@ export function RiskMonitor() {
 
       <section className="rounded-2xl border border-border/70 bg-card/50">
         <header className="flex items-center gap-2 border-b border-border/70 px-4 py-3">
-          <AlertTriangle className="size-4 text-amber-400" />
+          <AlertTriangle className="size-4 text-ops-amber" />
           <h3 className="font-display text-sm font-semibold">Account margin utilisation</h3>
         </header>
         {accounts.length === 0 ? (
@@ -195,11 +195,11 @@ export function RiskMonitor() {
               <li key={a.userId} className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
-                    {a.userName} {a.frozen && <span className="text-[10px] text-bear">FROZEN</span>}
+                    {a.userName} {a.frozen && <span className="text-[10px] text-ops-red">FROZEN</span>}
                   </p>
                   <p className="num text-[11px] text-muted-foreground">
                     Margin ${n(a.marginUsed)} / equity ${n(a.totalEquity)} · open P&L{" "}
-                    <span className={a.openPnl >= 0 ? "text-bull" : "text-bear"}>
+                    <span className={a.openPnl >= 0 ? "text-ops-emerald" : "text-ops-red"}>
                       {n(a.openPnl)}
                     </span>
                   </p>

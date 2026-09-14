@@ -14,8 +14,8 @@ import {
 const SEVERITY_TONE: Record<string, string> = {
   low: "text-muted-foreground",
   medium: "text-warning",
-  high: "text-bear",
-  critical: "text-bear font-bold",
+  high: "text-ops-red",
+  critical: "text-ops-red font-bold",
 };
 
 /** Staff inbox for in-app security reports. */
@@ -49,7 +49,7 @@ export function SecurityReportsPanel() {
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <ShieldAlert className="size-4 text-bear" />
+        <ShieldAlert className="size-4 text-ops-red" />
         <h2 className="font-display text-sm font-semibold tracking-tight">Security reports</h2>
         <span className="ml-auto text-xs text-muted-foreground">{rows.length} total</span>
       </header>

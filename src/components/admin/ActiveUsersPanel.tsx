@@ -34,7 +34,7 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3">
-        <span className="grid size-9 place-items-center rounded-md bg-bull/15 text-bull">
+        <span className="grid size-9 place-items-center rounded-md bg-ops-emerald-bg text-ops-emerald">
           <Radio className="size-4" />
         </span>
         <div>
@@ -152,7 +152,7 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
                     </td>
                     <td className="px-4 py-2">
                       {r.active ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-bull/40 bg-bull/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-bull">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-ops-emerald/25 bg-ops-emerald-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ops-emerald">
                           <span className="size-1.5 rounded-full bg-bull" /> Active now
                         </span>
                       ) : (

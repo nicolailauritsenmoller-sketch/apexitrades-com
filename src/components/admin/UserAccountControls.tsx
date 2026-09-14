@@ -309,7 +309,7 @@ export function UserAccountControls({
           <button
             onClick={() => suspend.mutate({ status: "active" })}
             disabled={suspend.isPending}
-            className="mt-2 w-full touch-manipulation rounded-lg border border-bull/50 px-3 py-2 text-xs font-semibold text-bull disabled:opacity-50"
+            className="mt-2 w-full touch-manipulation rounded-lg border border-ops-emerald/25 px-3 py-2 text-xs font-semibold text-ops-emerald disabled:opacity-50"
           >
             Reinstate account
           </button>
@@ -346,7 +346,7 @@ export function UserAccountControls({
                 </span>
                 <button
                   onClick={() => del.mutate(x.id)}
-                  className="ml-auto touch-manipulation text-bear"
+                  className="ml-auto touch-manipulation text-ops-red"
                   aria-label="Delete note"
                 >
                   <Trash2 className="size-3" />

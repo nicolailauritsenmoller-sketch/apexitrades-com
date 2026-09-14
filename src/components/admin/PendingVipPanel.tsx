@@ -53,7 +53,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
   if (rows.length === 0) {
     return (
       <p className="flex items-center justify-center gap-2 py-6 text-center text-sm text-muted-foreground">
-        <Crown className="size-4 text-amber-500" /> No pending VIP requests — queue clear.
+        <Crown className="size-4 text-ops-amber" /> No pending VIP requests — queue clear.
       </p>
     );
   }
@@ -76,7 +76,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
             <tr key={r.userId} className="border-b border-border/40 last:border-0">
               <td className="py-2.5 pr-3">
                 <span className="flex items-center gap-1.5 font-semibold">
-                  <Hourglass className="size-3.5 text-amber-500" />
+                  <Hourglass className="size-3.5 text-ops-amber" />
                   {r.displayName}
                 </span>
               </td>
@@ -104,7 +104,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                     type="button"
                     disabled={mutation.isPending}
                     onClick={() => mutation.mutate({ userId: r.userId, action: "approve" })}
-                    className="flex touch-manipulation items-center gap-1 rounded-md bg-bull px-2.5 py-1.5 text-[11px] font-bold text-background transition-colors hover:bg-bull/90 disabled:opacity-50"
+                    className="flex touch-manipulation items-center gap-1 rounded-md border border-ops-emerald/25 bg-ops-emerald-bg px-2.5 py-1.5 text-[11px] font-bold text-ops-emerald transition-colors hover:bg-ops-emerald/20 disabled:opacity-50"
                   >
                     <Check className="size-3" /> Approve VIP
                   </button>
@@ -112,7 +112,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                     type="button"
                     disabled={mutation.isPending}
                     onClick={() => mutation.mutate({ userId: r.userId, action: "reject" })}
-                    className="flex touch-manipulation items-center gap-1 rounded-md bg-ops-red px-2.5 py-1.5 text-[11px] font-bold text-background transition-colors hover:bg-ops-red/90 disabled:opacity-50"
+                    className="flex touch-manipulation items-center gap-1 rounded-md border border-ops-red/25 bg-ops-red-bg px-2.5 py-1.5 text-[11px] font-bold text-ops-red transition-colors hover:bg-ops-red/20 disabled:opacity-50"
                   >
                     <X className="size-3" /> Reject VIP
                   </button>

@@ -12,9 +12,9 @@ type Row = Awaited<ReturnType<typeof getUserSecurityDirectory>>[number];
 function Pill({ tone, children }: { tone: "ok" | "warn" | "bad" | "mute"; children: React.ReactNode }) {
   const cls =
     tone === "ok"
-      ? "border-bull/40 bg-bull/10 text-bull"
+      ? "border-ops-emerald/25 bg-ops-emerald-bg text-ops-emerald"
       : tone === "warn"
-        ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
+        ? "border-ops-amber/25 bg-ops-amber-bg text-ops-amber"
         : tone === "bad"
           ? "border-ops-red/40 bg-ops-red/10 text-ops-red"
           : "border-border text-muted-foreground";

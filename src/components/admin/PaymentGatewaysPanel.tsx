@@ -168,7 +168,7 @@ export function PaymentGatewaysPanel({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">
                   {a.coin} · {a.network}{" "}
-                  {!a.active && <span className="text-[10px] text-bear">INACTIVE</span>}
+                  {!a.active && <span className="text-[10px] text-ops-red">INACTIVE</span>}
                 </p>
                 <p className="num truncate text-[11px] text-muted-foreground">{a.address}</p>
               </div>
@@ -187,7 +187,7 @@ export function PaymentGatewaysPanel({
               </button>
               <button
                 onClick={() => del.mutate(a.id)}
-                className="touch-manipulation rounded-lg border border-bear/40 p-2 text-bear"
+                className="touch-manipulation rounded-lg border border-ops-red/25 p-2 text-ops-red"
                 aria-label="Delete"
               >
                 <Trash2 className="size-4" />

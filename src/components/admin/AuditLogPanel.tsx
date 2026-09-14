@@ -19,9 +19,9 @@ type AuditRow = {
 
 const ACTION_TONE = (action: string) =>
   action.includes("reject") || action.includes("delete")
-    ? "bg-bear/15 text-bear"
+    ? "bg-ops-red-bg text-ops-red"
     : action.includes("approve") || action.includes("grant")
-      ? "bg-bull/15 text-bull"
+      ? "bg-ops-emerald-bg text-ops-emerald"
       : "bg-primary/15 text-primary";
 
 const CATEGORIES = [
@@ -65,8 +65,7 @@ export function AuditLogPanel() {
   }, [all, q, cat]);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
           <ScrollText className="size-4" /> Operations activity audit log

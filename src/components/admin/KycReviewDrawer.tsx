@@ -122,7 +122,7 @@ export function KycReviewDrawer({
             </h4>
             {docs.isLoading && <p className="text-xs text-muted-foreground">Loading documents…</p>}
             {docs.isError && (
-              <p className="text-xs text-bear">{(docs.error as Error)?.message ?? "Failed."}</p>
+              <p className="text-xs text-ops-red">{(docs.error as Error)?.message ?? "Failed."}</p>
             )}
             <div className="grid gap-3 sm:grid-cols-2">
               {d?.document && (

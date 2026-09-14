@@ -14,8 +14,8 @@ import { getUserDirectory } from "@/lib/admin.functions";
 
 const SEVERITIES: { id: AnnouncementSeverity; label: string; className: string }[] = [
   { id: "info", label: "Info", className: "bg-primary/15 text-primary" },
-  { id: "warning", label: "Warning", className: "bg-amber-500/15 text-amber-500" },
-  { id: "critical", label: "Critical", className: "bg-bear/15 text-bear" },
+  { id: "warning", label: "Warning", className: "bg-amber-500/15 text-ops-amber" },
+  { id: "critical", label: "Critical", className: "bg-ops-red-bg text-ops-red" },
 ];
 
 const empty = {
@@ -110,7 +110,7 @@ export function AnnouncementsPanel() {
                       </span>
                       <p className="text-sm font-semibold">{a.title}</p>
                       <span
-                        className={`ml-auto text-[11px] uppercase ${a.active ? "text-bull" : "text-muted-foreground"}`}
+                        className={`ml-auto text-[11px] uppercase ${a.active ? "text-ops-emerald" : "text-muted-foreground"}`}
                       >
                         {a.active ? "live" : "archived"}
                       </span>
@@ -158,7 +158,7 @@ export function AnnouncementsPanel() {
                       </button>
                       <button
                         onClick={() => deleteMutation.mutate(a.id)}
-                        className="flex items-center gap-1.5 rounded-md bg-bear/10 px-2.5 py-1 text-[11px] font-semibold text-bear"
+                        className="flex items-center gap-1.5 rounded-md bg-ops-red-bg px-2.5 py-1 text-[11px] font-semibold text-ops-red"
                       >
                         <Trash2 className="size-3" /> Delete
                       </button>

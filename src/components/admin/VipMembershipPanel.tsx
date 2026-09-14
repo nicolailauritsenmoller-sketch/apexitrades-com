@@ -50,7 +50,7 @@ export function VipMembershipPanel({
     <div className="space-y-3">
       {pending && (
         <div className="rounded-lg border border-amber-400/60 bg-amber-400/15 p-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-amber-500">
+          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-ops-amber">
             <Hourglass className="size-3.5" /> VIP Membership Request Pending
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -62,7 +62,7 @@ export function VipMembershipPanel({
               type="button"
               disabled={mutation.isPending}
               onClick={() => mutation.mutate("approve")}
-              className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-bull px-3 py-2 text-xs font-bold text-background transition-colors hover:bg-bull/90 disabled:opacity-50"
+              className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-ops-emerald/25 bg-ops-emerald-bg px-3 py-2 text-xs font-bold text-ops-emerald transition-colors hover:bg-ops-emerald/20 disabled:opacity-50"
             >
               <Check className="size-3.5" /> Approve VIP
             </button>
@@ -70,7 +70,7 @@ export function VipMembershipPanel({
               type="button"
               disabled={mutation.isPending}
               onClick={() => mutation.mutate("reject")}
-              className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-ops-red px-3 py-2 text-xs font-bold text-background transition-colors hover:bg-ops-red/90 disabled:opacity-50"
+              className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-ops-red/25 bg-ops-red-bg px-3 py-2 text-xs font-bold text-ops-red transition-colors hover:bg-ops-red/20 disabled:opacity-50"
             >
               <X className="size-3.5" /> Reject VIP
             </button>
@@ -81,7 +81,7 @@ export function VipMembershipPanel({
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-xs font-semibold">
-            <Crown className={`size-3.5 ${active ? "text-amber-500" : "text-muted-foreground"}`} />
+            <Crown className={`size-3.5 ${active ? "text-ops-amber" : "text-muted-foreground"}`} />
             VIP status
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">

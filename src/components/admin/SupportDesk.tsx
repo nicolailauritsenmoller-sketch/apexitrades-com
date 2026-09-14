@@ -67,7 +67,7 @@ const PRIORITY_TONE: Record<string, string> = {
   low: "text-muted-foreground",
   normal: "text-foreground",
   high: "text-warning",
-  urgent: "text-bear",
+  urgent: "text-ops-red",
 };
 
 const STATUS_TONE: Record<string, string> = {
@@ -75,7 +75,7 @@ const STATUS_TONE: Record<string, string> = {
   in_progress: "bg-primary/10 text-primary",
   pending: "bg-warning/10 text-warning",
   waiting_customer: "bg-warning/10 text-warning",
-  resolved: "bg-bull/10 text-bull",
+  resolved: "bg-ops-emerald-bg text-ops-emerald",
   closed: "bg-secondary text-muted-foreground",
 };
 
