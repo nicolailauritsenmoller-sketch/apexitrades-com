@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 export type NewsCategory =
   | "stocks"
   | "crypto"
+  | "defi"
   | "commodities"
   | "forex"
   | "macro"
@@ -103,6 +104,9 @@ const FEEDS: Feed[] = [
   { source: "Wall Street Journal", url: gnews("site:wsj.com markets"), category: "stocks", region: "us", google: true },
   { source: "CoinDesk", url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto", region: "global" },
   { source: "Cointelegraph", url: "https://cointelegraph.com/rss", category: "crypto", region: "global" },
+  { source: "The Block", url: gnews("site:theblock.co defi OR protocol"), category: "defi", region: "global", google: true },
+  { source: "Decrypt", url: gnews("site:decrypt.co defi OR web3"), category: "defi", region: "global", google: true },
+  { source: "Bloomberg Crypto", url: gnews("site:bloomberg.com crypto OR bitcoin"), category: "crypto", region: "global", google: true },
 
   /* ------------------------- Canadian financial news ---------------------- */
   { source: "BNN Bloomberg", url: gnews("site:bnnbloomberg.ca"), category: "stocks", region: "ca", google: true },
@@ -145,7 +149,8 @@ function strip(input: string) {
 /** Keyword classifier — refines the feed's default category per headline. */
 const CLASSIFIERS: [RegExp, NewsCategory][] = [
   [/\b(sec|cftc|finra|regulat\w+|lawsuit|enforcement|compliance|sanction|fine[sd]?\b|settlement|court|approval of)\b/i, "regulation"],
-  [/\b(bitcoin|ethereum|crypto\w*|blockchain|token|stablecoin|defi|solana|xrp|altcoin|etf inflow)\b/i, "crypto"],
+  [/\b(defi|decentralized finance|dex\b|uniswap|aave|lido|makerdao|yield farm\w*|liquidity pool|staking|tvl\b|lending protocol|on-?chain|web3)\b/i, "defi"],
+  [/\b(bitcoin|ethereum|crypto\w*|blockchain|token|stablecoin|solana|xrp|altcoin|etf inflow)\b/i, "crypto"],
   [/\b(gold|silver|oil|crude|brent|natural gas|copper|wheat|corn|soybean|commodit\w+|opec|bullion)\b/i, "commodities"],
   [/\b(forex|currency|currencies|dollar index|yen|euro|sterling|pound|fx market|usd\/|eur\/|gbp\/)\b/i, "forex"],
   [/\b(federal reserve|\bfed\b|fomc|interest rate|inflation|cpi|gdp|central bank|ecb|boe|boj|monetary policy|jobs report|payrolls|yield curve|treasur\w+)\b/i, "macro"],
