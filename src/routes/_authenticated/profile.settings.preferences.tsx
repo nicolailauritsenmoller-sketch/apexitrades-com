@@ -41,7 +41,8 @@ export const Route = createFileRoute("/_authenticated/profile/settings/preferenc
 });
 
 function PreferenceSettings() {
-  const [currency, setCurrency] = usePreference("displayCurrency", "USD");
+  const { currency } = useDisplayCurrency();
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [, setLanguagePref] = usePreference("language", "en");
   const { lang, setLang, t } = useI18n();
 
