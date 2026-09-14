@@ -1,12 +1,16 @@
 /**
- * High-contrast colour-coding system for the Admin Operations Dashboard.
- * amber = pending, red = risk/alert, emerald = verified/success,
- * blue = general metrics / user ops, violet = auth & security.
+ * Institutional enterprise palette for the Admin Operations Dashboard.
+ * Cards share one uniform slate border; only small icon chips and status
+ * badges carry semantic colour — amber = pending, crimson = risk/alert,
+ * emerald = verified/success. Metric values are always clean white.
  */
 export type OpsAccent = "amber" | "red" | "emerald" | "blue" | "violet" | "neutral";
 
+/** Uniform dark slate card edge for every ops card (#1E293B class of border). */
+const UNIFORM_EDGE = "border border-border";
+
 type AccentClasses = {
-  /** Left rail / border emphasis for cards. */
+  /** Card border emphasis — uniform slate for every accent. */
   edge: string;
   /** Icon chip background + colour. */
   chip: string;
@@ -20,46 +24,46 @@ type AccentClasses = {
 
 export const OPS_ACCENTS: Record<OpsAccent, AccentClasses> = {
   amber: {
-    edge: "border-l-4 border-l-ops-amber border-ops-amber/40",
-    chip: "bg-ops-amber/15 text-ops-amber",
-    text: "text-ops-amber",
-    badge: "border border-ops-amber/50 bg-ops-amber/15 text-ops-amber",
+    edge: UNIFORM_EDGE,
+    chip: "bg-ops-amber-bg text-ops-amber",
+    text: "text-foreground",
+    badge: "border border-ops-amber/25 bg-ops-amber-bg text-ops-amber",
     tab: "bg-ops-amber/15 text-ops-amber",
   },
   red: {
-    edge: "border-l-4 border-l-ops-red border-ops-red/40",
-    chip: "bg-ops-red/15 text-ops-red",
-    text: "text-ops-red",
-    badge: "border border-ops-red/50 bg-ops-red/15 text-ops-red",
+    edge: UNIFORM_EDGE,
+    chip: "bg-ops-red-bg text-ops-red",
+    text: "text-foreground",
+    badge: "border border-ops-red/25 bg-ops-red-bg text-ops-red",
     tab: "bg-ops-red/15 text-ops-red",
   },
   emerald: {
-    edge: "border-l-4 border-l-ops-emerald border-ops-emerald/40",
-    chip: "bg-ops-emerald/15 text-ops-emerald",
-    text: "text-ops-emerald",
-    badge: "border border-ops-emerald/50 bg-ops-emerald/15 text-ops-emerald",
+    edge: UNIFORM_EDGE,
+    chip: "bg-ops-emerald-bg text-ops-emerald",
+    text: "text-foreground",
+    badge: "border border-ops-emerald/25 bg-ops-emerald-bg text-ops-emerald",
     tab: "bg-ops-emerald/15 text-ops-emerald",
   },
   blue: {
-    edge: "border-l-4 border-l-ops-blue border-ops-blue/40",
+    edge: UNIFORM_EDGE,
     chip: "bg-ops-blue/15 text-ops-blue",
-    text: "text-ops-blue",
-    badge: "border border-ops-blue/50 bg-ops-blue/15 text-ops-blue",
+    text: "text-foreground",
+    badge: "border border-ops-blue/25 bg-ops-blue/10 text-ops-blue",
     tab: "bg-ops-blue/15 text-ops-blue",
   },
   violet: {
-    edge: "border-l-4 border-l-ops-violet border-ops-violet/40",
+    edge: UNIFORM_EDGE,
     chip: "bg-ops-violet/15 text-ops-violet",
-    text: "text-ops-violet",
-    badge: "border border-ops-violet/50 bg-ops-violet/15 text-ops-violet",
+    text: "text-foreground",
+    badge: "border border-ops-violet/25 bg-ops-violet/10 text-ops-violet",
     tab: "bg-ops-violet/15 text-ops-violet",
   },
   neutral: {
-    edge: "border-border/70",
-    chip: "bg-primary/10 text-primary",
+    edge: UNIFORM_EDGE,
+    chip: "bg-secondary text-muted-foreground",
     text: "text-foreground",
-    badge: "border border-border text-muted-foreground",
-    tab: "bg-primary/15 text-primary",
+    badge: "border border-border bg-secondary/60 text-muted-foreground",
+    tab: "bg-secondary text-foreground",
   },
 };
 
