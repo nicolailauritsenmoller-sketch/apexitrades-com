@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Bell, Palette, ShieldCheck } from "lucide-react";
-import { NavTile, SubPageHeader } from "@/components/profile/ui";
+import { BadgeCheck, Bell, ChevronRight, Palette, ShieldCheck } from "lucide-react";
+import { KYC_LABEL, KYC_TONE, NavTile, SubPageHeader } from "@/components/profile/ui";
 import { getProfileOverview, updateProfile } from "@/lib/profile.functions";
+import { getMyKyc } from "@/lib/kyc.functions";
 
 export const Route = createFileRoute("/_authenticated/profile/settings/")({
   head: () => ({
