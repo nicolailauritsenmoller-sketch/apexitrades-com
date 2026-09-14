@@ -126,7 +126,7 @@ function Home() {
             style={{ boxShadow: "var(--glow-primary)" }}
           >
             <ArrowDownToLine className="size-4" strokeWidth={2.6} />
-            Add Funds
+            {t("dashboard.addFunds")}
           </Link>
         </div>
       </section>
