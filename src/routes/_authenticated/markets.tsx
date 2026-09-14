@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -56,10 +56,17 @@ const TABS: ("all" | AssetClass)[] = [
 ];
 
 
+const PAGE_SIZE = 50;
+const ROWS_PER_PAGE = 20;
+
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
   const [q, setQ] = useState("");
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [infinite, setInfinite] = useState(true);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(
     () =>
