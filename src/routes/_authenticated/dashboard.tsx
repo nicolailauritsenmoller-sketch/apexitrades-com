@@ -48,6 +48,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Home() {
+  const t = useT();
   useWalletRealtime("dashboard-wallet-live");
   const fetchValue = useServerFn(getPortfolioValue);
   const value = useQuery({
