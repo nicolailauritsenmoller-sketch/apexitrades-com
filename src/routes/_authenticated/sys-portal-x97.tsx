@@ -650,6 +650,12 @@ function AdminPage() {
                       </span>
                     )}
                   </button>
+                  <Card title="Pending VIP requests">
+                    <PendingVipPanel onOpen={(id) => setVipInspect(id)} />
+                  </Card>
+                  {vipInspect && (
+                    <UserWorkspaceDrawer userId={vipInspect} onClose={() => setVipInspect(null)} />
+                  )}
                   {analytics ? (
                     <>
                       <button

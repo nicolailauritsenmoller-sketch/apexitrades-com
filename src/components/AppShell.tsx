@@ -159,10 +159,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             {isAdmin ? (
               <Link
                 to="/sys-portal-x97"
-                className="hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
+                className="relative hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
               >
                 <ShieldCheck className="size-4" />
                 {t("nav.admin")}
+                {pendingVipCount > 0 && (
+                  <span
+                    aria-label={`${pendingVipCount} pending VIP requests`}
+                    className="absolute -right-1.5 -top-1.5 grid min-w-4 place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[10px] font-bold leading-none text-white"
+                  >
+                    {pendingVipCount}
+                  </span>
+                )}
               </Link>
             ) : null}
             <InstallAppButton />
