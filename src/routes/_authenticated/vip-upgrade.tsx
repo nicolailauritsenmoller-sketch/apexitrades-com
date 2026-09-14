@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, Crown, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getProfileOverview } from "@/lib/profile.functions";
-import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip } from "@/lib/vip-tiers";
+import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip, isVipPending } from "@/lib/vip-tiers";
 
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({
@@ -44,6 +44,7 @@ function VipUpgradePage() {
   const remaining = Math.max(0, VIP1_THRESHOLD_USDT - balance);
   const progress = Math.min(100, (balance / VIP1_THRESHOLD_USDT) * 100);
   const already = isVip(tier);
+  const awaiting = isVipPending(tier);
 
   return (
     <AppShell>
