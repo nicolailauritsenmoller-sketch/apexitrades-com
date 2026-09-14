@@ -66,7 +66,7 @@ export function OpsToggles() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-4 backdrop-blur">
+    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card p-4">
       <h3 className="text-xs uppercase tracking-widest text-muted-foreground">
         Maintenance & feature toggles
       </h3>
