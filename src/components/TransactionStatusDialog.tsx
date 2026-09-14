@@ -117,12 +117,15 @@ export function TransactionStatusDialog({
   open,
   onOpenChange,
   priceUsd,
+  liveConfirmations,
 }: {
   tx: TransactionRecord | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   /** Live USD rate for the asset, used for the fiat amount and price row. */
   priceUsd?: number;
+  /** Real confirmation count read from the network, when the hash is tracked. */
+  liveConfirmations?: number;
 }) {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [showReason, setShowReason] = useState(false);
