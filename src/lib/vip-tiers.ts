@@ -7,7 +7,7 @@ export const VIP1_THRESHOLD_USDT = 20_000;
 export const VIP_TIER_LABEL: Record<string, string> = {
   regular: "Regular",
   vip_pending: "VIP (Pending)",
-  vip1: "VIP 1",
+  vip1: "VIP",
 };
 
 export const VIP1_PERKS = [

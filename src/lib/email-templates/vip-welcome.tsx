@@ -23,7 +23,7 @@ const VipWelcomeEmail = ({
   siteName = 'Velocity Trade',
   displayName,
   amount = '20,000 USDT',
-  tierLabel = 'VIP 1',
+  tierLabel = 'VIP',
 }: VipWelcomeProps) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -70,7 +70,7 @@ export const template = {
     siteName: 'Velocity Trade',
     displayName: 'Alex',
     amount: '20,000 USDT',
-    tierLabel: 'VIP 1',
+    tierLabel: 'VIP',
   },
 } satisfies TemplateEntry
 

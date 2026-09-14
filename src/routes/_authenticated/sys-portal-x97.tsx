@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Wallet2,
   Megaphone,
+  Crown,
   Users,
   Landmark,
   Gauge,
@@ -74,6 +75,7 @@ import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
 import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
 import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
+import { VipMembershipsPage } from "@/components/admin/VipMembershipsPage";
 import { supabase } from "@/integrations/supabase/client";
 import { useHasSession } from "@/lib/use-session";
 
@@ -164,6 +166,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "People",
     items: [
       { id: "users", label: "Users & KYC", icon: Users },
+      { id: "vipmembers", label: "VIP Memberships", icon: Crown },
       { id: "roles", label: "Roles & permissions", icon: KeySquare },
       { id: "restrictions", label: "User security & restrictions", icon: ShieldAlert },
       { id: "credit", label: "Credit scores", icon: CreditCard },
@@ -607,6 +610,14 @@ function AdminPage() {
           {tab === "ratings" && <RatingsPanel />}
           {tab === "agent" && <AgentProfilePanel />}
           {tab === "vip" && <VipDesk />}
+          {tab === "vipmembers" && (
+            <>
+              <VipMembershipsPage onOpen={(id) => setVipInspect(id)} />
+              {vipInspect && (
+                <UserWorkspaceDrawer userId={vipInspect} onClose={() => setVipInspect(null)} />
+              )}
+            </>
+          )}
           {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
           {tab === "restrictions" && <UserSecurityPanel />}

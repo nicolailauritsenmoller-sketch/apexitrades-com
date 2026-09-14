@@ -33,7 +33,7 @@ export async function maybeFlagVipRequest(userId: string) {
   await db.from("notifications").insert({
     user_id: userId,
     title: "VIP upgrade under review",
-    body: `Your balance qualifies for VIP 1. Your upgrade request is pending review and you will be notified once it is approved.`,
+    body: `Your balance qualifies for VIP. Your upgrade request is pending review and you will be notified once it is approved.`,
     kind: "info",
   });
 
