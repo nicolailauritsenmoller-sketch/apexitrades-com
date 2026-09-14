@@ -91,6 +91,15 @@ export function UserWorkspaceDrawer({
               </Section>
 
 
+              <Section title="VIP membership">
+                <VipMembershipPanel
+                  userId={userId}
+                  userName={d.profile?.display_name}
+                  vipTier={d.profile?.vip_tier}
+                  onChanged={() => void q.refetch()}
+                />
+              </Section>
+
               <Section title="Account maintenance">
                 <AccountMaintenancePanel
                   userId={userId}

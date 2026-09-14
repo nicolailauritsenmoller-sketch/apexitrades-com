@@ -213,6 +213,15 @@ export function UserSecurityPanel() {
           />
 
           <div className="mt-3">
+            <VipMembershipPanel
+              userId={selected.id}
+              userName={selected.displayName}
+              vipTier={(selected as any).vipTier}
+              onChanged={() => void directory.refetch()}
+            />
+          </div>
+
+          <div className="mt-3">
             <AccountMaintenancePanel
               userId={selected.id}
               userName={(selected as any).displayName ?? (selected as any).display_name ?? null}
