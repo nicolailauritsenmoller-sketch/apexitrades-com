@@ -81,7 +81,37 @@ function Markets() {
     [tab, q],
   );
 
-  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+
+  const visible = useMemo(
+    () =>
+      infinite
+        ? filtered.slice(0, limit)
+        : filtered.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
+    [filtered, limit, infinite, currentPage],
+  );
+
+  const hasMore = infinite && visible.length < filtered.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setLoadingMore(true);
+        window.setTimeout(() => {
+          setLimit((n) => n + PAGE_SIZE);
+          setLoadingMore(false);
+        }, 180);
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, filtered.length]);
 
   const { quotes } = useQuotes(
     visible.map((i) => i.symbol),
