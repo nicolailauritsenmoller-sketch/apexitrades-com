@@ -26,6 +26,7 @@ import { Route as AuthenticatedSysPortalX97RouteImport } from './routes/_authent
 import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authenticated/vip-upgrade'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
 import { Route as AuthenticatedProfileHelpRouteImport } from './routes/_authenticated/profile.help'
 import { Route as AuthenticatedProfileReferralsRouteImport } from './routes/_authenticated/profile.referrals'
@@ -128,6 +129,11 @@ const LegalDocRoute = LegalDocRouteImport.update({
   path: '/legal/$doc',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/',
@@ -223,7 +229,7 @@ export interface FileRoutesByFullPath {
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/profile/support': typeof AuthenticatedProfileSupportRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
@@ -256,7 +263,6 @@ export interface FileRoutesByTo {
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/markets': typeof AuthenticatedMarketsRoute
@@ -272,6 +278,7 @@ export interface FileRoutesByTo {
   '/profile/support': typeof AuthenticatedProfileSupportRoute
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
@@ -290,7 +297,7 @@ export interface FileRoutesById {
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
   '/trade': typeof TradeRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
@@ -307,6 +314,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/support': typeof AuthenticatedProfileSupportRoute
   '/_authenticated/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/_authenticated/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
@@ -342,6 +350,7 @@ export interface FileRouteTypes {
     | '/profile/support'
     | '/profile/verification'
     | '/terminal/$symbol'
+    | '/admin/'
     | '/profile/'
     | '/history/orders/$orderId'
     | '/profile/settings/notifications'
@@ -358,7 +367,6 @@ export interface FileRouteTypes {
     | '/market'
     | '/reset-password'
     | '/trade'
-    | '/admin'
     | '/assets'
     | '/dashboard'
     | '/markets'
@@ -374,6 +382,7 @@ export interface FileRouteTypes {
     | '/profile/support'
     | '/profile/verification'
     | '/terminal/$symbol'
+    | '/admin'
     | '/profile'
     | '/history/orders/$orderId'
     | '/profile/settings/notifications'
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/support'
     | '/_authenticated/profile/verification'
     | '/_authenticated/terminal/$symbol'
+    | '/_authenticated/admin/'
     | '/_authenticated/profile/'
     | '/_authenticated/history/orders/$orderId'
     | '/_authenticated/profile/settings/notifications'
@@ -553,6 +563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/profile/': {
       id: '/_authenticated/profile/'
       path: '/'
@@ -661,6 +678,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedProfileRouteChildren {
   AuthenticatedProfileHelpRoute: typeof AuthenticatedProfileHelpRoute
   AuthenticatedProfileReferralsRoute: typeof AuthenticatedProfileReferralsRoute
@@ -695,7 +723,7 @@ const AuthenticatedProfileRouteWithChildren =
   AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
@@ -710,7 +738,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
