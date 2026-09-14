@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { ArrowDownToLine, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { getPortfolioValue } from "@/lib/wallet.functions";
@@ -9,7 +10,6 @@ import { getPortfolio } from "@/lib/trading.functions";
 import { unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
 import { useQuotes } from "@/hooks/useMarket";
 import {
-  HomeActionBar,
   WatchlistSection,
   TopMoversSection,
 } from "@/components/home/HomeSummary";
