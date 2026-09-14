@@ -147,6 +147,23 @@ function Portfolio() {
         />
       </section>
 
+      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <PnlCard
+          label="Today's Realized P&L"
+          hint="Settled today (00:00–23:59 UTC)"
+          amount={todayRealized}
+          loading={dailyPnl.isLoading}
+          hidden={balancesHidden}
+        />
+        <PnlCard
+          label="Total Unrealized P&L"
+          hint="Live mark-to-market on open exposure"
+          amount={totalUnrealized}
+          loading={isLoading}
+          hidden={balancesHidden}
+        />
+      </div>
+
       <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <MiniStat label="Open Positions" value={String(open.length)} sub="View" subTo="#positions" />
         <MiniStat
