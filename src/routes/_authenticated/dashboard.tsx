@@ -104,7 +104,7 @@ function Home() {
             </div>
 
             <div className="mt-2 flex items-center gap-1 text-xs font-medium text-muted-foreground">
-              <span>Today&apos;s PNL</span>
+              <span>{t("dashboard.todaysPnl")}</span>
               <ChevronDown className="size-3" />
             </div>
             <div
