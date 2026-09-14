@@ -59,7 +59,9 @@ export const getDailyRealizedPnl = createServerFn({ method: "POST" })
       dayStartIso: dayStart,
       scalp,
       margin,
-      spotSales: (swaps.data ?? []).length > 0 ? 0 : 0,
+      // Spot sales settle at the live market rate, so they book no realized
+      // delta of their own; spot performance shows up as holding drift below.
+      spotSales: 0,
       realized: scalp + margin,
     };
   });
