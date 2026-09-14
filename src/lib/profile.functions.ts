@@ -21,6 +21,8 @@ export const getProfileOverview = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId, claims } = context;
     const { usdtRates } = await import("./rates.server");
+    const claimRecord = claims as Record<string, unknown>;
+    const userMetadata = (claimRecord["user_metadata"] ?? {}) as Record<string, unknown>;
 
     const [{ data: profile }, { data: wallets }, { data: contracts }, { data: positions }, { data: deposits }, rates] =
       await Promise.all([
@@ -89,7 +91,9 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         uid: (profile as any)?.uid ?? null,
         displayName: profile?.display_name ?? "Trader",
         avatarUrl: (profile as any)?.avatar_url ?? null,
-        email: (claims as any)?.email ?? null,
+        email: (claimRecord["email"] as string | undefined) ?? null,
+        emailVerified: Boolean(claimRecord["email_verified"] ?? userMetadata["email_verified"]),
+        phone: (claimRecord["phone"] as string | undefined) ?? null,
         referralCode: (profile as any)?.referral_code ?? null,
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
         creditScore: Number((profile as any)?.credit_score ?? 750),
