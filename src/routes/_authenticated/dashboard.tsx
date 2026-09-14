@@ -85,7 +85,7 @@ function Home() {
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span>Est. Total Value (USD)</span>
+              <span>{t("dashboard.estTotalValue")}</span>
               <ChevronDown className="size-3.5" />
               <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
             </div>
