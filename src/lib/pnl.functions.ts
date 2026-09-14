@@ -27,7 +27,7 @@ export const getDailyRealizedPnl = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const dayStart = utcDayStart().toISOString();
 
-    const [contracts, positions, swaps] = await Promise.all([
+    const [contracts, positions] = await Promise.all([
       supabase
         .from("contracts")
         .select("stake,payout,result,settled_at")
