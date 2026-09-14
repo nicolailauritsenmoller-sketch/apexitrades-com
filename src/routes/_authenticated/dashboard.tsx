@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowDownToLine, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
+import { useT } from "@/lib/i18n";
 import { getPortfolioValue } from "@/lib/wallet.functions";
 import { getPortfolio } from "@/lib/trading.functions";
 import { unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
