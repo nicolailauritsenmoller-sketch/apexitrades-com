@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { Search, Wallet } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ChevronDown, Search, Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
+
 
 
 export type AssetHolding = {
@@ -29,9 +31,38 @@ function usd(value: number) {
   return `$${fmt(value)}`;
 }
 
+type CategoryTab = "all" | "crypto" | "stocks" | "commodities" | "fiat";
+
+const TABS: { key: CategoryTab; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "crypto", label: "Crypto" },
+  { key: "stocks", label: "Stocks/ETFs" },
+  { key: "commodities", label: "Commodities" },
+  { key: "fiat", label: "Fiat" },
+];
+
+const FIAT = new Set([
+  "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "NZD", "CNY", "HKD", "SGD",
+  "SEK", "NOK", "DKK", "MXN", "ZAR", "TRY", "INR", "BRL", "KRW",
+]);
+const COMMODITIES = new Set(["XAU", "XAG", "XPT", "XPD", "GOLD", "SILVER", "WTI", "BRENT"]);
+const EQUITY_LIKE = /^[A-Z]{1,5}$/;
+
+/** Classify a wallet currency into one of the filter tab buckets. */
+function tabOf(currency: string): Exclude<CategoryTab, "all"> {
+  const c = currency.toUpperCase();
+  if (FIAT.has(c)) return "fiat";
+  if (COMMODITIES.has(c) || c.startsWith("XAU") || c.startsWith("XAG")) return "commodities";
+  // Known equity tickers held as tokenized stock/ETF positions.
+  if (["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "SPY", "QQQ", "GOOGL", "META"].includes(c))
+    return "stocks";
+  return "crypto";
+}
+
 /**
- * Per-asset breakdown: logo, name, total / available / in-orders+margin
- * amounts and the live USD valuation, with search and zero-balance filtering.
+ * Institutional single-line asset list: icon + name/ticker on the left,
+ * quantity + USD value on the right. Tapping a row expands a breakdown
+ * drawer with available / in-orders / margin splits and quick actions.
  */
 export function AssetsOverview({
   holdings,
@@ -48,12 +79,15 @@ export function AssetsOverview({
 }) {
   const [hideZero, setHideZero] = useState(hideEmpty);
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<CategoryTab>("all");
+  const [expanded, setExpanded] = useState<string | null>(null);
   const mv = (value: string) => (hidden ? "••••••" : value);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
     return holdings
       .filter((h) => (hideZero ? h.balance > 0 : true))
+      .filter((h) => tab === "all" || tabOf(h.currency) === tab)
       .filter(
         (h) =>
           !term ||
@@ -61,7 +95,7 @@ export function AssetsOverview({
           assetName(h.currency).toLowerCase().includes(term),
       )
       .sort((a, b) => b.valueUsdt - a.valueUsdt);
-  }, [holdings, hideZero, search]);
+  }, [holdings, hideZero, search, tab]);
 
   return (
     <section className="panel overflow-hidden">
@@ -71,6 +105,30 @@ export function AssetsOverview({
           Every asset you hold, valued at live market rates.
         </p>
       </header>
+
+      {/* Category filter tabs */}
+      <div
+        role="tablist"
+        aria-label="Asset categories"
+        className="flex gap-1 overflow-x-auto border-b border-border/60 px-4 py-2.5"
+      >
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={`touch-manipulation whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              tab === t.key
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
         <div className="relative min-w-0 flex-1 sm:max-w-xs">
@@ -106,60 +164,24 @@ export function AssetsOverview({
         </button>
       </div>
 
-      {/* Desktop table */}
-      <div className="hidden overflow-x-auto sm:block">
-        <table className="w-full text-sm">
-          <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2.5 text-left font-medium">Asset</th>
-              <th className="px-4 py-2.5 text-right font-medium">Total Balance</th>
-              <th className="px-4 py-2.5 text-right font-medium">Available</th>
-              <th className="px-4 py-2.5 text-right font-medium">In Orders / Margin</th>
-              <th className="px-4 py-2.5 text-right font-medium">Est. Value (USD)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((h) => {
-              const locked = (h.frozenMargin ?? 0) + (h.inOrders ?? 0);
-              return (
-                <tr key={h.currency} className="border-t border-border/60">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <AssetIcon currency={h.currency} size={28} />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold">{assetName(h.currency)}</div>
-                        <div className="text-[11px] text-muted-foreground">{h.currency}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="num px-4 py-3 text-right font-semibold">
-                    {mv(qty(h.balance, h.currency))}
-                  </td>
-                  <td className="num px-4 py-3 text-right">
-                    {mv(qty(h.available ?? h.balance, h.currency))}
-                  </td>
-                  <td className="num px-4 py-3 text-right text-muted-foreground">
-                    {mv(qty(locked, h.currency))}
-                  </td>
-                  <td className="num px-4 py-3 text-right font-semibold">{mv(usd(h.valueUsdt))}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile cards */}
-      <div className="divide-y divide-border/60 sm:hidden">
+      {/* Single-line rows with expandable breakdown */}
+      <div className="divide-y divide-border/60">
         {rows.map((h) => {
-          const locked = (h.frozenMargin ?? 0) + (h.inOrders ?? 0);
+          const open = expanded === h.currency;
+          const inOrders = h.inOrders ?? 0;
+          const margin = h.frozenMargin ?? 0;
           return (
-            <div key={h.currency} className="px-4 py-3">
-              <div className="flex items-center gap-3">
+            <div key={h.currency}>
+              <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => setExpanded(open ? null : h.currency)}
+                className="flex w-full touch-manipulation items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
+              >
                 <AssetIcon currency={h.currency} size={32} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{assetName(h.currency)}</div>
-                  <div className="text-[11px] text-muted-foreground">{h.currency}</div>
+                <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                  <span className="truncate text-sm font-semibold">{assetName(h.currency)}</span>
+                  <span className="text-[11px] text-muted-foreground">{h.currency}</span>
                 </div>
                 <div className="text-right">
                   <div className="num text-sm font-semibold">{mv(qty(h.balance, h.currency))}</div>
@@ -167,21 +189,60 @@ export function AssetsOverview({
                     {mv(usd(h.valueUsdt))}
                   </div>
                 </div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-                <div>
-                  <div className="text-muted-foreground">Available</div>
-                  <div className="num font-semibold">{mv(qty(h.available ?? h.balance, h.currency))}</div>
+                <ChevronDown
+                  className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                    open ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {open && (
+                <div className="border-t border-border/40 bg-secondary/20 px-4 py-3">
+                  <dl className="grid grid-cols-3 gap-2 text-[11px]">
+                    <div>
+                      <dt className="text-muted-foreground">Available</dt>
+                      <dd className="num mt-0.5 font-semibold">
+                        {mv(qty(h.available ?? h.balance, h.currency))} {h.currency}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">In Open Orders</dt>
+                      <dd className="num mt-0.5 font-semibold">
+                        {mv(qty(inOrders, h.currency))} {h.currency}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">In Margin</dt>
+                      <dd className="num mt-0.5 font-semibold">
+                        {mv(qty(margin, h.currency))} {h.currency}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      to="/wallet"
+                      search={{ tab: "deposit" }}
+                      className="inline-flex touch-manipulation items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                    >
+                      <ArrowDownToLine className="size-3.5" /> Deposit
+                    </Link>
+                    <Link
+                      to="/wallet"
+                      search={{ tab: "withdraw" }}
+                      className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
+                    >
+                      <ArrowUpFromLine className="size-3.5" /> Withdraw
+                    </Link>
+                    <Link
+                      to="/trade"
+                      search={{ symbol: `${h.currency}USDT` }}
+                      className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
+                    >
+                      <ArrowLeftRight className="size-3.5" /> Trade
+                    </Link>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-muted-foreground">In Orders</div>
-                  <div className="num font-semibold">{mv(qty(h.inOrders ?? 0, h.currency))}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Margin</div>
-                  <div className="num font-semibold">{mv(qty(h.frozenMargin ?? 0, h.currency))}</div>
-                </div>
-              </div>
+              )}
             </div>
           );
         })}
