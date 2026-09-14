@@ -3,8 +3,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { getQuotes, getCandles } from "@/lib/market.functions";
 import type { Quote, Candle, Timeframe } from "@/lib/market-types";
 
-export function useQuotes(symbols: string[], intervalMs = 5000) {
+export function useQuotes(input: string[], intervalMs = 5000) {
   const fetchQuotes = useServerFn(getQuotes);
+  const symbols = input.slice(0, 500);
   const key = [...symbols].sort().join(",");
 
   const query = useQuery({
