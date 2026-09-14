@@ -58,6 +58,7 @@ function Home() {
   const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
 
   const { hidden, toggle } = useBalancePrivacy();
+  const { currency, convert, format } = useDisplayCurrency();
   const total = value.data?.totalUsdt ?? 0;
   const baseline = total - todayPnl;
   const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
