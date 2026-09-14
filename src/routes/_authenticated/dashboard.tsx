@@ -120,7 +120,8 @@ function Home() {
           <Link
             to="/wallet"
             search={{ tab: "deposit" }}
-            className="flex min-h-11 touch-manipulation items-center gap-2 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow-primary transition-transform active:scale-[0.97]"
+            className="flex min-h-11 touch-manipulation items-center gap-2 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
+            style={{ boxShadow: "var(--glow-primary)" }}
           >
             <ArrowDownToLine className="size-4" strokeWidth={2.6} />
             Add Funds
