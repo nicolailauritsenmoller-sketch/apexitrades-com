@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_authenticated/wallet")({
 function WalletPage() {
   const qc = useQueryClient();
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
-  const { tab } = Route.useSearch();
+  const { tab, amount: presetAmount } = Route.useSearch();
   const navigate = useNavigate();
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
@@ -210,6 +210,7 @@ function WalletPage() {
       {tab === "deposit" && (
         <DepositTab
           addresses={addresses.data ?? []}
+          initialAmount={presetAmount}
           onDone={refresh}
           onSubmitted={setActiveTx}
         />
