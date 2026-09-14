@@ -16,7 +16,7 @@ import {
 import { LANGUAGES, useI18n, type LangCode } from "@/lib/i18n";
 import { logActivity } from "@/lib/telemetry";
 
-const CURRENCIES = ["USD", "EUR", "GBP", "BTC", "USDT"];
+
 
 
 export const Route = createFileRoute("/_authenticated/profile/settings/preferences")({
