@@ -33,6 +33,7 @@ import { Route as AuthenticatedProfileSecurityRouteImport } from './routes/_auth
 import { Route as AuthenticatedProfileSupportRouteImport } from './routes/_authenticated/profile.support'
 import { Route as AuthenticatedProfileVerificationRouteImport } from './routes/_authenticated/profile.verification'
 import { Route as AuthenticatedTerminalSymbolRouteImport } from './routes/_authenticated/terminal.$symbol'
+import { Route as AuthenticatedHistoryOrdersOrderIdRouteImport } from './routes/_authenticated/history.orders.$orderId'
 import { Route as AuthenticatedProfileSettingsIndexRouteImport } from './routes/_authenticated/profile.settings.index'
 import { Route as AuthenticatedProfileSettingsNotificationsRouteImport } from './routes/_authenticated/profile.settings.notifications'
 import { Route as AuthenticatedProfileSettingsPreferencesRouteImport } from './routes/_authenticated/profile.settings.preferences'
@@ -169,6 +170,12 @@ const AuthenticatedTerminalSymbolRoute =
     path: '/terminal/$symbol',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHistoryOrdersOrderIdRoute =
+  AuthenticatedHistoryOrdersOrderIdRouteImport.update({
+    id: '/history/orders/$orderId',
+    path: '/history/orders/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileSettingsIndexRoute =
   AuthenticatedProfileSettingsIndexRouteImport.update({
     id: '/settings/',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/verification': typeof AuthenticatedProfileVerificationRoute
   '/_authenticated/terminal/$symbol': typeof AuthenticatedTerminalSymbolRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/history/orders/$orderId': typeof AuthenticatedHistoryOrdersOrderIdRoute
   '/_authenticated/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/_authenticated/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/_authenticated/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile/'
+    | '/history/orders/$orderId'
     | '/profile/settings/notifications'
     | '/profile/settings/preferences'
     | '/profile/settings/security'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/profile/verification'
     | '/terminal/$symbol'
     | '/profile'
+    | '/history/orders/$orderId'
     | '/profile/settings/notifications'
     | '/profile/settings/preferences'
     | '/profile/settings/security'
@@ -397,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/verification'
     | '/_authenticated/terminal/$symbol'
     | '/_authenticated/profile/'
+    | '/_authenticated/history/orders/$orderId'
     | '/_authenticated/profile/settings/notifications'
     | '/_authenticated/profile/settings/preferences'
     | '/_authenticated/profile/settings/security'
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTerminalSymbolRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/history/orders/$orderId': {
+      id: '/_authenticated/history/orders/$orderId'
+      path: '/history/orders/$orderId'
+      fullPath: '/history/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedHistoryOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile/settings/': {
       id: '/_authenticated/profile/settings/'
       path: '/settings'
@@ -686,6 +706,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVipUpgradeRoute: typeof AuthenticatedVipUpgradeRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedTerminalSymbolRoute: typeof AuthenticatedTerminalSymbolRoute
+  AuthenticatedHistoryOrdersOrderIdRoute: typeof AuthenticatedHistoryOrdersOrderIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -700,6 +721,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVipUpgradeRoute: AuthenticatedVipUpgradeRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedTerminalSymbolRoute: AuthenticatedTerminalSymbolRoute,
+  AuthenticatedHistoryOrdersOrderIdRoute:
+    AuthenticatedHistoryOrdersOrderIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
