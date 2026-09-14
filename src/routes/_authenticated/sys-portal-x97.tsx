@@ -630,11 +630,11 @@ function AdminPage() {
                     }}
                     className={`flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-transform hover:-translate-y-0.5 ${
                       unreadChats > 0
-                        ? "animate-pulse border-bear/60 bg-bear/10 ring-2 ring-bear/25"
-                        : "border-primary/30 bg-primary/5"
+                        ? "border-ops-red/40 bg-ops-red-bg"
+                        : "border-border bg-card"
                     }`}
                   >
-                    <MessagesSquare className="size-5 text-primary" />
+                    <MessagesSquare className={`size-5 ${unreadChats > 0 ? "text-ops-red" : "text-muted-foreground"}`} />
                     <div className="min-w-0">
                       <p className="font-display text-sm font-bold tracking-tight">Live Chat</p>
                       <p className="text-xs text-muted-foreground">
