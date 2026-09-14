@@ -143,6 +143,7 @@ function ProfileHome() {
   }, [profile?.id, queryClient]);
 
   const status = kyc.data?.status ?? "unverified";
+  const vipTier = String((profile as any)?.vipTier ?? "regular");
   const creditScore = Number((profile as any)?.creditScore ?? 750);
   const creditBand = creditScoreBand(creditScore);
   const creditPct = Math.min(
