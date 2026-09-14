@@ -71,7 +71,7 @@ export function ThemeSetting() {
           [
             { id: "light" as const, label: "Light", Icon: Sun },
             { id: "dark" as const, label: "Dark", Icon: Moon },
-            { id: "system" as const, label: "System", Icon: Monitor },
+            { id: "system" as const, label: "System Auto", Icon: Monitor },
           ]
         ).map(({ id, label, Icon }) => (
           <button
