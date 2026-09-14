@@ -100,6 +100,7 @@ function Portfolio() {
     }
   }
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
+  const display = useDisplayCurrency();
   const [range, setRange] = useState<Range>("1M");
   const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
@@ -118,20 +119,16 @@ function Portfolio() {
       <section className="panel touch-manipulation p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs font-medium text-muted-foreground">Total Portfolio Value</div>
+            <div className="text-xs font-medium text-muted-foreground">
+              Est. Total Value ({display.currency})
+            </div>
             <div className="num mt-1 text-3xl font-bold tracking-tight">
               {value.isLoading ? (
                 "—"
               ) : balancesHidden ? (
                 "••••••"
               ) : (
-                <>
-                  {(value.data?.totalUsdt ?? 0).toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  <span className="ml-1.5 text-base font-semibold text-muted-foreground">USDT</span>
-                </>
+                display.format(value.data?.totalUsdt ?? 0)
               )}
             </div>
           </div>
@@ -154,6 +151,7 @@ function Portfolio() {
           amount={todayRealized}
           loading={dailyPnl.isLoading}
           hidden={balancesHidden}
+          format={display.format}
         />
         <PnlCard
           label="Total Unrealized P&L"
@@ -161,6 +159,7 @@ function Portfolio() {
           amount={totalUnrealized}
           loading={isLoading}
           hidden={balancesHidden}
+          format={display.format}
         />
       </div>
 
@@ -169,20 +168,20 @@ function Portfolio() {
         <MiniStat
           label="Unrealized P&L"
           value={
-            balancesHidden ? "••••" : `${totalUnrealized >= 0 ? "+" : ""}${totalUnrealized.toFixed(2)}`
+            balancesHidden ? "••••" : display.formatSigned(totalUnrealized)
           }
-          sub="USDT"
+          sub={display.currency}
           tone={totalUnrealized >= 0 ? "bull" : "bear"}
         />
         <MiniStat
           label="Available Balance"
-          value={balancesHidden || available == null ? "••••" : (available ?? 0).toFixed(2)}
-          sub="USDT"
+          value={balancesHidden || available == null ? "••••" : display.format(available ?? 0)}
+          sub={display.currency}
         />
         <MiniStat
           label="Realized P&L"
-          value={balancesHidden ? "••••" : `${realized >= 0 ? "+" : ""}${realized.toFixed(2)}`}
-          sub="USDT"
+          value={balancesHidden ? "••••" : display.formatSigned(realized)}
+          sub={display.currency}
           tone={realized >= 0 ? "bull" : "bear"}
         />
       </div>
