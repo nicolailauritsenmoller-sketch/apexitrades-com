@@ -24,6 +24,7 @@ import {
 } from "@/lib/instruments";
 import { type Timeframe } from "@/lib/market-types";
 import { TAKER_FEE_PCT } from "@/lib/limits";
+import { usePreference } from "@/lib/preferences";
 
 export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   loader: ({ params }) => {
@@ -73,7 +74,8 @@ function Terminal() {
 
   const [timeframe, setTimeframe] = useState<Timeframe>("1m");
   const [quantity, setQuantity] = useState(String(inst.step));
-  const [leverage, setLeverage] = useState(1);
+  const [leverage, setLeverage] = usePreference("orderLeverage", 1);
+  const [orderConfirmations] = usePreference("orderConfirmations", true);
   // Price picked from the order book ladder; empty means execute at market.
   const [orderPriceValue, setOrderPriceValue] = useState("");
   const setOrderPrice = (p: number) => setOrderPriceValue(String(+p.toFixed(inst.precision)));
@@ -133,6 +135,19 @@ function Terminal() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  function submitOrder(side: "long" | "short", requestedQuantity?: number) {
+    const orderQuantity = requestedQuantity ?? Number(quantity);
+    if (
+      orderConfirmations &&
+      !window.confirm(
+        `Confirm ${side === "long" ? "Buy / Long" : "Sell / Short"} order\n\n${displaySymbol(symbol)} · ${orderQuantity} · ${leverage}x leverage`,
+      )
+    ) {
+      return;
+    }
+    orderMutation.mutate({ side, quantity: orderQuantity });
+  }
 
   const positions = (portfolio.data?.positions ?? []) as PositionRow[];
   const openHere = positions.filter((p) => p.status === "open" && p.symbol === symbol);
@@ -361,14 +376,14 @@ function Terminal() {
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => orderMutation.mutate({ side: "long" })}
+              onClick={() => submitOrder("long")}
               disabled={orderMutation.isPending || qty <= 0}
               className="min-h-11 touch-manipulation rounded-xl bg-bull text-sm font-semibold text-bull-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               Buy Long
             </button>
             <button
-              onClick={() => orderMutation.mutate({ side: "short" })}
+              onClick={() => submitOrder("short")}
               disabled={orderMutation.isPending || qty <= 0}
               className="min-h-11 touch-manipulation rounded-xl bg-bear text-sm font-semibold text-bear-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
@@ -402,7 +417,7 @@ function Terminal() {
           balance={wallet?.balance}
           orderPrice={orderPriceValue}
           onOrderPriceChange={setOrderPriceValue}
-          onSubmit={(side, q) => orderMutation.mutate({ side, quantity: q })}
+          onSubmit={(side, q) => submitOrder(side, q)}
           pending={orderMutation.isPending}
         />
         <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} compact />
