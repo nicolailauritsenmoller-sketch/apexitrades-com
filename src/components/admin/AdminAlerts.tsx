@@ -12,6 +12,13 @@ import {
   stopChatLoop,
   unlockAudio,
 } from "@/lib/alerts";
+import {
+  DESK_AUDIO_UNLOCK_KEY,
+  playDeskSound,
+  preloadDeskSounds,
+  unlockDeskAudio,
+  type DeskSound,
+} from "@/lib/desk-sounds";
 
 
 const SOUND_KEY = "velocity:desk-sound";
@@ -30,14 +37,29 @@ function money(v: unknown) {
 export function AdminAlerts() {
   const [sound, setSound] = useState(true);
   const [push, setPush] = useState(false);
+  const [audioReady, setAudioReady] = useState(true);
 
   useEffect(() => {
     setSound(localStorage.getItem(SOUND_KEY) !== "off");
     setPush(localStorage.getItem(PUSH_KEY) === "on" && Notification?.permission === "granted");
-    const unlock = () => unlockAudio();
+    setAudioReady(localStorage.getItem(DESK_AUDIO_UNLOCK_KEY) === "1");
+    preloadDeskSounds();
+    // One click anywhere on the console grants browser autoplay permission.
+    const unlock = () => {
+      unlockAudio();
+      void unlockDeskAudio().then((ok) => ok && setAudioReady(true));
+    };
     window.addEventListener("pointerdown", unlock, { once: true });
     return () => window.removeEventListener("pointerdown", unlock);
   }, []);
+
+  /** Distinct per-event chime from the Control Center sound library. */
+  const cue = useCallback(
+    (kind: DeskSound) => {
+      if (sound) playDeskSound(kind);
+    },
+    [sound],
+  );
 
   const alert = useCallback(
     (kind: Parameters<typeof playChime>[0], title: string, body: string, loop = false) => {
@@ -81,6 +103,7 @@ export function AdminAlerts() {
         { event: "INSERT", schema: "public", table: "user_sessions" },
         (p) => {
           const r = p.new as any;
+          cue("visitor");
           alert(
             "visit",
             "New user on the platform",
@@ -91,14 +114,22 @@ export function AdminAlerts() {
       .on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, (p) => {
         const r = (p.new ?? {}) as any;
         if (!r.id) return;
+        const stable = String(r.coin ?? "").toUpperCase().startsWith("USD");
+        const vipSize = stable && Number(r.amount ?? 0) >= 20_000;
+        cue(vipSize ? "vip-deposit" : "deposit");
         alert(
           "money",
-          p.eventType === "INSERT" ? "New deposit request" : "Deposit request updated",
+          p.eventType === "INSERT"
+            ? vipSize
+              ? "VIP-tier deposit request"
+              : "New deposit request"
+            : "Deposit request updated",
           `${money(r.amount)} ${r.coin} · ${r.status}`,
         );
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "contracts" }, (p) => {
         const r = p.new as any;
+        cue("trade");
         alert(
           "trade",
           "Scalp contract opened",
@@ -110,6 +141,7 @@ export function AdminAlerts() {
         const prev = (p.old ?? {}) as any;
         if (r.status !== "settled" && r.status !== "closed") return;
         if (prev.status === r.status) return;
+        cue("trade");
         const win = r.result === "win";
         const pnl = Number(r.payout ?? 0) - Number(r.stake ?? 0);
         settle(
@@ -120,6 +152,7 @@ export function AdminAlerts() {
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "positions" }, (p) => {
         const r = p.new as any;
+        cue("trade");
         alert(
           "trade",
           "Margin position opened",
@@ -130,6 +163,7 @@ export function AdminAlerts() {
         const r = (p.new ?? {}) as any;
         const prev = (p.old ?? {}) as any;
         if (r.status !== "closed" || prev.status === "closed") return;
+        cue("trade");
         const pnl = Number(r.realized_pnl ?? 0);
         settle(
           pnl >= 0,
@@ -140,6 +174,7 @@ export function AdminAlerts() {
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, (p) => {
         const r = (p.new ?? {}) as any;
         if (!r.id) return;
+        cue("withdrawal");
         alert(
           "money",
           p.eventType === "INSERT" ? "New withdrawal request" : "Withdrawal request updated",
@@ -151,6 +186,7 @@ export function AdminAlerts() {
         { event: "INSERT", schema: "public", table: "kyc_submissions" },
         (p) => {
           const r = p.new as any;
+          cue("kyc");
           alert("kyc", "KYC documents submitted", `${r.full_name ?? "A user"} · ${r.country ?? ""}`);
         },
       )
@@ -160,6 +196,7 @@ export function AdminAlerts() {
         (p) => {
           const r = p.new as any;
           if (r.status !== "pending") return;
+          cue("kyc");
           alert("kyc", "KYC resubmitted for review", `${r.full_name ?? "A user"} · ${r.country ?? ""}`);
         },
       )
@@ -171,10 +208,20 @@ export function AdminAlerts() {
           alert("chat", "New support ticket", `${r.subject} (${r.priority})`, true);
         },
       )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "profiles" }, (p) => {
+        const r = p.new as any;
+        cue("new-user");
+        alert(
+          "visit",
+          "New user registration",
+          `${r.display_name ?? "A new trader"}${r.uid ? ` (ID ${r.uid})` : ""} just created an account.`,
+        );
+      })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (p) => {
         const r = (p.new ?? {}) as any;
         const prev = (p.old ?? {}) as any;
         if (r.vip_tier !== "vip_pending" || prev.vip_tier === "vip_pending") return;
+        cue("vip-request");
         alert(
           "money",
           "VIP membership request",
@@ -202,7 +249,7 @@ export function AdminAlerts() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [alert, settle]);
+  }, [alert, settle, cue]);
 
   async function togglePush() {
     if (push) {
@@ -227,12 +274,22 @@ export function AdminAlerts() {
     if (!next) stopChatLoop();
     else {
       unlockAudio();
-      playChime("visit");
+      void unlockDeskAudio().then((ok) => ok && setAudioReady(true));
+      playDeskSound("deposit");
     }
   }
 
   return (
     <div className="flex items-center gap-1">
+      {sound && !audioReady && (
+        <button
+          type="button"
+          onClick={() => void unlockDeskAudio().then((ok) => ok && setAudioReady(true))}
+          className="mr-1 hidden touch-manipulation items-center gap-1.5 rounded-md border border-ops-amber/25 bg-ops-amber-bg px-2.5 py-1.5 text-[11px] font-semibold text-ops-amber sm:flex"
+        >
+          <Volume2 className="size-3.5" /> Click to enable alert sounds
+        </button>
+      )}
       <button
         onClick={toggleSound}
         title={sound ? "Mute alert sounds" : "Enable alert sounds"}
