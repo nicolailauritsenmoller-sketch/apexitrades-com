@@ -9,6 +9,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Check,
+  ChevronDown,
   Clock3,
   Copy,
   Loader2,
@@ -20,6 +21,19 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetIcon } from "@/lib/asset-icons";
+import ethNetworkIcon from "@/assets/crypto/eth.svg";
+import btcNetworkIcon from "@/assets/crypto/btc.svg";
+import bnbNetworkIcon from "@/assets/crypto/bnb.svg";
+import solNetworkIcon from "@/assets/crypto/sol.svg";
+import polNetworkIcon from "@/assets/crypto/matic.svg";
+import avaxNetworkIcon from "@/assets/crypto/avax.svg";
+import aptNetworkIcon from "@/assets/crypto/apt.png";
+import baseNetworkIcon from "@/assets/crypto/base.svg";
+import arbNetworkIcon from "@/assets/crypto/arb.svg";
+import opNetworkIcon from "@/assets/crypto/op.svg";
+import scrollNetworkIcon from "@/assets/crypto/scroll.svg";
+import sonicNetworkIcon from "@/assets/crypto/sonic.svg";
+import lightningNetworkIcon from "@/assets/crypto/lightning.svg";
 import { AssetPicker } from "@/components/AssetPicker";
 import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
@@ -302,7 +316,7 @@ const NETWORK_DETAILS: Array<{
   { match: /base/i, label: "BASE", confirmations: 12, arrival: "~2 minutes", minimums: { ETH: "0.001 ETH", USDT: "5 USDT" } },
   { match: /arbitrum/i, label: "ARBITRUM ONE", confirmations: 12, arrival: "~2 minutes", minimums: { ETH: "0.001 ETH" } },
   { match: /optimism/i, label: "OPTIMISM", confirmations: 20, arrival: "~3 minutes", minimums: { ETH: "0.001 ETH", USDT: "5 USDT" } },
-  { match: /zksync/i, label: "ZKSYNC ERA", confirmations: 24, arrival: "~5 minutes", minimums: { ETH: "0.001 ETH" } },
+  
   { match: /segwit|taproot/i, label: "SEGWIT (NATIVE SEGWIT / TAPROOT)", confirmations: 3, arrival: "~20 minutes", minimums: { BTC: "0.0001 BTC" } },
   { match: /lightning/i, label: "LIGHTNING NETWORK", confirmations: 1, arrival: "Instant", minimums: { BTC: "0.00001 BTC" } },
   { match: /bitcoin|btc/i, label: "BITCOIN (NATIVE)", confirmations: 3, arrival: "~30 minutes", minimums: { BTC: "0.0001 BTC" } },
@@ -326,6 +340,104 @@ function depositNetworkDetails(network: string, coin: string) {
     arrival: known?.arrival ?? "~10 minutes",
     minimum: known?.minimums?.[coin] ?? stableDefault,
   };
+}
+
+const NETWORK_ICON: Array<{ match: RegExp; src: string }> = [
+  { match: /erc|ethereum/i, src: ethNetworkIcon },
+  { match: /trc|tron/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/trx.png" },
+  { match: /bep|bsc|bnb smart/i, src: bnbNetworkIcon },
+  { match: /base/i, src: baseNetworkIcon },
+  { match: /arbitrum/i, src: arbNetworkIcon },
+  { match: /optimism/i, src: opNetworkIcon },
+  { match: /segwit|taproot|bitcoin|btc/i, src: btcNetworkIcon },
+  { match: /lightning/i, src: lightningNetworkIcon },
+  { match: /polygon|pos|plasma/i, src: polNetworkIcon },
+  { match: /aptos/i, src: aptNetworkIcon },
+  { match: /avalanche|c-chain/i, src: avaxNetworkIcon },
+  { match: /scroll/i, src: scrollNetworkIcon },
+  { match: /algorand|algo/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/algo.png" },
+  { match: /solana|sol/i, src: solNetworkIcon },
+  { match: /sonic/i, src: sonicNetworkIcon },
+  { match: /polkadot|dot/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/dot.png" },
+];
+
+function NetworkIcon({ network, size = 20 }: { network: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const src = NETWORK_ICON.find((item) => item.match.test(network))?.src;
+  if (!src || failed) {
+    return (
+      <span
+        className="grid shrink-0 place-items-center rounded-full bg-secondary text-[9px] font-bold text-muted-foreground"
+        style={{ width: size, height: size }}
+      >
+        {network.slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      className="shrink-0 rounded-full"
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
+function NetworkSelect({
+  options,
+  value,
+  onChange,
+}: {
+  options: Address[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((item) => item.id === value) ?? options[0];
+  return (
+    <div
+      className="relative mt-1"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-11 w-full items-center gap-2.5 rounded-md border border-input bg-background px-3 text-left outline-none focus:border-primary"
+      >
+        {current && <NetworkIcon network={current.network} />}
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+          {current ? depositNetworkDetails(current.network, current.coin).label : "Select network"}
+        </span>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-background py-1 shadow-xl">
+          {options.map((item) => {
+            const active = item.id === current?.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  onChange(item.id);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-secondary/60 ${active ? "text-primary" : ""}`}
+              >
+                <NetworkIcon network={item.network} />
+                <span className="min-w-0 flex-1 truncate">{depositNetworkDetails(item.network, item.coin).label}</span>
+                {active && <Check className="size-4 shrink-0 text-primary" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function DepositTab({
@@ -472,16 +584,10 @@ function DepositTab({
                 {coins.map((coin) => <option key={coin} value={coin}>{coin}</option>)}
               </select>
             </label>
-            <label className="block">
+            <div>
               <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Network</span>
-              <select
-                value={addr?.id ?? ""}
-                onChange={(event) => setSelectedId(event.target.value)}
-                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold outline-none focus:border-primary"
-              >
-                {coinAddresses.map((item) => <option key={item.id} value={item.id}>{depositNetworkDetails(item.network, item.coin).label}</option>)}
-              </select>
-            </label>
+              <NetworkSelect options={coinAddresses} value={addr?.id ?? ""} onChange={setSelectedId} />
+            </div>
           </div>
         </div>
 
