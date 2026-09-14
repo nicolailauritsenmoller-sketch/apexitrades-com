@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_security_settings: {
+        Row: {
+          address_whitelisting_enabled: boolean
+          anti_phishing_code_hash: string | null
+          anti_phishing_code_hint: string | null
+          created_at: string
+          login_password_updated_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_whitelisting_enabled?: boolean
+          anti_phishing_code_hash?: string | null
+          anti_phishing_code_hint?: string | null
+          created_at?: string
+          login_password_updated_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_whitelisting_enabled?: boolean
+          anti_phishing_code_hash?: string | null
+          anti_phishing_code_hint?: string | null
+          created_at?: string
+          login_password_updated_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string

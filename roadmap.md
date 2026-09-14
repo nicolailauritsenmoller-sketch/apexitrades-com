@@ -7,6 +7,7 @@
 
 ## Completed
 
+- [x] Redesign Security Settings with live protection scoring, modal controls, anti-phishing, withdrawal whitelisting, and paginated device sessions.
 - [x] Redesign the Help Center with institutional search, category filters, topic cards, direct support actions, VIP access, and policy links.
 - [x] Redesign Contact Support as an institutional support desk with search, status, categorized help, tickets, live chat, and VIP concierge.
 - [x] Refine dashboard funding and trade actions, ticker and stablecoin formatting, safe news links, and active navigation styling.

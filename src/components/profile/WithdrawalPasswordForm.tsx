@@ -9,7 +9,7 @@ import {
   setWithdrawalPassword,
 } from "@/lib/withdrawal-password.functions";
 
-export function WithdrawalPasswordForm() {
+export function WithdrawalPasswordForm({ onSuccess }: { onSuccess?: () => void }) {
   const fetchStatus = useServerFn(getWithdrawalPasswordStatus);
   const save = useServerFn(setWithdrawalPassword);
   const reset = useServerFn(resetWithdrawalPassword);
@@ -59,6 +59,7 @@ export function WithdrawalPasswordForm() {
       clearFields();
       setForgot(false);
       qc.invalidateQueries({ queryKey: ["withdrawal-password-status"] });
+      onSuccess?.();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
