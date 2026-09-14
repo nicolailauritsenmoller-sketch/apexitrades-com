@@ -1521,6 +1521,57 @@ export const getUserWorkspace = createServerFn({ method: "POST" })
   });
 
 /**
+ * Pending VIP membership requests: every account flagged vip_pending, with the
+ * deposit activity that triggered the review. Powers the Control Center queue
+ * and the header badge counter.
+ */
+export const getPendingVipRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+
+    const { data: rows, error } = await db
+      .from("profiles")
+      .select("id,display_name,uid,email,created_at")
+      .eq("vip_tier", "vip_pending")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+
+    const ids = ((rows ?? []) as any[]).map((p) => p.id);
+    let deposits: any[] = [];
+    if (ids.length > 0) {
+      const { data: deps } = await db
+        .from("deposits")
+        .select("user_id,coin,amount,status,created_at")
+        .in("user_id", ids)
+        .order("created_at", { ascending: false });
+      deposits = (deps ?? []) as any[];
+    }
+
+    return ((rows ?? []) as any[]).map((p) => {
+      const mine = deposits.filter((d) => d.user_id === p.id);
+      const approved = mine.filter((d) => d.status === "approved");
+      // Prefer the stablecoin total — that is what the 20,000 USDT threshold measures.
+      const usdtTotal = approved
+        .filter((d) => String(d.coin).toUpperCase().startsWith("USD"))
+        .reduce((a, d) => a + Number(d.amount ?? 0), 0);
+      const latest = mine[0] ?? null;
+      return {
+        userId: p.id as string,
+        displayName: (p.display_name ?? "Trader") as string,
+        uid: (p.uid ?? null) as string | null,
+        email: (p.email ?? null) as string | null,
+        approvedUsdt: usdtTotal,
+        lastDepositAmount: latest ? Number(latest.amount ?? 0) : null,
+        lastDepositCoin: (latest?.coin ?? null) as string | null,
+        requestedAt: (latest?.created_at ?? p.created_at) as string,
+      };
+    });
+  });
+
+/**
  * Manual VIP membership control: approve or reject a pending upgrade request,
  * or grant/revoke VIP at any time regardless of the deposit threshold.
  */
@@ -1530,7 +1581,7 @@ export const setUserVipStatus = createServerFn({ method: "POST" })
     z
       .object({
         userId: z.string().uuid(),
-        action: z.enum(["approve", "reject", "grant", "revoke"]),
+        action: z.enum(["approve", "reject", "grant", "revoke", "pending"]),
         note: z.string().max(500).optional(),
       })
       .parse(input),
@@ -1540,7 +1591,7 @@ export const setUserVipStatus = createServerFn({ method: "POST" })
     const db = await privileged();
 
     const approving = data.action === "approve" || data.action === "grant";
-    const tier = approving ? "vip1" : "regular";
+    const tier = approving ? "vip1" : data.action === "pending" ? "vip_pending" : "regular";
 
     const { error } = await db
       .from("profiles")
