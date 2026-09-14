@@ -10,13 +10,6 @@ import {
   QrCode,
   Newspaper,
   ExternalLink,
-  Bitcoin,
-  Coins,
-  Banknote,
-  CandlestickChart,
-  TrendingUp,
-  Landmark,
-
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -168,41 +161,23 @@ export function DiscoverPerpsSection() {
 
 const NEWS_TABS = [
   { id: "all", label: "All" },
-  { id: "stocks", label: "Stocks" },
   { id: "crypto", label: "Crypto" },
-  { id: "commodities", label: "Commodities" },
-  { id: "forex", label: "Forex" },
-  { id: "macro", label: "Central Banks / Macro" },
-  { id: "regulation", label: "Regulations" },
+  { id: "defi", label: "DeFi" },
+  { id: "macro", label: "Macro" },
+  { id: "regulation", label: "Regulatory" },
 ] as const;
+
+type NewsTab = (typeof NEWS_TABS)[number]["id"];
 
 const CATEGORY_LABEL: Record<NewsCategory, string> = {
   stocks: "Stocks",
   crypto: "Crypto",
+  defi: "DeFi",
   commodities: "Commodities",
   forex: "Forex",
-  macro: "Central banks",
-  regulation: "Regulations",
+  macro: "Macro",
+  regulation: "Regulatory",
 };
-
-const CATEGORY_GRADIENT: Record<NewsCategory, string> = {
-  crypto: "from-primary/30 via-primary/10 to-transparent",
-  commodities: "from-amber-500/30 via-amber-500/10 to-transparent",
-  forex: "from-sky-500/30 via-sky-500/10 to-transparent",
-  macro: "from-violet-500/30 via-violet-500/10 to-transparent",
-  regulation: "from-rose-500/30 via-rose-500/10 to-transparent",
-  stocks: "from-emerald-500/30 via-emerald-500/10 to-transparent",
-};
-
-const CATEGORY_ICON: Record<NewsCategory, typeof Newspaper> = {
-  crypto: Bitcoin,
-  commodities: Coins,
-  forex: Banknote,
-  macro: CandlestickChart,
-  regulation: Landmark,
-  stocks: TrendingUp,
-};
-
 
 function timeAgo(iso: string) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -213,14 +188,36 @@ function timeAgo(iso: string) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-function CategoryTag({ category }: { category: NewsCategory }) {
+/** Keyword-based headline sentiment for the optional Bullish / Bearish tag. */
+function headlineSentiment(title: string): "bullish" | "bearish" | null {
+  if (
+    /\b(surge[sd]?|soar[sd]?|rall(y|ies|ied)|jump[sd]?|rebound[sd]?|record high|all-time high|\bath\b|gain[sd]?|climb[sd]?|rebound|bullish|breakout|inflow[sd]?|approv\w+|adoption|upgrade|partnership|beat\w*)\b/i.test(
+      title,
+    )
+  )
+    return "bullish";
+  if (
+    /\b(crash\w*|plunge[sd]?|slump[sd]?|tumble[sd]?|drop[sd]?|fall[sd]?|fell\b|declin\w+|selloff|sell-off|bearish|outflow[sd]?|hack\w*|exploit\w*|ban\w*|lawsuit|fine[sd]?\b|probe|fraud|liquidat\w+|bankrupt\w+)\b/i.test(
+      title,
+    )
+  )
+    return "bearish";
+  return null;
+}
+
+function SentimentTag({ title }: { title: string }) {
+  const s = headlineSentiment(title);
+  if (!s) return null;
   return (
-    <span className="inline-flex items-center rounded-full border border-border bg-surface-raised px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-      {CATEGORY_LABEL[category]}
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        s === "bullish" ? "bg-bull/10 text-bull" : "bg-bear/10 text-bear"
+      }`}
+    >
+      {s === "bullish" ? "Bullish" : "Bearish"}
     </span>
   );
 }
-
 
 /** Publisher favicon with a lettered fallback when the brand icon can't load. */
 function PublisherMark({ domain, source, size = 18 }: { domain: string; source: string; size?: number }) {
@@ -250,74 +247,23 @@ function PublisherMark({ domain, source, size = 18 }: { domain: string; source: 
   );
 }
 
-/** Article thumbnail with a clean category illustration fallback. */
-function NewsThumb({
-  item,
-  className,
-  iconSize = 22,
-}: {
-  item: NewsItem;
-  className: string;
-  iconSize?: number;
-}) {
+/** Real news photo when the feed supplies one; otherwise no image at all. */
+function NewsPhoto({ item }: { item: NewsItem }) {
   const [failed, setFailed] = useState(false);
-  const Icon = CATEGORY_ICON[item.category];
-  if (item.image && !failed) {
-    return (
-      <img
-        src={item.image}
-        alt=""
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className={`${className} bg-surface-raised object-cover`}
-      />
-    );
-  }
+  if (!item.image || failed) return null;
   return (
-    <div
-      className={`${className} grid place-items-center bg-gradient-to-br ${CATEGORY_GRADIENT[item.category]} bg-surface-raised`}
-      aria-hidden
-    >
-      <Icon className="text-foreground/45" style={{ width: iconSize, height: iconSize }} />
-    </div>
-  );
-}
-
-function TickerBadges({
-  symbols,
-  quotes,
-}: {
-  symbols: string[];
-  quotes: Record<string, { price: number; changePercent: number } | undefined>;
-}) {
-  if (symbols.length === 0) return null;
-  return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
-      {symbols.map((s) => {
-        const q = quotes[s];
-        const chg = q?.changePercent ?? 0;
-        return (
-          <span
-            key={s}
-            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-raised py-0.5 pl-0.5 pr-2 text-[10px] font-semibold"
-          >
-            <AssetIcon symbol={s} size={14} />
-            <span className="num">{displaySymbol(s).split("/")[0]}</span>
-            {q ? (
-              <span className={`num ${chg >= 0 ? "text-bull" : "text-bear"}`}>
-                {chg >= 0 ? "+" : ""}
-                {chg.toFixed(2)}%
-              </span>
-            ) : null}
-          </span>
-        );
-      })}
-    </div>
+    <img
+      src={item.image}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="size-16 shrink-0 rounded-xl bg-surface-raised object-cover sm:size-20"
+    />
   );
 }
 
 export function MarketNewsSection() {
-  const [tab, setTab] = useState<"all" | NewsCategory>("all");
+  const [tab, setTab] = useState<NewsTab>("all");
   const fetchNews = useServerFn(getMarketNews);
   const news = useQuery({
     queryKey: ["market-news"],
@@ -334,22 +280,15 @@ export function MarketNewsSection() {
     return () => clearInterval(id);
   }, []);
 
-  const items = (news.data ?? []).filter((n) => tab === "all" || n.category === tab).slice(0, 13);
-
-  const [lead, ...rest] = items;
-
-  const symbols = useMemo(
-    () => Array.from(new Set(items.flatMap((n) => n.tickers))).slice(0, 12),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items.map((n) => n.id).join("|")],
-  );
-  const { quotes } = useQuotes(symbols, 15000);
+  const items = (news.data ?? [])
+    .filter((n) => tab === "all" || n.category === tab)
+    .slice(0, 14);
 
   return (
     <section className="mt-8 mb-10">
       <div className="mb-3 flex items-center gap-2">
         <Newspaper className="size-4 text-primary" />
-        <h2 className="text-sm font-bold tracking-tight sm:text-base">Worldwide market news</h2>
+        <h2 className="text-sm font-bold tracking-tight sm:text-base">Market intelligence</h2>
         <span className="live-dot ml-1 size-1.5 rounded-full bg-bull" />
       </div>
 
@@ -370,9 +309,9 @@ export function MarketNewsSection() {
       </div>
 
       {news.isLoading ? (
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl border border-border bg-surface" />
+            <div key={i} className="h-16 animate-pulse rounded-xl border border-border bg-surface" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -380,72 +319,38 @@ export function MarketNewsSection() {
           No headlines available right now.
         </p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Featured lead story */}
-          {lead ? (
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+          {items.map((n, i) => (
             <a
-              href={lead.url || "#"}
+              key={n.id}
+              href={n.url || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="group touch-manipulation overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:border-primary/50 hover:bg-surface-raised lg:col-span-1 lg:row-span-2"
+              className={`group flex touch-manipulation items-center gap-3 p-3 transition-colors hover:bg-surface-raised sm:px-4 ${
+                i > 0 ? "border-t border-border/60" : ""
+              }`}
             >
-              <NewsThumb item={lead} className="h-44 w-full sm:h-52" iconSize={44} />
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <PublisherMark domain={lead.domain} source={lead.source} />
-                  <span className="truncate font-semibold text-foreground">{lead.source}</span>
-                  <span>·</span>
-                  <span className="shrink-0">{timeAgo(lead.publishedAt)}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <PublisherMark domain={n.domain} source={n.source} size={14} />
+                  <span className="truncate font-semibold text-foreground/90">{n.source}</span>
+                  <span aria-hidden>·</span>
+                  <span className="shrink-0 tabular-nums">{timeAgo(n.publishedAt)}</span>
+                  <span className="hidden shrink-0 rounded-full border border-border px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-muted-foreground sm:inline-flex">
+                    {CATEGORY_LABEL[n.category]}
+                  </span>
                 </div>
-                <h3 className="mt-2 text-base font-bold leading-snug group-hover:text-primary">
-                  {lead.title}
-                </h3>
-                {lead.excerpt ? (
-                  <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
-                    {lead.excerpt}
-                  </p>
-                ) : null}
-                <TickerBadges symbols={lead.tickers} quotes={quotes} />
-                <span className="mt-3 inline-flex items-center gap-2">
-                  <CategoryTag category={lead.category} />
-                  <ExternalLink className="size-3 text-muted-foreground" />
-                </span>
-
-              </div>
-            </a>
-          ) : null}
-
-          {/* Secondary cards */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:content-start">
-            {rest.map((n) => (
-              <a
-                key={n.id}
-                href={n.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex touch-manipulation gap-3 rounded-2xl border border-border bg-surface p-3 transition-all hover:border-primary/50 hover:bg-surface-raised"
-              >
-                <NewsThumb item={n} className="size-20 shrink-0 rounded-xl" iconSize={22} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <PublisherMark domain={n.domain} source={n.source} size={14} />
-                    <span className="truncate font-semibold text-foreground">{n.source}</span>
-                    <span>·</span>
-                    <span className="shrink-0">{timeAgo(n.publishedAt)}</span>
-                    <ExternalLink className="ml-auto size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
-                  <p className="mt-1 line-clamp-3 text-[13px] font-semibold leading-snug group-hover:text-primary">
+                <div className="mt-1 flex items-start gap-2">
+                  <p className="min-w-0 flex-1 line-clamp-2 text-[13px] font-semibold leading-snug group-hover:text-primary sm:text-sm">
                     {n.title}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <CategoryTag category={n.category} />
-                  </div>
-                  <TickerBadges symbols={n.tickers.slice(0, 2)} quotes={quotes} />
-
+                  <SentimentTag title={n.title} />
                 </div>
-              </a>
-            ))}
-          </div>
+              </div>
+              <NewsPhoto item={n} />
+              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+            </a>
+          ))}
         </div>
       )}
     </section>
