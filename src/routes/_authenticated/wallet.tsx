@@ -579,7 +579,7 @@ function DepositTab({
                 <AssetIcon currency={addr.coin} symbol={addr.coin} size={24} />
                 <span>
                   Funding <span className="num font-semibold">{amount || "0.00"}</span>{" "}
-                  {addr.coin} via {addr.network}
+                  {addr.coin} via {networkDetails?.label ?? addr.network}
                 </span>
               </div>
               <Button
