@@ -85,6 +85,11 @@ export function AdminAlerts() {
     [sound, push],
   );
 
+  // Latest handlers kept in refs so the realtime channel subscribes exactly once
+  // and never drops events while toggling sound/push.
+  const handlers = useRef({ alert, settle, cue, sound, push });
+  handlers.current = { alert, settle, cue, sound, push };
+
   // Stop the looping chat bell as soon as an agent looks at the support desk.
   useEffect(() => {
     const stop = () => stopChatLoop();
