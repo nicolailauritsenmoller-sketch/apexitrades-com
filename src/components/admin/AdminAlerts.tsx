@@ -171,6 +171,16 @@ export function AdminAlerts() {
           alert("chat", "New support ticket", `${r.subject} (${r.priority})`, true);
         },
       )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        const prev = (p.old ?? {}) as any;
+        if (r.vip_tier !== "vip_pending" || prev.vip_tier === "vip_pending") return;
+        alert(
+          "money",
+          "VIP membership request",
+          `${r.display_name ?? "A user"}${r.uid ? ` (ID ${r.uid})` : ""} is awaiting VIP approval.`,
+        );
+      })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (p) => {
         const r = p.new as any;
         if (r.sender_role !== "user") return;

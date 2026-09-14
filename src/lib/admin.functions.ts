@@ -145,8 +145,8 @@ export const reviewDeposit = createServerFn({ method: "POST" })
           .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
       }
 
-      const { maybeActivateVip } = await import("./vip-activation.server");
-      await maybeActivateVip(dep.user_id);
+      const { maybeFlagVipRequest } = await import("./vip-activation.server");
+      await maybeFlagVipRequest(dep.user_id);
     }
 
     await writeAudit(context, `deposit.${data.action}`, dep.user_id, {
@@ -1150,7 +1150,9 @@ export const getUserDirectory = createServerFn({ method: "POST" })
     const [profiles, roles, kyc, wallets] = await Promise.all([
       db
         .from("profiles")
-        .select("id,display_name,uid,base_currency,credit_score,outcome_mode,created_at,referred_by")
+        .select(
+          "id,display_name,uid,base_currency,credit_score,outcome_mode,created_at,referred_by,vip_tier",
+        )
         .order("created_at", { ascending: false })
         .limit(500),
       db.from("user_roles").select("user_id,role"),
@@ -1184,6 +1186,7 @@ export const getUserDirectory = createServerFn({ method: "POST" })
       createdAt: p.created_at,
       roles: roleMap.get(p.id) ?? ["user"],
       isAdmin: (roleMap.get(p.id) ?? []).includes("admin"),
+      vipTier: (p.vip_tier ?? "regular") as string,
       kycStatus: kycMap.get(p.id)?.status ?? "unverified",
       legalName: kycMap.get(p.id)?.full_name ?? null,
       wallets: walletMap.get(p.id) ?? [],
@@ -1515,4 +1518,53 @@ export const getUserWorkspace = createServerFn({ method: "POST" })
       sessions: sessions.data ?? [],
       kyc: (kyc.data ?? [])[0] ?? null,
     };
+  });
+
+/**
+ * Manual VIP membership control: approve or reject a pending upgrade request,
+ * or grant/revoke VIP at any time regardless of the deposit threshold.
+ */
+export const setUserVipStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        action: z.enum(["approve", "reject", "grant", "revoke"]),
+        note: z.string().max(500).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+
+    const approving = data.action === "approve" || data.action === "grant";
+    const tier = approving ? "vip1" : "regular";
+
+    const { error } = await db
+      .from("profiles")
+      .update({
+        vip_tier: tier,
+        vip_upgraded_at: approving ? new Date().toISOString() : null,
+      })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+
+    await notify(
+      db,
+      data.userId,
+      approving ? "VIP status approved" : "VIP status update",
+      approving
+        ? "Congratulations! Your VIP status has been approved and activated."
+        : `Your account is set to Regular status.${data.note ? ` Reason: ${data.note}` : " Your VIP request did not meet the current eligibility requirements."}`,
+      approving ? "success" : "warning",
+    );
+
+    await writeAudit(context, `vip.${data.action}`, data.userId, {
+      tier,
+      note: data.note ?? null,
+    });
+
+    return { ok: true, tier };
   });

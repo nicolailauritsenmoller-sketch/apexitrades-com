@@ -1,20 +1,20 @@
 import { VIP1_THRESHOLD_USDT } from "./vip-tiers";
 
 /**
- * Promotes a user to VIP 1 once their total wallet value reaches the threshold.
- * Called right after a deposit is credited. Safe to call repeatedly — it exits
- * early when the account is already on a VIP tier.
+ * Flags a VIP upgrade request once a cleared deposit takes the account to the
+ * VIP threshold. Activation itself is manual: an admin approves or rejects the
+ * request from the user management console. Safe to call repeatedly.
  */
-export async function maybeActivateVip(userId: string) {
+export async function maybeFlagVipRequest(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const db = supabaseAdmin as any;
 
   const { data: profile } = await db
     .from("profiles")
-    .select("id, vip_tier, display_name, email")
+    .select("id, vip_tier, display_name, uid, email")
     .eq("id", userId)
     .maybeSingle();
-  if (!profile || (profile.vip_tier ?? "regular") !== "regular") return { upgraded: false };
+  if (!profile || (profile.vip_tier ?? "regular") !== "regular") return { flagged: false };
 
   const { usdtRates } = await import("./rates.server");
   const [{ data: wallets }, rates] = await Promise.all([
@@ -26,36 +26,26 @@ export async function maybeActivateVip(userId: string) {
     (sum: number, w: any) => sum + Number(w.balance) * ((rates as any)[w.currency] ?? 0),
     0,
   );
-  if (totalUsdt < VIP1_THRESHOLD_USDT) return { upgraded: false };
+  if (totalUsdt < VIP1_THRESHOLD_USDT) return { flagged: false };
 
-  await db
-    .from("profiles")
-    .update({ vip_tier: "vip1", vip_upgraded_at: new Date().toISOString() })
-    .eq("id", userId);
+  await db.from("profiles").update({ vip_tier: "vip_pending" }).eq("id", userId);
 
   await db.from("notifications").insert({
     user_id: userId,
-    title: "VIP 1 activated",
-    body: "Congratulations! Your account has been upgraded to VIP 1 status.",
-    kind: "success",
+    title: "VIP upgrade under review",
+    body: `Your balance qualifies for VIP 1. Your upgrade request is pending review and you will be notified once it is approved.`,
+    kind: "info",
   });
 
-  if (profile.email) {
-    try {
-      const { sendTemplateEmail } = await import("./email-templates/send-email");
-      await sendTemplateEmail("vip-welcome", profile.email, {
-        templateData: {
-          siteName: "Velocity Trade",
-          displayName: profile.display_name ?? undefined,
-          amount: `${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`,
-          tierLabel: "VIP 1",
-        },
-        idempotencyKey: `vip-welcome-${userId}`,
-      });
-    } catch {
-      // Email delivery must never block the upgrade itself.
-    }
-  }
+  // Alert every admin so the request surfaces in their notification centre.
+  const { data: admins } = await db.from("user_roles").select("user_id").eq("role", "admin");
+  const rows = (admins ?? []).map((a: any) => ({
+    user_id: a.user_id,
+    title: "VIP membership request",
+    body: `${profile.display_name ?? "A user"}${profile.uid ? ` (ID ${profile.uid})` : ""} reached ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT and is awaiting VIP approval.`,
+    kind: "warning",
+  }));
+  if (rows.length) await db.from("notifications").insert(rows);
 
-  return { upgraded: true };
+  return { flagged: true };
 }

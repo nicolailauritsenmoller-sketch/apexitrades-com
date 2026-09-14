@@ -5,6 +5,7 @@ import { Search, ShieldAlert, X } from "lucide-react";
 import { getUserSecurityDirectory } from "@/lib/admin-ops.functions";
 import { UserAccountControls } from "@/components/admin/UserAccountControls";
 import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
+import { VipMembershipPanel } from "@/components/admin/VipMembershipPanel";
 
 type Row = Awaited<ReturnType<typeof getUserSecurityDirectory>>[number];
 
@@ -211,6 +212,15 @@ export function UserSecurityPanel() {
             suspensionReason={selected.suspensionReason}
             onChanged={() => void directory.refetch()}
           />
+
+          <div className="mt-3">
+            <VipMembershipPanel
+              userId={selected.id}
+              userName={selected.displayName}
+              vipTier={(selected as any).vipTier}
+              onChanged={() => void directory.refetch()}
+            />
+          </div>
 
           <div className="mt-3">
             <AccountMaintenancePanel

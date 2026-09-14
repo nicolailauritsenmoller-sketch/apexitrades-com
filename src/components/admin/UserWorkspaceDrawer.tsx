@@ -5,6 +5,7 @@ import { Coins, Eye, X } from "lucide-react";
 import { BalanceAdjustDialog } from "@/components/admin/BalanceAdjustDialog";
 import { UserAccountControls } from "@/components/admin/UserAccountControls";
 import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
+import { VipMembershipPanel } from "@/components/admin/VipMembershipPanel";
 
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -90,6 +91,15 @@ export function UserWorkspaceDrawer({
                 />
               </Section>
 
+
+              <Section title="VIP membership">
+                <VipMembershipPanel
+                  userId={userId}
+                  userName={d.profile?.display_name}
+                  vipTier={d.profile?.vip_tier}
+                  onChanged={() => void q.refetch()}
+                />
+              </Section>
 
               <Section title="Account maintenance">
                 <AccountMaintenancePanel

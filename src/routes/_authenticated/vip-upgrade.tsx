@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Check, Crown, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getProfileOverview } from "@/lib/profile.functions";
-import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip } from "@/lib/vip-tiers";
+import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip, isVipPending } from "@/lib/vip-tiers";
 
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({
@@ -44,6 +44,7 @@ function VipUpgradePage() {
   const remaining = Math.max(0, VIP1_THRESHOLD_USDT - balance);
   const progress = Math.min(100, (balance / VIP1_THRESHOLD_USDT) * 100);
   const already = isVip(tier);
+  const awaiting = isVipPending(tier);
 
   return (
     <AppShell>
@@ -94,7 +95,9 @@ function VipUpgradePage() {
               <p className="mt-2 text-xs text-muted-foreground">
                 {already
                   ? "VIP 1 is active on this account."
-                  : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
+                  : awaiting
+                    ? "Threshold reached — your VIP upgrade request is pending review."
+                    : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
               </p>
             </div>
 
@@ -113,7 +116,7 @@ function VipUpgradePage() {
             </div>
 
             <button
-              disabled={already}
+              disabled={already || awaiting}
               onClick={() =>
                 navigate({
                   to: "/wallet",
@@ -124,15 +127,17 @@ function VipUpgradePage() {
             >
               {already
                 ? "VIP 1 already active"
-                : `Confirm & Deposit ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`}
+                : awaiting
+                  ? "VIP request pending approval"
+                  : `Confirm & Deposit ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`}
             </button>
           </div>
         </section>
 
         <p className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-          Your tier upgrades automatically once the deposit passes clearing and your balance reaches
-          the threshold. You will receive an in-app alert and a confirmation email.
+          Once your deposit clears and your balance reaches the threshold, your VIP request is
+          submitted for review. You will receive an in-app alert as soon as it is approved.
         </p>
       </div>
     </AppShell>
