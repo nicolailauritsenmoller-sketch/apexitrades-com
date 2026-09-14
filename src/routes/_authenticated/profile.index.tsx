@@ -23,6 +23,7 @@ import { KYC_LABEL, KYC_TONE, copy } from "@/components/profile/ui";
 import { getProfileOverview } from "@/lib/profile.functions";
 import { getMyKyc } from "@/lib/kyc.functions";
 import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
+import { VIP_TIER_LABEL, isVip } from "@/lib/vip-tiers";
 import { registerCurrentDevice } from "@/lib/sessions";
 import { supabase } from "@/integrations/supabase/client";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
