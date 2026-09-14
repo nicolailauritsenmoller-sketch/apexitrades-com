@@ -16,6 +16,7 @@ export function useWalletRealtime(channelName = "wallet-live") {
         "wallet-activity",
         "portfolio-value",
         "portfolio",
+        "daily-pnl",
         "contracts",
         "positions",
         "my-tickets",
