@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin, privileged } from "@/lib/desk.server";
 
-export const MAINTENANCE_SCOPES = ["chat", "trades", "transactions"] as const;
+export const MAINTENANCE_SCOPES = ["chat", "trades", "transactions", "notifications"] as const;
 export type MaintenanceScope = (typeof MAINTENANCE_SCOPES)[number];
 
 const Input = z.object({
@@ -75,6 +75,11 @@ export const resetUserActivity = createServerFn({ method: "POST" })
       await wipe("deposits", "user_id", uid);
       await wipe("withdrawals", "user_id", uid);
       await wipe("swaps", "user_id", uid);
+    }
+
+    if (scopes.has("notifications")) {
+      // Wiping the notifications table also zeroes the unread badge counter.
+      await wipe("notifications", "user_id", uid);
     }
 
     // Balances are never touched — wallets and profiles are intentionally excluded.
