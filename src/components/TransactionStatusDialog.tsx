@@ -137,7 +137,10 @@ export function TransactionStatusDialog({
   const isTransfer = tx.type !== "swap";
   const fee = networkFeeUsd(tx.network);
   const required = requiredConfirmations(tx.network);
-  const confirmations = confirmationsFor(tx.status, tx.network, tx.createdAt);
+  const confirmations =
+    tx.status === "pending" && typeof liveConfirmations === "number"
+      ? Math.min(liveConfirmations, required)
+      : confirmationsFor(tx.status, tx.network, tx.createdAt);
   const explorer = explorerUrl(tx.network, tx.txHash);
 
   const isSwap = tx.type === "swap";
