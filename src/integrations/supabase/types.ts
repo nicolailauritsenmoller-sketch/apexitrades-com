@@ -351,6 +351,123 @@ export type Database = {
         }
         Relationships: []
       }
+      community_announcements: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_channels: {
+        Row: {
+          action_label: string
+          channel_key: string
+          created_at: string
+          description: string
+          display_name: string
+          id: string
+          invite_url: string | null
+          member_count: number
+          sort_order: number
+          status: string
+          updated_at: string
+          updated_by: string | null
+          vip_only: boolean
+        }
+        Insert: {
+          action_label: string
+          channel_key: string
+          created_at?: string
+          description: string
+          display_name: string
+          id?: string
+          invite_url?: string | null
+          member_count?: number
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          vip_only?: boolean
+        }
+        Update: {
+          action_label?: string
+          channel_key?: string
+          created_at?: string
+          description?: string
+          display_name?: string
+          id?: string
+          invite_url?: string | null
+          member_count?: number
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          vip_only?: boolean
+        }
+        Relationships: []
+      }
+      community_vip_requests: {
+        Row: {
+          created_at: string
+          id: string
+          request_note: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_note?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_note?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consent_records: {
         Row: {
           analytics: boolean
