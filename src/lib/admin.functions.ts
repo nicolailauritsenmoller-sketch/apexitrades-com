@@ -1186,6 +1186,7 @@ export const getUserDirectory = createServerFn({ method: "POST" })
       createdAt: p.created_at,
       roles: roleMap.get(p.id) ?? ["user"],
       isAdmin: (roleMap.get(p.id) ?? []).includes("admin"),
+      vipTier: (p.vip_tier ?? "regular") as string,
       kycStatus: kycMap.get(p.id)?.status ?? "unverified",
       legalName: kycMap.get(p.id)?.full_name ?? null,
       wallets: walletMap.get(p.id) ?? [],
