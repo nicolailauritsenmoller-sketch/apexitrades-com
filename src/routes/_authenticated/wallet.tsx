@@ -66,6 +66,7 @@ import {
   requestWithdrawal,
   swapAssets,
 } from "@/lib/wallet.functions";
+import { syncDepositConfirmations } from "@/lib/deposit-confirmations.functions";
 import { PasswordInput } from "@/components/PasswordInput";
 import { logActivity } from "@/lib/telemetry";
 import { useBalancePrivacy } from "@/lib/balance-privacy";
