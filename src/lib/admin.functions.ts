@@ -1602,15 +1602,17 @@ export const setUserVipStatus = createServerFn({ method: "POST" })
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
 
-    await notify(
-      db,
-      data.userId,
-      approving ? "VIP status approved" : "VIP status update",
-      approving
-        ? "Congratulations! Your VIP status has been approved and activated."
-        : `Your account is set to Regular status.${data.note ? ` Reason: ${data.note}` : " Your VIP request did not meet the current eligibility requirements."}`,
-      approving ? "success" : "warning",
-    );
+    if (data.action !== "pending") {
+      await notify(
+        db,
+        data.userId,
+        approving ? "VIP status approved" : "VIP status update",
+        approving
+          ? "Congratulations! Your VIP status has been approved and activated."
+          : `Your account is set to Regular status.${data.note ? ` Reason: ${data.note}` : " Your VIP request did not meet the current eligibility requirements."}`,
+        approving ? "success" : "warning",
+      );
+    }
 
     await writeAudit(context, `vip.${data.action}`, data.userId, {
       tier,
