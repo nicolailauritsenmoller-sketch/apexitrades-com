@@ -7,9 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { useT } from "@/lib/i18n";
 import { getPortfolioValue } from "@/lib/wallet.functions";
-import { getPortfolio } from "@/lib/trading.functions";
-import { unrealizedPnl, type PositionRow } from "@/components/PositionsTable";
-import { useQuotes } from "@/hooks/useMarket";
+import { useDailyPnl } from "@/hooks/useDailyPnl";
 import {
   WatchlistSection,
   TopMoversSection,
@@ -57,22 +55,12 @@ function Home() {
     refetchInterval: 30_000,
   });
 
-  const fetchPortfolio = useServerFn(getPortfolio);
-  const portfolio = useQuery({
-    queryKey: ["portfolio"],
-    queryFn: () => fetchPortfolio(),
-    refetchInterval: 20_000,
-  });
-
-  const open = ((portfolio.data?.positions ?? []) as PositionRow[]).filter(
-    (p) => p.status === "open",
-  );
-  const { quotes } = useQuotes(Array.from(new Set(open.map((p) => p.symbol))), 8000);
-  const todayPnl = open.reduce((sum, p) => sum + (unrealizedPnl(p, quotes[p.symbol]?.price) ?? 0), 0);
+  const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
 
   const { hidden, toggle } = useBalancePrivacy();
   const total = value.data?.totalUsdt ?? 0;
-  const pct = total > 0 ? (todayPnl / total) * 100 : 0;
+  const baseline = total - todayPnl;
+  const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
 
   const pnlSign = todayPnl >= 0 ? "+" : "";
   const pctSign = pct >= 0 ? "+" : "";
