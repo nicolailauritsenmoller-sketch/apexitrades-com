@@ -34,6 +34,9 @@ import opNetworkIcon from "@/assets/crypto/op.svg";
 import scrollNetworkIcon from "@/assets/crypto/scroll.svg";
 import sonicNetworkIcon from "@/assets/crypto/sonic.svg";
 import lightningNetworkIcon from "@/assets/crypto/lightning.svg";
+import tronNetworkIcon from "@/assets/crypto/tron.svg";
+import algoNetworkIcon from "@/assets/crypto/algo.svg";
+import dotNetworkIcon from "@/assets/crypto/dot.svg";
 import { AssetPicker } from "@/components/AssetPicker";
 import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
@@ -344,7 +347,7 @@ function depositNetworkDetails(network: string, coin: string) {
 
 const NETWORK_ICON: Array<{ match: RegExp; src: string }> = [
   { match: /erc|ethereum/i, src: ethNetworkIcon },
-  { match: /trc|tron/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/trx.png" },
+  { match: /trc|tron/i, src: tronNetworkIcon },
   { match: /bep|bsc|bnb smart/i, src: bnbNetworkIcon },
   { match: /base/i, src: baseNetworkIcon },
   { match: /arbitrum/i, src: arbNetworkIcon },
@@ -355,10 +358,10 @@ const NETWORK_ICON: Array<{ match: RegExp; src: string }> = [
   { match: /aptos/i, src: aptNetworkIcon },
   { match: /avalanche|c-chain/i, src: avaxNetworkIcon },
   { match: /scroll/i, src: scrollNetworkIcon },
-  { match: /algorand|algo/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/algo.png" },
+  { match: /algorand|algo/i, src: algoNetworkIcon },
   { match: /solana|sol/i, src: solNetworkIcon },
   { match: /sonic/i, src: sonicNetworkIcon },
-  { match: /polkadot|dot/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/dot.png" },
+  { match: /polkadot|dot/i, src: dotNetworkIcon },
 ];
 
 function NetworkIcon({ network, size = 20 }: { network: string; size?: number }) {
