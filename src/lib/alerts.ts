@@ -120,34 +120,42 @@ export function playAurora(volume = 0.35) {
 /* ---------------------- speech synthesis announcements -------------------- */
 
 const SIRI_VOICES = ["Samantha", "Karen", "Victoria", "Ava", "Serena", "Google US English"];
-const ZH_VOICES = ["Tingting", "Ting-Ting", "Meijia", "Sinji", "Google 普通话", "Huihui", "Yaoyao"];
+const ZH_VOICES = ["Tingting", "Ting-Ting", "Meijia", "Sinji", "Google 普通话", "Google 国语", "Google 粤語", "Huihui", "Yaoyao", "Kangkang", "Lili"];
 
 /** Spoken alert for a new inbound customer message (Mandarin). */
 export const CHAT_ALERT_PHRASE = "来自客户的新消息";
+
+function synth(): SpeechSynthesis | null {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  return window.speechSynthesis;
+}
 
 function isZh(text: string) {
   return /[\u4e00-\u9fff]/.test(text);
 }
 
 function pickVoice(zh = false): SpeechSynthesisVoice | null {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
-  const synth = window.speechSynthesis;
+  const s = synth();
+  if (!s) return null;
   // iOS/Safari can leave synthesis paused after interruptions — resume first.
-  if (synth.paused) {
+  if (s.paused) {
     try {
-      synth.resume();
+      s.resume();
     } catch {
       /* ignore */
     }
   }
-  const voices = synth.getVoices();
+  const voices = s.getVoices();
   if (!voices.length) return null;
   if (zh) {
     for (const name of ZH_VOICES) {
       const hit = voices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
       if (hit) return hit;
     }
-    const cn = voices.find((v) => /^zh[-_]?(cn|hans)/i.test(v.lang)) ?? voices.find((v) => v.lang.toLowerCase().startsWith("zh"));
+    const cn =
+      voices.find((v) => /^zh[-_]?(cn|hans)/i.test(v.lang)) ??
+      voices.find((v) => /^zh[-_]?hk/i.test(v.lang)) ??
+      voices.find((v) => v.lang.toLowerCase().startsWith("zh"));
     if (cn) return cn;
   }
   for (const name of SIRI_VOICES) {
@@ -162,38 +170,53 @@ function pickVoice(zh = false): SpeechSynthesisVoice | null {
   );
 }
 
-/** Speaks a phrase once, picking a Mandarin voice for Chinese text. */
+/**
+ * Dedicated Web Speech controller — speaks the phrase once via the native
+ * window.speechSynthesis engine. Mandarin text is pinned to zh-CN/zh-HK with
+ * assistant-style delivery (pitch 1.1, rate 0.95).
+ */
 export function speak(text: string, retried = false) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const s = synth();
+  if (!s) return;
   // Voices load asynchronously on first use; retry once they arrive.
-  if (!retried && window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.addEventListener("voiceschanged", () => speak(text, true), {
-      once: true,
-    });
+  if (!retried && s.getVoices().length === 0) {
+    s.addEventListener("voiceschanged", () => speak(text, true), { once: true });
   }
   try {
     const zh = isZh(text);
+    if (s.paused) s.resume();
     const u = new SpeechSynthesisUtterance(text);
     const voice = pickVoice(zh);
     if (voice) u.voice = voice;
     u.lang = zh ? (voice?.lang ?? "zh-CN") : (voice?.lang ?? "en-US");
     u.pitch = 1.1;
-    u.rate = zh ? 0.96 : 1.02;
+    u.rate = zh ? 0.95 : 1.02;
     u.volume = 1;
-    window.speechSynthesis.speak(u);
+    s.speak(u);
   } catch {
     /* speech synthesis unavailable */
   }
 }
 
+/** Instantly cancels any queued or in-flight synthesized speech. */
+export function cancelSpeech() {
+  const s = synth();
+  if (!s) return;
+  try {
+    s.cancel();
+  } catch {
+    /* ignore */
+  }
+}
+
 let speechTimer: ReturnType<typeof setInterval> | null = null;
 
-/** Repeats a spoken announcement every 3.5s until {@link stopSpeechLoop}. */
+/** Repeats a spoken announcement every 4s until {@link stopSpeechLoop}. */
 export function startSpeechLoop(text = CHAT_ALERT_PHRASE) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  if (!synth()) return;
   if (speechTimer) return;
   speak(text);
-  speechTimer = setInterval(() => speak(text), 3500);
+  speechTimer = setInterval(() => speak(text), 4000);
 }
 
 export function stopSpeechLoop() {
@@ -201,13 +224,7 @@ export function stopSpeechLoop() {
     clearInterval(speechTimer);
     speechTimer = null;
   }
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {
-      /* ignore */
-    }
-  }
+  cancelSpeech();
 }
 
 /* ------------------------- looping chat alert ------------------------- */
@@ -217,21 +234,27 @@ let voiceTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * Repeats the alert sequence — subtle high-tech chime first, then the
- * Siri-style Mandarin voice "来自客户的新消息" — until {@link stopChatLoop}.
- * Safe to call repeatedly: a running loop is never doubled.
+ * synthesized Mandarin voice "来自客户的新消息" — every 4 seconds until
+ * {@link stopChatLoop}. Safe to call repeatedly: a running loop never doubles.
  */
 export function startChatLoop() {
   if (loopTimer) return;
   stopSpeechLoop();
   const cycle = () => {
     playChime("chat");
-    voiceTimer = setTimeout(() => speak(CHAT_ALERT_PHRASE), 700);
+    voiceTimer = setTimeout(() => {
+      voiceTimer = null;
+      speak(CHAT_ALERT_PHRASE);
+    }, 600);
   };
   cycle();
-  loopTimer = setInterval(cycle, 4200);
+  loopTimer = setInterval(cycle, 4000);
 }
 
-/** Stops the loop immediately and cancels any queued chime/voice cycle. */
+/**
+ * Stops the loop immediately: clears the queued chime/voice cycle and invokes
+ * window.speechSynthesis.cancel() so a mid-sentence voice is cut off at once.
+ */
 export function stopChatLoop() {
   stopSpeechLoop();
   if (voiceTimer) {
