@@ -40,11 +40,6 @@ export const getDailyRealizedPnl = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("status", "closed")
         .gte("closed_at", dayStart),
-      supabase
-        .from("swaps")
-        .select("id,created_at")
-        .eq("user_id", userId)
-        .gte("created_at", dayStart),
     ]);
 
     // Scalp / fixed-expiry contracts: payout already includes the returned
