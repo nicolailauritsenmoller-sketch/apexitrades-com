@@ -198,9 +198,21 @@ function Markets() {
         })}
       </div>
 
-      <h2 className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
-        Market overview
-      </h2>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+          Market overview
+        </h2>
+        <button
+          onClick={() => {
+            setInfinite((v) => !v);
+            setLimit(PAGE_SIZE);
+            setPage(1);
+          }}
+          className="touch-manipulation text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {infinite ? "Use pagination" : "Use infinite scroll"}
+        </button>
+      </div>
 
       {/* Mobile list */}
       <div className="panel px-4 md:hidden">
