@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -56,10 +56,29 @@ const TABS: ("all" | AssetClass)[] = [
 ];
 
 
+const PAGE_SIZE = 50;
+const ROWS_PER_PAGE = 20;
+
+function pageNumbers(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) out.push("…");
+  for (let p = start; p <= end; p++) out.push(p);
+  if (end < total - 1) out.push("…");
+  out.push(total);
+  return out;
+}
+
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
   const [q, setQ] = useState("");
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [infinite, setInfinite] = useState(true);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -74,7 +93,37 @@ function Markets() {
     [tab, q],
   );
 
-  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+
+  const visible = useMemo(
+    () =>
+      infinite
+        ? filtered.slice(0, limit)
+        : filtered.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
+    [filtered, limit, infinite, currentPage],
+  );
+
+  const hasMore = infinite && visible.length < filtered.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setLoadingMore(true);
+        window.setTimeout(() => {
+          setLimit((n) => n + PAGE_SIZE);
+          setLoadingMore(false);
+        }, 180);
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, filtered.length]);
 
   const { quotes } = useQuotes(
     visible.map((i) => i.symbol),
@@ -149,9 +198,21 @@ function Markets() {
         })}
       </div>
 
-      <h2 className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
-        Market overview
-      </h2>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+          Market overview
+        </h2>
+        <button
+          onClick={() => {
+            setInfinite((v) => !v);
+            setLimit(PAGE_SIZE);
+            setPage(1);
+          }}
+          className="touch-manipulation text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {infinite ? "Use pagination" : "Use infinite scroll"}
+        </button>
+      </div>
 
       {/* Mobile list */}
       <div className="panel px-4 md:hidden">
@@ -257,15 +318,76 @@ function Markets() {
           </p>
         )}
       </div>
-      {visible.length < filtered.length && (
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => setLimit((n) => n + 50)}
-            className="rounded-md border border-border px-4 py-2 text-sm transition-colors hover:bg-secondary"
-          >
-            Load more ({filtered.length - visible.length} remaining)
-          </button>
-        </div>
+      {infinite ? (
+        <>
+          <div ref={sentinelRef} aria-hidden className="h-px w-full" />
+          {hasMore && (
+            <div className="mt-3 space-y-2" aria-live="polite">
+              {loadingMore ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Loading more instruments…
+                </div>
+              ) : (
+                [0, 1, 2].map((k) => (
+                  <div
+                    key={k}
+                    className="flex items-center gap-3 rounded-xl border border-border/40 px-4 py-3"
+                  >
+                    <div className="size-7 animate-pulse rounded-full bg-muted" />
+                    <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+                    <div className="ml-auto h-3 w-20 animate-pulse rounded bg-muted" />
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        filtered.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3 text-sm">
+            <span className="text-xs text-muted-foreground">
+              Rows per page: {ROWS_PER_PAGE}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+                className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+              >
+                ‹
+              </button>
+              {pageNumbers(currentPage, pageCount).map((p, idx) =>
+                p === "…" ? (
+                  <span key={`e${idx}`} className="px-1.5 text-xs text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`min-w-7 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                      p === currentPage
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={currentPage === pageCount}
+                aria-label="Next page"
+                className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        )
       )}
     </AppShell>
   );
