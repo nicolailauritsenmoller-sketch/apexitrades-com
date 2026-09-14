@@ -27,7 +27,7 @@ export function usePendingVipRequests(enabled: boolean) {
   });
 }
 
-export function PendingVipPanel() {
+export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void }) {
   const qc = useQueryClient();
   const q = usePendingVipRequests(true);
   const run = useServerFn(setUserVipStatus);
