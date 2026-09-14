@@ -10,13 +10,6 @@ import {
   QrCode,
   Newspaper,
   ExternalLink,
-  Bitcoin,
-  Coins,
-  Banknote,
-  CandlestickChart,
-  TrendingUp,
-  Landmark,
-
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -249,7 +242,7 @@ function PublisherMark({ domain, source, size = 18 }: { domain: string; source: 
       loading="lazy"
       onError={() => setFailed(true)}
       className="shrink-0 rounded-full bg-surface-raised object-contain"
-      style={{ width, height: size }}
+      style={{ width: size, height: size }}
     />
   );
 }
