@@ -1519,3 +1519,52 @@ export const getUserWorkspace = createServerFn({ method: "POST" })
       kyc: (kyc.data ?? [])[0] ?? null,
     };
   });
+
+/**
+ * Manual VIP membership control: approve or reject a pending upgrade request,
+ * or grant/revoke VIP at any time regardless of the deposit threshold.
+ */
+export const setUserVipStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        action: z.enum(["approve", "reject", "grant", "revoke"]),
+        note: z.string().max(500).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+
+    const approving = data.action === "approve" || data.action === "grant";
+    const tier = approving ? "vip1" : "regular";
+
+    const { error } = await db
+      .from("profiles")
+      .update({
+        vip_tier: tier,
+        vip_upgraded_at: approving ? new Date().toISOString() : null,
+      })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+
+    await notify(
+      db,
+      data.userId,
+      approving ? "VIP status approved" : "VIP status update",
+      approving
+        ? "Congratulations! Your VIP status has been approved and activated."
+        : `Your account is set to Regular status.${data.note ? ` Reason: ${data.note}` : " Your VIP request did not meet the current eligibility requirements."}`,
+      approving ? "success" : "warning",
+    );
+
+    await writeAudit(context, `vip.${data.action}`, data.userId, {
+      tier,
+      note: data.note ?? null,
+    });
+
+    return { ok: true, tier };
+  });
