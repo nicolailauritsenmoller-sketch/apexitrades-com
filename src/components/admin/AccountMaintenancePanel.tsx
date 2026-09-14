@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AlertTriangle, Eraser, MessagesSquare, Receipt, RotateCcw, TrendingUp } from "lucide-react";
+import { AlertTriangle, Bell, Eraser, MessagesSquare, Receipt, RotateCcw, TrendingUp } from "lucide-react";
 import {
   resetUserActivity,
   type MaintenanceScope,
@@ -42,12 +42,20 @@ const ACTIONS: Action[] = [
     description: "Removes deposit, withdrawal and swap receipts from the user's ledger view.",
   },
   {
+    key: "notifications",
+    label: "Clear notification history",
+    icon: Bell,
+    scopes: ["notifications"],
+    description:
+      "Removes every in-app notification for this account and resets the unread badge counter to zero.",
+  },
+  {
     key: "all",
     label: "Reset account to fresh state",
     icon: RotateCcw,
-    scopes: ["chat", "trades", "transactions"],
+    scopes: ["chat", "trades", "transactions", "notifications"],
     description:
-      "Clears chat, trades and transactions at once so the account interface looks brand new. Balances are preserved.",
+      "Clears chat, trades, transactions and the full notification history at once so the account interface looks brand new. Balances are preserved.",
     master: true,
   },
 ];
@@ -83,6 +91,8 @@ export function AccountMaintenancePanel({
         "support-tickets",
         "desk-trades",
         "chat-ratings",
+        "notifications",
+        "my-notifications",
       ]) {
         void qc.invalidateQueries({ queryKey: [key] });
       }
