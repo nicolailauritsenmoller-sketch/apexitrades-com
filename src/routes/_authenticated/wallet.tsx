@@ -329,6 +329,11 @@ function WalletPage() {
         open={activeTx !== null}
         onOpenChange={(v) => !v && setActiveTx(null)}
         priceUsd={activeTx ? (value.data?.rates?.[activeTx.asset] ?? undefined) : undefined}
+        liveConfirmations={
+          activeTx && activeTx.type === "deposit"
+            ? confirmationById[activeTx.id]?.confirmations
+            : undefined
+        }
       />
 
       <div className="h-10" />
