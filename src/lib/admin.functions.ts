@@ -145,8 +145,8 @@ export const reviewDeposit = createServerFn({ method: "POST" })
           .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
       }
 
-      const { maybeActivateVip } = await import("./vip-activation.server");
-      await maybeActivateVip(dep.user_id);
+      const { maybeFlagVipRequest } = await import("./vip-activation.server");
+      await maybeFlagVipRequest(dep.user_id);
     }
 
     await writeAudit(context, `deposit.${data.action}`, dep.user_id, {
@@ -1150,7 +1150,9 @@ export const getUserDirectory = createServerFn({ method: "POST" })
     const [profiles, roles, kyc, wallets] = await Promise.all([
       db
         .from("profiles")
-        .select("id,display_name,uid,base_currency,credit_score,outcome_mode,created_at,referred_by")
+        .select(
+          "id,display_name,uid,base_currency,credit_score,outcome_mode,created_at,referred_by,vip_tier",
+        )
         .order("created_at", { ascending: false })
         .limit(500),
       db.from("user_roles").select("user_id,role"),
