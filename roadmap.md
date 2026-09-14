@@ -7,6 +7,7 @@
 
 ## Completed
 
+- [x] Redesign Notification Settings with an institutional channel matrix, mandatory security alerts, global controls, browser testing, and quiet hours.
 - [x] Redesign Personal Information with institutional identity summary, account limits, structured details, and unified settings navigation.
 - [x] Redesign Security Settings with live protection scoring, modal controls, anti-phishing, withdrawal whitelisting, and paginated device sessions.
 - [x] Redesign the Help Center with institutional search, category filters, topic cards, direct support actions, VIP access, and policy links.
