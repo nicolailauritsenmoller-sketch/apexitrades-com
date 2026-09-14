@@ -29,6 +29,8 @@ import polNetworkIcon from "@/assets/crypto/matic.svg";
 import avaxNetworkIcon from "@/assets/crypto/avax.svg";
 import aptNetworkIcon from "@/assets/crypto/apt.png";
 import baseNetworkIcon from "@/assets/crypto/base.svg";
+import arbNetworkIcon from "@/assets/crypto/arb.svg";
+import opNetworkIcon from "@/assets/crypto/op.svg";
 import scrollNetworkIcon from "@/assets/crypto/scroll.svg";
 import sonicNetworkIcon from "@/assets/crypto/sonic.svg";
 import lightningNetworkIcon from "@/assets/crypto/lightning.svg";
@@ -345,8 +347,8 @@ const NETWORK_ICON: Array<{ match: RegExp; src: string }> = [
   { match: /trc|tron/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/trx.png" },
   { match: /bep|bsc|bnb smart/i, src: bnbNetworkIcon },
   { match: /base/i, src: baseNetworkIcon },
-  { match: /arbitrum/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/arb.png" },
-  { match: /optimism/i, src: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/op.png" },
+  { match: /arbitrum/i, src: arbNetworkIcon },
+  { match: /optimism/i, src: opNetworkIcon },
   { match: /segwit|taproot|bitcoin|btc/i, src: btcNetworkIcon },
   { match: /lightning/i, src: lightningNetworkIcon },
   { match: /polygon|pos|plasma/i, src: polNetworkIcon },
