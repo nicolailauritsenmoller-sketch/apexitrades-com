@@ -65,8 +65,7 @@ export function AuditLogPanel() {
   }, [all, q, cat]);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
           <ScrollText className="size-4" /> Operations activity audit log
