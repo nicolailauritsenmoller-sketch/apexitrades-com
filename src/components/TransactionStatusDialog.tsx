@@ -117,12 +117,15 @@ export function TransactionStatusDialog({
   open,
   onOpenChange,
   priceUsd,
+  liveConfirmations,
 }: {
   tx: TransactionRecord | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   /** Live USD rate for the asset, used for the fiat amount and price row. */
   priceUsd?: number;
+  /** Real confirmation count read from the network, when the hash is tracked. */
+  liveConfirmations?: number;
 }) {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [showReason, setShowReason] = useState(false);
@@ -134,7 +137,10 @@ export function TransactionStatusDialog({
   const isTransfer = tx.type !== "swap";
   const fee = networkFeeUsd(tx.network);
   const required = requiredConfirmations(tx.network);
-  const confirmations = confirmationsFor(tx.status, tx.network, tx.createdAt);
+  const confirmations =
+    tx.status === "pending" && typeof liveConfirmations === "number"
+      ? Math.min(liveConfirmations, required)
+      : confirmationsFor(tx.status, tx.network, tx.createdAt);
   const explorer = explorerUrl(tx.network, tx.txHash);
 
   const isSwap = tx.type === "swap";

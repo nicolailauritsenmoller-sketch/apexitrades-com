@@ -66,6 +66,7 @@ import {
   requestWithdrawal,
   swapAssets,
 } from "@/lib/wallet.functions";
+import { syncDepositConfirmations } from "@/lib/deposit-confirmations.functions";
 import { PasswordInput } from "@/components/PasswordInput";
 import { logActivity } from "@/lib/telemetry";
 import { useBalancePrivacy } from "@/lib/balance-privacy";
@@ -129,6 +130,37 @@ function WalletPage() {
     refetchInterval: 30_000,
   });
   const activity = useQuery({ queryKey: ["wallet-activity"], queryFn: () => fetchActivity() });
+
+  // Network confirmation tracking: poll the chain for pending deposits, settle
+  // them automatically once they reach the required depth.
+  const hasPendingDeposit = (activity.data?.deposits ?? []).some((d) => d.status === "pending");
+  const syncConfirmations = useServerFn(syncDepositConfirmations);
+  const confirmations = useQuery({
+    queryKey: ["deposit-confirmations"],
+    queryFn: () => syncConfirmations(),
+    enabled: hasPendingDeposit,
+    refetchInterval: hasPendingDeposit ? 30_000 : false,
+  });
+
+  const confirmationById = useMemo(() => {
+    const map: Record<string, { confirmations: number; required: number; status: string }> = {};
+    for (const d of confirmations.data?.deposits ?? []) {
+      map[d.id] = { confirmations: d.confirmations, required: d.required, status: d.status };
+    }
+    return map;
+  }, [confirmations.data]);
+
+  // A deposit that cleared on-chain during a poll needs balances refreshed.
+  const settledCount = (confirmations.data?.deposits ?? []).filter(
+    (d) => d.status === "approved",
+  ).length;
+  useEffect(() => {
+    if (settledCount > 0) {
+      qc.invalidateQueries({ queryKey: ["wallet-activity"] });
+      qc.invalidateQueries({ queryKey: ["portfolio-value"] });
+      qc.invalidateQueries({ queryKey: ["portfolio"] });
+    }
+  }, [settledCount, qc]);
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["wallet-activity"] });
@@ -297,6 +329,11 @@ function WalletPage() {
         open={activeTx !== null}
         onOpenChange={(v) => !v && setActiveTx(null)}
         priceUsd={activeTx ? (value.data?.rates?.[activeTx.asset] ?? undefined) : undefined}
+        liveConfirmations={
+          activeTx && activeTx.type === "deposit"
+            ? confirmationById[activeTx.id]?.confirmations
+            : undefined
+        }
       />
 
       <div className="h-10" />
