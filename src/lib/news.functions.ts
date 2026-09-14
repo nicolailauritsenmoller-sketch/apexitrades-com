@@ -219,6 +219,9 @@ const DOMAINS: Record<string, string> = {
   "Bank of Canada": "bankofcanada.ca",
   CIRO: "ciro.ca",
   "TMX / TSX": "tmx.com",
+  "The Block": "theblock.co",
+  Decrypt: "decrypt.co",
+  "Bloomberg Crypto": "bloomberg.com",
 };
 
 function guessDomain(source: string) {
