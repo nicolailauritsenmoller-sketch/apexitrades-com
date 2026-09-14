@@ -199,6 +199,7 @@ function Portfolio() {
         <AssetsOverview
           holdings={value.data?.wallets ?? []}
           totalUsdt={value.data?.totalUsdt ?? 0}
+          formatValue={display.format}
           isLoading={value.isLoading}
           hidden={balancesHidden}
         />
