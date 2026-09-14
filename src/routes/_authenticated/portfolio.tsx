@@ -12,7 +12,10 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { TradeHistoryList } from "@/components/TradeHistoryList";
 import { getContracts } from "@/lib/contracts.functions";
 import { formatMoney } from "@/lib/instruments";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getDailyRealizedPnl, msUntilUtcMidnight } from "@/lib/pnl.functions";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { PortfolioPerformance, type Range } from "@/components/portfolio/PortfolioPerformance";
 import { AssetAllocation } from "@/components/portfolio/AssetAllocation";
 
@@ -44,6 +47,8 @@ export const Route = createFileRoute("/_authenticated/portfolio")({
 });
 
 function Portfolio() {
+  useWalletRealtime("portfolio-live");
+  const qc = useQueryClient();
   const fetchPortfolio = useServerFn(getPortfolio);
   const { data, isLoading } = useQuery({
     queryKey: ["portfolio"],
@@ -64,6 +69,23 @@ function Portfolio() {
     queryFn: () => fetchContracts(),
     refetchInterval: 30_000,
   });
+
+  // Settled performance booked inside the active UTC calendar day; the window
+  // is bounded server-side, so the metric resets itself at 00:00:00 UTC.
+  const fetchDailyPnl = useServerFn(getDailyRealizedPnl);
+  const dailyPnl = useQuery({
+    queryKey: ["daily-pnl"],
+    queryFn: () => fetchDailyPnl(),
+    refetchInterval: 30_000,
+  });
+  useEffect(() => {
+    const timer = setTimeout(
+      () => qc.invalidateQueries({ queryKey: ["daily-pnl"] }),
+      msUntilUtcMidnight() + 1_000,
+    );
+    return () => clearTimeout(timer);
+  }, [qc, dailyPnl.dataUpdatedAt]);
+  const todayRealized = dailyPnl.data?.realized ?? 0;
 
   const positions = (data?.positions ?? []) as PositionRow[];
   const open = positions.filter((p) => p.status === "open");
@@ -124,6 +146,23 @@ function Portfolio() {
           hidden={balancesHidden}
         />
       </section>
+
+      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <PnlCard
+          label="Today's Realized P&L"
+          hint="Settled today (00:00–23:59 UTC)"
+          amount={todayRealized}
+          loading={dailyPnl.isLoading}
+          hidden={balancesHidden}
+        />
+        <PnlCard
+          label="Total Unrealized P&L"
+          hint="Live mark-to-market on open exposure"
+          amount={totalUnrealized}
+          loading={isLoading}
+          hidden={balancesHidden}
+        />
+      </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <MiniStat label="Open Positions" value={String(open.length)} sub="View" subTo="#positions" />
@@ -211,6 +250,40 @@ function Portfolio() {
         />
       </div>
     </AppShell>
+  );
+}
+
+function PnlCard({
+  label,
+  hint,
+  amount,
+  loading,
+  hidden,
+}: {
+  label: string;
+  hint: string;
+  amount: number;
+  loading?: boolean;
+  hidden?: boolean;
+}) {
+  const positive = amount >= 0;
+  return (
+    <div className="panel touch-manipulation p-4">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div
+        className={`num mt-1 text-2xl font-bold tracking-tight ${positive ? "text-bull" : "text-bear"}`}
+      >
+        {loading
+          ? "—"
+          : hidden
+            ? "••••••"
+            : `${positive ? "+" : "-"}$${Math.abs(amount).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+      </div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
+    </div>
   );
 }
 
