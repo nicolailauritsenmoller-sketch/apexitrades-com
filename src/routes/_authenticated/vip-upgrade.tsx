@@ -9,13 +9,13 @@ import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip, isVipPending } from "@/lib/vip-
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({
     meta: [
-      { title: "Upgrade to VIP 1 — tier benefits & thresholds | Velocity Trade" },
+      { title: "Upgrade to VIP — benefits & thresholds | Velocity Trade" },
       {
         name: "description",
         content:
-          "Unlock VIP 1 on Velocity Trade with a 20,000 USDT balance: zero trading fees, a priority account manager, elevated withdrawal limits and exclusive scalp return rates.",
+          "Unlock VIP on Velocity Trade with a 20,000 USDT balance: zero trading fees, a priority account manager, elevated withdrawal limits and exclusive scalp return rates.",
       },
-      { property: "og:title", content: "Upgrade to VIP 1 — Velocity Trade" },
+      { property: "og:title", content: "Upgrade to VIP — Velocity Trade" },
       {
         property: "og:description",
         content:
@@ -71,8 +71,8 @@ function VipUpgradePage() {
               <Crown className="size-6" />
             </span>
             <div>
-              <p className="font-display text-lg font-bold tracking-tight">VIP 1</p>
-              <p className="text-xs uppercase tracking-widest text-amber-500">Bronze / Silver tier</p>
+              <p className="font-display text-lg font-bold tracking-tight">VIP</p>
+              <p className="text-xs uppercase tracking-widest text-amber-500">Membership tier</p>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ function VipUpgradePage() {
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 {already
-                  ? "VIP 1 is active on this account."
+                  ? "VIP is active on this account."
                   : awaiting
                     ? "Threshold reached — your VIP upgrade request is pending review."
                     : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
@@ -126,7 +126,7 @@ function VipUpgradePage() {
               className="w-full touch-manipulation rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {already
-                ? "VIP 1 already active"
+                ? "VIP already active"
                 : awaiting
                   ? "VIP request pending approval"
                   : `Confirm & Deposit ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`}

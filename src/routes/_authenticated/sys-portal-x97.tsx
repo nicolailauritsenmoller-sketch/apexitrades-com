@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Wallet2,
   Megaphone,
+  Crown,
   Users,
   Landmark,
   Gauge,
