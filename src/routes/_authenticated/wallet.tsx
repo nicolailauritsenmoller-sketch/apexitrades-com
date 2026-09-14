@@ -43,6 +43,7 @@ import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
   STATUS_STYLE,
+  assetName,
   formatExchangeDateTime,
   shortenAddress,
   toTxStatus,
@@ -480,6 +481,62 @@ function NetworkSelect({
   );
 }
 
+/** Asset selector with official brand logo badges, mirroring the Network picker. */
+function CoinSelect({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (coin: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = value || options[0] || "";
+  return (
+    <div
+      className="relative mt-1"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-11 w-full items-center gap-2.5 rounded-md border border-input bg-background px-3 text-left outline-none focus:border-primary"
+      >
+        {current && <AssetIcon currency={current} symbol={current} size={20} />}
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+          {current ? `${current} · ${assetName(current)}` : "Select asset"}
+        </span>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-background py-1 shadow-xl">
+          {options.map((coin) => {
+            const active = coin === current;
+            return (
+              <button
+                key={coin}
+                type="button"
+                onClick={() => {
+                  onChange(coin);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-secondary/60 ${active ? "text-primary" : ""}`}
+              >
+                <AssetIcon currency={coin} symbol={coin} size={20} />
+                <span className="min-w-0 flex-1 truncate">{coin} · {assetName(coin)}</span>
+                {active && <Check className="size-4 shrink-0 text-primary" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DepositTab({
   addresses,
   initialAmount,
@@ -614,16 +671,10 @@ function DepositTab({
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="block">
+            <div>
               <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Asset</span>
-              <select
-                value={selectedCoin}
-                onChange={(event) => selectCoin(event.target.value)}
-                className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm font-semibold outline-none focus:border-primary"
-              >
-                {coins.map((coin) => <option key={coin} value={coin}>{coin}</option>)}
-              </select>
-            </label>
+              <CoinSelect options={coins} value={selectedCoin} onChange={selectCoin} />
+            </div>
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Network</span>
               <NetworkSelect options={coinAddresses} value={addr?.id ?? ""} onChange={setSelectedId} />
