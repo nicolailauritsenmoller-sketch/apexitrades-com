@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, Coins, Crown, Languages, Palette } from "lucide-react";
 import { Section, SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
+import { useDisplayCurrency, DISPLAY_CURRENCIES } from "@/lib/display-currency";
+import { DisplayCurrencyDialog } from "@/components/DisplayCurrencyDialog";
 import { ThemeSetting } from "@/lib/theme";
 import {
   Select,
