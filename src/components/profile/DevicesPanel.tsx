@@ -83,13 +83,16 @@ export function DevicesPanel() {
                   {new Date(s.lastActiveAt).toLocaleString()}
                 </td>
                 <td className="py-2 text-right">
-                  <button
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => removeDevice.mutate(s.id)}
                     disabled={s.isCurrent}
-                    className="inline-flex touch-manipulation items-center gap-1 rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+                    className="h-8 text-xs text-muted-foreground"
                   >
                     <Trash2 className="size-3" /> Remove
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
