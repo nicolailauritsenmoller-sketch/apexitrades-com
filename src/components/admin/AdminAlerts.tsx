@@ -40,6 +40,10 @@ export function AdminAlerts() {
   const [sound, setSound] = useState(true);
   const [push, setPush] = useState(false);
   const [audioReady, setAudioReady] = useState(true);
+  const queryClient = useQueryClient();
+
+  // Instant console refresh on every user action, independent of the alert audio.
+  useAdminLiveSync(queryClient);
 
   useEffect(() => {
     setSound(localStorage.getItem(SOUND_KEY) !== "off");
