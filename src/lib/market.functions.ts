@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const quotesInput = z.object({ symbols: z.array(z.string().max(20)).max(60) });
+const quotesInput = z.object({ symbols: z.array(z.string().max(20)).max(500) });
 const candlesInput = z.object({
   symbol: z.string().max(20),
   timeframe: z.enum([
