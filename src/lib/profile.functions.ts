@@ -93,6 +93,8 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         referralCode: (profile as any)?.referral_code ?? null,
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
         creditScore: Number((profile as any)?.credit_score ?? 750),
+        vipTier: ((profile as any)?.vip_tier ?? "regular") as string,
+        vipUpgradedAt: (profile as any)?.vip_upgraded_at ?? null,
         createdAt: profile?.created_at ?? null,
         nameUpdatedAt: (profile as any)?.display_name_updated_at ?? null,
         nameLockedUntil: (profile as any)?.display_name_updated_at

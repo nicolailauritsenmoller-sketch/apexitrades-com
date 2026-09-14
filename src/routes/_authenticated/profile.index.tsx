@@ -177,9 +177,18 @@ function ProfileHome() {
                   {KYC_LABEL[status] ?? status}
                 </span>
               )}
-              <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Regular
-              </span>
+              {isVip(vipTier) ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-300/25 to-amber-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                  <Crown className="size-3" /> {VIP_TIER_LABEL[vipTier] ?? "VIP"}
+                </span>
+              ) : (
+                <Link
+                  to="/vip-upgrade"
+                  className="inline-flex touch-manipulation items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:border-amber-400/50 hover:text-amber-500"
+                >
+                  Regular <ChevronRight className="size-3" />
+                </Link>
+              )}
             </div>
           </div>
         </div>
