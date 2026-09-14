@@ -27,6 +27,7 @@ import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
 import { Route as AuthenticatedProfileHelpRouteImport } from './routes/_authenticated/profile.help'
 import { Route as AuthenticatedProfileReferralsRouteImport } from './routes/_authenticated/profile.referrals'
@@ -134,6 +135,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminCommunityRoute =
+  AuthenticatedAdminCommunityRouteImport.update({
+    id: '/community',
+    path: '/community',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/',
@@ -240,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/profile/security': typeof AuthenticatedProfileSecurityRoute
@@ -272,6 +280,7 @@ export interface FileRoutesByTo {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/profile/security': typeof AuthenticatedProfileSecurityRoute
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   '/_authenticated/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/_authenticated/profile/help': typeof AuthenticatedProfileHelpRoute
   '/_authenticated/profile/referrals': typeof AuthenticatedProfileReferralsRoute
   '/_authenticated/profile/security': typeof AuthenticatedProfileSecurityRoute
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
+    | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
     | '/profile/security'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
+    | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
     | '/profile/security'
@@ -411,6 +423,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vip-upgrade'
     | '/_authenticated/wallet'
     | '/legal/$doc'
+    | '/_authenticated/admin/community'
     | '/_authenticated/profile/help'
     | '/_authenticated/profile/referrals'
     | '/_authenticated/profile/security'
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/community': {
+      id: '/_authenticated/admin/community'
+      path: '/community'
+      fullPath: '/admin/community'
+      preLoaderRoute: typeof AuthenticatedAdminCommunityRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/profile/': {
       id: '/_authenticated/profile/'
       path: '/'
@@ -679,10 +699,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
