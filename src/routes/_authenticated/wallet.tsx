@@ -294,13 +294,27 @@ const NETWORK_DETAILS: Array<{
   label: string;
   confirmations: number;
   arrival: string;
-  minimum: string;
+  minimums?: Record<string, string>;
 }> = [
-  { match: /erc|ethereum/i, label: "Ethereum (ERC-20)", confirmations: 12, arrival: "~3 minutes", minimum: "0.001 ETH" },
-  { match: /trc|tron/i, label: "Tron (TRC-20)", confirmations: 20, arrival: "~2 minutes", minimum: "10 USDT" },
-  { match: /bep|bsc|binance/i, label: "BNB Smart Chain (BEP-20)", confirmations: 15, arrival: "~3 minutes", minimum: "0.0005 BNB" },
-  { match: /bitcoin|btc/i, label: "Bitcoin", confirmations: 3, arrival: "~30 minutes", minimum: "0.0001 BTC" },
-  { match: /solana|sol/i, label: "Solana", confirmations: 20, arrival: "~1 minute", minimum: "0.01 SOL" },
+  { match: /erc|ethereum/i, label: "Ethereum (ERC-20)", confirmations: 12, arrival: "~3 minutes", minimums: { ETH: "0.001 ETH", USDT: "10 USDT", BNB: "0.01 BNB" } },
+  { match: /trc|tron/i, label: "Tron (TRC-20)", confirmations: 20, arrival: "~2 minutes", minimums: { USDT: "10 USDT" } },
+  { match: /bep|bsc|bnb smart/i, label: "BNB Smart Chain (BEP-20)", confirmations: 15, arrival: "~3 minutes", minimums: { BNB: "0.0005 BNB", ETH: "0.001 ETH", BTC: "0.0001 BTC", USDT: "5 USDT" } },
+  { match: /base/i, label: "Base", confirmations: 12, arrival: "~2 minutes", minimums: { ETH: "0.001 ETH", USDT: "5 USDT" } },
+  { match: /arbitrum/i, label: "Arbitrum One", confirmations: 12, arrival: "~2 minutes", minimums: { ETH: "0.001 ETH" } },
+  { match: /optimism/i, label: "Optimism", confirmations: 20, arrival: "~3 minutes", minimums: { ETH: "0.001 ETH", USDT: "5 USDT" } },
+  { match: /zksync/i, label: "zkSync Era", confirmations: 24, arrival: "~5 minutes", minimums: { ETH: "0.001 ETH" } },
+  { match: /segwit|taproot/i, label: "SegWit (Native SegWit / Taproot)", confirmations: 3, arrival: "~20 minutes", minimums: { BTC: "0.0001 BTC" } },
+  { match: /lightning/i, label: "Lightning Network", confirmations: 1, arrival: "Instant", minimums: { BTC: "0.00001 BTC" } },
+  { match: /bitcoin|btc/i, label: "Bitcoin (Native)", confirmations: 3, arrival: "~30 minutes", minimums: { BTC: "0.0001 BTC" } },
+  { match: /polygon plasma/i, label: "Polygon Plasma", confirmations: 12, arrival: "~1 minute", minimums: { USDT: "1 USDT" } },
+  { match: /polygon|pos/i, label: "Polygon (POL / POS)", confirmations: 20, arrival: "~2 minutes", minimums: { USDT: "1 USDT" } },
+  { match: /aptos/i, label: "Aptos", confirmations: 4, arrival: "~1 minute", minimums: { USDT: "1 USDT" } },
+  { match: /avalanche|c-chain/i, label: "Avalanche C-Chain", confirmations: 12, arrival: "~2 minutes", minimums: { USDT: "1 USDT" } },
+  { match: /scroll/i, label: "Scroll", confirmations: 24, arrival: "~5 minutes", minimums: { USDT: "1 USDT" } },
+  { match: /algorand|algo/i, label: "Algorand", confirmations: 5, arrival: "~1 minute", minimums: { USDT: "1 USDT" } },
+  { match: /solana|sol/i, label: "Solana", confirmations: 20, arrival: "~1 minute", minimums: { USDT: "1 USDT" } },
+  { match: /sonic/i, label: "Sonic", confirmations: 12, arrival: "~1 minute", minimums: { USDT: "1 USDT" } },
+  { match: /polkadot|dot/i, label: "Polkadot", confirmations: 10, arrival: "~2 minutes", minimums: { USDT: "1 USDT" } },
 ];
 
 function depositNetworkDetails(network: string, coin: string) {
