@@ -80,7 +80,7 @@ function Home() {
     <AppShell>
       {/* Balance hero */}
       <section className="panel p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <span>Est. Total Value (USD)</span>
@@ -110,7 +110,7 @@ function Home() {
             >
               {hidden
                 ? "••••"
-                : `${pnlSign}${Math.abs(todayPnl).toLocaleString("en-US", {
+                : `${pnlSign}$${Math.abs(todayPnl).toLocaleString("en-US", {
                     minimumFractionDigits: pnlDecimals,
                     maximumFractionDigits: pnlDecimals,
                   })} (${pctSign}${pct.toFixed(2)}%)`}
@@ -120,7 +120,7 @@ function Home() {
           <Link
             to="/wallet"
             search={{ tab: "deposit" }}
-            className="flex min-h-11 touch-manipulation items-center gap-2 self-start rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
+            className="flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
             style={{ boxShadow: "var(--glow-primary)" }}
           >
             <ArrowDownToLine className="size-4" strokeWidth={2.6} />
