@@ -120,11 +120,27 @@ export function playAurora(volume = 0.35) {
 /* ---------------------- speech synthesis announcements -------------------- */
 
 const SIRI_VOICES = ["Samantha", "Karen", "Victoria", "Ava", "Serena", "Google US English"];
+const ZH_VOICES = ["Tingting", "Ting-Ting", "Meijia", "Sinji", "Google 普通话", "Huihui", "Yaoyao"];
 
-function pickVoice(): SpeechSynthesisVoice | null {
+/** Spoken alert for a new inbound customer message (Mandarin). */
+export const CHAT_ALERT_PHRASE = "来自客户的新消息";
+
+function isZh(text: string) {
+  return /[\u4e00-\u9fff]/.test(text);
+}
+
+function pickVoice(zh = false): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
+  if (zh) {
+    for (const name of ZH_VOICES) {
+      const hit = voices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+      if (hit) return hit;
+    }
+    const cn = voices.find((v) => /^zh[-_]?(cn|hans)/i.test(v.lang)) ?? voices.find((v) => v.lang.toLowerCase().startsWith("zh"));
+    if (cn) return cn;
+  }
   for (const name of SIRI_VOICES) {
     const hit = voices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
     if (hit) return hit;
@@ -137,16 +153,17 @@ function pickVoice(): SpeechSynthesisVoice | null {
   );
 }
 
-/** Speaks a phrase once in a crisp Siri-like female voice. */
+/** Speaks a phrase once, picking a Mandarin voice for Chinese text. */
 export function speak(text: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
+    const zh = isZh(text);
     const u = new SpeechSynthesisUtterance(text);
-    const voice = pickVoice();
+    const voice = pickVoice(zh);
     if (voice) u.voice = voice;
-    u.lang = voice?.lang ?? "en-US";
+    u.lang = zh ? (voice?.lang ?? "zh-CN") : (voice?.lang ?? "en-US");
     u.pitch = 1.1;
-    u.rate = 1.02;
+    u.rate = zh ? 0.96 : 1.02;
     u.volume = 1;
     window.speechSynthesis.speak(u);
   } catch {
@@ -157,7 +174,7 @@ export function speak(text: string) {
 let speechTimer: ReturnType<typeof setInterval> | null = null;
 
 /** Repeats a spoken announcement every 3.5s until {@link stopSpeechLoop}. */
-export function startSpeechLoop(text = "New message from a customer.") {
+export function startSpeechLoop(text = CHAT_ALERT_PHRASE) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   if (speechTimer) return;
   speak(text);
