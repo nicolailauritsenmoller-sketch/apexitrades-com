@@ -56,6 +56,9 @@
   --color-ops-emerald: var(--ops-emerald);
   --color-ops-blue: var(--ops-blue);
   --color-ops-violet: var(--ops-violet);
+  --color-ops-amber-bg: var(--ops-amber-bg);
+  --color-ops-red-bg: var(--ops-red-bg);
+  --color-ops-emerald-bg: var(--ops-emerald-bg);
 }
 
 :root {
@@ -92,11 +95,16 @@
   --bear-foreground: oklch(1 0 0);
   --warning: oklch(0.55 0.15 78);
 
-  --ops-amber: oklch(0.55 0.15 75);
-  --ops-red: oklch(0.55 0.22 27);
-  --ops-emerald: oklch(0.5 0.15 158);
+  /* Muted institutional status colors: amber #F59E0B, crimson #EF4444, emerald #10B981 */
+  --ops-amber: oklch(0.769 0.164 70);
+  --ops-red: oklch(0.637 0.237 25);
+  --ops-emerald: oklch(0.696 0.149 162);
   --ops-blue: oklch(0.52 0.24 264);
   --ops-violet: oklch(0.53 0.24 300);
+  /* Muted badge surfaces: #78350F / #7F1D1D / #064E3B */
+  --ops-amber-bg: oklch(0.414 0.085 60);
+  --ops-red-bg: oklch(0.396 0.121 26);
+  --ops-emerald-bg: oklch(0.386 0.068 165);
 
   --destructive: oklch(0.57 0.2 25);
   --destructive-foreground: oklch(1 0 0);
@@ -151,11 +159,16 @@
 
 
 
-  --ops-amber: oklch(0.79 0.16 78);
-  --ops-red: oklch(0.68 0.21 26);
-  --ops-emerald: oklch(0.73 0.17 158);
+  /* Muted institutional status colors: amber #F59E0B, crimson #EF4444, emerald #10B981 */
+  --ops-amber: oklch(0.769 0.164 70);
+  --ops-red: oklch(0.637 0.237 25);
+  --ops-emerald: oklch(0.696 0.149 162);
   --ops-blue: oklch(0.66 0.21 264);
   --ops-violet: oklch(0.68 0.2 300);
+  /* Muted badge surfaces: #78350F / #7F1D1D / #064E3B */
+  --ops-amber-bg: oklch(0.414 0.085 60);
+  --ops-red-bg: oklch(0.396 0.121 26);
+  --ops-emerald-bg: oklch(0.386 0.068 165);
 
   /* 1px subtle borders: rgba(255,255,255,0.07) */
   --border: oklch(1 0 0 / 7%);
