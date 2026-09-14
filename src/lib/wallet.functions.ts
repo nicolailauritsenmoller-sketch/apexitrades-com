@@ -255,6 +255,31 @@ export const requestDeposit = createServerFn({ method: "POST" })
       .select("id,created_at")
       .single();
     if (error) throw new Error(error.message);
+
+    // Alert the desk so a submitted transfer never sits unseen.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = supabaseAdmin as any;
+      const [{ data: staff }, { data: profile }] = await Promise.all([
+        admin.from("user_roles").select("user_id").in("role", ["admin", "finance"]),
+        admin.from("profiles").select("display_name,uid").eq("id", context.userId).maybeSingle(),
+      ]);
+      const who = profile?.display_name ?? profile?.uid ?? "A member";
+      const targets = Array.from(new Set((staff ?? []).map((r: any) => r.user_id)));
+      if (targets.length) {
+        await admin.from("notifications").insert(
+          targets.map((uid) => ({
+            user_id: uid,
+            title: "New deposit awaiting clearing",
+            body: `${who} submitted ${data.amount} ${data.coin} on ${data.network}${data.txHash ? ` · ${data.txHash.slice(0, 12)}…` : " · no hash provided"}.`,
+            kind: "warning",
+          })),
+        );
+      }
+    } catch {
+      /* notification failures must never block the deposit record */
+    }
+
     return { ok: true, id: row.id as string, createdAt: row.created_at as string };
   });
 
