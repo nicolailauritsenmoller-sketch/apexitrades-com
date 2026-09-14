@@ -238,7 +238,7 @@ export function AssetsOverview({
                       search={{ symbol: `${h.currency}USDT` }}
                       className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
                     >
-                      <Trade className="size-3.5" /> Trade
+                      <ArrowLeftRight className="size-3.5" /> Trade
                     </Link>
                   </div>
                 </div>
