@@ -1621,3 +1621,45 @@ export const setUserVipStatus = createServerFn({ method: "POST" })
 
     return { ok: true, tier };
   });
+
+/**
+ * Active VIP members with their total account equity (USDT-valued wallet balances).
+ * Powers the "Active VIP members" tab of the VIP Memberships page.
+ */
+export const getVipMembers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+
+    const { data: rows, error } = await db
+      .from("profiles")
+      .select("id,display_name,uid,email,vip_upgraded_at,created_at")
+      .eq("vip_tier", "vip1")
+      .order("vip_upgraded_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+
+    const ids = ((rows ?? []) as any[]).map((p) => p.id);
+    if (ids.length === 0) return [];
+
+    const { usdtRates } = await import("./rates.server");
+    const [{ data: wallets }, rates] = await Promise.all([
+      db.from("wallets").select("user_id,currency,balance").in("user_id", ids),
+      usdtRates(),
+    ]);
+
+    return ((rows ?? []) as any[]).map((p) => {
+      const equity = ((wallets ?? []) as any[])
+        .filter((w) => w.user_id === p.id)
+        .reduce((sum, w) => sum + Number(w.balance ?? 0) * ((rates as any)[w.currency] ?? 0), 0);
+      return {
+        userId: p.id as string,
+        displayName: (p.display_name ?? "Trader") as string,
+        uid: (p.uid ?? null) as string | null,
+        email: (p.email ?? null) as string | null,
+        equityUsdt: equity,
+        promotedAt: (p.vip_upgraded_at ?? p.created_at) as string,
+      };
+    });
+  });
