@@ -136,8 +136,8 @@ function VipUpgradePage() {
 
         <p className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-          Your tier upgrades automatically once the deposit passes clearing and your balance reaches
-          the threshold. You will receive an in-app alert and a confirmation email.
+          Once your deposit clears and your balance reaches the threshold, your VIP request is
+          submitted for review. You will receive an in-app alert as soon as it is approved.
         </p>
       </div>
     </AppShell>
