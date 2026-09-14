@@ -116,13 +116,15 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                   >
                     <X className="size-3" /> Reject VIP
                   </button>
-                  <Link
-                    to="/sys-portal-x97"
-                    search={{ user: r.userId }}
-                    className="touch-manipulation rounded-md border border-border px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Open
-                  </Link>
+                  {onOpen && (
+                    <button
+                      type="button"
+                      onClick={() => onOpen(r.userId)}
+                      className="touch-manipulation rounded-md border border-border px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Open
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>
