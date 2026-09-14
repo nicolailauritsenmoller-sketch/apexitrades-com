@@ -319,11 +319,12 @@ const NETWORK_DETAILS: Array<{
 
 function depositNetworkDetails(network: string, coin: string) {
   const known = NETWORK_DETAILS.find((item) => item.match.test(network));
-  return known ?? {
-    label: network,
-    confirmations: 12,
-    arrival: "~10 minutes",
-    minimum: `0.001 ${coin}`,
+  const stableDefault = /^(USDT|USDC|USD)$/.test(coin) ? `10 ${coin}` : `0.001 ${coin}`;
+  return {
+    label: known?.label ?? network,
+    confirmations: known?.confirmations ?? 12,
+    arrival: known?.arrival ?? "~10 minutes",
+    minimum: known?.minimums?.[coin] ?? stableDefault,
   };
 }
 
