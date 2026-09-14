@@ -20,6 +20,9 @@ export type TradeSummary = {
   grossPnl: number;
   netPnl: number;
   profitPct: number;
+  settledAmount: number;
+  leverage: number;
+  totalFees: number;
   openedAt: string;
   closedAt: string;
   /** Normalised price trajectory used by the summary chart. */
@@ -318,6 +321,9 @@ function assemble(c: Common): TradeSummary {
     grossPnl: c.grossPnl,
     netPnl,
     profitPct,
+    settledAmount: c.notional,
+    leverage: c.leverage,
+    totalFees,
     openedAt: c.openedAt,
     closedAt: c.closedAt,
     path,
