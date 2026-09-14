@@ -247,20 +247,49 @@ export function AdminAlerts() {
         if (watched) {
           // Conversation is open and focused: single subtle chime, no loop.
           stopChatLoop();
-          if (sound) playSoftPing();
-          if (push) pushNotify("New live chat message", String(r.body).slice(0, 120), "chat");
+          if (sound()) playSoftPing();
+          if (push()) pushNotify("New live chat message", String(r.body).slice(0, 120), "chat");
           toast("New live chat message", { description: String(r.body).slice(0, 120) });
           return;
         }
         alert("chat", "New live chat message", String(r.body).slice(0, 120), true);
       })
-
-      .subscribe();
+      // Priority support: a brand-new ticket thread or a user reply on one.
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "support_ticket_messages" },
+        (p) => {
+          const r = (p.new ?? {}) as any;
+          if (r.sender_role && r.sender_role !== "user") return;
+          window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
+          alert("chat", "New priority support message", String(r.body ?? "").slice(0, 120), true);
+        },
+      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "vip_messages" }, (p) => {
+        const r = (p.new ?? {}) as any;
+        if (r.sender_role && r.sender_role !== "user") return;
+        window.dispatchEvent(new CustomEvent("desk:chat-inbound"));
+        alert("chat", "New VIP chat message", String(r.body ?? "").slice(0, 120), true);
+      })
+      .subscribe((status) => {
+        // Self-heal: a dropped socket (or a reset that severs the connection)
+        // must not leave the console silent.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          retry = setTimeout(() => {
+            try {
+              void channel.subscribe();
+            } catch {
+              /* channel already torn down */
+            }
+          }, 3000);
+        }
+      });
 
     return () => {
+      if (retry) clearTimeout(retry);
       supabase.removeChannel(channel);
     };
-  }, [alert, settle, cue]);
+  }, []);
 
   async function togglePush() {
     if (push) {
