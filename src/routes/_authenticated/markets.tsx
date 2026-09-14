@@ -294,15 +294,76 @@ function Markets() {
           </p>
         )}
       </div>
-      {visible.length < filtered.length && (
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => setLimit((n) => n + 50)}
-            className="rounded-md border border-border px-4 py-2 text-sm transition-colors hover:bg-secondary"
-          >
-            Load more ({filtered.length - visible.length} remaining)
-          </button>
-        </div>
+      {infinite ? (
+        <>
+          <div ref={sentinelRef} aria-hidden className="h-px w-full" />
+          {hasMore && (
+            <div className="mt-3 space-y-2" aria-live="polite">
+              {loadingMore ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  Loading more instruments…
+                </div>
+              ) : (
+                [0, 1, 2].map((k) => (
+                  <div
+                    key={k}
+                    className="flex items-center gap-3 rounded-xl border border-border/40 px-4 py-3"
+                  >
+                    <div className="size-7 animate-pulse rounded-full bg-muted" />
+                    <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+                    <div className="ml-auto h-3 w-20 animate-pulse rounded bg-muted" />
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        filtered.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3 text-sm">
+            <span className="text-xs text-muted-foreground">
+              Rows per page: {ROWS_PER_PAGE}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+                className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+              >
+                ‹
+              </button>
+              {pageNumbers(currentPage, pageCount).map((p, idx) =>
+                p === "…" ? (
+                  <span key={`e${idx}`} className="px-1.5 text-xs text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`min-w-7 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                      p === currentPage
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={currentPage === pageCount}
+                aria-label="Next page"
+                className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        )
       )}
     </AppShell>
   );
