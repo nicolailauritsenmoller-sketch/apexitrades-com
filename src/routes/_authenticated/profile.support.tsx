@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -85,13 +85,12 @@ function ContactSupport() {
     },
   ];
 
-  const visibleItems = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return items;
-    return items.filter((item) =>
-      `${item.title} ${item.description} ${item.keywords}`.toLowerCase().includes(term),
-    );
-  }, [search]);
+  const term = search.trim().toLowerCase();
+  const visibleItems = term
+    ? items.filter((item) =>
+        `${item.title} ${item.description} ${item.keywords}`.toLowerCase().includes(term),
+      )
+    : items;
 
   return (
     <>
