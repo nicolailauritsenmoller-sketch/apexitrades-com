@@ -38,7 +38,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
       run({ data: input }),
     onSuccess: (_res, input) => {
       toast.success(
-        input.action === "approve" ? "VIP status approved and activated." : "VIP request rejected.",
+        input.action === "approve" ? "VIP status approved and activated." : "VIP request declined.",
       );
       qc.invalidateQueries({ queryKey: ["admin-vip-pending"] });
       qc.invalidateQueries({ queryKey: ["admin-user-directory"] });
@@ -73,7 +73,11 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.userId} className="border-b border-border/40 last:border-0">
+            <tr
+              key={r.userId}
+              onClick={() => onOpen?.(r.userId)}
+              className={`border-b border-border/40 last:border-0 ${onOpen ? "cursor-pointer transition-colors hover:bg-muted/40" : ""}`}
+            >
               <td className="py-2.5 pr-3">
                 <span className="flex items-center gap-1.5 font-semibold">
                   <Hourglass className="size-3.5 text-ops-amber" />
@@ -98,7 +102,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
               <td className="py-2.5 pr-3 text-xs text-muted-foreground">
                 {fmtDate(r.requestedAt)}
               </td>
-              <td className="py-2.5">
+              <td className="py-2.5" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-end gap-1.5">
                   <button
                     type="button"
@@ -114,7 +118,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                     onClick={() => mutation.mutate({ userId: r.userId, action: "reject" })}
                     className="flex touch-manipulation items-center gap-1 rounded-md border border-ops-red/25 bg-ops-red-bg px-2.5 py-1.5 text-[11px] font-bold text-ops-red transition-colors hover:bg-ops-red/20 disabled:opacity-50"
                   >
-                    <X className="size-3" /> Reject VIP
+                    <X className="size-3" /> Decline VIP
                   </button>
                   {onOpen && (
                     <button
