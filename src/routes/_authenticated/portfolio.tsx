@@ -70,6 +70,23 @@ function Portfolio() {
     refetchInterval: 30_000,
   });
 
+  // Settled performance booked inside the active UTC calendar day; the window
+  // is bounded server-side, so the metric resets itself at 00:00:00 UTC.
+  const fetchDailyPnl = useServerFn(getDailyRealizedPnl);
+  const dailyPnl = useQuery({
+    queryKey: ["daily-pnl"],
+    queryFn: () => fetchDailyPnl(),
+    refetchInterval: 30_000,
+  });
+  useEffect(() => {
+    const timer = setTimeout(
+      () => qc.invalidateQueries({ queryKey: ["daily-pnl"] }),
+      msUntilUtcMidnight() + 1_000,
+    );
+    return () => clearTimeout(timer);
+  }, [qc, dailyPnl.dataUpdatedAt]);
+  const todayRealized = dailyPnl.data?.realized ?? 0;
+
   const positions = (data?.positions ?? []) as PositionRow[];
   const open = positions.filter((p) => p.status === "open");
   const closed = positions.filter((p) => p.status === "closed");
