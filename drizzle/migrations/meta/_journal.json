@@ -50,6 +50,13 @@
       "when": 1789354407535,
       "tag": "0006_realtime_vip_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789354715165,
+      "tag": "0007_realtime_admin_tables",
+      "breakpoints": true
     }
   ]
 }

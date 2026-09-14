@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminLiveSync } from "@/lib/admin-live-sync";
 import {
   ensurePushPermission,
   isChatSessionWatched,
@@ -38,6 +40,10 @@ export function AdminAlerts() {
   const [sound, setSound] = useState(true);
   const [push, setPush] = useState(false);
   const [audioReady, setAudioReady] = useState(true);
+  const queryClient = useQueryClient();
+
+  // Instant console refresh on every user action, independent of the alert audio.
+  useAdminLiveSync(queryClient);
 
   useEffect(() => {
     setSound(localStorage.getItem(SOUND_KEY) !== "off");
