@@ -116,7 +116,7 @@ function VipUpgradePage() {
             </div>
 
             <button
-              disabled={already}
+              disabled={already || awaiting}
               onClick={() =>
                 navigate({
                   to: "/wallet",
@@ -127,7 +127,9 @@ function VipUpgradePage() {
             >
               {already
                 ? "VIP 1 already active"
-                : `Confirm & Deposit ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`}
+                : awaiting
+                  ? "VIP request pending approval"
+                  : `Confirm & Deposit ${VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT`}
             </button>
           </div>
         </section>
