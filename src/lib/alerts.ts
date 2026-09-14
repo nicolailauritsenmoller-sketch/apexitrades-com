@@ -213,13 +213,22 @@ export function stopSpeechLoop() {
 /* ------------------------- looping chat alert ------------------------- */
 
 let loopTimer: ReturnType<typeof setInterval> | null = null;
+let voiceTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Repeats the chat bell + spoken alert until {@link stopChatLoop} is called. */
+/**
+ * Repeats the alert sequence — subtle high-tech chime first, then the
+ * Siri-style Mandarin voice "来自客户的新消息" — until {@link stopChatLoop}.
+ * Safe to call repeatedly: a running loop is never doubled.
+ */
 export function startChatLoop() {
-  startSpeechLoop();
   if (loopTimer) return;
-  playChime("chat");
-  loopTimer = setInterval(() => playChime("chat"), 1800);
+  stopSpeechLoop();
+  const cycle = () => {
+    playChime("chat");
+    voiceTimer = setTimeout(() => speak(CHAT_ALERT_PHRASE), 700);
+  };
+  cycle();
+  loopTimer = setInterval(cycle, 4200);
 }
 
 export function stopChatLoop() {
