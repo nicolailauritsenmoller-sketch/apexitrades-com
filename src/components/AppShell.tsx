@@ -74,6 +74,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isAdmin = access.data?.isAdmin === true;
   const pathname = router.state.location.pathname;
 
+  // Pending VIP membership requests badge on the Control Center entry.
+  const fetchPendingVip = useServerFn(getPendingVipRequests);
+  const pendingVip = useQuery({
+    queryKey: ["admin-vip-pending"],
+    queryFn: () => fetchPendingVip(),
+    enabled: isAdmin,
+    refetchInterval: 15_000,
+  });
+  const pendingVipCount = (pendingVip.data ?? []).length;
+
   // Warm every top-level route chunk once the app is idle so tab switches are instant.
   useEffect(() => {
     const idle =

@@ -321,6 +321,7 @@ function AdminPage() {
   const hasSession = useHasSession();
   const [tab, setTab] = useState<TabId>("overview");
   const [filter, setFilter] = useState<DeskFilter>({});
+  const [vipInspect, setVipInspect] = useState<string | null>(null);
   const statusFilter = filter.status ?? null;
   const go = (next: string, nextFilter?: DeskFilter) => {
     setTab(next as TabId);
