@@ -12,7 +12,10 @@ import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { TradeHistoryList } from "@/components/TradeHistoryList";
 import { getContracts } from "@/lib/contracts.functions";
 import { formatMoney } from "@/lib/instruments";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getDailyRealizedPnl, msUntilUtcMidnight } from "@/lib/pnl.functions";
+import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { PortfolioPerformance, type Range } from "@/components/portfolio/PortfolioPerformance";
 import { AssetAllocation } from "@/components/portfolio/AssetAllocation";
 
