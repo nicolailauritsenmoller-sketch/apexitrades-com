@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowUpFromLine, ChevronDown, Search, Wallet } from "lucide-react";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ChevronDown, Search, Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
-import { Trade } from "@/lib/icons";
+
 
 
 export type AssetHolding = {
