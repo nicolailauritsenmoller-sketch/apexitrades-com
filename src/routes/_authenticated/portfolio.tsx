@@ -258,12 +258,14 @@ function PnlCard({
   amount,
   loading,
   hidden,
+  format,
 }: {
   label: string;
   hint: string;
   amount: number;
   loading?: boolean;
   hidden?: boolean;
+  format: (usdt: number) => string;
 }) {
   const positive = amount >= 0;
   return (
