@@ -16,7 +16,6 @@ import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
-
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
     meta: [
@@ -62,7 +61,8 @@ function ContactSupport() {
     {
       icon: WalletCards,
       title: "Deposit & Withdrawal Issues",
-      description: "Self-service tools for missing hashes, delayed network confirmations, or memo tags.",
+      description:
+        "Self-service tools for missing hashes, delayed network confirmations, or memo tags.",
       action: "Report a transaction",
       keywords: "deposit withdrawal transaction hash network confirmation memo funds",
       onClick: () => openTickets("submit"),
@@ -100,7 +100,9 @@ function ContactSupport() {
             <LifeBuoy className="size-4 text-primary" />
             Institutional Client Services
           </div>
-          <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Velocity Support Desk</h1>
+          <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+            Velocity Support Desk
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
             Search topics, manage tickets, or reach 24/7 trading desk assistance.
           </p>
@@ -140,7 +142,8 @@ function ContactSupport() {
                 </span>
               </div>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Eligible VIP clients receive direct one-on-one priority messaging with an assigned account manager.
+                Eligible VIP clients receive direct one-on-one priority messaging with an assigned
+                account manager.
               </p>
             </div>
           </div>
@@ -153,10 +156,15 @@ function ContactSupport() {
       <section aria-labelledby="support-paths-heading">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h2 id="support-paths-heading" className="font-display text-lg font-bold">How can we help?</h2>
+            <h2 id="support-paths-heading" className="font-display text-lg font-bold">
+              How can we help?
+            </h2>
             <p className="mt-1 text-xs text-muted-foreground">Choose a desk for faster routing.</p>
           </div>
-          <Link to="/profile/help" className="hidden text-xs font-semibold text-primary hover:underline sm:block">
+          <Link
+            to="/profile/help"
+            className="hidden text-xs font-semibold text-primary hover:underline sm:block"
+          >
             Browse all articles
           </Link>
         </div>
@@ -171,7 +179,9 @@ function ContactSupport() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold text-foreground">{title}</span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span>
+                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                      {description}
+                    </span>
                     <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
                       {action} <ArrowRight className="size-3.5" />
                     </span>
@@ -204,9 +214,13 @@ function ContactSupport() {
           <div className="rounded-lg border border-dashed border-border bg-card px-5 py-10 text-center">
             <CircleCheck className="mx-auto size-8 text-muted-foreground" />
             <p className="mt-3 text-sm font-semibold">No direct support path found</p>
-            <p className="mt-1 text-xs text-muted-foreground">Browse the help center or start a live chat with the desk.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Browse the help center or start a live chat with the desk.
+            </p>
             <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
-              <Button asChild variant="outline"><Link to="/profile/help">Browse help center</Link></Button>
+              <Button asChild variant="outline">
+                <Link to="/profile/help">Browse help center</Link>
+              </Button>
               <Button onClick={() => setChatOpen(true)}>Start live chat</Button>
             </div>
           </div>
@@ -219,4 +233,3 @@ function ContactSupport() {
     </>
   );
 }
-
