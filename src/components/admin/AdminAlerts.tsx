@@ -101,6 +101,7 @@ export function AdminAlerts() {
   }, []);
 
   useEffect(() => {
+    let retry: ReturnType<typeof setTimeout> | null = null;
     // Proxies read the latest handlers, so the channel never has to be rebuilt.
     const alert: typeof handlers.current.alert = (...a) => handlers.current.alert(...a);
     const settle: typeof handlers.current.settle = (...a) => handlers.current.settle(...a);
