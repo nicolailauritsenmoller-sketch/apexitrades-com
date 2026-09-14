@@ -33,6 +33,7 @@ import {
   Eye,
   CheckCheck,
   XCircle,
+  Globe2,
 } from "lucide-react";
 import {
   MetricsBar,
@@ -187,6 +188,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     section: "Engagement",
     items: [
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
+      { id: "community", label: "Community Desk", icon: Globe2 },
       { id: "referrals", label: "Referrals & rewards", icon: Gift },
       { id: "ratings", label: "Ratings & reviews", icon: Star },
       { id: "agent", label: "Agent persona", icon: IdCard },
@@ -527,6 +529,10 @@ function AdminPage() {
                         <button
                           key={id}
                           onClick={() => {
+                             if (id === "community") {
+                               window.location.assign("/admin/community");
+                               return;
+                             }
                             go(id, alerting && !isChat ? { status: "pending" } : undefined);
                             if (isChat) silenceChatAlerts();
                           }}

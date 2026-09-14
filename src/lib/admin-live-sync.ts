@@ -41,6 +41,9 @@ const TABLE_KEYS: Record<string, string[]> = {
   referrals: ["admin-referrals"],
   admin_audit_logs: ["admin-audit-logs"],
   announcements: ["admin-announcements", "announcements-active"],
+  community_channels: ["admin-community", "community-public-channels"],
+  community_announcements: ["admin-community", "community-public-announcements"],
+  community_vip_requests: ["admin-community"],
   user_roles: ["admin-user-directory", "admin-users"],
   notifications: ["notifications", "notifications-unread"],
 };

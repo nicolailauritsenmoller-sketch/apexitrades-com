@@ -7,6 +7,7 @@ import { displaySymbol, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
+import { CommunityHub } from "@/components/home/CommunityHub";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
 const TICKER = [
@@ -255,6 +256,8 @@ function Landing() {
       <div className="relative z-10">
         <GlobalMembershipSection />
       </div>
+
+      <CommunityHub authed={authed} />
 
       {/* 7. Security & platform features */}
       <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16">
