@@ -315,15 +315,17 @@ function depositNetworkDetails(network: string, coin: string) {
 
 function DepositTab({
   addresses,
+  initialAmount,
   onDone,
   onSubmitted,
 }: {
   addresses: Address[];
+  initialAmount?: number | undefined;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
   const [selectedId, setSelectedId] = useState(addresses[0]?.id ?? "");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(initialAmount ? String(initialAmount) : "");
   const [txHash, setTxHash] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
