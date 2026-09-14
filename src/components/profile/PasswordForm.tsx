@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
 import { StepUpCodeDialog } from "@/components/security/StepUpCodeDialog";
 import { getTwoFactorState, verifyStepUp, type TwoFactorState } from "@/lib/two-factor.functions";
+import { recordLoginPasswordUpdate } from "@/lib/account-security.functions";
 
-export function PasswordForm({ email }: { email: string | null }) {
+export function PasswordForm({ email, onSuccess }: { email: string | null; onSuccess?: () => void }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -16,6 +17,7 @@ export function PasswordForm({ email }: { email: string | null }) {
 
   const fetchState = useServerFn(getTwoFactorState);
   const stepUp = useServerFn(verifyStepUp);
+  const recordUpdate = useServerFn(recordLoginPasswordUpdate);
   const twoFactor = useQuery({
     queryKey: ["two-factor-state"],
     queryFn: () => fetchState() as Promise<TwoFactorState>,
@@ -33,11 +35,13 @@ export function PasswordForm({ email }: { email: string | null }) {
 
       const { error } = await supabase.auth.updateUser({ password: next });
       if (error) throw new Error(error.message);
+      await recordUpdate();
 
       toast.success("Password updated");
       setCurrent("");
       setNext("");
       setConfirm("");
+      onSuccess?.();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {

@@ -179,3 +179,17 @@ export async function signOutEverywhere() {
   }
   await supabase.auth.signOut({ scope: "global" });
 }
+
+export async function signOutOtherDevices() {
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) throw new Error("Not signed in.");
+  const deviceId = currentDeviceId();
+  const { error } = await supabase
+    .from("user_sessions")
+    .delete()
+    .eq("user_id", me.user.id)
+    .neq("device_id", deviceId);
+  if (error) throw new Error(error.message);
+  const { error: signOutError } = await supabase.auth.signOut({ scope: "others" });
+  if (signOutError) throw new Error(signOutError.message);
+}

@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [ ] Redesign Security Settings with live protection scoring, modal controls, anti-phishing, withdrawal whitelisting, and paginated device sessions.
 - [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
 - [x] Streamline the Trade Closed Summary and add dedicated order-detail exports.
 
