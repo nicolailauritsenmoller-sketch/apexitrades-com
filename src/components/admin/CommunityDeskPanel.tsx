@@ -92,7 +92,21 @@ export function CommunityDeskPanel() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-xs">
               <thead className="border-b border-border bg-secondary/30 text-[10px] uppercase text-muted-foreground"><tr><th className="px-4 py-3">Date</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead>
-              <tbody>{desk.data.announcements.map((item: Announcement) => <tr key={item.id} className="border-b border-border/70 last:border-0"><td className="px-4 py-3 text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</td><td className="px-4 py-3 font-semibold">{item.title}</td><td className="px-4 py-3 capitalize">{item.category}</td><td className="px-4 py-3"><Status status={item.status} /></td><td className="px-4 py-3 text-right"><Button type="button" variant="ghost" size="sm" onClick={() => setDraft({ id: item.id, title: item.title, body: item.body, category: item.category as any, status: item.status as any })}><Pencil />Edit</Button></td></tr>)}</tbody>
+              <tbody>{desk.data.announcements.length ? desk.data.announcements.map((item: Announcement) => (
+                <tr key={item.id} className="border-b border-border/70 last:border-0">
+                  <td className="px-4 py-3 text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 font-semibold">{item.title}</td>
+                  <td className="px-4 py-3 capitalize">{item.category}</td>
+                  <td className="px-4 py-3"><Status status={item.status} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1">
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setDraft({ id: item.id, title: item.title, body: item.body, category: item.category as any, status: item.status as any, notify: false })}><Pencil />Edit</Button>
+                      <Button type="button" variant="ghost" size="sm" disabled={statusMutation.isPending} onClick={() => statusMutation.mutate({ id: item.id, status: item.status === "published" ? "draft" : "published" })}>{item.status === "published" ? <><Undo2 />Unpublish</> : <><Send />Publish</>}</Button>
+                      <Button type="button" variant="ghost" size="sm" className="text-ops-red hover:text-ops-red" disabled={deleteMutation.isPending} onClick={() => { if (window.confirm(`Delete "${item.title}"?`)) deleteMutation.mutate(item.id); }}><Trash2 /></Button>
+                    </div>
+                  </td>
+                </tr>
+              )) : <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">No community announcements yet.</td></tr>}</tbody>
             </table>
           </div>
         </section>
