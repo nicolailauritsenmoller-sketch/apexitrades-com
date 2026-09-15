@@ -45,7 +45,23 @@ export function CommunityDeskPanel() {
   });
   const announcementMutation = useMutation({
     mutationFn: () => saveAnnouncement({ data: draft }),
-    onSuccess: () => { toast.success(draft.status === "published" ? "Community announcement published" : "Draft saved"); setDraft({ id: undefined, title: "", body: "", category: "event", status: "draft" }); refresh(); },
+    onSuccess: (result: { notified?: number }) => {
+      toast.success(draft.status === "published"
+        ? `Announcement published live${result?.notified ? ` · ${result.notified} members notified` : ""}`
+        : "Draft saved");
+      setDraft(emptyDraft);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const statusMutation = useMutation({
+    mutationFn: (input: { id: string; status: "published" | "draft" }) => setStatus({ data: input }),
+    onSuccess: (_result, input) => { toast.success(input.status === "published" ? "Announcement is now live" : "Announcement pulled from the homepage"); refresh(); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => removeAnnouncement({ data: { id } }),
+    onSuccess: () => { toast.success("Announcement deleted"); refresh(); },
     onError: (error: Error) => toast.error(error.message),
   });
   const reviewMutation = useMutation({
