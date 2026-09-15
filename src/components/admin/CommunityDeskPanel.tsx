@@ -119,7 +119,17 @@ export function CommunityDeskPanel() {
               <Select value={draft.category} onValueChange={(category) => setDraft((value) => ({ ...value, category: category as typeof value.category }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="signal">Signal</SelectItem><SelectItem value="event">Event</SelectItem><SelectItem value="security">Security Alert</SelectItem><SelectItem value="maintenance">Maintenance</SelectItem></SelectContent></Select>
               <Select value={draft.status} onValueChange={(status) => setDraft((value) => ({ ...value, status: status as typeof value.status }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="published">Published</SelectItem><SelectItem value="draft">Draft</SelectItem></SelectContent></Select>
             </div>
-            <div className="flex gap-2"><Button type="button" className="flex-1" onClick={() => announcementMutation.mutate()} disabled={announcementMutation.isPending || draft.title.trim().length < 2 || draft.body.trim().length < 2}><Save />{draft.status === "published" ? "Publish" : "Save Draft"}</Button>{draft.id ? <Button type="button" variant="outline" onClick={() => setDraft({ id: undefined, title: "", body: "", category: "event", status: "draft" })}><X />Cancel</Button> : null}</div>
+            <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <span className="text-xs"><span className="font-semibold">Notify all members</span><span className="mt-0.5 block text-[11px] text-muted-foreground">Sends this bulletin to every member's notification inbox.</span></span>
+              <Switch checked={draft.notify} disabled={draft.status !== "published"} onCheckedChange={(notify) => setDraft((value) => ({ ...value, notify }))} />
+            </label>
+            <div className="rounded-md border border-border bg-background p-3">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Homepage preview</p>
+              <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[10px] font-semibold uppercase text-primary">{draft.category === "security" ? "Security Alert" : draft.category}</span><span className="text-[10px] text-muted-foreground">{new Date().toLocaleDateString()}</span></div>
+              <h4 className="mt-1 text-sm font-semibold">{draft.title || "Announcement title"}</h4>
+              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{draft.body || "Your bulletin body appears here on the homepage community section."}</p>
+            </div>
+            <div className="flex gap-2"><Button type="button" className="flex-1" onClick={() => announcementMutation.mutate()} disabled={announcementMutation.isPending || draft.title.trim().length < 2 || draft.body.trim().length < 2}>{draft.status === "published" ? <><Send />Broadcast Live</> : <><Save />Save Draft</>}</Button>{draft.id ? <Button type="button" variant="outline" onClick={() => setDraft(emptyDraft)}><X />Cancel</Button> : null}</div>
           </div>
         </section>
       </TabsContent>
