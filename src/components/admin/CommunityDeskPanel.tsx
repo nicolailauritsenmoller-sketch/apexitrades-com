@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BadgeCheck, BellRing, Check, ExternalLink, Globe2, MessageSquareText, Pencil, Radio, Save, ShieldAlert, Users, X } from "lucide-react";
+import { BadgeCheck, BellRing, Check, ExternalLink, Globe2, Pencil, Radio, Save, Send, ShieldAlert, Trash2, Undo2, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { getCommunityDesk, reviewCommunityVipRequest, updateCommunityChannel, upsertCommunityAnnouncement } from "@/lib/community.functions";
+import { deleteCommunityAnnouncement, getCommunityDesk, reviewCommunityVipRequest, setCommunityAnnouncementStatus, updateCommunityChannel, upsertCommunityAnnouncement } from "@/lib/community.functions";
 
 type DeskData = Awaited<ReturnType<typeof getCommunityDesk>>;
 type Channel = DeskData["channels"][number];
@@ -22,8 +22,11 @@ export function CommunityDeskPanel() {
   const updateChannel = useServerFn(updateCommunityChannel);
   const saveAnnouncement = useServerFn(upsertCommunityAnnouncement);
   const reviewRequest = useServerFn(reviewCommunityVipRequest);
+  const setStatus = useServerFn(setCommunityAnnouncementStatus);
+  const removeAnnouncement = useServerFn(deleteCommunityAnnouncement);
   const desk = useQuery({ queryKey: ["admin-community"], queryFn: () => getDesk() });
-  const [draft, setDraft] = useState({ id: undefined as string | undefined, title: "", body: "", category: "event" as "signal" | "event" | "security" | "maintenance", status: "draft" as "published" | "draft" });
+  const emptyDraft = { id: undefined as string | undefined, title: "", body: "", category: "event" as "signal" | "event" | "security" | "maintenance", status: "published" as "published" | "draft", notify: true };
+  const [draft, setDraft] = useState(emptyDraft);
   const refresh = () => void qc.invalidateQueries({ queryKey: ["admin-community"] });
 
   useEffect(() => {
@@ -42,7 +45,23 @@ export function CommunityDeskPanel() {
   });
   const announcementMutation = useMutation({
     mutationFn: () => saveAnnouncement({ data: draft }),
-    onSuccess: () => { toast.success(draft.status === "published" ? "Community announcement published" : "Draft saved"); setDraft({ id: undefined, title: "", body: "", category: "event", status: "draft" }); refresh(); },
+    onSuccess: (result: { notified?: number }) => {
+      toast.success(draft.status === "published"
+        ? `Announcement published live${result?.notified ? ` · ${result.notified} members notified` : ""}`
+        : "Draft saved");
+      setDraft(emptyDraft);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const statusMutation = useMutation({
+    mutationFn: (input: { id: string; status: "published" | "draft" }) => setStatus({ data: input }),
+    onSuccess: (_result, input) => { toast.success(input.status === "published" ? "Announcement is now live" : "Announcement pulled from the homepage"); refresh(); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => removeAnnouncement({ data: { id } }),
+    onSuccess: () => { toast.success("Announcement deleted"); refresh(); },
     onError: (error: Error) => toast.error(error.message),
   });
   const reviewMutation = useMutation({
@@ -73,7 +92,21 @@ export function CommunityDeskPanel() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-xs">
               <thead className="border-b border-border bg-secondary/30 text-[10px] uppercase text-muted-foreground"><tr><th className="px-4 py-3">Date</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead>
-              <tbody>{desk.data.announcements.map((item: Announcement) => <tr key={item.id} className="border-b border-border/70 last:border-0"><td className="px-4 py-3 text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</td><td className="px-4 py-3 font-semibold">{item.title}</td><td className="px-4 py-3 capitalize">{item.category}</td><td className="px-4 py-3"><Status status={item.status} /></td><td className="px-4 py-3 text-right"><Button type="button" variant="ghost" size="sm" onClick={() => setDraft({ id: item.id, title: item.title, body: item.body, category: item.category as any, status: item.status as any })}><Pencil />Edit</Button></td></tr>)}</tbody>
+              <tbody>{desk.data.announcements.length ? desk.data.announcements.map((item: Announcement) => (
+                <tr key={item.id} className="border-b border-border/70 last:border-0">
+                  <td className="px-4 py-3 text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 font-semibold">{item.title}</td>
+                  <td className="px-4 py-3 capitalize">{item.category}</td>
+                  <td className="px-4 py-3"><Status status={item.status} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1">
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setDraft({ id: item.id, title: item.title, body: item.body, category: item.category as any, status: item.status as any, notify: false })}><Pencil />Edit</Button>
+                      <Button type="button" variant="ghost" size="sm" disabled={statusMutation.isPending} onClick={() => statusMutation.mutate({ id: item.id, status: item.status === "published" ? "draft" : "published" })}>{item.status === "published" ? <><Undo2 />Unpublish</> : <><Send />Publish</>}</Button>
+                      <Button type="button" variant="ghost" size="sm" className="text-ops-red hover:text-ops-red" disabled={deleteMutation.isPending} onClick={() => { if (window.confirm(`Delete "${item.title}"?`)) deleteMutation.mutate(item.id); }}><Trash2 /></Button>
+                    </div>
+                  </td>
+                </tr>
+              )) : <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">No community announcements yet.</td></tr>}</tbody>
             </table>
           </div>
         </section>
@@ -86,7 +119,17 @@ export function CommunityDeskPanel() {
               <Select value={draft.category} onValueChange={(category) => setDraft((value) => ({ ...value, category: category as typeof value.category }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="signal">Signal</SelectItem><SelectItem value="event">Event</SelectItem><SelectItem value="security">Security Alert</SelectItem><SelectItem value="maintenance">Maintenance</SelectItem></SelectContent></Select>
               <Select value={draft.status} onValueChange={(status) => setDraft((value) => ({ ...value, status: status as typeof value.status }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="published">Published</SelectItem><SelectItem value="draft">Draft</SelectItem></SelectContent></Select>
             </div>
-            <div className="flex gap-2"><Button type="button" className="flex-1" onClick={() => announcementMutation.mutate()} disabled={announcementMutation.isPending || draft.title.trim().length < 2 || draft.body.trim().length < 2}><Save />{draft.status === "published" ? "Publish" : "Save Draft"}</Button>{draft.id ? <Button type="button" variant="outline" onClick={() => setDraft({ id: undefined, title: "", body: "", category: "event", status: "draft" })}><X />Cancel</Button> : null}</div>
+            <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 px-3 py-2">
+              <span className="text-xs"><span className="font-semibold">Notify all members</span><span className="mt-0.5 block text-[11px] text-muted-foreground">Sends this bulletin to every member's notification inbox.</span></span>
+              <Switch checked={draft.notify} disabled={draft.status !== "published"} onCheckedChange={(notify) => setDraft((value) => ({ ...value, notify }))} />
+            </label>
+            <div className="rounded-md border border-border bg-background p-3">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Homepage preview</p>
+              <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[10px] font-semibold uppercase text-primary">{draft.category === "security" ? "Security Alert" : draft.category}</span><span className="text-[10px] text-muted-foreground">{new Date().toLocaleDateString()}</span></div>
+              <h4 className="mt-1 text-sm font-semibold">{draft.title || "Announcement title"}</h4>
+              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{draft.body || "Your bulletin body appears here on the homepage community section."}</p>
+            </div>
+            <div className="flex gap-2"><Button type="button" className="flex-1" onClick={() => announcementMutation.mutate()} disabled={announcementMutation.isPending || draft.title.trim().length < 2 || draft.body.trim().length < 2}>{draft.status === "published" ? <><Send />Broadcast Live</> : <><Save />Save Draft</>}</Button>{draft.id ? <Button type="button" variant="outline" onClick={() => setDraft(emptyDraft)}><X />Cancel</Button> : null}</div>
           </div>
         </section>
       </TabsContent>
