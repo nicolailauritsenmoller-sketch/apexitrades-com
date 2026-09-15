@@ -22,8 +22,11 @@ export function CommunityDeskPanel() {
   const updateChannel = useServerFn(updateCommunityChannel);
   const saveAnnouncement = useServerFn(upsertCommunityAnnouncement);
   const reviewRequest = useServerFn(reviewCommunityVipRequest);
+  const setStatus = useServerFn(setCommunityAnnouncementStatus);
+  const removeAnnouncement = useServerFn(deleteCommunityAnnouncement);
   const desk = useQuery({ queryKey: ["admin-community"], queryFn: () => getDesk() });
-  const [draft, setDraft] = useState({ id: undefined as string | undefined, title: "", body: "", category: "event" as "signal" | "event" | "security" | "maintenance", status: "draft" as "published" | "draft" });
+  const emptyDraft = { id: undefined as string | undefined, title: "", body: "", category: "event" as "signal" | "event" | "security" | "maintenance", status: "published" as "published" | "draft", notify: true };
+  const [draft, setDraft] = useState(emptyDraft);
   const refresh = () => void qc.invalidateQueries({ queryKey: ["admin-community"] });
 
   useEffect(() => {
