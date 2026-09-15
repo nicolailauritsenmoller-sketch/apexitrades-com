@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { getCommunityDesk, reviewCommunityVipRequest, updateCommunityChannel, upsertCommunityAnnouncement } from "@/lib/community.functions";
+import { deleteCommunityAnnouncement, getCommunityDesk, reviewCommunityVipRequest, setCommunityAnnouncementStatus, updateCommunityChannel, upsertCommunityAnnouncement } from "@/lib/community.functions";
 
 type DeskData = Awaited<ReturnType<typeof getCommunityDesk>>;
 type Channel = DeskData["channels"][number];
