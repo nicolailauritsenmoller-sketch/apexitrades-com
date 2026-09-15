@@ -71,6 +71,13 @@
       "when": 1789357994214,
       "tag": "0009_create_community_hub",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789453588374,
+      "tag": "0010_fix_community_vip_request_permissions",
+      "breakpoints": true
     }
   ]
 }
