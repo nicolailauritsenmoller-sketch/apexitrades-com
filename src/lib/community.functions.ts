@@ -59,6 +59,28 @@ export const updateCommunityChannel = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const CATEGORY_LABEL: Record<string, string> = {
+  signal: "Market Signal",
+  event: "Community Event",
+  security: "Security Alert",
+  maintenance: "Scheduled Maintenance",
+};
+
+/** Fan the published bulletin out to every member's notification inbox. */
+async function broadcastToMembers(db: any, title: string, body: string, category: string) {
+  const { data: members } = await db.from("profiles").select("id");
+  const rows = (members ?? []).map((member: { id: string }) => ({
+    user_id: member.id,
+    title: `${CATEGORY_LABEL[category] ?? "Community"}: ${title}`,
+    body,
+    kind: category === "security" ? "warning" : "info",
+  }));
+  for (let index = 0; index < rows.length; index += 500) {
+    await db.from("notifications").insert(rows.slice(index, index + 500));
+  }
+  return rows.length;
+}
+
 export const upsertCommunityAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => announcementInput.parse(input))
@@ -71,7 +93,36 @@ export const upsertCommunityAnnouncement = createServerFn({ method: "POST" })
       : db.from("community_announcements").insert(payload);
     const { error } = await query;
     if (error) throw new Error(error.message);
-    await logAudit(db, context.userId, data.id ? "community.announcement.update" : "community.announcement.create", null, { title: data.title, status: data.status });
+    let notified = 0;
+    if (data.notify && data.status === "published") {
+      notified = await broadcastToMembers(db, data.title, data.body, data.category);
+    }
+    await logAudit(db, context.userId, data.id ? "community.announcement.update" : "community.announcement.create", null, { title: data.title, status: data.status, notified });
+    return { ok: true, notified };
+  });
+
+/** One-click publish / unpublish from the bulletin history table. */
+export const setCommunityAnnouncementStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), status: z.enum(["published", "draft"]) }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { error } = await db.from("community_announcements").update({ status: data.status }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAudit(db, context.userId, "community.announcement.status", null, { id: data.id, status: data.status });
+    return { ok: true };
+  });
+
+export const deleteCommunityAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const db = await privileged();
+    const { error } = await db.from("community_announcements").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await logAudit(db, context.userId, "community.announcement.delete", null, { id: data.id });
     return { ok: true };
   });
 
