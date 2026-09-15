@@ -16,6 +16,7 @@ const announcementInput = z.object({
   body: z.string().trim().min(2).max(4000),
   category: z.enum(["signal", "event", "security", "maintenance"]),
   status: z.enum(["published", "draft"]),
+  notify: z.boolean().optional(),
 });
 
 export const getCommunityDesk = createServerFn({ method: "POST" })
