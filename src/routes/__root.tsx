@@ -190,7 +190,9 @@ function RootComponent() {
       <I18nProvider>
       <ConsentProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <MaintenanceGate>
+          <Outlet />
+        </MaintenanceGate>
         <AutoTranslate />
         <CookieConsent />
         <EntryChime />
