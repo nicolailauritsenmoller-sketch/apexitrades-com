@@ -51,6 +51,7 @@ function formatClock(total: number) {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { data: maintenance } = useMaintenanceStatus();
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
