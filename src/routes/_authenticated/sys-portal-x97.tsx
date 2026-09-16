@@ -722,6 +722,7 @@ function AdminPage() {
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
               {tab === "settings" && data && (
                 <div className="space-y-4">
+                  <MaintenanceModePanel />
                   <OpsToggles />
                   <PlatformSettingsHub />
                   <PlatformSettingsPanel />
