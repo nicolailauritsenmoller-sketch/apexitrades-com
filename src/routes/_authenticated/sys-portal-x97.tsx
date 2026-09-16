@@ -68,6 +68,7 @@ import { silenceChatAlerts } from "@/lib/alerts";
 import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, tabAccent } from "@/lib/admin-accents";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
+import { MaintenanceModePanel } from "@/components/admin/MaintenanceModePanel";
 import { AuthProvidersPanel } from "@/components/admin/AuthProvidersPanel";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
 import { RiskMonitor } from "@/components/admin/RiskMonitor";
