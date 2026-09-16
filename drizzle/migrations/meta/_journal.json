@@ -78,6 +78,13 @@
       "when": 1789453588374,
       "tag": "0010_fix_community_vip_request_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789517016697,
+      "tag": "0011_public_read_maintenance_setting",
+      "breakpoints": true
     }
   ]
 }

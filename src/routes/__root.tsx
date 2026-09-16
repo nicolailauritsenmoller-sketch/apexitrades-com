@@ -21,6 +21,7 @@ import { restoreAccountPreferences } from "@/lib/preferences";
 import { useServiceWorker } from "@/components/PwaInstall";
 import { EntryChime } from "@/components/EntryChime";
 import { AutoTranslate } from "@/lib/auto-translate";
+import { MaintenanceGate } from "@/lib/maintenance";
 
 
 function NotFoundComponent() {
@@ -190,7 +191,9 @@ function RootComponent() {
       <I18nProvider>
       <ConsentProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <MaintenanceGate>
+          <Outlet />
+        </MaintenanceGate>
         <AutoTranslate />
         <CookieConsent />
         <EntryChime />

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
 import { OtpInput } from "@/components/OtpInput";
+import { MaintenanceAuthNotice, useMaintenanceStatus } from "@/lib/maintenance";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -50,6 +51,7 @@ function formatClock(total: number) {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { data: maintenance } = useMaintenanceStatus();
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -287,6 +289,13 @@ function AuthPage() {
         </div>
         <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>
+
+        {maintenance?.enabled && (
+          <div className="mt-4">
+            <MaintenanceAuthNotice config={maintenance} />
+          </div>
+        )}
+
 
         {(mode === "signin" || mode === "signup") && (
           <>
