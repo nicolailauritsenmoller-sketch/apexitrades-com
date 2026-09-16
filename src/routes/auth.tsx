@@ -288,6 +288,13 @@ function AuthPage() {
         <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>
 
+        {maintenance?.enabled && (
+          <div className="mt-4">
+            <MaintenanceAuthNotice config={maintenance} />
+          </div>
+        )}
+
+
         {(mode === "signin" || mode === "signup") && (
           <>
             <button
