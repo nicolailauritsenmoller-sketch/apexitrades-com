@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
 import { OtpInput } from "@/components/OtpInput";
+import { MaintenanceAuthNotice, useMaintenanceStatus } from "@/lib/maintenance";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
