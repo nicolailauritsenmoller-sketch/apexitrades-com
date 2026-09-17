@@ -25,6 +25,7 @@ import { startSessionRecording, stopSessionRecording } from "@/lib/replay-record
 import { useHasSession } from "@/lib/use-session";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useT, type TranslationKey } from "@/lib/i18n";
+import { MaintenanceBadge } from "@/lib/maintenance";
 
 const NAV = [
   { to: "/dashboard", params: {}, label: "nav.home", icon: Home, exact: true },
@@ -156,6 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
+            <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
               <Link
                 to="/sys-portal-x97"

@@ -22,7 +22,7 @@ const GROUPS: Group[] = [
       { key: "logoUrl", label: "Platform logo URL" },
       { key: "contactEmail", label: "Contact email" },
       { key: "defaultCurrency", label: "Default currency", hint: "e.g. USDT" },
-      { key: "maintenanceMode", label: "Maintenance mode", kind: "toggle" },
+      
     ],
   },
   {

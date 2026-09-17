@@ -2,18 +2,13 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowDownToLine, ArrowUpFromLine, Gauge, Wrench } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Gauge } from "lucide-react";
 import { getPlatformSettings, savePlatformSetting } from "@/lib/admin.functions";
 
-type ToggleKey = "maintenanceMode" | "depositsLocked" | "withdrawalsLocked" | "tradingPaused";
+type ToggleKey = "depositsLocked" | "withdrawalsLocked" | "tradingPaused";
 
+// Platform maintenance lives in its own panel (platform_settings key "maintenance").
 const TOGGLES: { key: ToggleKey; label: string; hint: string; icon: any }[] = [
-  {
-    key: "maintenanceMode",
-    label: "System maintenance mode",
-    hint: "Show a maintenance notice platform-wide",
-    icon: Wrench,
-  },
   {
     key: "depositsLocked",
     label: "Deposit lock",
@@ -68,7 +63,7 @@ export function OpsToggles() {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card p-4">
       <h3 className="text-xs uppercase tracking-widest text-muted-foreground">
-        Maintenance & feature toggles
+        Operations & feature toggles
       </h3>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {TOGGLES.map(({ key, label, hint, icon: Icon }) => {
