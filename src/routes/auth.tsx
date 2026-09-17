@@ -297,6 +297,7 @@ function AuthPage() {
         )}
 
 
+        <fieldset disabled={maintenance?.enabled === true} className="contents">
         {(mode === "signin" || mode === "signup") && (
           <>
             <button
@@ -436,6 +437,7 @@ function AuthPage() {
           </button>
           <TrustStrip className="pt-1" />
         </form>
+        </fieldset>
 
         {isCodeStep && (
           <button
