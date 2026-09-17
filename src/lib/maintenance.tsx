@@ -200,6 +200,7 @@ const BYPASS_PREFIXES = ["/auth", "/reset-password", "/sys-portal-x97", "/admin"
 export function MaintenanceGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const path = router.state.location.pathname;
+  useMaintenanceRealtime();
   const { data: config } = useMaintenanceStatus();
   const { data: bypass, isLoading: roleLoading } = useBypassRole();
 
