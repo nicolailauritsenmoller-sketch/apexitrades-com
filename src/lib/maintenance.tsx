@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -151,11 +151,46 @@ export function MaintenanceAuthNotice({ config }: { config: MaintenanceConfig })
         {config.title}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Sign-ins are temporarily disabled while we perform maintenance. Only platform
+        Logins are temporarily paused due to scheduled system maintenance. Only platform
         administrators can access the terminal right now.
       </p>
     </div>
   );
+}
+
+/** Persistent header chip shown while the platform is locked (visible to admins on bypass). */
+export function MaintenanceBadge({ className = "" }: { className?: string }) {
+  const { data: config } = useMaintenanceStatus();
+  if (!config?.enabled) return null;
+  return (
+    <span
+      title={config.title}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ops-amber ${className}`}
+    >
+      <ShieldCheck className="size-3" />
+      Maintenance mode active
+    </span>
+  );
+}
+
+/** Keeps maintenance state fresh instantly via realtime updates on platform_settings. */
+function useMaintenanceRealtime() {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const channel = supabase
+      .channel("maintenance-settings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "platform_settings" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["maintenance-status"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 }
 
 /** Routes that stay reachable during a lockout so administrators can sign in. */
