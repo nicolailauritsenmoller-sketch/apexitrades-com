@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -157,6 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
+            <ThemeToggle />
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
               <Link
