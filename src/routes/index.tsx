@@ -88,6 +88,7 @@ function Landing() {
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
             <Link
               to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
