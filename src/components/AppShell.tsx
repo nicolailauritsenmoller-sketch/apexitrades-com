@@ -11,8 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { UserAvatar } from "@/components/UserAvatar";
