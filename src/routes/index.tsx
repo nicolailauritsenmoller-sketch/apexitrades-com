@@ -8,6 +8,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
 import { CommunityHub } from "@/components/home/CommunityHub";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import brandLogo from "@/assets/velocity-trade-logo.png";
 
 const TICKER = [
