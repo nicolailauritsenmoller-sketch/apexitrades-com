@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router } from "@tanstack/react-router";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
+import { AccountMarginHealthCard, KycKybVerificationBadges } from "./KycPanel";
 
 export const KYC_TONE: Record<string, string> = {
   unverified: "border-border text-muted-foreground",
@@ -19,7 +20,7 @@ export const KYC_LABEL: Record<string, string> = {
 export function copy(text: string, label: string) {
   navigator.clipboard.writeText(text).then(
     () => toast.success(`${label} copied`),
-    () => toast.error("Could not copy"),
+    import { AccountMarginHealthCard, KycKybVerificationBadges } from "./KycPanel";
   );
 }
 
@@ -69,7 +70,40 @@ export function Section({
     </section>
   );
 }
-
+import { AccountMarginHealthCard, KycKybVerificationBadges } from "./KycPanel";
+export function AccountHealthSection() {
+  return (
+    <div className="space-y-4 my-4">
+      <AccountMarginHealthCard 
+        healthPercentage={98}
+        marginUsed="18.4%"
+        marginFree="81.6%"
+        syncRate="99.8%"
+        leverageLimit="20x"
+      />
+      <KycKybVerificationBadges 
+        kycStatus="verified"
+        kybStatus="unverified"
+      />
+    </div>
+  );
+}
+  return (
+    <div className="space-y-4 my-4">
+      <AccountMarginHealthCard 
+        healthPercentage={98}
+        marginUsed="18.4%"
+        marginFree="81.6%"
+        syncRate="99.8%"
+        leverageLimit="20x"
+      />
+      <KycKybVerificationBadges 
+        kycStatus="verified"
+        kybStatus="unverified"
+      />
+    </div>
+  );
+}
 /** Navigation tile used on the profile / settings hub screens. */
 export function NavTile({
   to,
@@ -173,6 +207,6 @@ export function ToggleRow({
           }`}
         />
       </button>
-    </div>
+    <AccountHealthSection />
   );
 }
