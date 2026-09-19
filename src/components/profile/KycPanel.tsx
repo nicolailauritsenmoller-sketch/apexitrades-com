@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyKyc } from "@/lib/kyc.functions";
 import { KYC_LABEL, KYC_TONE } from "@/components/profile/ui";
+import { ShieldCheck, Building2, UserCheck, Activity, LineChart } from "lucide-react"; } from "@/components/profile/ui";
 import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   DOC_TYPES,
@@ -250,6 +251,82 @@ export function KycPanel({
           </button>
         </form>
       )}
+    </div>
+  );
+}
+export function AccountMarginHealthCard({
+  healthPercentage = 98,
+  marginUsed = "18.4%",
+  marginFree = "81.6%",
+  syncRate = "99.8%",
+  leverageLimit = "20x",
+}: {
+  healthPercentage?: number;
+  marginUsed?: string;
+  marginFree?: string;
+  syncRate?: string;
+  leverageLimit?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border/50 bg-card/60 p-5 shadow-sm backdrop-blur-sm">
+      <div className="flex items-center justify-between pb-3">
+        <div className="flex items-center gap-2">
+          <Activity className="h-5 w-5 text-emerald-400" />
+          <h3 className="font-medium text-foreground">Account & Margin Health</h3>
+        </div>
+        <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
+          {healthPercentage}% · Optimal Execution & Safe Margin
+        </span>
+      </div>
+
+      <div className="my-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
+          style={{ width: `${healthPercentage}%` }}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 pt-2 border-t border-border/40">
+        <div className="rounded-lg bg-muted/30 p-3">
+          <p className="text-xs font-medium text-muted-foreground">Margin Ratio</p>
+          <p className="text-sm font-semibold text-foreground mt-1">
+            {marginUsed} Used / {marginFree} Free
+          </p>
+        </div>
+        <div className="rounded-lg bg-muted/30 p-3">
+          <p className="text-xs font-medium text-muted-foreground">Scalping Sync Rate</p>
+          <p className="text-sm font-semibold text-emerald-400 mt-1">
+            {syncRate} Low-Latency Sync
+          </p>
+        </div>
+        <div className="rounded-lg bg-muted/30 p-3">
+          <p className="text-xs font-medium text-muted-foreground">Exposure Risk</p>
+          <p className="text-sm font-semibold text-foreground mt-1">
+            Low Risk · {leverageLimit} Limit
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function KycKybVerificationBadges({
+  kycStatus = "verified",
+  kybStatus = "unverified",
+}: {
+  kycStatus?: "verified" | "pending" | "unverified";
+  kybStatus?: "verified" | "pending" | "unverified";
+}) {
+  return (
+    <div className="flex flex-wrap gap-3 my-4">
+      <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+        <UserCheck className="h-4 w-4" />
+        <span>KYC Level 2 Verified · $100k/day Limit</span>
+      </div>
+      <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <Building2 className="h-4 w-4" />
+        <span>KYB Institutional Entity · Optional Onboarding</span>
+      </div>
     </div>
   );
 }
