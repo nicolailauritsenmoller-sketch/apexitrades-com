@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { LineChart } from "lucide-react";
+import { BrandMark } from "@/components/Logo";
 import { LEGAL_DOCS } from "@/lib/legal-content";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookiePreferencesPanel } from "@/components/CookieConsent";
@@ -74,9 +74,7 @@ function LegalPage() {
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4">
           <Link to="/" className="flex min-w-0 items-center gap-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-              <LineChart className="size-4" strokeWidth={2.6} />
-            </span>
+            <BrandMark className="size-8" />
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </Link>
         </div>

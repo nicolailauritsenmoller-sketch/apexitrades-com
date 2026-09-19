@@ -9,7 +9,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
 import { CommunityHub } from "@/components/home/CommunityHub";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import brandLogo from "@/assets/velocity-trade-logo.png";
+import { BrandMark } from "@/components/Logo";
 
 const TICKER = [
   "BTCUSDT",
@@ -79,13 +79,7 @@ function Landing() {
       <header className="relative z-40 sticky top-0 w-full border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
           <div className="flex min-w-0 items-center gap-2">
-            <img
-              src={brandLogo}
-              alt="Velocity Trade logo"
-              width={1024}
-              height={1024}
-              className="size-9 shrink-0 object-contain"
-            />
+            <BrandMark className="size-9" alt="Velocity Trade logo" />
             <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { LineChart, ShieldCheck, Lock, BadgeCheck } from "lucide-react";
+import { ShieldCheck, Lock, BadgeCheck } from "lucide-react";
+import { BrandMark } from "@/components/Logo";
 import { openCookieSettings } from "@/lib/consent";
 import { TrustCertificates } from "@/components/TrustBadges";
 
@@ -42,9 +43,7 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-              <LineChart className="size-4" strokeWidth={2.6} />
-            </span>
+            <BrandMark className="size-8" />
             <span className="font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
