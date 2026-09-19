@@ -48,7 +48,7 @@ function VerificationPage() {
     mutationFn: (payload: KycPayload) => sendKyc({ data: payload }),
     onSuccess: (res) => {
       toast.success(res?.message ?? "Documents submitted for review");
-      void logActivity("kyc", "Submitted Level 1 identity documents", { level: 1 });
+      void logActivity("kyc", "Submitted KYC identity documents", { stage: "identity" });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -57,8 +57,8 @@ function VerificationPage() {
   const level2Mutation = useMutation({
     mutationFn: (payload: Level2Payload) => sendLevel2({ data: payload }),
     onSuccess: (res) => {
-      toast.success(res?.message ?? "Level 2 documents submitted for review");
-      void logActivity("kyc", "Submitted Level 2 verification documents", { level: 2 });
+      toast.success(res?.message ?? "Enhanced KYC documents submitted for review");
+      void logActivity("kyc", "Submitted enhanced KYC documents", { stage: "enhanced" });
       queryClient.invalidateQueries({ queryKey: ["my-kyc"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -79,18 +79,13 @@ function VerificationPage() {
 
       <div className="space-y-4">
         <KycTierCard
-          level={1}
-          title="Basic verification"
+          stage="identity"
+          title="KYC Identity Verification"
           status={level1Status}
           requirements={[
             "Full name, date of birth and address",
             "Government ID, passport or driver's licence",
             "Selfie photo",
-          ]}
-          unlocks={[
-            "Standard trading access",
-            "Daily withdrawals up to 5,000 USDT",
-            "Wallet deposits",
           ]}
         >
           <KycPanel
@@ -104,20 +99,14 @@ function VerificationPage() {
         </KycTierCard>
 
         <KycTierCard
-          level={2}
-          title="Enhanced verification"
+          stage="enhanced"
+          title="Identity & Address Verification"
           status={level2Status}
           locked={level1Status !== "approved"}
           requirements={[
-            "Approved Level 1 verification",
+            "Approved KYC identity verification",
             "Live selfie / liveness check",
             "Proof of address or SSN / Tax ID",
-          ]}
-          unlocks={[
-            "Unlimited daily withdrawals",
-            "Priority support",
-            "High-leverage trading",
-            "Fiat deposits and withdrawals",
           ]}
         >
           <KycLevel2Panel

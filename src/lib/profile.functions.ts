@@ -43,6 +43,15 @@ export const getProfileOverview = createServerFn({ method: "POST" })
 
     const openContracts = (contracts ?? []).filter((c) => c.status === "open");
     const openPositions = (positions ?? []).filter((p) => p.status === "open");
+    const leveragedPositions = openPositions.filter((p) => Number(p.leverage) > 1);
+    const marginUsedUsdt = leveragedPositions.reduce((sum, position) => {
+      const currencyRate = rates[position.currency];
+      if (currencyRate === undefined) return sum;
+      const margin =
+        (Number(position.quantity) * Number(position.entry_price)) /
+        Math.max(Number(position.leverage), 1);
+      return sum + margin * currencyRate;
+    }, 0);
     const futuresUsdt =
       openContracts.reduce((s, c) => s + Number(c.stake), 0) +
       openPositions.reduce(
@@ -96,7 +105,6 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         phone: (claimRecord["phone"] as string | undefined) ?? null,
         referralCode: (profile as any)?.referral_code ?? null,
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
-        creditScore: Number((profile as any)?.credit_score ?? 750),
         vipTier: ((profile as any)?.vip_tier ?? "regular") as string,
         vipUpgradedAt: (profile as any)?.vip_upgraded_at ?? null,
         createdAt: profile?.created_at ?? null,
@@ -120,6 +128,21 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         todayPnlPct: totalUsdt > 0 ? (todayPnl / totalUsdt) * 100 : 0,
         openContracts: openContracts.length,
         openPositions: openPositions.length,
+      },
+      risk: {
+        accountHealth: null as null,
+        margin:
+          leveragedPositions.length > 0
+            ? {
+                usedUsdt: marginUsedUsdt,
+                availableUsdt: spotUsdt,
+                utilizationPct:
+                  marginUsedUsdt + spotUsdt > 0
+                    ? (marginUsedUsdt / (marginUsedUsdt + spotUsdt)) * 100
+                    : null,
+                openPositions: leveragedPositions.length,
+              }
+            : null,
       },
       referrals: {
         invited: count ?? 0,

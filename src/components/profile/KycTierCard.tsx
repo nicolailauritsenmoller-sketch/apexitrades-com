@@ -11,19 +11,17 @@ const STATUS_KEY: Record<string, string> = {
 
 /** Tier card showing one verification level, its status badge and unlocked limits. */
 export function KycTierCard({
-  level,
+  stage,
   title,
   status,
   requirements,
-  unlocks,
   locked,
   children,
 }: {
-  level: 1 | 2;
+  stage: "identity" | "enhanced";
   title: string;
   status: string;
   requirements: string[];
-  unlocks: string[];
   locked?: boolean;
   children?: React.ReactNode;
 }) {
@@ -34,11 +32,11 @@ export function KycTierCard({
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-secondary font-display text-sm font-bold text-primary">
-            {level}
+            {stage === "identity" ? "ID" : "A+"}
           </span>
           <div>
             <h3 className="font-display text-sm font-bold tracking-tight">{title}</h3>
-            <p className="text-[11px] text-muted-foreground">Level {level} verification</p>
+            <p className="text-[11px] text-muted-foreground">{stage === "identity" ? "KYC identity review" : "Enhanced KYC review"}</p>
           </div>
         </div>
         <span
@@ -48,7 +46,7 @@ export function KycTierCard({
         </span>
       </header>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-3">
         <div>
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Requirements</p>
           <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
@@ -57,19 +55,11 @@ export function KycTierCard({
             ))}
           </ul>
         </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Unlocks</p>
-          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
-            {unlocks.map((u) => (
-              <li key={u}>• {u}</li>
-            ))}
-          </ul>
-        </div>
       </div>
 
       {locked ? (
         <p className="mt-3 flex items-center gap-2 rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
-          <Lock className="size-3.5" /> Available once Level 1 is verified.
+          <Lock className="size-3.5" /> Available once KYC identity verification is approved.
         </p>
       ) : (
         <div className="mt-4">{children}</div>
