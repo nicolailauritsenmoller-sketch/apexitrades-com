@@ -18,7 +18,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { InstallAppButton } from "@/components/PwaInstall";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
-import brandLogo from "@/assets/velocity-trade-logo.png";
+import { BrandMark } from "@/components/Logo";
 import { getMyAccess, getPendingVipRequests } from "@/lib/admin.functions";
 import { usePresenceHeartbeat } from "@/lib/use-presence";
 import { logActivity, startDomCapture, startInteractionFlush } from "@/lib/telemetry";
@@ -129,13 +129,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
-            <img
-              src={brandLogo}
-              alt="Velocity Trade logo"
-              width={1024}
-              height={1024}
-              className="size-9 shrink-0 object-contain"
-            />
+            <BrandMark className="size-9" alt="Velocity Trade logo" />
             <span className="truncate font-display text-sm font-bold tracking-tight">
               VELOCITY TRADE
             </span>

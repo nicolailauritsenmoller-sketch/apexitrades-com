@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import brandLogo from "@/assets/velocity-trade-logo.png";
+import { BrandMark } from "@/components/Logo";
 
 export type MaintenanceConfig = {
   enabled: boolean;
@@ -103,7 +103,7 @@ export function MaintenanceScreen({ config }: { config: MaintenanceConfig }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 [touch-action:manipulation]">
       <div className="w-full max-w-lg rounded-2xl border border-border/80 bg-card p-7 text-center shadow-2xl">
-        <img src={brandLogo} alt="Velocity Trade" className="mx-auto h-12 w-auto" />
+        <BrandMark className="mx-auto size-14" />
         <span className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-ops-amber">
           <ShieldCheck className="size-3.5" /> Platform maintenance
         </span>

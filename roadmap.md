@@ -2,12 +2,12 @@
 
 ## In Progress
 
-- [ ] Replace platform branding, headers, footer, auth mark, favicon, and app icons with the official institutional logo.
-
 - [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
 - [x] Streamline the Trade Closed Summary and add dedicated order-detail exports.
 
 ## Completed
+
+- [x] Replace platform branding, headers, footer, auth mark, favicon, and app icons with the official institutional shield logo.
 
 - [x] Add the public Community Hub and secure Community Desk with live channels, bulletins, and VIP access review.
 - [x] Redesign Notification Settings with an institutional channel matrix, mandatory security alerts, global controls, browser testing, and quiet hours.

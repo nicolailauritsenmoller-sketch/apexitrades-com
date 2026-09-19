@@ -6,7 +6,7 @@ import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
 import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
-import brandLogo from "@/assets/velocity-trade-logo.png";
+import { shieldMark } from "@/components/Logo";
 
 type Message = {
   id: string;
@@ -34,7 +34,7 @@ const RATED_KEY = "velocity:chat-rated";
 function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
   return (
     <img
-      src={src || brandLogo}
+      src={src || shieldMark}
       alt="Velocity Trade support"
       className={`${className} shrink-0 rounded-full border border-border bg-background object-cover p-0.5`}
     />
