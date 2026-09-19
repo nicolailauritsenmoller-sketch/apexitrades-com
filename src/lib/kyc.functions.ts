@@ -125,7 +125,7 @@ export const submitKyc = createServerFn({ method: "POST" })
     }
   });
 
-/** Level 2 (enhanced) verification: liveness selfie + proof of address / tax ID. */
+/** Enhanced KYC verification: liveness selfie + proof of address / tax ID. */
 export const submitKycLevel2 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => level2Input.parse(input))
@@ -136,15 +136,15 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .maybeSingle();
 
-    if (!existing) throw new Error("Complete Level 1 verification first.");
+    if (!existing) throw new Error("Complete KYC identity verification first.");
     if (existing.status !== "approved") {
-      throw new Error("Level 1 verification must be approved before applying for Level 2.");
+      throw new Error("KYC identity verification must be approved before enhanced review.");
     }
     if ((existing as any).level2_status === "pending") {
-      throw new Error("Your Level 2 review is already in progress.");
+      throw new Error("Your enhanced KYC review is already in progress.");
     }
     if ((existing as any).level2_status === "approved") {
-      throw new Error("Level 2 verification is already approved on this account.");
+      throw new Error("Enhanced KYC verification is already approved on this account.");
     }
 
     const { error } = await context.supabase
@@ -163,11 +163,11 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
     if (error) {
       throw new Error(
         error.message.includes("Level 1")
-          ? "Level 1 verification must be approved before applying for Level 2."
-          : `Unable to save your Level 2 documents: ${error.message}`,
+          ? "KYC identity verification must be approved before enhanced review."
+          : `Unable to save your enhanced KYC documents: ${error.message}`,
       );
     }
 
 
-    return { ok: true, message: "Level 2 documents submitted for compliance review." };
+    return { ok: true, message: "Enhanced KYC documents submitted for compliance review." };
   });

@@ -89,6 +89,7 @@ function PersonalInformation() {
   const kycStatus = kyc.data?.status ?? "unverified";
   const vipTier = String(profile?.vipTier ?? "regular");
   const verified = kycStatus === "approved";
+  const enhancedVerified = kyc.data?.level2Status === "approved";
 
   useEffect(() => {
     if (profile?.displayName) setDisplayName(profile.displayName);
@@ -155,7 +156,7 @@ function PersonalInformation() {
                   <h2 className="truncate text-xl font-bold">{profile?.displayName ?? "Trader"}</h2>
                   {verified ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-bull/20 bg-bull/10 px-2.5 py-1 text-[10px] font-bold uppercase text-bull">
-                      <BadgeCheck className="size-3.5" /> Verified Identity
+                      <BadgeCheck className="size-3.5" /> {enhancedVerified ? "Identity & Address Verified" : "KYC Verified"}
                     </span>
                   ) : (
                     <Link to="/profile/verification" className="rounded-full border border-border bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
@@ -232,21 +233,20 @@ function PersonalInformation() {
 
         <aside className="overflow-hidden rounded-lg border border-border bg-card lg:sticky lg:top-20">
           <header className="border-b border-border px-5 py-4">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">Account Tier & Limits</p>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Trading Tier & Volume</p>
           </header>
           <div className="space-y-5 p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs text-muted-foreground">Membership status</p>
+                <p className="text-xs text-muted-foreground">Trading tier</p>
                 <p className="mt-1 text-lg font-bold">{tierLabel}</p>
               </div>
               <span className="grid size-10 place-items-center rounded-md border border-primary/30 bg-primary/10 text-primary"><Crown className="size-5" /></span>
             </div>
             <div className="border-t border-border pt-5">
-              <p className="text-xs text-muted-foreground">24h withdrawal capacity</p>
-              <p className="mt-1 text-xl font-bold tabular-nums">100,000 <span className="text-sm font-medium text-muted-foreground">USDT / 24h</span></p>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full w-0 bg-primary" /></div>
-              <div className="mt-2 flex justify-between text-[11px] text-muted-foreground"><span>0 USDT used</span><span>100% available</span></div>
+              <p className="text-xs text-muted-foreground">Monthly trading volume</p>
+              <p className="mt-1 text-sm font-semibold">Not available</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Volume tracking is not configured for this account.</p>
             </div>
             <Button asChild type="button" variant={isVip(vipTier) ? "outline" : "default"} className="w-full">
               <Link to="/vip-upgrade">{isVip(vipTier) ? "View VIP Membership" : isVipPending(vipTier) ? "View VIP Request" : "Upgrade Account Tier"}</Link>

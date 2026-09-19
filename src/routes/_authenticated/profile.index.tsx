@@ -11,6 +11,7 @@ import {
   Headphones,
   HelpCircle,
   Hourglass,
+  Info,
   LogOut,
   MessageSquare,
   ShieldCheck,
@@ -23,12 +24,12 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { KYC_LABEL, KYC_TONE, copy } from "@/components/profile/ui";
 import { getProfileOverview } from "@/lib/profile.functions";
 import { getMyKyc } from "@/lib/kyc.functions";
-import { CREDIT_SCORE_MAX, CREDIT_SCORE_MIN, creditScoreBand } from "@/lib/limits";
 import { VIP_TIER_LABEL, isVip, isVipPending } from "@/lib/vip-tiers";
 import { registerCurrentDevice } from "@/lib/sessions";
 import { supabase } from "@/integrations/supabase/client";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useRouter } from "@tanstack/react-router";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/_authenticated/profile/")({
   head: () => ({
@@ -144,13 +145,20 @@ function ProfileHome() {
   }, [profile?.id, queryClient]);
 
   const status = kyc.data?.status ?? "unverified";
+  const enhancedStatus = kyc.data?.level2Status ?? "unsubmitted";
   const vipTier = String((profile as any)?.vipTier ?? "regular");
-  const creditScore = Number((profile as any)?.creditScore ?? 750);
-  const creditBand = creditScoreBand(creditScore);
-  const creditPct = Math.min(
-    100,
-    Math.max(0, ((creditScore - CREDIT_SCORE_MIN) / (CREDIT_SCORE_MAX - CREDIT_SCORE_MIN)) * 100),
-  );
+  const margin = overview.data?.risk.margin;
+  const tierLabel = isVip(vipTier)
+    ? VIP_TIER_LABEL[vipTier] ?? "VIP"
+    : isVipPending(vipTier)
+      ? "VIP (PENDING)"
+      : "Standard";
+  const complianceLabel =
+    status === "approved"
+      ? enhancedStatus === "approved"
+        ? "Identity & Address Verified"
+        : "KYC Verified"
+      : KYC_LABEL[status] ?? "KYC Not Verified";
 
   return (
     <>
@@ -172,7 +180,7 @@ function ProfileHome() {
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {status === "approved" ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
-                  <BadgeCheck className="size-3" /> Verified
+                  <BadgeCheck className="size-3" /> {complianceLabel}
                 </span>
               ) : (
                 <span
@@ -203,21 +211,59 @@ function ProfileHome() {
 
         <p className="mt-3 truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
 
-        <div className="mt-4 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">Credit Score</p>
-          <div className="mt-1 flex items-center gap-3">
-            <p className={`text-sm font-bold ${creditBand.tone}`}>
-              {creditScore} · {creditBand.label}
-            </p>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-full rounded-full bg-bull transition-all"
-                style={{ width: `${creditPct}%` }}
-              />
-            </div>
-          </div>
-        </div>
       </section>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <section className="rounded-lg border border-border bg-card p-4">
+          <header className="flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase text-muted-foreground">Account Health</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label="About account health" className="touch-manipulation text-muted-foreground transition-colors hover:text-foreground">
+                    <Info className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-64">
+                  Account Health summarizes supported risk and account-control signals. No score is shown until a defined calculation is available.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </header>
+          <p className="mt-3 text-lg font-semibold">Not assessed</p>
+          <p className="mt-1 text-xs text-muted-foreground">No account-health model is currently configured.</p>
+          {margin ? (
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">Margin utilization</span>
+                <span className="font-semibold tabular-nums">
+                  {margin.utilizationPct === null ? "Not available" : `${margin.utilizationPct.toFixed(1)}% used`}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">Open leveraged positions</span>
+                <span className="font-semibold tabular-nums">{margin.openPositions}</span>
+              </div>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h2 className="text-xs font-semibold uppercase text-muted-foreground">Trading Tier & Volume</h2>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Trading tier</p>
+              <p className="mt-1 text-lg font-semibold">{tierLabel}</p>
+            </div>
+            <Crown className="size-5 text-primary" />
+          </div>
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">Monthly trading volume</p>
+            <p className="mt-1 text-sm font-medium">Not available</p>
+            <p className="mt-1 text-xs text-muted-foreground">Volume tracking is not configured for this account.</p>
+          </div>
+        </section>
+      </div>
 
       {/* Support banner */}
       <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
