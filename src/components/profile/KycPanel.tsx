@@ -208,15 +208,7 @@ export function KycPanel({
             <option value="drivers_license">Driver's license</option>
           </select>
           <input
-          <span
-          className={`absolute top-0.5 size-5 rounded-full bg-background transition-all ${
-            checked ? "left-[22px]" : "left-0.5"
-          }`}
-        />
-      </button>
-    </div>
-  );
-} required
+            required
             placeholder="Document number"
             value={form.documentNumber}
             onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
