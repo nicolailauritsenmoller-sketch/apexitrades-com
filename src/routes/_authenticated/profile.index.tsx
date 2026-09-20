@@ -52,6 +52,27 @@ export const Route = createFileRoute("/_authenticated/profile/")({
   component: ProfileHome,
 });
 
+const HEALTH_LABEL: Record<string, string> = {
+  healthy: "Healthy",
+  caution: "Caution",
+  at_risk: "At risk",
+};
+const HEALTH_TONE: Record<string, string> = {
+  healthy: "text-bull",
+  caution: "text-amber-500",
+  at_risk: "text-bear",
+};
+const RISK_LABEL: Record<string, string> = { low: "Low", moderate: "Moderate", high: "High" };
+const RISK_TONE: Record<string, string> = {
+  low: "text-bull",
+  moderate: "text-amber-500",
+  high: "text-bear",
+};
+
+function usd(value: number) {
+  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
 function QuickTile({
   to,
   icon: Icon,
@@ -148,6 +169,9 @@ function ProfileHome() {
   const enhancedStatus = kyc.data?.level2Status ?? "unsubmitted";
   const vipTier = String((profile as any)?.vipTier ?? "regular");
   const margin = overview.data?.risk.margin;
+  const health = overview.data?.risk.accountHealth;
+  const exposure = overview.data?.risk.exposure;
+  const volume = overview.data?.volume;
   const tierLabel = isVip(vipTier)
     ? VIP_TIER_LABEL[vipTier] ?? "VIP"
     : isVipPending(vipTier)
