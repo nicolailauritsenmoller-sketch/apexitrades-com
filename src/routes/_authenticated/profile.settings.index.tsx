@@ -239,14 +239,32 @@ function PersonalInformation() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Trading tier</p>
-                <p className="mt-1 text-lg font-bold">{tierLabel}</p>
+                <p className="mt-1 text-lg font-bold">
+                  {overview.data?.volume?.tier.label ?? "—"}
+                  {tierLabel === "Standard" ? "" : ` · ${tierLabel}`}
+                </p>
               </div>
               <span className="grid size-10 place-items-center rounded-md border border-primary/30 bg-primary/10 text-primary"><Crown className="size-5" /></span>
             </div>
             <div className="border-t border-border pt-5">
               <p className="text-xs text-muted-foreground">Monthly trading volume</p>
-              <p className="mt-1 text-sm font-semibold">Not available</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Volume tracking is not configured for this account.</p>
+              <p className="mt-1 text-sm font-semibold tabular-nums">
+                {overview.data?.volume
+                  ? `$${overview.data.volume.monthUsdt.toLocaleString("en-US", { maximumFractionDigits: 2 })}${overview.data.volume.nextTier ? ` / $${overview.data.volume.nextTier.thresholdUsdt.toLocaleString("en-US")}` : ""}`
+                  : "—"}
+              </p>
+              {overview.data?.volume ? (
+                <>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${overview.data.volume.progressPct.toFixed(1)}%` }} />
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {overview.data.volume.nextTier
+                      ? `${overview.data.volume.progressPct.toFixed(1)}% progress to ${overview.data.volume.nextTier.label}`
+                      : "Highest tier reached"}
+                  </p>
+                </>
+              ) : null}
             </div>
             <Button asChild type="button" variant={isVip(vipTier) ? "outline" : "default"} className="w-full">
               <Link to="/vip-upgrade">{isVip(vipTier) ? "View VIP Membership" : isVipPending(vipTier) ? "View VIP Request" : "Upgrade Account Tier"}</Link>
