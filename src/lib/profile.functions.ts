@@ -94,6 +94,76 @@ export const getProfileOverview = createServerFn({ method: "POST" })
 
     const totalUsdt = spotUsdt + futuresUsdt + fundingUsdt;
 
+    // ---- Risk & exposure (derived only from live account rows) ----
+    const positionNotional = (p: (typeof openPositions)[number]) =>
+      Number(p.quantity) * Number(p.entry_price) * (rates[p.currency] ?? 0);
+
+    const exposureUsdt =
+      openPositions.reduce((s, p) => s + positionNotional(p), 0) +
+      openContracts.reduce((s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1), 0);
+    const equityUsdt = spotUsdt + marginUsedUsdt;
+    const maxLeverage = openPositions.reduce((m, p) => Math.max(m, Number(p.leverage) || 1), 0);
+
+    const hasMargin = leveragedPositions.length > 0;
+    const marginAvailableUsdt = spotUsdt;
+    const utilizationPct =
+      hasMargin && marginUsedUsdt + marginAvailableUsdt > 0
+        ? (marginUsedUsdt / (marginUsedUsdt + marginAvailableUsdt)) * 100
+        : null;
+
+    const exposureRisk: "low" | "moderate" | "high" | null =
+      utilizationPct === null
+        ? exposureUsdt > 0 && equityUsdt > 0
+          ? exposureUsdt / equityUsdt >= 3
+            ? "high"
+            : exposureUsdt / equityUsdt >= 1
+              ? "moderate"
+              : "low"
+          : null
+        : utilizationPct >= 60
+          ? "high"
+          : utilizationPct >= 30
+            ? "moderate"
+            : "low";
+
+    const accountHealth =
+      utilizationPct === null
+        ? { status: "healthy" as const, pct: null as number | null, hasExposure: false }
+        : {
+            status: (utilizationPct >= 70
+              ? "at_risk"
+              : utilizationPct >= 40
+                ? "caution"
+                : "healthy") as "healthy" | "caution" | "at_risk",
+            pct: Math.max(0, Math.min(100, 100 - utilizationPct)) as number | null,
+            hasExposure: true,
+          };
+
+    // ---- Monthly eligible trading volume ----
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+    const monthStartIso = monthStart.toISOString();
+
+    const monthContracts = settled.filter((c) => (c.settled_at ?? "") >= monthStartIso);
+    const monthPositions = closedPositions.filter((p) => (p.closed_at ?? "") >= monthStartIso);
+    const monthVolumeUsdt =
+      monthContracts.reduce((s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1), 0) +
+      monthPositions.reduce(
+        (s, p) => s + Number(p.quantity) * Number(p.entry_price) * (rates[p.currency] ?? 0),
+        0,
+      );
+    const monthTradeCount = monthContracts.length + monthPositions.length;
+
+    const { parseTradingTiers, resolveTier } = await import("./trading-tiers");
+    const { data: tierSetting } = await (supabaseAdmin as any)
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "trading_tiers")
+      .maybeSingle();
+    const tiers = parseTradingTiers(tierSetting?.value);
+    const tierResult = resolveTier(monthVolumeUsdt, tiers);
+
     return {
       profile: {
         id: userId,
@@ -130,19 +200,30 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         openPositions: openPositions.length,
       },
       risk: {
-        accountHealth: null as null,
-        margin:
-          leveragedPositions.length > 0
-            ? {
-                usedUsdt: marginUsedUsdt,
-                availableUsdt: spotUsdt,
-                utilizationPct:
-                  marginUsedUsdt + spotUsdt > 0
-                    ? (marginUsedUsdt / (marginUsedUsdt + spotUsdt)) * 100
-                    : null,
-                openPositions: leveragedPositions.length,
-              }
-            : null,
+        accountHealth,
+        exposure: {
+          notionalUsdt: exposureUsdt,
+          equityUsdt,
+          leverageMax: maxLeverage,
+          risk: exposureRisk,
+        },
+        margin: hasMargin
+          ? {
+              usedUsdt: marginUsedUsdt,
+              availableUsdt: marginAvailableUsdt,
+              utilizationPct: utilizationPct,
+              availablePct: utilizationPct === null ? null : 100 - utilizationPct,
+              openPositions: leveragedPositions.length,
+            }
+          : null,
+      },
+      volume: {
+        monthUsdt: monthVolumeUsdt,
+        tradeCount: monthTradeCount,
+        tier: tierResult.current,
+        nextTier: tierResult.next,
+        progressPct: tierResult.progressPct,
+        tiers,
       },
       referrals: {
         invited: count ?? 0,
