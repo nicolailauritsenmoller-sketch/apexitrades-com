@@ -225,27 +225,46 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health summarizes supported risk and account-control signals. No score is shown until a defined calculation is available.
+                  Account Health is derived from your live account equity, used and available margin, and open position exposure.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </header>
-          <p className="mt-3 text-lg font-semibold">Not assessed</p>
-          <p className="mt-1 text-xs text-muted-foreground">No account-health model is currently configured.</p>
-          {margin ? (
-            <div className="mt-4 border-t border-border pt-4">
-              <div className="flex items-center justify-between gap-3 text-xs">
-                <span className="text-muted-foreground">Margin utilization</span>
-                <span className="font-semibold tabular-nums">
-                  {margin.utilizationPct === null ? "Not available" : `${margin.utilizationPct.toFixed(1)}% used`}
-                </span>
+          <p className={`mt-3 text-lg font-semibold ${health ? HEALTH_TONE[health.status] : ""}`}>
+            {health
+              ? health.pct === null
+                ? `${HEALTH_LABEL[health.status]} · No active margin exposure`
+                : `${HEALTH_LABEL[health.status]} · ${health.pct.toFixed(1)}%`
+              : "—"}
+          </p>
+          <div className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Margin utilization</span>
+              <span className="font-semibold tabular-nums">
+                {margin && margin.utilizationPct !== null
+                  ? `${margin.utilizationPct.toFixed(1)}% used / ${(100 - margin.utilizationPct).toFixed(1)}% available`
+                  : "0.0% used / 100.0% available"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Exposure risk</span>
+              <span className={`font-semibold ${exposure?.risk ? RISK_TONE[exposure.risk] : ""}`}>
+                {exposure?.risk ? RISK_LABEL[exposure.risk] : "None"}
+              </span>
+            </div>
+            {exposure && exposure.leverageMax > 0 ? (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">Leverage in use</span>
+                <span className="font-semibold tabular-nums">{exposure.leverageMax}× maximum</span>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+            ) : null}
+            {margin ? (
+              <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Open leveraged positions</span>
                 <span className="font-semibold tabular-nums">{margin.openPositions}</span>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </section>
 
         <section className="rounded-lg border border-border bg-card p-4">
@@ -253,14 +272,37 @@ function ProfileHome() {
           <div className="mt-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs text-muted-foreground">Trading tier</p>
-              <p className="mt-1 text-lg font-semibold">{tierLabel}</p>
+              <p className="mt-1 text-lg font-semibold">
+                {volume ? volume.tier.label : "—"}
+                {tierLabel === "Standard" ? "" : ` · ${tierLabel}`}
+              </p>
             </div>
             <Crown className="size-5 text-primary" />
           </div>
           <div className="mt-4 border-t border-border pt-4">
             <p className="text-xs text-muted-foreground">Monthly trading volume</p>
-            <p className="mt-1 text-sm font-medium">Not available</p>
-            <p className="mt-1 text-xs text-muted-foreground">Volume tracking is not configured for this account.</p>
+            <p className="mt-1 text-sm font-semibold tabular-nums">
+              {volume
+                ? `${usd(volume.monthUsdt)}${volume.nextTier ? ` / ${usd(volume.nextTier.thresholdUsdt)}` : ""}`
+                : "—"}
+            </p>
+            {volume ? (
+              <>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${volume.progressPct.toFixed(1)}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {volume.nextTier
+                    ? `${volume.progressPct.toFixed(1)}% progress to ${volume.nextTier.label}`
+                    : "Highest tier reached"}
+                  {" · "}
+                  {volume.tradeCount} settled trade{volume.tradeCount === 1 ? "" : "s"} this month
+                </p>
+              </>
+            ) : null}
           </div>
         </section>
       </div>
