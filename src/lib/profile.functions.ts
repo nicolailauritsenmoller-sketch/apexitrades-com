@@ -130,19 +130,30 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         openPositions: openPositions.length,
       },
       risk: {
-        accountHealth: null as null,
-        margin:
-          leveragedPositions.length > 0
-            ? {
-                usedUsdt: marginUsedUsdt,
-                availableUsdt: spotUsdt,
-                utilizationPct:
-                  marginUsedUsdt + spotUsdt > 0
-                    ? (marginUsedUsdt / (marginUsedUsdt + spotUsdt)) * 100
-                    : null,
-                openPositions: leveragedPositions.length,
-              }
-            : null,
+        accountHealth,
+        exposure: {
+          notionalUsdt: exposureUsdt,
+          equityUsdt,
+          leverageMax: maxLeverage,
+          risk: exposureRisk,
+        },
+        margin: hasMargin
+          ? {
+              usedUsdt: marginUsedUsdt,
+              availableUsdt: marginAvailableUsdt,
+              utilizationPct: utilizationPct,
+              availablePct: utilizationPct === null ? null : 100 - utilizationPct,
+              openPositions: leveragedPositions.length,
+            }
+          : null,
+      },
+      volume: {
+        monthUsdt: monthVolumeUsdt,
+        tradeCount: monthTradeCount,
+        tier: tierResult.current,
+        nextTier: tierResult.next,
+        progressPct: tierResult.progressPct,
+        tiers,
       },
       referrals: {
         invited: count ?? 0,
