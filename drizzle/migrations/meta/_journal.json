@@ -85,6 +85,13 @@
       "when": 1789517016697,
       "tag": "0011_public_read_maintenance_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789949837990,
+      "tag": "0012_use_private_role_checks_in_rls",
+      "breakpoints": true
     }
   ]
 }

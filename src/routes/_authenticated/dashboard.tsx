@@ -64,7 +64,7 @@ function Home() {
   const baseline = total - todayPnl;
   const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
 
-  const pnlSign = todayPnl >= 0 ? "+" : "";
+  const pnlSign = todayPnl >= 0 ? "+" : "-";
   const pctSign = pct >= 0 ? "+" : "";
   const convertedPnl = Math.abs(convert(todayPnl));
   const pnlDecimals = convertedPnl > 0 && convertedPnl < 0.01 ? 8 : undefined;
