@@ -8,6 +8,7 @@
 
 ## Completed
 
+- [x] Repair role-check permissions across community and monitoring policies, and restore signed loss values on the home screen.
 - [x] Replace platform branding, headers, footer, auth mark, favicon, and app icons with the official institutional shield logo.
 
 - [x] Add the public Community Hub and secure Community Desk with live channels, bulletins, and VIP access review.
