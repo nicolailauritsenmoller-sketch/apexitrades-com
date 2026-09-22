@@ -123,6 +123,20 @@ export const openPosition = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "position_open",
+      refId: position.id,
+      symbol: inst.symbol,
+      side: data.side,
+      requestedQty: data.quantity,
+      filledQty: data.quantity,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
+
     return { id: position.id, entryPrice: price, margin, currency: inst.currency };
   });
 
