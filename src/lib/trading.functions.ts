@@ -71,7 +71,9 @@ export const openPosition = createServerFn({ method: "POST" })
       throw new Error("Trading is frozen on this account. Contact support.");
     }
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
+    const acknowledgedAt = Date.now();
     const notional = price * data.quantity;
     const margin = notional / data.leverage;
 
