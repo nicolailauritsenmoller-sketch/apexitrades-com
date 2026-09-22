@@ -87,7 +87,9 @@ export const placeContract = createServerFn({ method: "POST" })
       );
     }
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
+    const acknowledgedAt = Date.now();
 
     const { error: debitError } = await db
       .from("wallets")
