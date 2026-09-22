@@ -129,6 +129,20 @@ export const placeContract = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "contract",
+      refId: contract.id,
+      symbol: inst.symbol,
+      side: data.direction,
+      requestedQty: data.stake,
+      filledQty: data.stake,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
+
     return {
       id: contract.id,
       entryPrice: price,
