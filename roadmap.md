@@ -8,6 +8,8 @@
 
 ## Completed
 
+- [x] Measure order execution latency and fill rate, fold them into Account Health, and populate monthly volume and tier progress from real trade records.
+
 - [x] Repair role-check permissions across community and monitoring policies, and restore signed loss values on the home screen.
 - [x] Replace platform branding, headers, footer, auth mark, favicon, and app icons with the official institutional shield logo.
 
