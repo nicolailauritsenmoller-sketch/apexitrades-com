@@ -249,7 +249,8 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health is derived from your live account equity, used and available margin, and open position exposure.
+                  Account Health combines margin utilization against your live equity with measured
+                  execution sync — order fill latency and fill rate on your recent trades.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
