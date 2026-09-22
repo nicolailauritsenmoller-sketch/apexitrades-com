@@ -171,6 +171,7 @@ function ProfileHome() {
   const margin = overview.data?.risk.margin;
   const health = overview.data?.risk.accountHealth;
   const exposure = overview.data?.risk.exposure;
+  const execution = overview.data?.risk.execution;
   const volume = overview.data?.volume;
   const tierLabel = isVip(vipTier)
     ? VIP_TIER_LABEL[vipTier] ?? "VIP"
@@ -249,7 +250,8 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health is derived from your live account equity, used and available margin, and open position exposure.
+                  Account Health combines margin utilization against your live equity with measured
+                  execution sync — order fill latency and fill rate on your recent trades.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -287,6 +289,22 @@ function ProfileHome() {
                 <span className="text-muted-foreground">Open leveraged positions</span>
                 <span className="font-semibold tabular-nums">{margin.openPositions}</span>
               </div>
+            ) : null}
+            {execution ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Execution sync</span>
+                  <span className="font-semibold tabular-nums">
+                    {execution.scorePct.toFixed(1)}% · {execution.medianFillMs} ms median fill
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Fill rate</span>
+                  <span className="font-semibold tabular-nums">
+                    {execution.fillRatePct.toFixed(1)}% over {execution.samples} orders
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
         </section>

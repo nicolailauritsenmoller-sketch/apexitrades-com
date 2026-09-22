@@ -111,32 +111,63 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         ? (marginUsedUsdt / (marginUsedUsdt + marginAvailableUsdt)) * 100
         : null;
 
-    const exposureRisk: "low" | "moderate" | "high" | null =
-      utilizationPct === null
-        ? exposureUsdt > 0 && equityUsdt > 0
+    // ---- Execution sync (measured order latency & fill rate) ----
+    const { summarizeExecutions } = await import("./execution.server");
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const { data: execRows } = await (supabaseAdmin as any)
+      .from("trade_executions")
+      .select("fill_latency_ms, requested_qty, filled_qty, status")
+      .eq("user_id", userId)
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(500);
+    const execution = summarizeExecutions(execRows ?? []);
+
+    // Unified risk score: margin headroom weighted with execution quality.
+    const marginComponent = utilizationPct === null ? 100 : Math.max(0, 100 - utilizationPct);
+    const unifiedPct =
+      execution === null
+        ? utilizationPct === null
+          ? null
+          : marginComponent
+        : Math.round((marginComponent * 0.7 + execution.scorePct * 0.3) * 10) / 10;
+
+    const baseRisk: "low" | "moderate" | "high" =
+      utilizationPct !== null
+        ? utilizationPct >= 60
+          ? "high"
+          : utilizationPct >= 30
+            ? "moderate"
+            : "low"
+        : exposureUsdt > 0 && equityUsdt > 0
           ? exposureUsdt / equityUsdt >= 3
             ? "high"
             : exposureUsdt / equityUsdt >= 1
               ? "moderate"
               : "low"
-          : null
-        : utilizationPct >= 60
-          ? "high"
-          : utilizationPct >= 30
-            ? "moderate"
-            : "low";
+          : "low";
+
+    const hasRiskInputs = utilizationPct !== null || exposureUsdt > 0;
+    // Degraded execution sync escalates exposure risk one step.
+    const escalate = execution !== null && execution.scorePct < 60 && baseRisk !== "low";
+    const order: Array<"low" | "moderate" | "high"> = ["low", "moderate", "high"];
+    const exposureRisk: "low" | "moderate" | "high" | null = hasRiskInputs
+      ? escalate
+        ? order[Math.min(2, order.indexOf(baseRisk) + 1)]!
+        : baseRisk
+      : null;
 
     const accountHealth =
-      utilizationPct === null
+      unifiedPct === null
         ? { status: "healthy" as const, pct: null as number | null, hasExposure: false }
         : {
-            status: (utilizationPct >= 70
+            status: (unifiedPct < 40
               ? "at_risk"
-              : utilizationPct >= 40
+              : unifiedPct < 70
                 ? "caution"
                 : "healthy") as "healthy" | "caution" | "at_risk",
-            pct: Math.max(0, Math.min(100, 100 - utilizationPct)) as number | null,
-            hasExposure: true,
+            pct: Math.max(0, Math.min(100, unifiedPct)) as number | null,
+            hasExposure: utilizationPct !== null,
           };
 
     // ---- Monthly eligible trading volume ----
@@ -216,6 +247,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
               openPositions: leveragedPositions.length,
             }
           : null,
+        execution,
       },
       volume: {
         monthUsdt: monthVolumeUsdt,

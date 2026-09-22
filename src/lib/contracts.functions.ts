@@ -87,7 +87,9 @@ export const placeContract = createServerFn({ method: "POST" })
       );
     }
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
+    const acknowledgedAt = Date.now();
 
     const { error: debitError } = await db
       .from("wallets")
@@ -126,6 +128,20 @@ export const placeContract = createServerFn({ method: "POST" })
         .eq("user_id", userId);
       throw new Error(error.message);
     }
+
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "contract",
+      refId: contract.id,
+      symbol: inst.symbol,
+      side: data.direction,
+      requestedQty: data.stake,
+      filledQty: data.stake,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
 
     return {
       id: contract.id,

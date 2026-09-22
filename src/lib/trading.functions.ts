@@ -71,7 +71,9 @@ export const openPosition = createServerFn({ method: "POST" })
       throw new Error("Trading is frozen on this account. Contact support.");
     }
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
+    const acknowledgedAt = Date.now();
     const notional = price * data.quantity;
     const margin = notional / data.leverage;
 
@@ -121,6 +123,20 @@ export const openPosition = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "position_open",
+      refId: position.id,
+      symbol: inst.symbol,
+      side: data.side,
+      requestedQty: data.quantity,
+      filledQty: data.quantity,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
+
     return { id: position.id, entryPrice: price, margin, currency: inst.currency };
   });
 
@@ -143,7 +159,9 @@ export const closePosition = createServerFn({ method: "POST" })
     if (!position) throw new Error("Position not found.");
     if (position.status === "closed") throw new Error("Position is already closed.");
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(position.symbol);
+    const acknowledgedAt = Date.now();
     const entry = Number(position.entry_price);
     const qty = Number(position.quantity);
     const direction = position.side === "long" ? 1 : -1;
@@ -183,6 +201,20 @@ export const closePosition = createServerFn({ method: "POST" })
         .eq("id", wallet.id)
         .eq("user_id", userId);
     }
+
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "position_close",
+      refId: position.id,
+      symbol: position.symbol,
+      side: position.side,
+      requestedQty: qty,
+      filledQty: qty,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
 
     return { exitPrice: price, pnl, currency: position.currency };
   });

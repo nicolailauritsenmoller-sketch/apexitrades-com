@@ -1229,6 +1229,60 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_executions: {
+        Row: {
+          ack_latency_ms: number | null
+          acknowledged_at: string | null
+          created_at: string
+          fill_latency_ms: number | null
+          filled_at: string | null
+          filled_qty: number
+          id: string
+          ref_id: string | null
+          ref_type: string
+          requested_qty: number
+          side: string | null
+          status: string
+          submitted_at: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          ack_latency_ms?: number | null
+          acknowledged_at?: string | null
+          created_at?: string
+          fill_latency_ms?: number | null
+          filled_at?: string | null
+          filled_qty?: number
+          id?: string
+          ref_id?: string | null
+          ref_type: string
+          requested_qty?: number
+          side?: string | null
+          status?: string
+          submitted_at?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          ack_latency_ms?: number | null
+          acknowledged_at?: string | null
+          created_at?: string
+          fill_latency_ms?: number | null
+          filled_at?: string | null
+          filled_qty?: number
+          id?: string
+          ref_id?: string | null
+          ref_type?: string
+          requested_qty?: number
+          side?: string | null
+          status?: string
+          submitted_at?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       two_factor_sessions: {
         Row: {
           id: string

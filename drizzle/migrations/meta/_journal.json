@@ -92,6 +92,13 @@
       "when": 1789949837990,
       "tag": "0012_use_private_role_checks_in_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790035346931,
+      "tag": "0013_create_trade_executions",
+      "breakpoints": true
     }
   ]
 }
