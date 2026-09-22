@@ -159,7 +159,9 @@ export const closePosition = createServerFn({ method: "POST" })
     if (!position) throw new Error("Position not found.");
     if (position.status === "closed") throw new Error("Position is already closed.");
 
+    const submittedAt = Date.now();
     const price = await fetchPrice(position.symbol);
+    const acknowledgedAt = Date.now();
     const entry = Number(position.entry_price);
     const qty = Number(position.quantity);
     const direction = position.side === "long" ? 1 : -1;
