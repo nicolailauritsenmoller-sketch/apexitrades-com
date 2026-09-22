@@ -289,6 +289,22 @@ function ProfileHome() {
                 <span className="font-semibold tabular-nums">{margin.openPositions}</span>
               </div>
             ) : null}
+            {execution ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Execution sync</span>
+                  <span className="font-semibold tabular-nums">
+                    {execution.scorePct.toFixed(1)}% · {execution.medianFillMs} ms median fill
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Fill rate</span>
+                  <span className="font-semibold tabular-nums">
+                    {execution.fillRatePct.toFixed(1)}% over {execution.samples} orders
+                  </span>
+                </div>
+              </>
+            ) : null}
           </div>
         </section>
 
