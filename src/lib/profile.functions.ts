@@ -247,6 +247,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
               openPositions: leveragedPositions.length,
             }
           : null,
+        execution,
       },
       volume: {
         monthUsdt: monthVolumeUsdt,
