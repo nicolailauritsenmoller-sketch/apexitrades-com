@@ -202,6 +202,20 @@ export const closePosition = createServerFn({ method: "POST" })
         .eq("user_id", userId);
     }
 
+    const { recordExecution } = await import("./execution.server");
+    await recordExecution(db, {
+      userId,
+      refType: "position_close",
+      refId: position.id,
+      symbol: position.symbol,
+      side: position.side,
+      requestedQty: qty,
+      filledQty: qty,
+      submittedAt,
+      acknowledgedAt,
+      filledAt: Date.now(),
+    });
+
     return { exitPrice: price, pnl, currency: position.currency };
   });
 
