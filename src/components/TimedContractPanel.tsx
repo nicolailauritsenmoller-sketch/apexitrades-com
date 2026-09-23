@@ -12,6 +12,7 @@ import {
 import {
   CONTRACT_CURRENCY,
   CONTRACT_TIERS,
+  SETTLEMENT_CLEARING_MS,
   formatCountdown,
   type ContractTier,
 } from "@/lib/contract-tiers";
