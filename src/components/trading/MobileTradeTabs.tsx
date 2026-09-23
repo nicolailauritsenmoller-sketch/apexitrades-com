@@ -217,3 +217,55 @@ export function MobileTradeTabs({
     </section>
   );
 }
+
+/** A running scalp contract shown alongside leveraged open positions. */
+function ContractPositionRow({
+  contract,
+  now,
+  mark,
+}: {
+  contract: ContractRow;
+  now: number;
+  mark?: number;
+}) {
+  const left = new Date(contract.expiresAt).getTime() - now;
+  const settling = left <= 0;
+  const profit = (contract.stake * contract.payoutPct) / 100;
+  const livePnl =
+    mark == null
+      ? null
+      : mark === contract.entryPrice
+        ? 0
+        : (contract.direction === "up" ? mark > contract.entryPrice : mark < contract.entryPrice)
+          ? profit
+          : -contract.stake;
+
+  return (
+    <li className="flex items-center justify-between gap-3 p-3 text-xs">
+      <span className="flex min-w-0 items-center gap-2">
+        <AssetIcon symbol={contract.symbol} size={18} />
+        <span className="min-w-0">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="truncate">{contract.displaySymbol}</span>
+            <span className={contract.direction === "up" ? "text-bull" : "text-bear"}>
+              {contract.direction === "up" ? "Buy / Long" : "Sell / Short"}
+            </span>
+          </span>
+          <span className="num mt-0.5 block text-[11px] text-muted-foreground">
+            {formatMoney(contract.stake, contract.currency)} @{" "}
+            {formatPrice(contract.entryPrice, contract.symbol)}
+          </span>
+        </span>
+      </span>
+      <span className="shrink-0 text-right">
+        <span className="num flex items-center justify-end gap-1 tabular-nums text-muted-foreground">
+          <Timer className="size-3" />
+          {settling ? "Settling…" : formatCountdown(left)}
+        </span>
+        <span className="mt-0.5 block">
+          <LivePnl value={livePnl} currency={contract.currency} live={!settling} />
+        </span>
+      </span>
+    </li>
+  );
+}
