@@ -33,3 +33,6 @@ export function formatCountdown(msLeft: number): string {
   if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
   return `${pad(m)}:${pad(s)}`;
 }
+
+/** Brief order-clearing window shown before a contract finalises. */
+export const SETTLEMENT_CLEARING_MS = 1500;
