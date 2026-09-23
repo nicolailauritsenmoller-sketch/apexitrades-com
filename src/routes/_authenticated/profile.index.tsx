@@ -250,8 +250,8 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health combines margin utilization against your live equity with measured
-                  execution sync — order fill latency and fill rate on your recent trades.
+                  Account Health reflects margin risk and liquidation safety — how much of your
+                  available margin is committed to open leveraged exposure.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
