@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 import {
   CONTRACT_CURRENCY,
   CONTRACT_TIERS,
+  SETTLEMENT_CLEARING_MS,
   formatCountdown,
   type ContractTier,
 } from "@/lib/contract-tiers";
@@ -115,12 +116,13 @@ export function TimedContractPanel({
     3000,
   );
 
-  // Auto-settle expired contracts once their countdown reaches zero.
+  // Auto-settle expired contracts, after a brief clearing ("Settling…") window.
+  const settlingRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     for (const c of openContracts) {
-      if (new Date(c.expiresAt).getTime() <= now && !settleMutation.isPending) {
-        settleMutation.mutate(c.id);
-        break;
+      if (new Date(c.expiresAt).getTime() <= now && !settlingRef.current.has(c.id)) {
+        settlingRef.current.add(c.id);
+        setTimeout(() => settleMutation.mutate(c.id), SETTLEMENT_CLEARING_MS);
       }
     }
   }, [now, openContracts, settleMutation]);

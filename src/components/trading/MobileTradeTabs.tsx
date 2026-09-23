@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet } from "lucide-react";
+import { Timer, Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
-import { formatMoney } from "@/lib/instruments";
+import { formatMoney, formatPrice } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
-import { getContracts } from "@/lib/contracts.functions";
+import { getContracts, type ContractRow } from "@/lib/contracts.functions";
+import { formatCountdown } from "@/lib/contract-tiers";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { LivePnl } from "@/components/LivePnl";
@@ -44,12 +45,24 @@ export function MobileTradeTabs({
   const settled = (contracts.data ?? [])
     .filter((c) => c.status === "settled")
     .slice(0, 10);
+  const runningContracts = (contracts.data ?? []).filter((c) => c.status === "open");
+
+  // Live ticker for running scalp contract countdowns.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (runningContracts.length === 0) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [runningContracts.length]);
 
   const funded = wallets.filter((w) => w.balance > 0);
   const usdt = wallets.find((w) => w.currency === "USDT");
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "positions", label: `Open Positions (${openPositions.length})` },
+    {
+      id: "positions",
+      label: `Open Positions (${openPositions.length + runningContracts.length})`,
+    },
     { id: "orders", label: `Open Orders (${orders.length})` },
     { id: "history", label: "History" },
     { id: "assets", label: "Assets" },
@@ -80,11 +93,27 @@ export function MobileTradeTabs({
 
       <div className="panel mt-3 overflow-x-auto">
         {tab === "positions" && (
-          <PositionsTable
-            positions={openPositions}
-            quotes={quotes}
-            emptyLabel="No open positions."
-          />
+          <div>
+            {runningContracts.length > 0 && (
+              <ul className="divide-y divide-border">
+                {runningContracts.map((c) => (
+                  <ContractPositionRow
+                    key={c.id}
+                    contract={c}
+                    now={now}
+                    mark={quotes[c.symbol]?.price}
+                  />
+                ))}
+              </ul>
+            )}
+            <PositionsTable
+              positions={openPositions}
+              quotes={quotes}
+              emptyLabel={
+                runningContracts.length > 0 ? "" : "No open positions."
+              }
+            />
+          </div>
         )}
 
         {tab === "orders" && (
@@ -186,5 +215,57 @@ export function MobileTradeTabs({
         )}
       </div>
     </section>
+  );
+}
+
+/** A running scalp contract shown alongside leveraged open positions. */
+function ContractPositionRow({
+  contract,
+  now,
+  mark,
+}: {
+  contract: ContractRow;
+  now: number;
+  mark?: number;
+}) {
+  const left = new Date(contract.expiresAt).getTime() - now;
+  const settling = left <= 0;
+  const profit = (contract.stake * contract.payoutPct) / 100;
+  const livePnl =
+    mark == null
+      ? null
+      : mark === contract.entryPrice
+        ? 0
+        : (contract.direction === "up" ? mark > contract.entryPrice : mark < contract.entryPrice)
+          ? profit
+          : -contract.stake;
+
+  return (
+    <li className="flex items-center justify-between gap-3 p-3 text-xs">
+      <span className="flex min-w-0 items-center gap-2">
+        <AssetIcon symbol={contract.symbol} size={18} />
+        <span className="min-w-0">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span className="truncate">{contract.displaySymbol}</span>
+            <span className={contract.direction === "up" ? "text-bull" : "text-bear"}>
+              {contract.direction === "up" ? "Buy / Long" : "Sell / Short"}
+            </span>
+          </span>
+          <span className="num mt-0.5 block text-[11px] text-muted-foreground">
+            {formatMoney(contract.stake, contract.currency)} @{" "}
+            {formatPrice(contract.entryPrice, contract.symbol)}
+          </span>
+        </span>
+      </span>
+      <span className="shrink-0 text-right">
+        <span className="num flex items-center justify-end gap-1 tabular-nums text-muted-foreground">
+          <Timer className="size-3" />
+          {settling ? "Settling…" : formatCountdown(left)}
+        </span>
+        <span className="mt-0.5 block">
+          <LivePnl value={livePnl} currency={contract.currency} live={!settling} />
+        </span>
+      </span>
+    </li>
   );
 }
