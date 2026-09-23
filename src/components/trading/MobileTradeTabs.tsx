@@ -93,11 +93,27 @@ export function MobileTradeTabs({
 
       <div className="panel mt-3 overflow-x-auto">
         {tab === "positions" && (
-          <PositionsTable
-            positions={openPositions}
-            quotes={quotes}
-            emptyLabel="No open positions."
-          />
+          <div>
+            {runningContracts.length > 0 && (
+              <ul className="divide-y divide-border">
+                {runningContracts.map((c) => (
+                  <ContractPositionRow
+                    key={c.id}
+                    contract={c}
+                    now={now}
+                    mark={quotes[c.symbol]?.price}
+                  />
+                ))}
+              </ul>
+            )}
+            <PositionsTable
+              positions={openPositions}
+              quotes={quotes}
+              emptyLabel={
+                runningContracts.length > 0 ? "" : "No open positions."
+              }
+            />
+          </div>
         )}
 
         {tab === "orders" && (
