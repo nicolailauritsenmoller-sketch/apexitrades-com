@@ -264,6 +264,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
           : null,
         execution,
       },
+      trust: { scorePct: traderTrustScore },
       volume: {
         monthUsdt: monthVolumeUsdt,
         tradeCount: monthTradeCount,
