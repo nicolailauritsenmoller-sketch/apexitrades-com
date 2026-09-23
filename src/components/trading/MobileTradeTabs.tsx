@@ -45,12 +45,24 @@ export function MobileTradeTabs({
   const settled = (contracts.data ?? [])
     .filter((c) => c.status === "settled")
     .slice(0, 10);
+  const runningContracts = (contracts.data ?? []).filter((c) => c.status === "open");
+
+  // Live ticker for running scalp contract countdowns.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (runningContracts.length === 0) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [runningContracts.length]);
 
   const funded = wallets.filter((w) => w.balance > 0);
   const usdt = wallets.find((w) => w.currency === "USDT");
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "positions", label: `Open Positions (${openPositions.length})` },
+    {
+      id: "positions",
+      label: `Open Positions (${openPositions.length + runningContracts.length})`,
+    },
     { id: "orders", label: `Open Orders (${orders.length})` },
     { id: "history", label: "History" },
     { id: "assets", label: "Assets" },
