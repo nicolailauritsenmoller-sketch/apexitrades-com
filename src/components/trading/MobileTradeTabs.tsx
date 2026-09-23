@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet } from "lucide-react";
+import { Timer, Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { PositionsTable, type PositionRow } from "@/components/PositionsTable";
-import { formatMoney } from "@/lib/instruments";
+import { formatMoney, formatPrice } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
-import { getContracts } from "@/lib/contracts.functions";
+import { getContracts, type ContractRow } from "@/lib/contracts.functions";
+import { formatCountdown } from "@/lib/contract-tiers";
 import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
 import { LivePnl } from "@/components/LivePnl";
