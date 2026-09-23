@@ -258,9 +258,9 @@ function ProfileHome() {
           </header>
           <p className={`mt-3 text-lg font-semibold ${health ? HEALTH_TONE[health.status] : ""}`}>
             {health
-              ? health.pct === null
-                ? `${HEALTH_LABEL[health.status]} · No active margin exposure`
-                : `${HEALTH_LABEL[health.status]} · ${health.pct.toFixed(1)}%`
+              ? `${HEALTH_LABEL[health.status]} · ${(health.pct ?? 100).toFixed(1)}%${
+                  health.hasExposure ? "" : " · No active margin exposure"
+                }`
               : "—"}
           </p>
           <div className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
