@@ -123,16 +123,11 @@ export const getProfileOverview = createServerFn({ method: "POST" })
       .limit(500);
     const execution = summarizeExecutions(execRows ?? []);
 
-    // Unified risk score: margin headroom weighted with execution quality.
-    const marginComponent = utilizationPct === null ? 100 : Math.max(0, 100 - utilizationPct);
-    const unifiedPct =
-      execution === null
-        ? utilizationPct === null
-          ? null
-          : marginComponent
-        : Math.round((marginComponent * 0.7 + execution.scorePct * 0.3) * 10) / 10;
+    // Account Health = margin risk / liquidation safety only. 100% with no exposure.
+    const healthPct =
+      utilizationPct === null ? 100 : Math.max(0, Math.min(100, 100 - utilizationPct));
 
-    const baseRisk: "low" | "moderate" | "high" =
+    const exposureRisk: "low" | "moderate" | "high" | null =
       utilizationPct !== null
         ? utilizationPct >= 60
           ? "high"
@@ -145,30 +140,50 @@ export const getProfileOverview = createServerFn({ method: "POST" })
             : exposureUsdt / equityUsdt >= 1
               ? "moderate"
               : "low"
-          : "low";
+          : null;
 
-    const hasRiskInputs = utilizationPct !== null || exposureUsdt > 0;
-    // Degraded execution sync escalates exposure risk one step.
-    const escalate = execution !== null && execution.scorePct < 60 && baseRisk !== "low";
-    const order: Array<"low" | "moderate" | "high"> = ["low", "moderate", "high"];
-    const exposureRisk: "low" | "moderate" | "high" | null = hasRiskInputs
-      ? escalate
-        ? order[Math.min(2, order.indexOf(baseRisk) + 1)]!
-        : baseRisk
-      : null;
+    const accountHealth = {
+      status: (healthPct < 40 ? "at_risk" : healthPct < 70 ? "caution" : "healthy") as
+        | "healthy"
+        | "caution"
+        | "at_risk",
+      pct: Math.round(healthPct * 10) / 10 as number | null,
+      hasExposure: utilizationPct !== null,
+    };
 
-    const accountHealth =
-      unifiedPct === null
-        ? { status: "healthy" as const, pct: null as number | null, hasExposure: false }
-        : {
-            status: (unifiedPct < 40
-              ? "at_risk"
-              : unifiedPct < 70
-                ? "caution"
-                : "healthy") as "healthy" | "caution" | "at_risk",
-            pct: Math.max(0, Math.min(100, unifiedPct)) as number | null,
-            hasExposure: utilizationPct !== null,
-          };
+    // ---- Trader Trust Score (milestone based; formula not exposed to the UI) ----
+    const [{ data: kycRow }, { data: securityRow }, { count: depositCount }] = await Promise.all([
+      (supabaseAdmin as any)
+        .from("kyc_submissions")
+        .select("status, level2_status")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      (supabaseAdmin as any)
+        .from("user_security")
+        .select("two_factor_enabled")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      (supabaseAdmin as any)
+        .from("deposits")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "approved"),
+    ]);
+
+    const profitableTrades =
+      settled.filter((c) => contractPnl(c) > 0).length +
+      closedPositions.filter((p) => Number(p.realized_pnl ?? 0) > 0).length;
+
+    let trustScore = 0;
+    if (kycRow?.status === "approved") trustScore += 5;
+    if ((kycRow as any)?.level2_status === "approved") trustScore += 5;
+    if (securityRow?.two_factor_enabled) trustScore += 5;
+    if ((depositCount ?? 0) > 0) trustScore += 5;
+    if (profitableTrades > 0) trustScore += 3 + Math.max(0, profitableTrades - 1) * 2;
+
+    const trustCap = spotUsdt > 5000 ? 100 : 50;
+    const traderTrustScore = Math.max(0, Math.min(trustCap, Math.round(trustScore)));
+
 
     // ---- Monthly eligible trading volume ----
     const monthStart = new Date();
@@ -249,6 +264,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
           : null,
         execution,
       },
+      trust: { scorePct: traderTrustScore },
       volume: {
         monthUsdt: monthVolumeUsdt,
         tradeCount: monthTradeCount,

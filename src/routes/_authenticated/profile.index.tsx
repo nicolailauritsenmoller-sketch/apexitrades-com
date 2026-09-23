@@ -172,6 +172,7 @@ function ProfileHome() {
   const health = overview.data?.risk.accountHealth;
   const exposure = overview.data?.risk.exposure;
   const execution = overview.data?.risk.execution;
+  const trust = overview.data?.trust;
   const volume = overview.data?.volume;
   const tierLabel = isVip(vipTier)
     ? VIP_TIER_LABEL[vipTier] ?? "VIP"
@@ -250,17 +251,17 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health combines margin utilization against your live equity with measured
-                  execution sync — order fill latency and fill rate on your recent trades.
+                  Account Health reflects margin risk and liquidation safety — how much of your
+                  available margin is committed to open leveraged exposure.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </header>
           <p className={`mt-3 text-lg font-semibold ${health ? HEALTH_TONE[health.status] : ""}`}>
             {health
-              ? health.pct === null
-                ? `${HEALTH_LABEL[health.status]} · No active margin exposure`
-                : `${HEALTH_LABEL[health.status]} · ${health.pct.toFixed(1)}%`
+              ? `${HEALTH_LABEL[health.status]} · ${(health.pct ?? 100).toFixed(1)}%${
+                  health.hasExposure ? "" : " · No active margin exposure"
+                }`
               : "—"}
           </p>
           <div className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
@@ -290,21 +291,19 @@ function ProfileHome() {
                 <span className="font-semibold tabular-nums">{margin.openPositions}</span>
               </div>
             ) : null}
-            {execution ? (
-              <>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-muted-foreground">Execution sync</span>
-                  <span className="font-semibold tabular-nums">
-                    {execution.scorePct.toFixed(1)}% · {execution.medianFillMs} ms median fill
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-muted-foreground">Fill rate</span>
-                  <span className="font-semibold tabular-nums">
-                    {execution.fillRatePct.toFixed(1)}% over {execution.samples} orders
-                  </span>
-                </div>
-              </>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Trader Trust Score</span>
+              <span className="font-semibold tabular-nums">
+                {trust ? `${trust.scorePct}%` : "—"}
+              </span>
+            </div>
+            {trust ? (
+              <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${trust.scorePct}%` }}
+                />
+              </div>
             ) : null}
           </div>
         </section>
