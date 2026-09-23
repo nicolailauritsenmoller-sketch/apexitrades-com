@@ -172,6 +172,7 @@ function ProfileHome() {
   const health = overview.data?.risk.accountHealth;
   const exposure = overview.data?.risk.exposure;
   const execution = overview.data?.risk.execution;
+  const trust = overview.data?.trust;
   const volume = overview.data?.volume;
   const tierLabel = isVip(vipTier)
     ? VIP_TIER_LABEL[vipTier] ?? "VIP"
