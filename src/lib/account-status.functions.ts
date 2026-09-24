@@ -10,6 +10,8 @@ export type AccountLockState = {
   frozen: boolean;
   tradingFrozen: boolean;
   withdrawalsDisabled: boolean;
+  marginRestricted: boolean;
+  verificationRequired: boolean;
 };
 
 /** Shared shape used by the suspension screen and by every server-side guard. */
@@ -28,11 +30,13 @@ export function deriveLockState(profile: any): AccountLockState {
     frozen,
     tradingFrozen: Boolean(profile?.trading_frozen),
     withdrawalsDisabled: Boolean(profile?.withdrawals_disabled),
+    marginRestricted: Boolean(profile?.margin_restricted),
+    verificationRequired: Boolean(profile?.verification_required),
   };
 }
 
 const SELECT =
-  "account_frozen,suspension_status,suspension_reason,suspension_note,suspended_until,trading_frozen,withdrawals_disabled";
+  "account_frozen,suspension_status,suspension_reason,suspension_note,suspended_until,trading_frozen,withdrawals_disabled,margin_restricted,verification_required";
 
 /** Current restriction state for the signed-in account. */
 export const getMyAccountStatus = createServerFn({ method: "POST" })

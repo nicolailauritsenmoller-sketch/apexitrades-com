@@ -49,7 +49,8 @@ import { SupportDesk } from "@/components/admin/SupportDesk";
 import { PlatformSettingsPanel } from "@/components/admin/PlatformSettingsPanel";
 import { PlatformSettingsHub } from "@/components/admin/PlatformSettingsHub";
 import { CertificatesPanel } from "@/components/admin/CertificatesPanel";
-import { RolesPanel, CreditScorePanel, ExportButton } from "@/components/admin/RolesCreditPanel";
+import { RolesPanel, ExportButton } from "@/components/admin/RolesCreditPanel";
+import { TrustRiskPanel } from "@/components/admin/TrustRiskPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
@@ -171,7 +172,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
       { id: "vipmembers", label: "VIP Memberships", icon: Crown },
       { id: "roles", label: "Roles & permissions", icon: KeySquare },
       { id: "restrictions", label: "User security & restrictions", icon: ShieldAlert },
-      { id: "credit", label: "Credit scores", icon: CreditCard },
+      { id: "credit", label: "Trader Trust & Risk", icon: CreditCard },
     ],
   },
   {
@@ -628,7 +629,7 @@ function AdminPage() {
           {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
           {tab === "restrictions" && <UserSecurityPanel />}
-          {tab === "credit" && <CreditScorePanel />}
+          {tab === "credit" && <TrustRiskPanel />}
           {tab === "audit" && <AuditLogPanel />}
           {tab === "authproviders" && <AuthProvidersPanel />}
 
