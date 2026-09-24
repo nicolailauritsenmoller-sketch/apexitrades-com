@@ -70,6 +70,12 @@ export const openPosition = createServerFn({ method: "POST" })
     if (guard.tradingFrozen) {
       throw new Error("Trading is frozen on this account. Contact support.");
     }
+    if (guard.verificationRequired) {
+      throw new Error("Additional verification is required before trading. Complete verification in your profile.");
+    }
+    if (guard.marginRestricted && data.leverage > 1) {
+      throw new Error("Margin trading is restricted on this account. Use 1× leverage.");
+    }
 
     const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
