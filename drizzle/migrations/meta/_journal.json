@@ -99,6 +99,13 @@
       "when": 1790035346931,
       "tag": "0013_create_trade_executions",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790208210867,
+      "tag": "0014_trader_trust_and_risk_controls",
+      "breakpoints": true
     }
   ]
 }
