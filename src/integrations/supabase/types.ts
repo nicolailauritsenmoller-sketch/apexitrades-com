@@ -851,6 +851,7 @@ export type Database = {
           display_name_updated_at: string | null
           email: string | null
           id: string
+          margin_restricted: boolean
           outcome_mode: Database["public"]["Enums"]["outcome_mode"]
           preferences: Json
           referral_code: string | null
@@ -862,8 +863,12 @@ export type Database = {
           suspension_note: string | null
           suspension_reason: string | null
           suspension_status: string
+          trader_trust_score: number
           trading_frozen: boolean
+          trust_score_override: number | null
+          trust_score_updated_at: string | null
           uid: string | null
+          verification_required: boolean
           vip_tier: string
           vip_upgraded_at: string | null
           withdrawal_password_hash: string | null
@@ -880,6 +885,7 @@ export type Database = {
           display_name_updated_at?: string | null
           email?: string | null
           id: string
+          margin_restricted?: boolean
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
           referral_code?: string | null
@@ -891,8 +897,12 @@ export type Database = {
           suspension_note?: string | null
           suspension_reason?: string | null
           suspension_status?: string
+          trader_trust_score?: number
           trading_frozen?: boolean
+          trust_score_override?: number | null
+          trust_score_updated_at?: string | null
           uid?: string | null
+          verification_required?: boolean
           vip_tier?: string
           vip_upgraded_at?: string | null
           withdrawal_password_hash?: string | null
@@ -909,6 +919,7 @@ export type Database = {
           display_name_updated_at?: string | null
           email?: string | null
           id?: string
+          margin_restricted?: boolean
           outcome_mode?: Database["public"]["Enums"]["outcome_mode"]
           preferences?: Json
           referral_code?: string | null
@@ -920,8 +931,12 @@ export type Database = {
           suspension_note?: string | null
           suspension_reason?: string | null
           suspension_status?: string
+          trader_trust_score?: number
           trading_frozen?: boolean
+          trust_score_override?: number | null
+          trust_score_updated_at?: string | null
           uid?: string | null
+          verification_required?: boolean
           vip_tier?: string
           vip_upgraded_at?: string | null
           withdrawal_password_hash?: string | null
