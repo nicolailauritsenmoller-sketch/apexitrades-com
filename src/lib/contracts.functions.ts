@@ -64,6 +64,9 @@ export const placeContract = createServerFn({ method: "POST" })
     if (guard.tradingFrozen) {
       throw new Error("Trading is frozen on this account. Contact support.");
     }
+    if (guard.verificationRequired) {
+      throw new Error("Additional verification is required before trading. Complete verification in your profile.");
+    }
 
     const tier = TIER_MAP[data.durationSeconds];
     if (!tier) throw new Error("Unknown contract duration.");

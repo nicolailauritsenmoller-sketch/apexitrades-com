@@ -42,6 +42,30 @@ function AuthenticatedLayout() {
     refetchInterval: 60_000,
   });
 
+  // Live sync: admin risk controls and trust recalculations land instantly.
+  useEffect(() => {
+    if (status !== "authed") return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    void supabase.auth.getUser().then(({ data }) => {
+      const uid = data.user?.id;
+      if (!uid) return;
+      channel = supabase
+        .channel(`profile-live-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${uid}` },
+          () => {
+            void queryClient.invalidateQueries({ queryKey: ["my-account-status"] });
+            void queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
+          },
+        )
+        .subscribe();
+    });
+    return () => {
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [status, queryClient]);
+
   // 2FA gate: re-evaluated server-side on every load, so direct URLs cannot bypass it.
   const fetchTwoFactor = useServerFn(getTwoFactorState);
   const twoFactor = useQuery({
@@ -73,5 +97,20 @@ function AuthenticatedLayout() {
     );
   }
 
-  return <Outlet />;
+  const notices = [
+    lock.data?.tradingFrozen && "Trading is frozen on this account.",
+    lock.data?.verificationRequired && "Additional verification is required before trading.",
+    lock.data?.marginRestricted && "Margin trading is restricted — 1× leverage only.",
+  ].filter(Boolean) as string[];
+
+  return (
+    <>
+      {notices.length > 0 && (
+        <div className="border-b border-destructive/40 bg-destructive/10 px-4 py-2 text-center text-xs font-medium text-destructive">
+          {notices.join(" · ")}
+        </div>
+      )}
+      <Outlet />
+    </>
+  );
 }
