@@ -234,6 +234,8 @@ function ProfileHome() {
             </div>
           </div>
         </div>
+      </section>
+
 
 
       <div className="grid gap-3 md:grid-cols-2">
