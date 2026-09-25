@@ -106,7 +106,7 @@ function AuthenticatedLayout() {
   return (
     <>
       {notices.length > 0 && (
-        <div className="border-b border-destructive/40 bg-destructive/10 px-4 py-2 text-center text-xs font-medium text-destructive">
+        <div role="alert" className="sticky top-0 z-[60] bg-destructive px-4 py-2.5 text-center text-sm font-semibold text-destructive-foreground">
           {notices.join(" · ")}
         </div>
       )}
