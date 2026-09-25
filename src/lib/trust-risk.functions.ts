@@ -49,8 +49,8 @@ export const getTrustRiskDirectory = createServerFn({ method: "POST" })
       usdtRates(),
     ]);
 
-    const by = <T extends { user_id: string }>(rows: T[] | null) => {
-      const m = new Map<string, T[]>();
+    const by = (rows: any[] | null) => {
+      const m = new Map<string, any[]>();
       for (const r of rows ?? []) m.set(r.user_id, [...(m.get(r.user_id) ?? []), r]);
       return m;
     };
