@@ -235,9 +235,6 @@ function ProfileHome() {
           </div>
         </div>
 
-        <p className="mt-3 truncate text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
-
-      </section>
 
       <div className="grid gap-3 md:grid-cols-2">
         <section className="rounded-lg border border-border bg-card p-4">
