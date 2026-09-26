@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, CheckCheck, Paperclip, Send, Star, X } from "lucide-react";
+import { Bot, Check, CheckCheck, Clock, Paperclip, Send, Star, X } from "lucide-react";
+import {
+  BOT_TOPICS,
+  findQA,
+  findTopic,
+  matchQuestion,
+  wantsAgent,
+} from "@/lib/support-bot";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
@@ -29,6 +36,16 @@ type Agent = {
 } | null;
 
 const RATED_KEY = "velocity:chat-rated";
+
+type BotChip = { label: string; action: string; tone?: "primary" | "muted" };
+type BotMsg = { id: string; role: "bot" | "user"; text: string; chips?: BotChip[] };
+
+const topicChips = (): BotChip[] =>
+  BOT_TOPICS.map((t) => ({ label: t.label, action: `topic:${t.id}` }));
+const feedbackChips: BotChip[] = [
+  { label: "Yes, Thank You", action: "yes", tone: "muted" },
+  { label: "No, Speak to Live Agent", action: "agent", tone: "primary" },
+];
 
 /** Platform logo used as the default face of every support agent. */
 function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
@@ -71,6 +88,10 @@ export function LiveChatDialog({
   const [file, setFile] = useState<File | null>(null);
   const [agent, setAgent] = useState<Agent>(null);
   const [rating, setRating] = useState(false);
+  const [mode, setMode] = useState<"bot" | "agent">("bot");
+  const [botLog, setBotLog] = useState<BotMsg[]>([]);
+  const [queuedAt, setQueuedAt] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<{ name: string; uid: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -114,6 +135,37 @@ export function LiveChatDialog({
       if (created) setSessionId(created.id);
     })();
   }, [open, sessionId]);
+
+  /* Account identity for the dynamic greeting. */
+  useEffect(() => {
+    if (!open || identity) return;
+    (async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.user.id)
+        .maybeSingle();
+      const p = data as { display_name?: string | null; uid?: string | null } | null;
+      setIdentity({
+        name: p?.display_name?.split(" ")[0] || user.user.email?.split("@")[0] || "there",
+        uid: p?.uid ?? user.user.id.slice(0, 7).toUpperCase(),
+      });
+    })();
+  }, [open, identity]);
+
+  useEffect(() => {
+    if (!open || mode !== "bot" || !identity || botLog.length) return;
+    setBotLog([
+      {
+        id: "greet",
+        role: "bot",
+        text: `Hello ${identity.name} [ID: ${identity.uid}], how can Velocity Support assist you today?`,
+        chips: topicChips(),
+      },
+    ]);
+  }, [open, mode, identity, botLog.length]);
 
   /* Message thread with a resilient realtime subscription. */
   useEffect(() => {
@@ -208,9 +260,83 @@ export function LiveChatDialog({
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
+  }, [messages, open, botLog]);
+
+  const botSay = (text: string, chips?: BotChip[]) =>
+    setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, chips }]);
+  const userSay = (text: string) =>
+    setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
+
+  async function escalate(lastQuestion?: string) {
+    if (mode === "agent") return;
+    setMode("agent");
+    setQueuedAt(new Date().toISOString());
+    botSay("You're now queued for a Support Agent. Estimated wait time: ~2 mins.");
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user || !sessionId) return;
+    const transcript = botLog
+      .map((m) => `${m.role === "bot" ? "Bot" : "Client"}: ${m.text}`)
+      .slice(-8)
+      .join("\n");
+    await supabase.from("chat_messages").insert({
+      session_id: sessionId,
+      sender_id: user.user.id,
+      sender_role: "user",
+      body: `[Live agent requested]${lastQuestion ? ` ${lastQuestion}` : ""}\n\nBot transcript:\n${transcript}`,
+    });
+    await supabase
+      .from("chat_sessions")
+      .update({
+        last_message_at: new Date().toISOString(),
+        status: "open",
+        subject: "Live agent requested",
+      })
+      .eq("id", sessionId);
+  }
+
+  function handleChip(chip: BotChip) {
+    const [kind, id] = chip.action.split(":");
+    userSay(chip.label);
+    if (kind === "topic") {
+      const t = findTopic(id);
+      if (t)
+        botSay(
+          `Here are common ${t.label} questions:`,
+          t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
+        );
+    } else if (kind === "qa") {
+      const qa = findQA(id);
+      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, feedbackChips);
+    } else if (kind === "yes") {
+      botSay("Glad we could help! Anything else?", topicChips());
+    } else if (kind === "agent") {
+      void escalate();
+    }
+  }
+
+  function botReply(text: string) {
+    userSay(text);
+    if (wantsAgent(text)) return void escalate(text);
+    const qa = matchQuestion(text);
+    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, feedbackChips);
+    else
+      botSay(
+        "I couldn't find an exact answer for that. Pick a topic below, or speak to a live agent.",
+        [...topicChips(), { label: "Speak to Live Agent", action: "agent", tone: "primary" }],
+      );
+  }
+
+  const agentJoined =
+    queuedAt && messages.some((m) => m.sender_role !== "user" && m.created_at > queuedAt);
 
   async function send() {
+    if (mode === "bot") {
+      const text = draft.trim();
+      if (!text) return;
+      setDraft("");
+      botReply(text);
+      return;
+    }
     const body = draft.trim();
     if ((!body && !file) || !sessionId || sending) return;
     setSending(true);
@@ -307,22 +433,66 @@ export function LiveChatDialog({
             <AgentAvatar src={agent?.avatarUrl} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">
-                {agent?.name ?? "Customer support"}
+                {mode === "bot" ? "Velocity Support Assistant" : (agent?.name ?? "Customer support")}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
-                {agent ? `${agent.role} · ID ${agent.staffId}` : "We typically reply in minutes"}
+                {mode === "bot"
+                  ? "Automated · 24/7 Live Assistance"
+                  : agentJoined && agent
+                    ? `${agent.role} · ID ${agent.staffId}`
+                    : "Queued for Support Agent · ~2 mins"}
               </p>
             </div>
           </div>
 
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {messages.length === 0 && (
+            {queuedAt && !agentJoined && (
+              <div className="flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
+                <Clock className="size-3.5" /> Queued for Support Agent · Estimated wait ~2 mins
+              </div>
+            )}
+            {botLog.map((b) => (
+              <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
+                {b.role === "bot" && (
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-primary">
+                    <Bot className="size-4" />
+                  </span>
+                )}
+                <div className="max-w-[85%]">
+                  <div
+                    className={`whitespace-pre-line rounded-lg px-3 py-2 text-sm ${
+                      b.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                    }`}
+                  >
+                    {b.text}
+                  </div>
+                  {b.chips && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {b.chips.map((c) => (
+                        <button
+                          key={c.action + c.label}
+                          onClick={() => handleChip(c)}
+                          className={`touch-manipulation rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            c.tone === "primary"
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-card hover:border-primary/60 hover:text-primary"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {mode === "agent" && messages.length === 0 && (
               <p className="py-8 text-center text-xs text-muted-foreground">
                 Send us a message and an agent will join shortly.
               </p>
             )}
-            {messages.map((m) => (
+            {mode === "agent" && messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
@@ -384,6 +554,7 @@ export function LiveChatDialog({
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             <button
+              hidden={mode === "bot"}
               onClick={() => fileRef.current?.click()}
               aria-label="Attach a photo or document"
               className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -394,7 +565,7 @@ export function LiveChatDialog({
               value={draft}
               onChange={setDraft}
               onSubmit={send}
-              placeholder="Type a message…"
+              placeholder={mode === "bot" ? "Ask a question or type 'agent'…" : "Type a message…"}
               maxLength={4000}
               className="rounded-md bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground"
             />
