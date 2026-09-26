@@ -1,11 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bot, Check, CheckCheck, Clock, Paperclip, Send, Star, X } from "lucide-react";
+import {
+  BadgeCheck,
+  Bot,
+  Check,
+  CheckCheck,
+  Clock,
+  Lock,
+  Paperclip,
+  Send,
+  ShieldCheck,
+  SlidersHorizontal,
+  Star,
+  Timer,
+  Wallet,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import {
   BOT_TOPICS,
   findQA,
   findTopic,
   matchQuestion,
   wantsAgent,
+  type BotTopicId,
 } from "@/lib/support-bot";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,14 +55,28 @@ type Agent = {
 const RATED_KEY = "velocity:chat-rated";
 
 type BotChip = { label: string; action: string; tone?: "primary" | "muted" };
-type BotMsg = { id: string; role: "bot" | "user"; text: string; chips?: BotChip[] };
+type BotMsg = {
+  id: string;
+  role: "bot" | "user";
+  text: string;
+  chips?: BotChip[];
+  topics?: boolean;
+};
 
-const topicChips = (): BotChip[] =>
-  BOT_TOPICS.map((t) => ({ label: t.label, action: `topic:${t.id}` }));
 const feedbackChips: BotChip[] = [
   { label: "Yes, Thank You", action: "yes", tone: "muted" },
   { label: "No, Speak to Live Agent", action: "agent", tone: "primary" },
 ];
+
+/** Icon + subtitle for each structured help-topic card in the bot greeting. */
+const TOPIC_META: Record<BotTopicId, { icon: LucideIcon; subtitle: string }> = {
+  funds: { icon: Wallet, subtitle: "Track pending deposits & funding" },
+  scalp: { icon: Timer, subtitle: "Timer countdowns & settling state" },
+  margin: { icon: SlidersHorizontal, subtitle: "Tier limits & position constraints" },
+  health: { icon: ShieldCheck, subtitle: "Margin risk & trust score rules" },
+  verify: { icon: BadgeCheck, subtitle: "Identity & institutional status" },
+  security: { icon: Lock, subtitle: "Authenticator & security settings" },
+};
 
 /** Platform logo used as the default face of every support agent. */
 function AgentAvatar({ src, className = "size-8" }: { src?: string | null; className?: string }) {
@@ -55,6 +86,39 @@ function AgentAvatar({ src, className = "size-8" }: { src?: string | null; class
       alt="Velocity Trade support"
       className={`${className} shrink-0 rounded-full border border-border bg-background object-cover p-0.5`}
     />
+  );
+}
+
+/** Structured 2-column grid of topic cards shown by the support bot. */
+function TopicGrid({ onPick }: { onPick: (topicId: BotTopicId) => void }) {
+  return (
+    <div className="mt-2.5 w-full">
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        Popular help topics
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {BOT_TOPICS.map((t) => {
+          const Icon = TOPIC_META[t.id].icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onPick(t.id)}
+              className="group flex min-h-20 touch-manipulation items-start gap-2.5 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/50"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-secondary text-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
+                <Icon className="size-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-xs font-bold leading-4 text-foreground">{t.label}</span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
+                  {TOPIC_META[t.id].subtitle}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -162,7 +226,7 @@ export function LiveChatDialog({
         id: "greet",
         role: "bot",
         text: `Hello ${identity.name} [ID: ${identity.uid}], how can Velocity Support assist you today?`,
-        chips: topicChips(),
+        topics: true,
       },
     ]);
   }, [open, mode, identity, botLog.length]);
@@ -262,8 +326,8 @@ export function LiveChatDialog({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, botLog]);
 
-  const botSay = (text: string, chips?: BotChip[]) =>
-    setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, chips }]);
+  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean }) =>
+    setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, ...opts }]);
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
 
@@ -294,21 +358,23 @@ export function LiveChatDialog({
       .eq("id", sessionId);
   }
 
+  function handleTopic(topicId: BotTopicId) {
+    const t = findTopic(topicId);
+    if (!t) return;
+    userSay(t.label);
+    botSay(`Here are common ${t.label} questions:`, {
+      chips: t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
+    });
+  }
+
   function handleChip(chip: BotChip) {
     const [kind, id] = chip.action.split(":");
     userSay(chip.label);
-    if (kind === "topic") {
-      const t = findTopic(id);
-      if (t)
-        botSay(
-          `Here are common ${t.label} questions:`,
-          t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
-        );
-    } else if (kind === "qa") {
+    if (kind === "qa") {
       const qa = findQA(id);
-      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, feedbackChips);
+      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
     } else if (kind === "yes") {
-      botSay("Glad we could help! Anything else?", topicChips());
+      botSay("Glad we could help! Anything else?", { topics: true });
     } else if (kind === "agent") {
       void escalate();
     }
@@ -318,12 +384,9 @@ export function LiveChatDialog({
     userSay(text);
     if (wantsAgent(text)) return void escalate(text);
     const qa = matchQuestion(text);
-    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, feedbackChips);
+    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
     else
-      botSay(
-        "I couldn't find an exact answer for that. Pick a topic below, or speak to a live agent.",
-        [...topicChips(), { label: "Speak to Live Agent", action: "agent", tone: "primary" }],
-      );
+      botSay("I couldn't find an exact answer for that — pick a topic below.", { topics: true });
   }
 
   const agentJoined =
@@ -467,6 +530,7 @@ export function LiveChatDialog({
                   >
                     {b.text}
                   </div>
+                  {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} />}
                   {b.chips && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
@@ -534,6 +598,19 @@ export function LiveChatDialog({
             ))}
             <div ref={endRef} />
           </div>
+
+          {/* Escalation action bar */}
+          {mode === "bot" && (
+            <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-border bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground">
+              <span>Need urgent manual help?</span>
+              <button
+                onClick={() => void escalate()}
+                className="touch-manipulation font-semibold text-primary hover:underline"
+              >
+                Connect to Live Agent
+              </button>
+            </div>
+          )}
 
           {/* Composer */}
           <div className="flex flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
