@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
-import { markThreadRead, sendAgentChat } from "@/lib/desk.functions";
+import { acceptLiveChat, markThreadRead, sendAgentChat } from "@/lib/desk.functions";
 import { setActiveChatSession, silenceChatAlerts } from "@/lib/alerts";
 
 import {
@@ -129,6 +129,7 @@ function ChatInboxes() {
   const fetchThreads = useServerFn(getSupportThreads);
   const fetchMessages = useServerFn(getThreadMessages);
   const send = useServerFn(sendAgentChat);
+  const accept = useServerFn(acceptLiveChat);
   const markRead = useServerFn(markThreadRead);
   const setStatus = useServerFn(setThreadStatus);
 
@@ -301,6 +302,16 @@ function ChatInboxes() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const acceptMutation = useMutation({
+    mutationFn: (sessionId: string) => accept({ data: { sessionId } }),
+    onSuccess: async () => {
+      toast.success("Connected with trader");
+      await qc.invalidateQueries({ queryKey: ["support-threads"] });
+      qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const list = (threads.data ?? []) as any[];
   const active = list.find((t) => t.id === activeId) ?? null;
 
@@ -360,13 +371,42 @@ function ChatInboxes() {
                   User ID {active.userId}
                 </p>
               </div>
-              <button
-                onClick={() => toggleStatus.mutate(active.status === "open" ? "closed" : "open")}
-                className="shrink-0 rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {active.status === "open" ? "Close thread" : "Reopen"}
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {active.escalatedAt && !active.connectedAt && (
+                  <button
+                    onClick={() => acceptMutation.mutate(active.id)}
+                    disabled={acceptMutation.isPending}
+                    className="rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+                  >
+                    {acceptMutation.isPending ? "Connecting…" : "Accept chat"}
+                  </button>
+                )}
+                <button
+                  onClick={() => toggleStatus.mutate(active.status === "open" ? "closed" : "open")}
+                  className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {active.status === "open" ? "Close thread" : "Reopen"}
+                </button>
+              </div>
             </div>
+
+            {active.botContext?.messages?.length > 0 && (
+              <details className="border-b border-border bg-secondary/30 px-4 py-2">
+                <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                  Automated support context
+                </summary>
+                <div className="mt-2 space-y-1.5 border-l border-border pl-3">
+                  {active.botContext.messages.map((entry: { role: string; text: string }, index: number) => (
+                    <p key={`${entry.role}-${index}`} className="text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {entry.role === "user" ? "Trader" : "Assistant"}:
+                      </span>{" "}
+                      {entry.text}
+                    </p>
+                  ))}
+                </div>
+              </details>
+            )}
 
             <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
               {((messages.data ?? []) as any[]).map((m) => (
@@ -430,13 +470,14 @@ function ChatInboxes() {
                 onKeyDown={(e) =>
                   e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
                 }
-                placeholder="Reply as support agent…"
+                placeholder={active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
+                disabled={!active.connectedAt}
                 maxLength={2000}
                 className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
                 onClick={() => (draft.trim() || file) && reply.mutate(draft.trim())}
-                disabled={reply.isPending || uploading}
+                disabled={!active.connectedAt || reply.isPending || uploading}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
