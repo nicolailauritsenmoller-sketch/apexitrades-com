@@ -48,6 +48,97 @@ export const saveMyAgentProfile = createServerFn({ method: "POST" })
 
 /* --------------------------------- chat --------------------------------- */
 
+const botContextSchema = z.object({
+  requestedWith: z.string().trim().max(1000).nullable().optional(),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["bot", "user"]),
+        text: z.string().trim().min(1).max(4000),
+      }),
+    )
+    .max(24),
+});
+
+/** Queue the caller's own chat once and retain the bot context privately for staff. */
+export const requestLiveAgent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        sessionId: z.string().uuid(),
+        context: botContextSchema,
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await privileged();
+    const { data: session } = await db
+      .from("chat_sessions")
+      .select("id,user_id,status,escalated_at,connected_at")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
+
+    if (session.escalated_at && session.status !== "closed") {
+      return {
+        queuedAt: session.escalated_at,
+        connectedAt: session.connected_at,
+        alreadyQueued: true,
+      };
+    }
+
+    const now = new Date().toISOString();
+    const { error } = await db
+      .from("chat_sessions")
+      .update({
+        bot_context: data.context,
+        escalated_at: now,
+        connected_at: null,
+        active_agent_id: null,
+        last_message_at: now,
+        status: "pending",
+        subject: "Live support requested",
+      })
+      .eq("id", data.sessionId);
+    if (error) throw new Error(error.message);
+    return { queuedAt: now, connectedAt: null, alreadyQueued: false };
+  });
+
+/** Explicitly claim a queued live chat before direct agent messaging starts. */
+export const acceptLiveChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { data: session } = await db
+      .from("chat_sessions")
+      .select("id,status,active_agent_id,connected_at")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!session) throw new Error("Conversation not found.");
+    if (session.active_agent_id && session.active_agent_id !== context.userId) {
+      throw new Error("This conversation is already assigned to another support agent.");
+    }
+    if (session.active_agent_id === context.userId && session.connected_at) {
+      return { connectedAt: session.connected_at, alreadyAccepted: true };
+    }
+
+    const now = new Date().toISOString();
+    const { error } = await db
+      .from("chat_sessions")
+      .update({
+        active_agent_id: context.userId,
+        connected_at: now,
+        status: "open",
+        agent_last_read_at: now,
+      })
+      .eq("id", data.sessionId);
+    if (error) throw new Error(error.message);
+    return { connectedAt: now, alreadyAccepted: false };
+  });
+
 export const sendAgentChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -68,6 +159,17 @@ export const sendAgentChat = createServerFn({ method: "POST" })
     await assertStaff(context);
     const db = await privileged();
     const now = new Date().toISOString();
+    const { data: session } = await db
+      .from("chat_sessions")
+      .select("active_agent_id,connected_at")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!session?.active_agent_id || !session.connected_at) {
+      throw new Error("Accept this conversation before replying.");
+    }
+    if (session.active_agent_id !== context.userId) {
+      throw new Error("This conversation is assigned to another support agent.");
+    }
     const { error } = await db.from("chat_messages").insert({
       session_id: data.sessionId,
       sender_id: context.userId,
@@ -161,7 +263,7 @@ export const getMyChatContext = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: session } = await db
       .from("chat_sessions")
-      .select("id,user_id,active_agent_id")
+      .select("id,user_id,status,active_agent_id,escalated_at,connected_at")
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
@@ -175,13 +277,23 @@ export const getMyChatContext = createServerFn({ method: "POST" })
       .is("read_at", null);
     await db.from("chat_sessions").update({ user_last_read_at: now }).eq("id", data.sessionId);
 
-    if (!session.active_agent_id) return { agent: null };
+    if (!session.active_agent_id) {
+      return {
+        agent: null,
+        status: session.status,
+        queuedAt: session.escalated_at,
+        connectedAt: session.connected_at,
+      };
+    }
     const { data: agent } = await db
       .from("agent_profiles")
       .select("full_name,agent_role,staff_id,avatar_url")
       .eq("user_id", session.active_agent_id)
       .maybeSingle();
     return {
+      status: session.status,
+      queuedAt: session.escalated_at,
+      connectedAt: session.connected_at,
       agent: agent
         ? {
             name: agent.full_name,

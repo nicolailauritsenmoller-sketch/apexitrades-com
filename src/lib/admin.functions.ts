@@ -794,6 +794,10 @@ export const getSupportThreads = createServerFn({ method: "POST" })
         legalName: identity?.full_name ?? null,
         kycStatus: identity?.status ?? "unverified",
         uid: profile?.uid ?? null,
+        activeAgentId: s.active_agent_id ?? null,
+        connectedAt: s.connected_at ?? null,
+        escalatedAt: s.escalated_at ?? null,
+        botContext: s.bot_context ?? null,
       };
     });
   });
