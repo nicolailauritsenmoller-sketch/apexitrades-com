@@ -14,6 +14,7 @@ export type Quote = {
 export type Candle = { t: number; o: number; h: number; l: number; c: number; v?: number };
 
 export type Timeframe =
+  | "1s"
   | "1m"
   | "3m"
   | "5m"

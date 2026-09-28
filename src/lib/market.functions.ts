@@ -5,6 +5,7 @@ const quotesInput = z.object({ symbols: z.array(z.string().max(20)).max(500) });
 const candlesInput = z.object({
   symbol: z.string().max(20),
   timeframe: z.enum([
+    "1s",
     "1m",
     "3m",
     "5m",

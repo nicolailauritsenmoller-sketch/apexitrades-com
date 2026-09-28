@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { TradingViewChart } from "@/components/trading/TradingViewChart";
+import { TradingViewChart, type ChartOverlay } from "@/components/trading/TradingViewChart";
+import { getContracts } from "@/lib/contracts.functions";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
 import { OrderBook } from "@/components/trading/OrderBook";
 import { MobileOrderEntry } from "@/components/trading/MobileOrderEntry";
@@ -151,6 +152,25 @@ function Terminal() {
 
   const positions = (portfolio.data?.positions ?? []) as PositionRow[];
   const openHere = positions.filter((p) => p.status === "open" && p.symbol === symbol);
+  const fetchContractsForChart = useServerFn(getContracts);
+  const chartContracts = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContractsForChart(), refetchInterval: 15_000 });
+  const chartOverlays = useMemo<ChartOverlay[]>(() => {
+    const out: ChartOverlay[] = [];
+    for (const p of openHere) {
+      const long = p.side === "long";
+      out.push({ price: p.entryPrice, label: "Entry", tone: long ? "bull" : "bear", style: "dotted" });
+      if (p.leverage > 1) {
+        const liq = long ? p.entryPrice * (1 - 1 / p.leverage) : p.entryPrice * (1 + 1 / p.leverage);
+        out.push({ price: liq, label: "Liq:", tone: "bear", style: "dashed" });
+      }
+    }
+    for (const c of chartContracts.data ?? []) {
+      if (c.status !== "open" || c.symbol !== symbol) continue;
+      out.push({ price: c.entryPrice, label: "Strike", tone: c.direction === "up" ? "bull" : "bear", style: "dotted" });
+    }
+    return out;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openHere.map((p) => `${p.id}:${p.entryPrice}:${p.leverage}`).join("|"), chartContracts.data, symbol]);
   const wallets = portfolio.data?.wallets ?? [];
   const wallet = wallets.find((w) => w.currency === inst.currency);
   const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
@@ -250,6 +270,7 @@ function Terminal() {
             onTimeframeChange={setTimeframe}
             height={420}
             isLoading={candles.isLoading}
+            overlays={chartOverlays}
           />
         </div>
 
