@@ -597,14 +597,17 @@ export function LiveChatDialog({
 
   function handleChip(chip: BotChip) {
     const [kind, id] = chip.action.split(":");
+    if (kind === "agent") {
+      // Escalate immediately without echoing the chip label into the thread.
+      void escalate();
+      return;
+    }
     userSay(chip.label);
     if (kind === "qa") {
       const qa = findQA(id);
       if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
     } else if (kind === "yes") {
       botSay("Glad we could help! Anything else?", { topics: true });
-    } else if (kind === "agent") {
-      void escalate();
     }
   }
 
