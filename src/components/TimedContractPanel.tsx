@@ -94,11 +94,11 @@ export function TimedContractPanel({
         );
       }
       if (res.result === "win") {
-        toast.success(`Contract won · payout ${formatMoney(res.payout, res.currency)}`);
+        toast.success(`Contract closed · payout ${formatMoney(res.payout, res.currency)}`);
       } else if (res.result === "draw") {
-        toast(`Contract drew · stake refunded`);
+        toast(`Contract closed · stake refunded`);
       } else {
-        toast.error("Contract lost");
+        toast.error(`Contract closed · -${formatMoney(c?.stake ?? 0, res.currency)}`);
       }
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
