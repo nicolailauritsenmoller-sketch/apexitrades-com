@@ -161,13 +161,17 @@ export const sendAgentChat = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     const { data: session } = await db
       .from("chat_sessions")
-      .select("active_agent_id,connected_at")
+      .select("active_agent_id,connected_at,status")
       .eq("id", data.sessionId)
       .maybeSingle();
-    if (!session?.active_agent_id || !session.connected_at) {
+    if (!session) throw new Error("Conversation not found.");
+    const isClosed = session.status === "closed";
+    // Live sessions must be accepted first; closed tickets accept async follow-ups
+    // that are queued and delivered on the user's next visit.
+    if (!isClosed && (!session.active_agent_id || !session.connected_at)) {
       throw new Error("Accept this conversation before replying.");
     }
-    if (session.active_agent_id !== context.userId) {
+    if (!isClosed && session.active_agent_id !== context.userId) {
       throw new Error("This conversation is assigned to another support agent.");
     }
     const { error } = await db.from("chat_messages").insert({
@@ -191,12 +195,16 @@ export const sendAgentChat = createServerFn({ method: "POST" })
 
     await db
       .from("chat_sessions")
-      .update({
-        last_message_at: now,
-        agent_last_read_at: now,
-        active_agent_id: context.userId,
-        status: "open",
-      })
+      .update(
+        isClosed
+          ? { last_message_at: now, agent_last_read_at: now }
+          : {
+              last_message_at: now,
+              agent_last_read_at: now,
+              active_agent_id: context.userId,
+              status: "open",
+            },
+      )
       .eq("id", data.sessionId);
     return { ok: true };
   });
