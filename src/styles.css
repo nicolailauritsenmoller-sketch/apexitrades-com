@@ -427,3 +427,10 @@
 @keyframes tick-down { 0% { background-color: color-mix(in oklab, var(--color-bear, #F6465D) 28%, transparent); } 100% { background-color: transparent; } }
 .flash-up { animation: tick-up 0.7s ease-out; border-radius: 4px; }
 .flash-down { animation: tick-down 0.7s ease-out; border-radius: 4px; }
+
+/* Hide chart library watermark on small screens to maximize trading area */
+@media (max-width: 767px) {
+  #tv-attr-logo {
+    display: none !important;
+  }
+}
