@@ -1065,7 +1065,7 @@ export function LiveChatDialog({
                 <Send className="size-4" />
               </button>
             </form>
-
+          )}
         </DialogContent>
       </Dialog>
 
