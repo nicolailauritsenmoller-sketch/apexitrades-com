@@ -1152,7 +1152,7 @@ function UserTicketHistory({ userId, currentId }: { userId: string; currentId: s
       onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
     >
       <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
-        User Ticket History
+        Full User History
       </summary>
       <div className="mt-2 max-h-64 space-y-3 overflow-y-auto">
         {history.isLoading && <p className="text-xs text-muted-foreground">Loading…</p>}

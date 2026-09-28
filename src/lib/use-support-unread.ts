@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Marks messages as delivered as soon as the app sees them, and exposes a
  * shared count so every support entry point can show a badge.
  */
-let listeners = new Set<(n: number) => void>();
+const listeners = new Set<(n: number) => void>();
 let current = 0;
 function publish(n: number) {
   current = n;
@@ -78,8 +78,4 @@ export function useSupportUnreadSync() {
       supabase.removeChannel(channel);
     };
   }, [refresh]);
-}
-
-export function UnreadDotClass() {
-  return "absolute -right-1 -top-1 grid min-w-4 h-4 place-items-center rounded-full bg-bear px-1 text-[10px] font-bold leading-none text-bear-foreground";
 }
