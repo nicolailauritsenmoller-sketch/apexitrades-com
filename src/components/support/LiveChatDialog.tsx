@@ -754,6 +754,7 @@ export function LiveChatDialog({
       .update({ last_message_at: new Date().toISOString() })
       .eq("id", sessionId);
     setSending(false);
+    sendLockRef.current = false;
   }
 
   function close() {
