@@ -370,17 +370,19 @@ function ContractCard({
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
   const profit = (contract.stake * contract.payoutPct) / 100;
   const expired = left <= 0;
-  // Dynamic unrealized P/L: scales with the mark price move relative to entry,
-  // amplified by the contract return multiplier, capped at full stake at risk
-  // on the downside and the fixed payout profit on the upside.
+  // Dynamic unrealized P/L, always on the contract's financial scale: a move in
+  // favor ramps smoothly from 0 to the full expected payout, an adverse move
+  // ramps from 0 to the full stake at risk. Normalized against the payout
+  // percentage so raw spot deltas never surface as the P/L figure.
   const livePnl = (() => {
     if (mark == null || contract.entryPrice <= 0) return null;
     const move = (mark - contract.entryPrice) / contract.entryPrice;
     const signed = contract.direction === "up" ? move : -move;
     if (signed === 0) return 0;
-    const multiplier = 1 + contract.payoutPct / 100;
-    const raw = signed * contract.stake * multiplier * 100;
-    return Math.max(-contract.stake, Math.min(profit, raw));
+    // A relative move equal to the payout % reaches full payout / full loss.
+    const scale = contract.payoutPct > 0 ? contract.payoutPct / 100 : 0.1;
+    const progress = Math.min(1, Math.abs(signed) / scale);
+    return signed > 0 ? profit * progress : -contract.stake * progress;
   })();
 
   const sideLabel = contract.direction === "up" ? "Buy / Long" : "Sell / Short";
