@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { SupportNavButton } from "@/components/support/SupportUnreadBadge";
 import { useSupportUnreadSync } from "@/lib/use-support-unread";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -155,9 +154,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
-            <GlobalSearch />
-            <SupportNavButton />
-            <ThemeToggle />
+            <div className="hidden items-center gap-2 md:flex">
+              <GlobalSearch />
+              <SupportNavButton />
+            </div>
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
               <Link
