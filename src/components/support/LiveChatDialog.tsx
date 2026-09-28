@@ -735,16 +735,38 @@ export function LiveChatDialog({
 
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {agentJoined && (
-              <div className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
-                <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
-                <span>
-                  <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
-                  has joined the chat.
-                </span>
+            {history.map((s) => (
+              <div key={s.id} className="space-y-2 opacity-80">
+                {s.bot.map((b, i) => (
+                  <div key={`${s.id}-b${i}`} className={`flex ${b.role === "user" ? "justify-end" : ""}`}>
+                    <div
+                      className={`max-w-[85%] whitespace-pre-line rounded-lg px-3 py-2 text-sm ${
+                        b.role === "user" ? "bg-primary/80 text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {b.text}
+                    </div>
+                  </div>
+                ))}
+                {s.msgs.map((m) => (
+                  <div key={m.id} className={`flex ${m.sender_role === "user" ? "justify-end" : ""}`}>
+                    <div
+                      className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                        m.sender_role === "user" ? "bg-primary/80 text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {m.sender_role !== "user" && (
+                        <p className="mb-0.5 text-[10px] font-semibold text-muted-foreground">Support Agent</p>
+                      )}
+                      {m.body}
+                    </div>
+                  </div>
+                ))}
+                <Divider label="Session Ended" />
               </div>
-            )}
-            {mode === "bot" && botLog.map((b) => (
+            ))}
+            {history.length > 0 && <Divider label="New Session" />}
+            {botLog.map((b) => (
               <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
                 {b.role === "bot" && (
                   <span className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-primary">
@@ -760,7 +782,7 @@ export function LiveChatDialog({
                     {b.text}
                   </div>
                   {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} />}
-                  {b.chips && (
+                  {b.chips && mode === "bot" && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
                         <button
@@ -781,11 +803,19 @@ export function LiveChatDialog({
               </div>
             ))}
             {mode === "agent" && !agentJoined && !ended && (
-              <p className="pt-1 text-center text-sm text-muted-foreground/70">
+              <p className="pt-4 text-center text-sm text-muted-foreground">
                 Send us a message and an agent will join shortly.
               </p>
             )}
-            {mode === "agent" && agentJoined && visibleMessages.map((m) => (
+            {mode === "agent" && threadItems.map((m) => m.id === "__joined" ? (
+              <div key="__joined" className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
+                <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
+                <span>
+                  <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
+                  has joined the chat.
+                </span>
+              </div>
+            ) : (
               <div
                 key={m.id}
                 className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
