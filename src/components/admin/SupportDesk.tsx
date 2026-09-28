@@ -403,14 +403,16 @@ function ChatInboxes() {
               </div>
             </div>
 
+            <UserTicketHistory userId={active.userId} currentId={active.id} />
+
             {active.botContext?.messages?.length > 0 && (
-              <details className="border-b border-border bg-secondary/30 px-4 py-2">
+              <details open className="border-b border-border bg-secondary/30 px-4 py-2">
                 <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
-                  Automated support context
+                  Session transcript (automated assistant)
                 </summary>
-                <div className="mt-2 space-y-1.5 border-l border-border pl-3">
+                <div className="mt-2 max-h-48 space-y-1.5 overflow-y-auto border-l border-border pl-3">
                   {active.botContext.messages.map((entry: { role: string; text: string }, index: number) => (
-                    <p key={`${entry.role}-${index}`} className="text-xs text-muted-foreground">
+                    <p key={`${entry.role}-${index}`} className="whitespace-pre-line text-xs text-muted-foreground">
                       <span className="font-semibold text-foreground">
                         {entry.role === "user" ? "Trader" : "Assistant"}:
                       </span>{" "}
