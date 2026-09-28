@@ -15,12 +15,14 @@ export function TradeCloseSummary({
   summary,
   onClose,
   onTradeAgain,
+  onViewHistory,
 }: {
   summary: TradeSummary;
   onClose: () => void;
   onTradeAgain?: () => void;
   onReverse?: () => void;
   onFavorite?: () => void;
+  onViewHistory?: () => void;
 }) {
   const navigate = useNavigate();
   const positive = summary.netPnl >= 0;
@@ -120,6 +122,7 @@ export function TradeCloseSummary({
             variant="outline"
             className="min-h-11"
             onClick={() => {
+              if (onViewHistory) return onViewHistory();
               onClose();
               navigate({ to: "/history/orders/$orderId", params: { orderId: summary.orderId } });
             }}
