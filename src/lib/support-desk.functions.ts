@@ -189,6 +189,6 @@ export const resetUserTwoFactor = createServerFn({ method: "POST" })
       body: "Your authenticator was reset by Velocity Support. Enrol a new device from Security settings.",
       kind: "warning",
     });
-    await logAudit(context as any, "user.2fa_reset", data.userId, {});
+    await logAudit(db, context.userId, "user.2fa_reset", data.userId, {});
     return { ok: true };
   });

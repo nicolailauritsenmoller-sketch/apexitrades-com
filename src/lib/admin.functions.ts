@@ -760,7 +760,7 @@ export const getSupportThreads = createServerFn({ method: "POST" })
       db.from("kyc_submissions").select("user_id,full_name,status").in("user_id", userIds),
       db
         .from("chat_messages")
-        .select("session_id,body,created_at,sender_role")
+        .select("session_id,body,created_at,sender_role,is_internal")
         .in(
           "session_id",
           rows.map((r) => r.id),
@@ -774,7 +774,7 @@ export const getSupportThreads = createServerFn({ method: "POST" })
     const msgs: any[] = messages.data ?? [];
 
     return rows.map((s) => {
-      const mine = msgs.filter((m) => m.session_id === s.id);
+      const mine = msgs.filter((m) => m.session_id === s.id && !m.is_internal);
       const unread = mine.filter(
         (m) =>
           m.sender_role === "user" &&
@@ -798,6 +798,8 @@ export const getSupportThreads = createServerFn({ method: "POST" })
         connectedAt: s.connected_at ?? null,
         escalatedAt: s.escalated_at ?? null,
         botContext: s.bot_context ?? null,
+        department: s.department ?? "support",
+        lastSenderRole: mine[0]?.sender_role ?? null,
       };
     });
   });
