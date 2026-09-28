@@ -25,6 +25,7 @@ import {
   type BotTopicId,
 } from "@/lib/support-bot";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
@@ -160,6 +161,81 @@ export function LiveChatDialog({
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const escalatingRef = useRef(false);
+  const [ended, setEnded] = useState(false);
+  const [csatDone, setCsatDone] = useState(false);
+  const [endConfirm, setEndConfirm] = useState(false);
+  const [ending, setEnding] = useState(false);
+
+  /** Apply the durable session state reported by the backend. */
+  function applyContext(res: {
+    status: string;
+    queuedAt: string | null;
+    connectedAt: string | null;
+  }) {
+    if (res.status === "missing") {
+      setSessionId(null);
+      setMessages([]);
+      setMode("bot");
+      setQueuedAt(null);
+      setConnectedAt(null);
+      setEnded(false);
+      escalatingRef.current = false;
+      return;
+    }
+    if (res.status === "closed") {
+      // Only a live-agent session that was active in this widget transitions
+      // to the ended state; old closed sessions simply stay on the bot home.
+      if (escalatingRef.current) {
+        setConnectedAt(res.connectedAt);
+        setEnded(true);
+        setEndConfirm(false);
+      }
+      return;
+    }
+    if (res.queuedAt) {
+      setMode("agent");
+      setQueuedAt(res.queuedAt);
+      setConnectedAt(res.connectedAt);
+      escalatingRef.current = true;
+    }
+  }
+
+  async function endChat() {
+    if (!sessionId || ending) return;
+    setEnding(true);
+    const { error } = await supabase
+      .from("chat_sessions")
+      .update({ status: "closed" })
+      .eq("id", sessionId);
+    setEnding(false);
+    setEndConfirm(false);
+    if (!error) setEnded(true);
+  }
+
+  /** Reset to the automated bot home on a fresh session. */
+  async function startNewInquiry() {
+    if (sessionId) localStorage.setItem(RATED_KEY, sessionId);
+    escalatingRef.current = false;
+    setEnded(false);
+    setCsatDone(false);
+    setEndConfirm(false);
+    setMode("bot");
+    setQueuedAt(null);
+    setConnectedAt(null);
+    setAgent(null);
+    setMessages([]);
+    setBotLog([]);
+    setDraft("");
+    setFile(null);
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return;
+    const { data: created } = await supabase
+      .from("chat_sessions")
+      .insert({ user_id: user.user.id, subject: "Support" })
+      .select()
+      .single();
+    if (created) setSessionId(created.id);
+  }
 
   /* Global open event — supports an optional pre-filled message.
      Only the uncontrolled (global) instance listens, so a controlled
@@ -319,21 +395,7 @@ export function LiveChatDialog({
         const res = await getMyChatContext({ data: { sessionId } });
         if (!active) return;
         setAgent(res.agent as Agent);
-        if (res.status === "missing") {
-          setSessionId(null);
-          setMessages([]);
-          setMode("bot");
-          setQueuedAt(null);
-          setConnectedAt(null);
-          escalatingRef.current = false;
-          return;
-        }
-        if (res.queuedAt && res.status !== "closed") {
-          setMode("agent");
-          setQueuedAt(res.queuedAt);
-          setConnectedAt(res.connectedAt);
-          escalatingRef.current = true;
-        }
+        applyContext(res);
       } catch {
         /* not signed in yet */
       }
@@ -363,21 +425,7 @@ export function LiveChatDialog({
           void getMyChatContext({ data: { sessionId } })
             .then((res) => {
               setAgent(res.agent as Agent);
-              if (res.status === "missing") {
-                setSessionId(null);
-                setMessages([]);
-                setMode("bot");
-                setQueuedAt(null);
-                setConnectedAt(null);
-                escalatingRef.current = false;
-                return;
-              }
-              if (res.queuedAt && res.status !== "closed") {
-                setMode("agent");
-                setQueuedAt(res.queuedAt);
-                setConnectedAt(res.connectedAt);
-                escalatingRef.current = true;
-              }
+              applyContext(res);
             })
             .catch(() => {
               /* A stale realtime event must never escape into the page. */
@@ -544,7 +592,7 @@ export function LiveChatDialog({
 
   function close() {
     setOpen(false);
-    if (sessionId && messages.length > 0 && localStorage.getItem(RATED_KEY) !== sessionId) {
+    if (!ended && connectedAt && sessionId && messages.length > 0 && localStorage.getItem(RATED_KEY) !== sessionId) {
       setRating(true);
     }
   }
@@ -570,16 +618,47 @@ export function LiveChatDialog({
               <p className="truncate text-[11px] text-muted-foreground">
                 {mode === "bot"
                   ? "Automated · 24/7 Live Assistance"
+                  : ended
+                    ? "Session closed"
                     : agentJoined
                       ? "Connected with Agent"
                       : "Queued for Support Agent · ~2 mins"}
               </p>
             </div>
+            {mode === "agent" && agentJoined && !ended && (
+              <Popover open={endConfirm} onOpenChange={setEndConfirm}>
+                <PopoverTrigger asChild>
+                  <button className="ml-auto mr-8 touch-manipulation rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-bear/50 hover:text-bear">
+                    End Chat
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 p-3">
+                  <p className="text-xs leading-5 text-foreground">
+                    Are you sure you want to end this support session?
+                  </p>
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button
+                      onClick={() => setEndConfirm(false)}
+                      className="touch-manipulation rounded-md border border-border px-3 py-1.5 text-xs"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => void endChat()}
+                      disabled={ending}
+                      className="touch-manipulation rounded-md bg-bear px-3 py-1.5 text-xs font-semibold text-bear-foreground disabled:opacity-50"
+                    >
+                      {ending ? "Ending…" : "End Session"}
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {queuedAt && !agentJoined && (
+            {queuedAt && !agentJoined && !ended && (
               <div className="flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-3 text-xs leading-5 text-foreground">
                 <Clock className="mt-0.5 size-3.5 shrink-0 text-primary" />
                 <span>
@@ -679,6 +758,24 @@ export function LiveChatDialog({
                 {m.sender_role === "user" && <UserAvatar className="size-7" alt="You" />}
               </div>
             ))}
+            {mode === "agent" && ended && (
+              <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/60 px-3 py-3 text-xs leading-5 text-foreground">
+                <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                <span>
+                  <strong>Chat Session Ended</strong> • This support ticket has been closed.
+                </span>
+              </div>
+            )}
+            {mode === "agent" && ended && agentJoined && !csatDone && sessionId && (
+              <CsatCard
+                sessionId={sessionId}
+                agentName={agent?.name ?? "our support team"}
+                onDone={() => {
+                  setCsatDone(true);
+                  void startNewInquiry();
+                }}
+              />
+            )}
             <div ref={endRef} />
           </div>
 
@@ -696,6 +793,16 @@ export function LiveChatDialog({
           )}
 
           {/* Composer */}
+          {ended ? (
+            <div className="border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                onClick={() => void startNewInquiry()}
+                className="w-full touch-manipulation rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                Start New Inquiry
+              </button>
+            </div>
+          ) : (
           <div className="flex flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             {file && (
               <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
@@ -738,6 +845,7 @@ export function LiveChatDialog({
               <Send className="size-4" />
             </button>
           </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -818,6 +926,80 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
             Submit
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Inline CSAT card shown in the thread right after an agent session ends. */
+function CsatCard({
+  sessionId,
+  agentName,
+  onDone,
+}: {
+  sessionId: string;
+  agentName: string;
+  onDone: () => void;
+}) {
+  const [stars, setStars] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!stars || busy) return;
+    setBusy(true);
+    try {
+      await submitChatRating({
+        data: { sessionId, stars, feedback: feedback.trim() || undefined },
+      });
+    } catch {
+      /* never block the user on feedback */
+    }
+    setBusy(false);
+    onDone();
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="text-sm font-semibold text-foreground">
+        How was your support experience with {agentName}?
+      </p>
+      <div className="mt-3 flex justify-center gap-1">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            onClick={() => setStars(n)}
+            aria-label={`${n} star${n > 1 ? "s" : ""}`}
+            className="touch-manipulation p-1"
+          >
+            <Star
+              className={`size-7 ${n <= stars ? "fill-warning text-warning" : "text-muted-foreground"}`}
+            />
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={feedback}
+        onChange={(e) => setFeedback(e.target.value)}
+        rows={2}
+        maxLength={1000}
+        placeholder="Additional feedback (optional)"
+        className="mt-3 w-full resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+      />
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={onDone}
+          className="flex-1 touch-manipulation rounded-md border border-border py-2 text-xs"
+        >
+          Skip
+        </button>
+        <button
+          onClick={submit}
+          disabled={!stars || busy}
+          className="flex-1 touch-manipulation rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {busy ? "Submitting…" : "Submit Feedback"}
+        </button>
       </div>
     </div>
   );
