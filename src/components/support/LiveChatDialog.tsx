@@ -427,7 +427,7 @@ export function LiveChatDialog({
       {
         id: "greet",
         role: "bot",
-        text: `Hello ${identity.name} [ID: ${identity.uid}], how can Velocity Support assist you today?`,
+        text: `Hello User ${identity.uid}, how can Velocity Support assist you today?`,
         topics: true,
       },
     ]);
