@@ -190,6 +190,7 @@ export function LiveChatDialog({
   const fileRef = useRef<HTMLInputElement>(null);
   const escalatingRef = useRef(false);
   const pendingEscalationRef = useRef(false);
+  const sendLockRef = useRef(false);
   const [ended, setEnded] = useState(false);
   const [csatDone, setCsatDone] = useState(false);
   const [endConfirm, setEndConfirm] = useState(false);
