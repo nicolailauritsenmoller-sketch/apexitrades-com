@@ -231,6 +231,7 @@ export type Database = {
           attachment_type: string | null
           body: string
           created_at: string
+          delivered_at: string | null
           id: string
           read_at: string | null
           sender_id: string
@@ -243,6 +244,7 @@ export type Database = {
           attachment_type?: string | null
           body: string
           created_at?: string
+          delivered_at?: string | null
           id?: string
           read_at?: string | null
           sender_id: string
@@ -255,6 +257,7 @@ export type Database = {
           attachment_type?: string | null
           body?: string
           created_at?: string
+          delivered_at?: string | null
           id?: string
           read_at?: string | null
           sender_id?: string

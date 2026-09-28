@@ -445,9 +445,17 @@ function ChatInboxes() {
                     {new Date(m.created_at).toLocaleString()}
                     {m.sender_role !== "user" &&
                       (m.read_at ? (
-                        <CheckCheck className="size-3" />
+                        <span className="inline-flex items-center gap-0.5 text-primary">
+                          <CheckCheck className="size-3" /> Read
+                        </span>
+                      ) : (m as { delivered_at?: string | null }).delivered_at ? (
+                        <span className="inline-flex items-center gap-0.5">
+                          <CheckCheck className="size-3" /> Delivered
+                        </span>
                       ) : (
-                        <Check className="size-3" />
+                        <span className="inline-flex items-center gap-0.5">
+                          <Check className="size-3" /> Sent
+                        </span>
                       ))}
                   </span>
                 </div>
@@ -485,14 +493,14 @@ function ChatInboxes() {
                 onKeyDown={(e) =>
                   e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
                 }
-                placeholder={active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
-                disabled={!active.connectedAt}
+                placeholder={active.status === "closed" ? "Send follow-up — delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
+                disabled={!active.connectedAt && active.status !== "closed"}
                 maxLength={2000}
                 className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
                 onClick={() => (draft.trim() || file) && reply.mutate(draft.trim())}
-                disabled={!active.connectedAt || reply.isPending || uploading}
+                disabled={(!active.connectedAt && active.status !== "closed") || reply.isPending || uploading}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
@@ -1152,7 +1160,7 @@ function UserTicketHistory({ userId, currentId }: { userId: string; currentId: s
       onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
     >
       <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
-        User Ticket History
+        Full User History
       </summary>
       <div className="mt-2 max-h-64 space-y-3 overflow-y-auto">
         {history.isLoading && <p className="text-xs text-muted-foreground">Loading…</p>}

@@ -120,6 +120,13 @@
       "when": 1790494623458,
       "tag": "0016_add_private_live_chat_handoff",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790632977750,
+      "tag": "0017_chat_message_delivery",
+      "breakpoints": true
     }
   ]
 }

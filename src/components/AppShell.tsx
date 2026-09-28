@@ -12,6 +12,8 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SupportNavButton } from "@/components/support/SupportUnreadBadge";
+import { useSupportUnreadSync } from "@/lib/use-support-unread";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
@@ -154,6 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-2 md:ml-auto">
             <GlobalSearch />
+            <SupportNavButton />
             <ThemeToggle />
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
@@ -229,7 +232,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       {/* Launcher-less live chat dialog — opens via Contact Support or the velocity:open-chat event */}
+      <SupportUnreadSync />
       <LiveChatDialog />
     </div>
   );
+}
+
+
+function SupportUnreadSync() {
+  useSupportUnreadSync();
+  return null;
 }

@@ -1,3 +1,4 @@
+import { markAllSupportRead } from "@/lib/use-support-unread";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
@@ -54,7 +55,13 @@ type Agent = {
 
 const RATED_KEY = "velocity:chat-rated";
 
-type PastSession = { id: string; bot: { role: "bot" | "user"; text: string }[]; msgs: Message[] };
+type PastSession = {
+  id: string;
+  status: string;
+  endedAt: string;
+  bot: { role: "bot" | "user"; text: string }[];
+  msgs: Message[];
+};
 
 function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
   const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
@@ -285,7 +292,7 @@ export function LiveChatDialog({
   const loadHistory = useCallback(async (userId: string, excludeId: string) => {
     const { data: sessions } = await supabase
       .from("chat_sessions")
-      .select("id, created_at, bot_context")
+      .select("id, created_at, status, last_message_at, bot_context")
       .eq("user_id", userId)
       .neq("id", excludeId)
       .order("created_at", { ascending: true });
@@ -296,6 +303,8 @@ export function LiveChatDialog({
     const past: PastSession[] = (sessions ?? [])
       .map((s) => ({
         id: s.id,
+        status: s.status,
+        endedAt: s.last_message_at,
         bot: readBotLog(s.bot_context),
         msgs: ((msgs ?? []) as Message[]).filter(
           (m) =>
@@ -307,6 +316,35 @@ export function LiveChatDialog({
       .filter((s) => s.bot.some((b) => b.role === "user") || s.msgs.length > 0);
     setHistory(past);
   }, []);
+
+  /* Opening the widget clears the unread badge and keeps past-session
+     follow-ups from agents (async replies) live while it stays open. */
+  useEffect(() => {
+    if (!open || !sessionId) return;
+    void markAllSupportRead();
+    const channel = supabase
+      .channel(`support-history-${sessionId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        async (payload) => {
+          const row = payload.new as { session_id?: string };
+          if (row.session_id === sessionId) {
+            void markAllSupportRead();
+            return;
+          }
+          const { data: u } = await supabase.auth.getUser();
+          if (u.user) {
+            await loadHistory(u.user.id, sessionId);
+            void markAllSupportRead();
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [open, sessionId, loadHistory]);
 
   /* Resolve or create the user's chat session. Closed sessions become history. */
   useEffect(() => {
@@ -769,10 +807,15 @@ export function LiveChatDialog({
                     </div>
                   </div>
                 ))}
-                <Divider label="Session Ended" />
+                <Divider
+                  label={`Chat Session Ended (${new Date(s.endedAt).toLocaleString([], {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })})`}
+                />
               </div>
             ))}
-            {history.length > 0 && <Divider label="New Session" />}
+            {history.length > 0 && <Divider label="New Inquiry Started" />}
             {botLog.map((b) => (
               <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
                 {b.role === "bot" && (

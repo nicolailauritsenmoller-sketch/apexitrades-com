@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
+import { SupportUnreadBadge } from "@/components/support/SupportUnreadBadge";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
@@ -174,8 +175,9 @@ function ContactSupport() {
             {visibleItems.map(({ icon: Icon, title, description, action, onClick, to }) => {
               const content = (
                 <>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
+                  <span className="relative grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
                     <Icon className="size-4.5" />
+                    {title.startsWith("Live Support") && <SupportUnreadBadge />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold text-foreground">{title}</span>
@@ -221,7 +223,7 @@ function ContactSupport() {
               <Button asChild variant="outline">
                 <Link to="/profile/help">Browse help center</Link>
               </Button>
-              <Button onClick={() => setChatOpen(true)}>Start live chat</Button>
+              <Button onClick={() => setChatOpen(true)} className="relative">Start live chat<SupportUnreadBadge /></Button>
             </div>
           </div>
         )}
