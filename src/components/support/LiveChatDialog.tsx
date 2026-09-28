@@ -319,6 +319,15 @@ export function LiveChatDialog({
         const res = await getMyChatContext({ data: { sessionId } });
         if (!active) return;
         setAgent(res.agent as Agent);
+        if (res.status === "missing") {
+          setSessionId(null);
+          setMessages([]);
+          setMode("bot");
+          setQueuedAt(null);
+          setConnectedAt(null);
+          escalatingRef.current = false;
+          return;
+        }
         if (res.queuedAt && res.status !== "closed") {
           setMode("agent");
           setQueuedAt(res.queuedAt);
