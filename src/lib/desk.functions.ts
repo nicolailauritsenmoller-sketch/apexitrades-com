@@ -78,17 +78,7 @@ export const requestLiveAgent = createServerFn({ method: "POST" })
       .select("id,user_id,status,escalated_at,connected_at")
       .eq("id", data.sessionId)
       .maybeSingle();
-    // A session can be replaced while an older modal subscription is still
-    // winding down. Return an inert state instead of turning that race into an
-    // unhandled client error; ownership failures reveal no session details.
-    if (!session || session.user_id !== context.userId) {
-      return {
-        agent: null,
-        status: "missing",
-        queuedAt: null,
-        connectedAt: null,
-      };
-    }
+    if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
 
     if (session.escalated_at && session.status !== "closed") {
       return {
@@ -276,7 +266,17 @@ export const getMyChatContext = createServerFn({ method: "POST" })
       .select("id,user_id,status,active_agent_id,escalated_at,connected_at")
       .eq("id", data.sessionId)
       .maybeSingle();
-    if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
+    // A session can be replaced while an older modal subscription is still
+    // winding down. Return an inert state instead of turning that race into an
+    // unhandled client error; ownership failures reveal no session details.
+    if (!session || session.user_id !== context.userId) {
+      return {
+        agent: null,
+        status: "missing",
+        queuedAt: null,
+        connectedAt: null,
+      };
+    }
 
     const now = new Date().toISOString();
     await db
