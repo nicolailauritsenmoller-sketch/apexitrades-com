@@ -194,7 +194,7 @@ export const settleContract = createServerFn({ method: "POST" })
     if (contract.status === "settled") {
       // Already settled (e.g. by the background sweep) - return the stored result instead of failing.
       return {
-        result: contract.result as string,
+        result: contract.result as "win" | "loss" | "draw",
         exitPrice: Number(contract.exit_price),
         payout: Number(contract.payout ?? 0),
         currency: contract.currency as string,
