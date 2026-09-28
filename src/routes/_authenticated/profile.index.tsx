@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SupportUnreadBadge } from "@/components/support/SupportUnreadBadge";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -360,9 +361,10 @@ function ProfileHome() {
         </div>
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat", { detail: {} }))}
-          className="touch-manipulation rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+          className="relative touch-manipulation rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
         >
           Get Support
+          <SupportUnreadBadge />
         </button>
       </section>
 
