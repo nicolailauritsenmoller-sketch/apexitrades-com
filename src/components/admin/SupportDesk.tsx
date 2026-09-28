@@ -485,14 +485,14 @@ function ChatInboxes() {
                 onKeyDown={(e) =>
                   e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
                 }
-                placeholder={active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
-                disabled={!active.connectedAt}
+                placeholder={active.status === "closed" ? "Send follow-up — delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
+                disabled={!active.connectedAt && active.status !== "closed"}
                 maxLength={2000}
                 className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
               />
               <button
                 onClick={() => (draft.trim() || file) && reply.mutate(draft.trim())}
-                disabled={!active.connectedAt || reply.isPending || uploading}
+                disabled={(!active.connectedAt && active.status !== "closed") || reply.isPending || uploading}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
