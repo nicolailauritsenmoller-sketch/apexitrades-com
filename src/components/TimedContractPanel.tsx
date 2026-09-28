@@ -268,6 +268,7 @@ export function TimedContractPanel({
           Investment ({CONTRACT_CURRENCY})
         </label>
         <input
+          ref={amountRef}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           inputMode="decimal"
