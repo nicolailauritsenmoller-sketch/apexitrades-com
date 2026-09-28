@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
+import { usePriceFlash } from "@/hooks/usePriceFlash";
 import { displaySymbol, formatPrice } from "@/lib/instruments";
 import {
   Drawer,
@@ -97,7 +98,7 @@ export function HomeActionBar() {
 /* -------------------------------- Watchlist ------------------------------- */
 
 export function WatchlistSection() {
-  const { quotes } = useQuotes([...WATCH], 6000);
+  const { quotes } = useQuotes([...WATCH], 3000);
 
   return (
     <section className="panel mt-4 p-4">
@@ -127,9 +128,9 @@ export function WatchlistSection() {
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
-                  <div className="num text-sm font-semibold">
+                  <FlashNum value={q && !q.stale ? q.price : undefined} className="num text-sm font-semibold">
                     {q && !q.stale ? formatPrice(q.price, symbol) : "-"}
-                  </div>
+                  </FlashNum>
                   <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
                     {q && !q.stale ? `${up ? "+" : ""}${chg.toFixed(2)}%` : "-"}
                   </div>
@@ -146,7 +147,7 @@ export function WatchlistSection() {
 /* ------------------------------- Top movers ------------------------------- */
 
 export function TopMoversSection() {
-  const { quotes } = useQuotes([...MOVERS], 8000);
+  const { quotes } = useQuotes([...MOVERS], 4000);
   const rows = MOVERS.map((s) => ({ symbol: s, chg: quotes[s]?.changePercent ?? 0 })).sort(
     (a, b) => b.chg - a.chg,
   );
@@ -187,12 +188,13 @@ function MoverCard({
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium">
                 {displaySymbol(symbol)}
               </span>
-              <span
-                className={`num shrink-0 text-[11px] font-semibold ${chg >= 0 ? "text-bull" : "text-bear"}`}
+              <FlashNum
+                value={chg}
+                className={`num shrink-0 px-0.5 text-[11px] font-semibold ${chg >= 0 ? "text-bull" : "text-bear"}`}
               >
                 {chg >= 0 ? "+" : ""}
                 {chg.toFixed(2)}%
-              </span>
+              </FlashNum>
             </Link>
           </li>
         ))}
@@ -201,3 +203,8 @@ function MoverCard({
   );
 }
 
+
+export function FlashNum({ value, className, children }: { value: number | undefined; className?: string; children: React.ReactNode }) {
+  const flash = usePriceFlash(value);
+  return <span className={`inline-block ${className ?? ""} ${flash}`}>{children}</span>;
+}

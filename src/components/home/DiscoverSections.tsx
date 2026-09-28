@@ -1,3 +1,4 @@
+import { FlashNum } from "@/components/home/HomeSummary";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -60,7 +61,7 @@ const TOKENS = [
 export function ExploreTokensSection() {
   const { quotes } = useQuotes(
     TOKENS.map((t) => t.symbol),
-    8000,
+    4000,
   );
 
   return (
@@ -90,9 +91,9 @@ export function ExploreTokensSection() {
                 <p className="num text-xs text-muted-foreground">{displaySymbol(t.symbol)}</p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="num text-sm font-semibold">
+                <FlashNum value={price} className="num text-sm font-semibold">
                   {price !== undefined ? `${isStablecoin ? "$" : ""}${formatPrice(price, t.symbol)}` : "-"}
-                </p>
+                </FlashNum>
                 <p className={`num text-xs ${chg >= 0 ? "text-bull" : "text-bear"}`}>
                   {q || isStablecoin ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}
                 </p>
