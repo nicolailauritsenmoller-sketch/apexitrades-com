@@ -118,7 +118,7 @@ export function TimedContractPanel({
   const now = useNow(openContracts.length > 0);
   const { quotes } = useQuotes(
     useMemo(() => Array.from(new Set(openContracts.map((c) => c.symbol))), [openContracts]),
-    3000,
+    1000,
   );
 
   // Auto-settle expired contracts, after a brief clearing ("Settling…") window.
@@ -309,14 +309,18 @@ function ContractCard({
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
   const profit = (contract.stake * contract.payoutPct) / 100;
   const expired = left <= 0;
-  const livePnl =
-    mark == null
-      ? null
-      : mark === contract.entryPrice
-        ? 0
-        : (contract.direction === "up" ? mark > contract.entryPrice : mark < contract.entryPrice)
-          ? profit
-          : -contract.stake;
+  // Dynamic unrealized P/L: scales with the mark price move relative to entry,
+  // amplified by the contract return multiplier, capped at full stake at risk
+  // on the downside and the fixed payout profit on the upside.
+  const livePnl = (() => {
+    if (mark == null || contract.entryPrice <= 0) return null;
+    const move = (mark - contract.entryPrice) / contract.entryPrice;
+    const signed = contract.direction === "up" ? move : -move;
+    if (signed === 0) return 0;
+    const multiplier = 1 + contract.payoutPct / 100;
+    const raw = signed * contract.stake * multiplier * 100;
+    return Math.max(-contract.stake, Math.min(profit, raw));
+  })();
 
   const sideLabel = contract.direction === "up" ? "Buy / Long" : "Sell / Short";
   const sideClass = contract.direction === "up" ? "text-bull" : "text-bear";
