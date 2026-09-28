@@ -169,7 +169,8 @@ function Terminal() {
       out.push({ price: c.entryPrice, label: "Strike", tone: c.direction === "up" ? "bull" : "bear", style: "dotted" });
     }
     return out;
-  }, [openHere, chartContracts.data, symbol]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openHere.map((p) => `${p.id}:${p.entryPrice}:${p.leverage}`).join("|"), chartContracts.data, symbol]);
   const wallets = portfolio.data?.wallets ?? [];
   const wallet = wallets.find((w) => w.currency === inst.currency);
   const usdtBalance = wallets.find((w) => w.currency === "USDT")?.balance;
