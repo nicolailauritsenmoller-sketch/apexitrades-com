@@ -54,6 +54,26 @@ type Agent = {
 
 const RATED_KEY = "velocity:chat-rated";
 
+type PastSession = { id: string; bot: { role: "bot" | "user"; text: string }[]; msgs: Message[] };
+
+function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
+  const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((m) => typeof m?.text === "string")
+    .map((m, i) => ({ id: `saved-${i}`, role: m.role === "user" ? "user" : "bot", text: m.text! }));
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+      <span className="h-px flex-1 bg-border" />
+      {label}
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 type BotChip = { label: string; action: string; tone?: "primary" | "muted" };
 type BotMsg = {
   id: string;
@@ -165,6 +185,7 @@ export function LiveChatDialog({
   const [endConfirm, setEndConfirm] = useState(false);
   const [ending, setEnding] = useState(false);
   const [endedByAgent, setEndedByAgent] = useState(false);
+  const [history, setHistory] = useState<PastSession[]>([]);
   const endedByMeRef = useRef(false);
 
   /** Apply the durable session state reported by the backend. */
@@ -240,7 +261,10 @@ export function LiveChatDialog({
       .insert({ user_id: user.user.id, subject: "Support" })
       .select()
       .single();
-    if (created) setSessionId(created.id);
+    if (created) {
+      setSessionId(created.id);
+      await loadHistory(user.user.id, created.id);
+    }
   }
 
   /* Global open event — supports an optional pre-filled message.
@@ -257,7 +281,34 @@ export function LiveChatDialog({
     return () => window.removeEventListener("velocity:open-chat", handler);
   }, [setOpen, controlledOpen]);
 
-  /* Resolve or create the user's chat session. */
+  /* Load every earlier session for this user as a read-only transcript. */
+  const loadHistory = useCallback(async (userId: string, excludeId: string) => {
+    const { data: sessions } = await supabase
+      .from("chat_sessions")
+      .select("id, created_at, bot_context")
+      .eq("user_id", userId)
+      .neq("id", excludeId)
+      .order("created_at", { ascending: true });
+    const ids = (sessions ?? []).map((s) => s.id);
+    const { data: msgs } = ids.length
+      ? await supabase.from("chat_messages").select("*").in("session_id", ids).order("created_at")
+      : { data: [] as Message[] };
+    const past: PastSession[] = (sessions ?? [])
+      .map((s) => ({
+        id: s.id,
+        bot: readBotLog(s.bot_context),
+        msgs: ((msgs ?? []) as Message[]).filter(
+          (m) =>
+            m.session_id === s.id &&
+            !m.body.startsWith("[Live agent requested]") &&
+            !m.body.includes("Bot transcript:"),
+        ),
+      }))
+      .filter((s) => s.bot.some((b) => b.role === "user") || s.msgs.length > 0);
+    setHistory(past);
+  }, []);
+
+  /* Resolve or create the user's chat session. Closed sessions become history. */
   useEffect(() => {
     if (!open || sessionId) return;
     (async () => {
@@ -271,14 +322,17 @@ export function LiveChatDialog({
         .limit(1)
         .maybeSingle();
 
-      if (existing) {
+      if (existing && existing.status !== "closed") {
         setSessionId(existing.id);
-        if (existing.escalated_at && existing.status !== "closed") {
+        const saved = readBotLog(existing.bot_context);
+        if (saved.length) setBotLog(saved);
+        if (existing.escalated_at) {
           setMode("agent");
           setQueuedAt(existing.escalated_at);
           setConnectedAt(existing.connected_at);
           escalatingRef.current = true;
         }
+        void loadHistory(user.user.id, existing.id);
         return;
       }
       const { data: created } = await supabase
@@ -286,9 +340,26 @@ export function LiveChatDialog({
         .insert({ user_id: user.user.id, subject: "Support" })
         .select()
         .single();
-      if (created) setSessionId(created.id);
+      if (created) {
+        setSessionId(created.id);
+        void loadHistory(user.user.id, created.id);
+      }
     })();
-  }, [open, sessionId]);
+  }, [open, sessionId, loadHistory]);
+
+  /* Persist the automated conversation privately on the session. */
+  useEffect(() => {
+    if (!sessionId || mode !== "bot" || !botLog.some((b) => b.role === "user")) return;
+    const t = setTimeout(() => {
+      void supabase
+        .from("chat_sessions")
+        .update({
+          bot_context: { messages: botLog.map(({ role, text }) => ({ role, text })).slice(-60) },
+        })
+        .eq("id", sessionId);
+    }, 600);
+    return () => clearTimeout(t);
+  }, [botLog, sessionId, mode]);
 
   /* Account identity for the dynamic greeting. */
   useEffect(() => {
@@ -514,6 +585,13 @@ export function LiveChatDialog({
       !message.body.startsWith("[Live agent requested]") &&
       !message.body.includes("Bot transcript:"),
   );
+  const threadItems: Message[] = (() => {
+    if (!connectedAt) return visibleMessages;
+    const t = new Date(connectedAt).getTime();
+    const before = visibleMessages.filter((m) => new Date(m.created_at).getTime() < t);
+    const after = visibleMessages.filter((m) => new Date(m.created_at).getTime() >= t);
+    return [...before, { id: "__joined" } as Message, ...after];
+  })();
 
   async function send() {
     if (mode === "bot") {
@@ -664,16 +742,38 @@ export function LiveChatDialog({
 
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {agentJoined && (
-              <div className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
-                <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
-                <span>
-                  <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
-                  has joined the chat.
-                </span>
+            {history.map((s) => (
+              <div key={s.id} className="space-y-2 opacity-80">
+                {s.bot.map((b, i) => (
+                  <div key={`${s.id}-b${i}`} className={`flex ${b.role === "user" ? "justify-end" : ""}`}>
+                    <div
+                      className={`max-w-[85%] whitespace-pre-line rounded-lg px-3 py-2 text-sm ${
+                        b.role === "user" ? "bg-primary/80 text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {b.text}
+                    </div>
+                  </div>
+                ))}
+                {s.msgs.map((m) => (
+                  <div key={m.id} className={`flex ${m.sender_role === "user" ? "justify-end" : ""}`}>
+                    <div
+                      className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                        m.sender_role === "user" ? "bg-primary/80 text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {m.sender_role !== "user" && (
+                        <p className="mb-0.5 text-[10px] font-semibold text-muted-foreground">Support Agent</p>
+                      )}
+                      {m.body}
+                    </div>
+                  </div>
+                ))}
+                <Divider label="Session Ended" />
               </div>
-            )}
-            {mode === "bot" && botLog.map((b) => (
+            ))}
+            {history.length > 0 && <Divider label="New Session" />}
+            {botLog.map((b) => (
               <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
                 {b.role === "bot" && (
                   <span className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-primary">
@@ -689,7 +789,7 @@ export function LiveChatDialog({
                     {b.text}
                   </div>
                   {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} />}
-                  {b.chips && (
+                  {b.chips && mode === "bot" && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
                         <button
@@ -710,11 +810,19 @@ export function LiveChatDialog({
               </div>
             ))}
             {mode === "agent" && !agentJoined && !ended && (
-              <p className="pt-1 text-center text-sm text-muted-foreground/70">
+              <p className="pt-4 text-center text-sm text-muted-foreground">
                 Send us a message and an agent will join shortly.
               </p>
             )}
-            {mode === "agent" && agentJoined && visibleMessages.map((m) => (
+            {mode === "agent" && threadItems.map((m) => m.id === "__joined" ? (
+              <div key="__joined" className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
+                <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
+                <span>
+                  <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
+                  has joined the chat.
+                </span>
+              </div>
+            ) : (
               <div
                 key={m.id}
                 className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}

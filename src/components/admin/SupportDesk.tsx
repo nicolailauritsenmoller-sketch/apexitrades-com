@@ -403,14 +403,16 @@ function ChatInboxes() {
               </div>
             </div>
 
+            <UserTicketHistory userId={active.userId} currentId={active.id} />
+
             {active.botContext?.messages?.length > 0 && (
-              <details className="border-b border-border bg-secondary/30 px-4 py-2">
+              <details open className="border-b border-border bg-secondary/30 px-4 py-2">
                 <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
-                  Automated support context
+                  Session transcript (automated assistant)
                 </summary>
-                <div className="mt-2 space-y-1.5 border-l border-border pl-3">
+                <div className="mt-2 max-h-48 space-y-1.5 overflow-y-auto border-l border-border pl-3">
                   {active.botContext.messages.map((entry: { role: string; text: string }, index: number) => (
-                    <p key={`${entry.role}-${index}`} className="text-xs text-muted-foreground">
+                    <p key={`${entry.role}-${index}`} className="whitespace-pre-line text-xs text-muted-foreground">
                       <span className="font-semibold text-foreground">
                         {entry.role === "user" ? "Trader" : "Assistant"}:
                       </span>{" "}
@@ -1106,5 +1108,77 @@ function TicketAttachment({ path, name }: { path: string; name: string | null })
       <Paperclip className="size-3" />
       {name ?? "Attachment"}
     </button>
+  );
+}
+
+/** Previous support sessions for the same trader, loaded on demand. */
+function UserTicketHistory({ userId, currentId }: { userId: string; currentId: string }) {
+  const [open, setOpen] = useState(false);
+  const history = useQuery({
+    queryKey: ["support-user-history", userId, currentId],
+    enabled: open && !!userId,
+    queryFn: async () => {
+      const { data: sessions } = await supabase
+        .from("chat_sessions")
+        .select("id, status, created_at, bot_context")
+        .eq("user_id", userId)
+        .neq("id", currentId)
+        .order("created_at", { ascending: true });
+      const ids = (sessions ?? []).map((s) => s.id);
+      const { data: msgs } = ids.length
+        ? await supabase
+            .from("chat_messages")
+            .select("id, session_id, sender_role, body, created_at")
+            .in("session_id", ids)
+            .order("created_at")
+        : { data: [] as any[] };
+      return (sessions ?? [])
+        .map((s) => ({
+          ...s,
+          bot: ((s.bot_context as any)?.messages ?? []) as { role: string; text: string }[],
+          msgs: (msgs ?? []).filter(
+            (m: any) =>
+              m.session_id === s.id &&
+              !m.body.startsWith("[Live agent requested]") &&
+              !m.body.includes("Bot transcript:"),
+          ),
+        }))
+        .filter((s) => s.bot.length || s.msgs.length);
+    },
+  });
+  return (
+    <details
+      className="border-b border-border px-4 py-2"
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+    >
+      <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+        User Ticket History
+      </summary>
+      <div className="mt-2 max-h-64 space-y-3 overflow-y-auto">
+        {history.isLoading && <p className="text-xs text-muted-foreground">Loading…</p>}
+        {history.data?.length === 0 && (
+          <p className="text-xs text-muted-foreground">No previous sessions.</p>
+        )}
+        {history.data?.map((s) => (
+          <div key={s.id} className="rounded-md border border-border p-2">
+            <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+              {new Date(s.created_at).toLocaleString()} · {s.status}
+            </p>
+            {s.bot.map((b, i) => (
+              <p key={`b${i}`} className="whitespace-pre-line text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">{b.role === "user" ? "Trader" : "Assistant"}:</span>{" "}
+                {b.text}
+              </p>
+            ))}
+            {s.msgs.map((m: any) => (
+              <p key={m.id} className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">{m.sender_role === "user" ? "Trader" : "Agent"}:</span>{" "}
+                {m.body}
+              </p>
+            ))}
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
