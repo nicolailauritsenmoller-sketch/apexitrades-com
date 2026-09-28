@@ -515,7 +515,7 @@ export function LiveChatDialog({
     }
     await supabase
       .from("chat_sessions")
-      .update({ last_message_at: new Date().toISOString(), status: "open" })
+      .update({ last_message_at: new Date().toISOString() })
       .eq("id", sessionId);
     setSending(false);
   }
