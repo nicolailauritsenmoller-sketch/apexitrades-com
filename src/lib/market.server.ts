@@ -21,6 +21,7 @@ export type Quote = {
 export type Candle = { t: number; o: number; h: number; l: number; c: number; v?: number };
 
 export type Timeframe =
+  | "1s"
   | "1m"
   | "3m"
   | "5m"
@@ -50,6 +51,7 @@ const YAHOO_BASE: Record<
   Timeframe,
   { interval: string; range: string; agg: number }
 > = {
+  "1s": { interval: "1m", range: "1d", agg: 1 },
   "1m": { interval: "1m", range: "5d", agg: 1 },
   "3m": { interval: "1m", range: "5d", agg: 3 },
   "5m": { interval: "5m", range: "30d", agg: 1 },
@@ -66,6 +68,7 @@ const YAHOO_BASE: Record<
 };
 
 const BINANCE_INTERVAL: Record<Timeframe, string> = {
+  "1s": "1s",
   "1m": "1m",
   "3m": "3m",
   "5m": "5m",
@@ -91,6 +94,7 @@ const COINBASE_GRANULARITY: Partial<Record<Timeframe, number>> = {
 };
 
 const TIMEFRAME_MS: Record<Timeframe, number> = {
+  "1s": 1_000,
   "1m": 60_000,
   "3m": 180_000,
   "5m": 300_000,
