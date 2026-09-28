@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { useChatTyping } from "@/lib/use-chat-typing";
 import { acceptLiveChat, markThreadRead, sendAgentChat } from "@/lib/desk.functions";
 import { setActiveChatSession, silenceChatAlerts } from "@/lib/alerts";
 
@@ -123,6 +124,7 @@ function ChatInboxes() {
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const typing = useChatTyping(activeId, "agent");
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -460,6 +462,9 @@ function ChatInboxes() {
                   </span>
                 </div>
               ))}
+              {typing.peerTyping && (
+                <p className="px-1 text-xs italic text-muted-foreground">Customer is typing…</p>
+              )}
               <div ref={endRef} />
             </div>
 
@@ -489,7 +494,10 @@ function ChatInboxes() {
               </button>
               <input
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  typing.notifyTyping();
+                }}
                 onKeyDown={(e) =>
                   e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
                 }

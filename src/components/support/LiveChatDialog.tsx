@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
+import { useChatTyping } from "@/lib/use-chat-typing";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
 import { getMyChatContext, requestLiveAgent, submitChatRating } from "@/lib/desk.functions";
@@ -175,6 +176,7 @@ export function LiveChatDialog({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
+  const typing = useChatTyping(sessionId, "user");
   const [sending, setSending] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [agent, setAgent] = useState<Agent>(null);
@@ -673,6 +675,7 @@ export function LiveChatDialog({
     }
     const body = draft.trim();
     if ((!body && !file) || !sessionId || sending) return;
+    typing.notifyStop();
     setSending(true);
     setDraft("");
     const tempId = `pending-${crypto.randomUUID()}`;
@@ -840,7 +843,7 @@ export function LiveChatDialog({
                   </div>
                 ))}
                 <Divider
-                  label={`Chat Session Ended (${new Date(s.endedAt).toLocaleString([], {
+                  label={`Session Ended (${new Date(s.endedAt).toLocaleString([], {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })})`}
@@ -932,19 +935,27 @@ export function LiveChatDialog({
                       minute: "2-digit",
                     })}
                     {m.sender_role === "user" &&
-                      (m.read_at ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
+                      (m.pending ? (
+                        <span className="inline-flex items-center gap-0.5"><Check className="size-3" /> Sent</span>
+                      ) : m.read_at ? (
+                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> Read</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> Delivered</span>
+                      ))}
                   </span>
                 </div>
                 {m.sender_role === "user" && <UserAvatar className="size-7" alt="You" />}
               </div>
             ))}
+            {mode === "agent" && !ended && agentJoined && typing.peerTyping && (
+              <p className="px-1 text-xs italic text-muted-foreground">{agent?.name ?? "Agent"} is typing…</p>
+            )}
             {mode === "agent" && ended && (
               <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/60 px-3 py-3 text-xs leading-5 text-foreground">
                 <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                 {endedByAgent ? (
                   <span>
-                    <strong>Agent has ended chat</strong> • {agent?.name ?? "Your support agent"} has
-                    closed this support session.
+                    <strong>Agent has ended chat</strong> • Support session closed.
                   </span>
                 ) : (
                   <span>
@@ -953,7 +964,7 @@ export function LiveChatDialog({
                 )}
               </div>
             )}
-            {mode === "agent" && ended && agentJoined && !csatDone && sessionId && (
+            {mode === "agent" && ended && (agentJoined || endedByAgent) && !csatDone && sessionId && (
               <CsatCard
                 sessionId={sessionId}
                 agentName={agent?.name ?? "our support team"}
@@ -1018,7 +1029,10 @@ export function LiveChatDialog({
             </button>
             <ChatComposerInput
               value={draft}
-              onChange={setDraft}
+              onChange={(v) => {
+                setDraft(v);
+                if (mode === "agent" && !ended) typing.notifyTyping();
+              }}
               onSubmit={send}
               placeholder={mode === "bot" ? "Ask a question or type 'agent'…" : "Type a message…"}
               maxLength={4000}
