@@ -585,6 +585,13 @@ export function LiveChatDialog({
       !message.body.startsWith("[Live agent requested]") &&
       !message.body.includes("Bot transcript:"),
   );
+  const threadItems: Message[] = (() => {
+    if (!connectedAt) return visibleMessages;
+    const t = new Date(connectedAt).getTime();
+    const before = visibleMessages.filter((m) => new Date(m.created_at).getTime() < t);
+    const after = visibleMessages.filter((m) => new Date(m.created_at).getTime() >= t);
+    return [...before, { id: "__joined" } as Message, ...after];
+  })();
 
   async function send() {
     if (mode === "bot") {
