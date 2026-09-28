@@ -29,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
-import { getMyChatContext, submitChatRating } from "@/lib/desk.functions";
+import { getMyChatContext, requestLiveAgent, submitChatRating } from "@/lib/desk.functions";
 import { shieldMark } from "@/components/Logo";
 
 type Message = {
@@ -155,9 +155,11 @@ export function LiveChatDialog({
   const [mode, setMode] = useState<"bot" | "agent">("bot");
   const [botLog, setBotLog] = useState<BotMsg[]>([]);
   const [queuedAt, setQueuedAt] = useState<string | null>(null);
+  const [connectedAt, setConnectedAt] = useState<string | null>(null);
   const [identity, setIdentity] = useState<{ name: string; uid: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const escalatingRef = useRef(false);
 
   /* Global open event — supports an optional pre-filled message.
      Only the uncontrolled (global) instance listens, so a controlled
@@ -189,6 +191,12 @@ export function LiveChatDialog({
 
       if (existing) {
         setSessionId(existing.id);
+        if (existing.escalated_at && existing.status !== "closed") {
+          setMode("agent");
+          setQueuedAt(existing.escalated_at);
+          setConnectedAt(existing.connected_at);
+          escalatingRef.current = true;
+        }
         return;
       }
       const { data: created } = await supabase
@@ -302,14 +310,21 @@ export function LiveChatDialog({
     };
   }, [sessionId]);
 
-  /* Agent persona + read-receipt sync. */
+  /* Agent persona, durable queue state, and read-receipt sync. */
   useEffect(() => {
     if (!sessionId || !open) return;
     let active = true;
     const sync = async () => {
       try {
         const res = await getMyChatContext({ data: { sessionId } });
-        if (active) setAgent(res.agent as Agent);
+        if (!active) return;
+        setAgent(res.agent as Agent);
+        if (res.queuedAt && res.status !== "closed") {
+          setMode("agent");
+          setQueuedAt(res.queuedAt);
+          setConnectedAt(res.connectedAt);
+          escalatingRef.current = true;
+        }
       } catch {
         /* not signed in yet */
       }
@@ -322,6 +337,37 @@ export function LiveChatDialog({
     };
   }, [sessionId, open, messages.length]);
 
+  /* Session changes carry the queue-to-connected transition in realtime. */
+  useEffect(() => {
+    if (!sessionId || !open) return;
+    const channel = supabase
+      .channel(`chat-session-${sessionId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "chat_sessions",
+          filter: `id=eq.${sessionId}`,
+        },
+        () => {
+          void getMyChatContext({ data: { sessionId } }).then((res) => {
+            setAgent(res.agent as Agent);
+            if (res.queuedAt && res.status !== "closed") {
+              setMode("agent");
+              setQueuedAt(res.queuedAt);
+              setConnectedAt(res.connectedAt);
+              escalatingRef.current = true;
+            }
+          });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sessionId, open]);
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, botLog]);
@@ -332,30 +378,27 @@ export function LiveChatDialog({
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
 
   async function escalate(lastQuestion?: string) {
-    if (mode === "agent") return;
+    if (mode === "agent" || escalatingRef.current || !sessionId) return;
+    escalatingRef.current = true;
     setMode("agent");
-    setQueuedAt(new Date().toISOString());
-    botSay("You're now queued for a Support Agent. Estimated wait time: ~2 mins.");
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user || !sessionId) return;
-    const transcript = botLog
-      .map((m) => `${m.role === "bot" ? "Bot" : "Client"}: ${m.text}`)
-      .slice(-8)
-      .join("\n");
-    await supabase.from("chat_messages").insert({
-      session_id: sessionId,
-      sender_id: user.user.id,
-      sender_role: "user",
-      body: `[Live agent requested]${lastQuestion ? ` ${lastQuestion}` : ""}\n\nBot transcript:\n${transcript}`,
-    });
-    await supabase
-      .from("chat_sessions")
-      .update({
-        last_message_at: new Date().toISOString(),
-        status: "open",
-        subject: "Live agent requested",
-      })
-      .eq("id", sessionId);
+    setConnectedAt(null);
+    try {
+      const transcript = botLog
+        .map(({ role, text }) => ({ role, text }))
+        .concat(lastQuestion ? [{ role: "user" as const, text: lastQuestion }] : [])
+        .slice(-24);
+      const res = await requestLiveAgent({
+        data: {
+          sessionId,
+          context: { requestedWith: lastQuestion ?? null, messages: transcript },
+        },
+      });
+      setQueuedAt(res.queuedAt);
+      setConnectedAt(res.connectedAt);
+    } catch {
+      escalatingRef.current = false;
+      setMode("bot");
+    }
   }
 
   function handleTopic(topicId: BotTopicId) {
@@ -389,8 +432,12 @@ export function LiveChatDialog({
       botSay("I couldn't find an exact answer for that — pick a topic below.", { topics: true });
   }
 
-  const agentJoined =
-    queuedAt && messages.some((m) => m.sender_role !== "user" && m.created_at > queuedAt);
+  const agentJoined = Boolean(connectedAt);
+  const visibleMessages = messages.filter(
+    (message) =>
+      !message.body.startsWith("[Live agent requested]") &&
+      !message.body.includes("Bot transcript:"),
+  );
 
   async function send() {
     if (mode === "bot") {
@@ -501,9 +548,9 @@ export function LiveChatDialog({
               <p className="truncate text-[11px] text-muted-foreground">
                 {mode === "bot"
                   ? "Automated · 24/7 Live Assistance"
-                  : agentJoined && agent
-                    ? `${agent.role} · ID ${agent.staffId}`
-                    : "Queued for Support Agent · ~2 mins"}
+                    : agentJoined
+                      ? "Connected with Agent"
+                      : "Queued for Support Agent · ~2 mins"}
               </p>
             </div>
           </div>
@@ -511,11 +558,25 @@ export function LiveChatDialog({
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
             {queuedAt && !agentJoined && (
-              <div className="flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
-                <Clock className="size-3.5" /> Queued for Support Agent · Estimated wait ~2 mins
+              <div className="flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-3 text-xs leading-5 text-foreground">
+                <Clock className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                <span>
+                  <strong>Hello {identity?.name ?? "User"} [{identity?.uid ?? "—"}]</strong> • You have
+                  been placed in the Live Support queue. Estimated wait time: ~2 mins. An agent will
+                  join this chat shortly.
+                </span>
               </div>
             )}
-            {botLog.map((b) => (
+            {agentJoined && (
+              <div className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
+                <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
+                <span>
+                  <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
+                  has joined the chat.
+                </span>
+              </div>
+            )}
+            {mode === "bot" && botLog.map((b) => (
               <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
                 {b.role === "bot" && (
                   <span className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-primary">
@@ -551,12 +612,12 @@ export function LiveChatDialog({
                 </div>
               </div>
             ))}
-            {mode === "agent" && messages.length === 0 && (
+            {mode === "agent" && visibleMessages.length === 0 && (
               <p className="py-8 text-center text-xs text-muted-foreground">
                 Send us a message and an agent will join shortly.
               </p>
             )}
-            {mode === "agent" && messages.map((m) => (
+            {mode === "agent" && visibleMessages.map((m) => (
               <div
                 key={m.id}
                 className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
