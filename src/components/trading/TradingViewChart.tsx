@@ -362,7 +362,7 @@ function TradingViewChartInner({
         timeScale: {
           borderColor: colors.border,
           timeVisible: true,
-          secondsVisible: false,
+          secondsVisible: true,
           rightOffset: 12,
         },
         localization: { locale: "en-US" },
