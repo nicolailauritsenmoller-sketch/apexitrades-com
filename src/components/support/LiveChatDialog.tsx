@@ -710,7 +710,7 @@ export function LiveChatDialog({
               </div>
             ))}
             {mode === "agent" && !agentJoined && !ended && (
-              <p className="flex min-h-full items-center justify-center px-6 text-center text-sm text-muted-foreground/70">
+              <p className="pt-1 text-center text-sm text-muted-foreground/70">
                 Send us a message and an agent will join shortly.
               </p>
             )}
