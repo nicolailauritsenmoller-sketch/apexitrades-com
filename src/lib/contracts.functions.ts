@@ -200,9 +200,13 @@ export const settleContract = createServerFn({ method: "POST" })
         currency: contract.currency as string,
       };
     }
-    if (new Date(contract.expires_at).getTime() > Date.now()) {
+    const remaining = new Date(contract.expires_at).getTime() - Date.now();
+    if (remaining > 5000) {
       throw new Error("Contract has not expired yet.");
     }
+    // Absorb small client/server clock drift: wait out the last moments server-side
+    // so the client never has to re-poll.
+    if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
 
     const { settleContractRow } = await import("./contracts-settle.server");
     return settleContractRow(supabase, db, userId, contract);
