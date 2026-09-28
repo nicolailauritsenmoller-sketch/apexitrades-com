@@ -165,6 +165,8 @@ export function LiveChatDialog({
   const [csatDone, setCsatDone] = useState(false);
   const [endConfirm, setEndConfirm] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [endedByAgent, setEndedByAgent] = useState(false);
+  const endedByMeRef = useRef(false);
 
   /** Apply the durable session state reported by the backend. */
   function applyContext(res: {
@@ -187,6 +189,7 @@ export function LiveChatDialog({
       // to the ended state; old closed sessions simply stay on the bot home.
       if (escalatingRef.current) {
         setConnectedAt(res.connectedAt);
+        if (!endedByMeRef.current) setEndedByAgent(true);
         setEnded(true);
         setEndConfirm(false);
       }
@@ -203,6 +206,7 @@ export function LiveChatDialog({
   async function endChat() {
     if (!sessionId || ending) return;
     setEnding(true);
+    endedByMeRef.current = true;
     const { error } = await supabase
       .from("chat_sessions")
       .update({ status: "closed" })
@@ -210,12 +214,15 @@ export function LiveChatDialog({
     setEnding(false);
     setEndConfirm(false);
     if (!error) setEnded(true);
+    else endedByMeRef.current = false;
   }
 
   /** Reset to the automated bot home on a fresh session. */
   async function startNewInquiry() {
     if (sessionId) localStorage.setItem(RATED_KEY, sessionId);
     escalatingRef.current = false;
+    endedByMeRef.current = false;
+    setEndedByAgent(false);
     setEnded(false);
     setCsatDone(false);
     setEndConfirm(false);
@@ -619,7 +626,7 @@ export function LiveChatDialog({
                 {mode === "bot"
                   ? "Automated · 24/7 Live Assistance"
                   : ended
-                    ? "Session closed"
+                    ? "Session Closed"
                     : agentJoined
                       ? "Connected with Agent"
                       : "Queued for Support Agent · ~2 mins"}
@@ -761,9 +768,16 @@ export function LiveChatDialog({
             {mode === "agent" && ended && (
               <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/60 px-3 py-3 text-xs leading-5 text-foreground">
                 <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                <span>
-                  <strong>Chat Session Ended</strong> • This support ticket has been closed.
-                </span>
+                {endedByAgent ? (
+                  <span>
+                    <strong>Agent has ended chat</strong> • {agent?.name ?? "Your support agent"} has
+                    closed this support session.
+                  </span>
+                ) : (
+                  <span>
+                    <strong>Chat Session Ended</strong> • This support ticket has been closed.
+                  </span>
+                )}
               </div>
             )}
             {mode === "agent" && ended && agentJoined && !csatDone && sessionId && (
