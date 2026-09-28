@@ -55,8 +55,21 @@ export async function settleContractRow(supabase: any, db: any, userId: string, 
       .eq("status", "open")
       .select("id");
     if (updateError) throw new Error(updateError.message);
-    // Another concurrent settle already credited this contract.
-    if (!settled || settled.length === 0) throw new Error("Contract already settled.");
+    // Another concurrent settle already credited this contract - return its stored result.
+    if (!settled || settled.length === 0) {
+      const { data: existing } = await db
+        .from("contracts")
+        .select("result, exit_price, payout, currency")
+        .eq("id", contract.id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      return {
+        result: (existing?.result ?? result) as typeof result,
+        exitPrice: Number(existing?.exit_price ?? exit),
+        payout: Number(existing?.payout ?? 0),
+        currency: (existing?.currency ?? contract.currency) as string,
+      };
+    }
 
     if (payout > 0) {
       const { data: wallet } = await db

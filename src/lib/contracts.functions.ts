@@ -191,7 +191,15 @@ export const settleContract = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!contract) throw new Error("Contract not found.");
-    if (contract.status === "settled") throw new Error("Contract already settled.");
+    if (contract.status === "settled") {
+      // Already settled (e.g. by the background sweep) - return the stored result instead of failing.
+      return {
+        result: contract.result as "win" | "loss" | "draw",
+        exitPrice: Number(contract.exit_price),
+        payout: Number(contract.payout ?? 0),
+        currency: contract.currency as string,
+      };
+    }
     if (new Date(contract.expires_at).getTime() > Date.now()) {
       throw new Error("Contract has not expired yet.");
     }
