@@ -868,6 +868,7 @@ export function LiveChatDialog({
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
                         <button
+                          type="button"
                           key={c.action + c.label}
                           onClick={() => handleChip(c)}
                           className={`touch-manipulation rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -970,6 +971,7 @@ export function LiveChatDialog({
             <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-border bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground">
               <span>Need urgent manual help?</span>
               <button
+                type="button"
                 onClick={() => void escalate()}
                 className="touch-manipulation font-semibold text-primary hover:underline"
               >
