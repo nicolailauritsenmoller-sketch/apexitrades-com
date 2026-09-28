@@ -1,3 +1,4 @@
+// Shared profile UI primitives.
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
