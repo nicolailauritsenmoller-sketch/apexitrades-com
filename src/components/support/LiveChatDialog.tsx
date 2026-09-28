@@ -667,15 +667,21 @@ export function LiveChatDialog({
   })();
 
   async function send() {
+    // Guard against double dispatch: a type="submit" button fires both its
+    // onClick and the form's implicit submit in the same tick.
+    if (sendLockRef.current) return;
     if (mode === "bot") {
       const text = draft.trim();
       if (!text) return;
+      sendLockRef.current = true;
       setDraft("");
       botReply(text);
+      sendLockRef.current = false;
       return;
     }
     const body = draft.trim();
     if ((!body && !file) || !sessionId || sending) return;
+    sendLockRef.current = true;
     typing.notifyStop();
     setSending(true);
     setDraft("");
