@@ -33,11 +33,21 @@ import {
 } from "@/lib/indicators";
 import { cn } from "@/lib/utils";
 
+export type ChartOverlay = {
+  price: number;
+  label: string;
+  tone: "bull" | "bear";
+  style: "dotted" | "dashed";
+};
+
 export type ChartType = "candlestick" | "hollow" | "heikin" | "line" | "area" | "bars";
 
 export type IndicatorKey =
   | "sma20"
   | "sma50"
+  | "ema7"
+  | "ema25"
+  | "ema99"
   | "ema12"
   | "ema26"
   | "rsi"
@@ -58,6 +68,9 @@ type IndicatorDef = {
 const INDICATORS: IndicatorDef[] = [
   { key: "sma20", label: "SMA 20", pane: "main", color: "#F59E0B" },
   { key: "sma50", label: "SMA 50", pane: "main", color: "#8B5CF6" },
+  { key: "ema7", label: "EMA 7", pane: "main", color: "#F0B90B" },
+  { key: "ema25", label: "EMA 25", pane: "main", color: "#E377C2" },
+  { key: "ema99", label: "EMA 99", pane: "main", color: "#8C6CF7" },
   { key: "ema12", label: "EMA 12", pane: "main", color: "#06B6D4" },
   { key: "ema26", label: "EMA 26", pane: "main", color: "#EC4899" },
   { key: "bollinger", label: "Bollinger", pane: "main" },
@@ -78,7 +91,10 @@ const CHART_TYPES: { key: ChartType; label: string; icon: React.ElementType }[] 
   { key: "area", label: "Area", icon: ChartSpline },
 ];
 
+const VISIBLE_TIMEFRAMES: Timeframe[] = ["1s", "1m", "5m", "15m", "1h", "4h", "1d", "1w"];
+
 const TIMEFRAME_LABELS: Record<Timeframe, string> = {
+  "1s": "1s",
   "1m": "1m",
   "3m": "3m",
   "5m": "5m",
@@ -219,6 +235,7 @@ export function TradingViewChart({
   onTimeframeChange,
   height = 420,
   isLoading,
+  overlays = [],
 }: {
   symbol: string;
   candles: Candle[];
@@ -227,6 +244,7 @@ export function TradingViewChart({
   onTimeframeChange: (tf: Timeframe) => void;
   height?: number;
   isLoading?: boolean;
+  overlays?: ChartOverlay[];
 }) {
   const hydrated = useHydrated();
   if (!hydrated) {
@@ -235,7 +253,7 @@ export function TradingViewChart({
         className="grid place-items-center rounded-lg border border-border bg-card text-sm text-muted-foreground"
         style={{ height }}
       >
-        Loading chart…
+        Loading chart...
       </div>
     );
   }
@@ -248,6 +266,7 @@ export function TradingViewChart({
       onTimeframeChange={onTimeframeChange}
       height={height}
       isLoading={isLoading}
+      overlays={overlays}
     />
   );
 }
@@ -260,6 +279,7 @@ function TradingViewChartInner({
   onTimeframeChange,
   height = 420,
   isLoading,
+  overlays = [],
 }: {
   symbol: string;
   candles: Candle[];
@@ -268,6 +288,7 @@ function TradingViewChartInner({
   onTimeframeChange: (tf: Timeframe) => void;
   height?: number;
   isLoading?: boolean;
+  overlays?: ChartOverlay[];
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
@@ -287,12 +308,14 @@ function TradingViewChartInner({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showIndicators, setShowIndicators] = useState(false);
   const [chartReady, setChartReady] = useState(false);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
 
   const colors = useThemeColors(wrapRef);
 
 
   const timeframeMs = useMemo(() => {
     const map: Record<Timeframe, number> = {
+      "1s": 1_000,
       "1m": 60_000,
       "3m": 180_000,
       "5m": 300_000,
@@ -333,7 +356,7 @@ function TradingViewChartInner({
           vertLines: { color: colors.grid },
           horzLines: { color: colors.grid },
         },
-        crosshair: { mode: lib.CrosshairMode.Magnet },
+        crosshair: { mode: lib.CrosshairMode.Normal },
         rightPriceScale: { borderColor: colors.border, autoScale: true },
         leftPriceScale: { visible: false },
         timeScale: {
@@ -361,7 +384,7 @@ function TradingViewChartInner({
         lastValueVisible: false,
       });
       volumeSeriesRef.current = volumeSeries;
-      volumePane.setHeight(80);
+      volumePane.setHeight(Math.round(container.clientHeight * 0.2));
 
       chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
         if (disposed) return;
@@ -545,7 +568,7 @@ function TradingViewChartInner({
       const def = INDICATORS.find((d) => d.key === key)!;
       if (key === "volume") {
         indicatorRefs.current.push({ key, series: [volumeSeries], pane: volumePaneRef.current });
-        volumePaneRef.current.setHeight(80);
+        volumePaneRef.current.setHeight(Math.round((wrapRef.current?.clientHeight ?? 420) * 0.2));
         return;
       }
 
@@ -601,9 +624,50 @@ function TradingViewChartInner({
     // Hide volume pane when not active.
     const volumeActive = activeIndicators.includes("volume");
     try {
-      volumePaneRef.current.setHeight(volumeActive ? 80 : 0);
+      volumePaneRef.current.setHeight(volumeActive ? Math.round((wrapRef.current?.clientHeight ?? 420) * 0.2) : 0);
     } catch {}
   }, [activeIndicators, candles, colors, chartReady]);
+
+  // Crosshair OHLC inspector.
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const handler = (param: any) => {
+      if (!param?.time || !param.point) {
+        setHoverTime(null);
+        return;
+      }
+      setHoverTime(Number(param.time));
+    };
+    chart.subscribeCrosshairMove(handler);
+    return () => chart.unsubscribeCrosshairMove(handler);
+  }, [chartReady]);
+
+  // Active order / strike price lines.
+  useEffect(() => {
+    const series = mainSeriesRef.current;
+    const lib = libRef.current;
+    if (!series || !lib) return;
+    const lines = overlays
+      .filter((o) => Number.isFinite(o.price) && o.price > 0)
+      .map((o) =>
+        series.createPriceLine({
+          price: o.price,
+          color: o.tone === "bull" ? colors.bull : colors.bear,
+          lineWidth: 1,
+          lineStyle: o.style === "dotted" ? lib.LineStyle.Dotted : lib.LineStyle.Dashed,
+          axisLabelVisible: true,
+          title: `${o.label} ${formatPrice(o.price, symbol)}`,
+        }),
+      );
+    return () => {
+      for (const l of lines) {
+        try {
+          series.removePriceLine(l);
+        } catch {}
+      }
+    };
+  }, [overlays, colors, chartType, chartReady, symbol]);
 
   // Drawing click handler.
   useEffect(() => {
@@ -667,6 +731,24 @@ function TradingViewChartInner({
     chartRef.current?.timeScale().fitContent();
   }, []);
 
+  const inspected = useMemo(() => {
+    if (!candles.length) return null;
+    const idx = hoverTime == null ? candles.length - 1 : candles.findIndex((c) => Math.floor(c.t / 1000) === hoverTime);
+    const c = candles[idx < 0 ? candles.length - 1 : idx];
+    if (!c) return null;
+    const close = idx === candles.length - 1 || idx < 0 ? (quote?.price ?? c.c) : c.c;
+    const chg = close - c.o;
+    return { ...c, c: close, chg, pct: c.o ? (chg / c.o) * 100 : 0 };
+  }, [candles, hoverTime, quote?.price]);
+
+  const emaOn = activeIndicators.includes("ema7");
+  const toggleEmaSet = () =>
+    setActiveIndicators((prev) =>
+      emaOn
+        ? prev.filter((k) => k !== "ema7" && k !== "ema25" && k !== "ema99")
+        : [...prev.filter((k) => k !== "ema7" && k !== "ema25" && k !== "ema99"), "ema7", "ema25", "ema99"],
+    );
+
   // Pending datafeed state.
   const hasData = candles.length > 1;
   const isPending = !isLoading && !hasData && (!quote || quote.stale);
@@ -704,7 +786,7 @@ function TradingViewChartInner({
         <div className="h-4 w-px bg-border" />
 
         <div className="flex items-center gap-1 overflow-x-auto">
-          {Object.entries(TIMEFRAME_LABELS).map(([tf, label]) => (
+          {VISIBLE_TIMEFRAMES.map((tf) => [tf, TIMEFRAME_LABELS[tf]] as const).map(([tf, label]) => (
             <button
               key={tf}
               onClick={() => onTimeframeChange(tf as Timeframe)}
@@ -713,6 +795,28 @@ function TradingViewChartInner({
                 timeframe === tf
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-1">
+          {([
+            ["EMA", emaOn, toggleEmaSet],
+            ["BOLL", activeIndicators.includes("bollinger"), () => toggleIndicator("bollinger")],
+            ["RSI", activeIndicators.includes("rsi"), () => toggleIndicator("rsi")],
+            ["VOL", activeIndicators.includes("volume"), () => toggleIndicator("volume")],
+          ] as const).map(([label, on, fn]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={fn}
+              className={cn(
+                "touch-manipulation rounded-md px-2 py-1 text-[11px] font-semibold transition-colors",
+                on ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               {label}
@@ -824,6 +928,33 @@ function TradingViewChartInner({
         </div>
       </div>
 
+      {/* OHLC inspector */}
+      {inspected && (
+        <div className="pointer-events-none absolute left-2 top-12 z-10 flex flex-wrap gap-x-2.5 gap-y-0.5 rounded bg-card/80 px-2 py-1 font-mono text-[10px] tabular-nums sm:text-[11px]">
+          {(["o", "h", "l", "c"] as const).map((k) => (
+            <span key={k}>
+              <span className="text-muted-foreground">{k.toUpperCase()} </span>
+              <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>{formatPrice(inspected[k], symbol)}</span>
+            </span>
+          ))}
+          <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>
+            {inspected.chg >= 0 ? "+" : "-"}
+            {formatPrice(Math.abs(inspected.chg), symbol)} ({inspected.pct >= 0 ? "+" : "-"}
+            {Math.abs(inspected.pct).toFixed(2)}%)
+          </span>
+          <span>
+            <span className="text-muted-foreground">Vol </span>
+            {(inspected.v ?? 0).toLocaleString("en-US", { maximumFractionDigits: 2 })}
+          </span>
+          {emaOn && (
+            <span className="w-full text-[10px]">
+              <span style={{ color: "#F0B90B" }}>EMA7</span> <span style={{ color: "#E377C2" }}>EMA25</span>{" "}
+              <span style={{ color: "#8C6CF7" }}>EMA99</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Drawing overlay */}
       <DrawingOverlay
         chart={chartRef.current}
@@ -837,7 +968,7 @@ function TradingViewChartInner({
       {/* Pending state */}
       {(isLoading || isPending) && (
         <div className="absolute inset-0 z-0 grid place-items-center bg-card/80 text-sm text-muted-foreground">
-          {isLoading ? "Loading chart data…" : "Pending datafeed configuration"}
+          {isLoading ? "Loading chart data..." : "Pending datafeed configuration"}
         </div>
       )}
     </div>
@@ -920,6 +1051,10 @@ function feedIndicator(
     series[0].setData(data);
   } else if (key === "sma50") {
     const data = sma(candles, 50).map((p) => ({ time: Math.floor(p.t / 1000) as any, value: p.value }));
+    series[0].setData(data);
+  } else if (key === "ema7" || key === "ema25" || key === "ema99") {
+    const n = key === "ema7" ? 7 : key === "ema25" ? 25 : 99;
+    const data = ema(candles, n).map((p) => ({ time: Math.floor(p.t / 1000) as any, value: p.value }));
     series[0].setData(data);
   } else if (key === "ema12") {
     const data = ema(candles, 12).map((p) => ({ time: Math.floor(p.t / 1000) as any, value: p.value }));
