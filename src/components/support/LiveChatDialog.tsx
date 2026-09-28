@@ -706,6 +706,7 @@ export function LiveChatDialog({
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setDraft(body);
       setSending(false);
+      sendLockRef.current = false;
       return;
     }
 
@@ -739,6 +740,7 @@ export function LiveChatDialog({
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setDraft(body);
       setSending(false);
+      sendLockRef.current = false;
       return;
     }
     if (inserted) {
