@@ -11,7 +11,7 @@ type Props = {
 };
 
 /**
- * WhatsApp-style composer: Enter inserts a newline, Shift+Enter or Cmd/Ctrl+Enter sends.
+ * Enter sends, Shift+Enter inserts a newline — identical to clicking the send button.
  * The textarea grows with content up to ~5 lines, then scrolls internally.
  */
 export function ChatComposerInput({
@@ -39,14 +39,15 @@ export function ChatComposerInput({
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={(e) => {
         if (e.key !== "Enter") return;
-        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+        if (!e.shiftKey) {
           e.preventDefault();
           onSubmit();
+          return;
         }
-        // plain Enter falls through and inserts a newline
+        // Shift+Enter falls through and inserts a newline
       }}
       rows={1}
-      enterKeyHint="enter"
+      enterKeyHint="send"
       aria-label={ariaLabel}
       placeholder={placeholder}
       maxLength={maxLength}
