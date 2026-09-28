@@ -381,12 +381,25 @@ function ChatInboxes() {
                     {acceptMutation.isPending ? "Connecting…" : "Accept chat"}
                   </button>
                 )}
-                <button
-                  onClick={() => toggleStatus.mutate(active.status === "open" ? "closed" : "open")}
-                  className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  {active.status === "open" ? "Close thread" : "Reopen"}
-                </button>
+                {active.status !== "closed" ? (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("End this support session? The user will be notified immediately."))
+                        toggleStatus.mutate("closed");
+                    }}
+                    disabled={toggleStatus.isPending}
+                    className="rounded-md bg-bear px-3 py-1 text-xs font-semibold text-bear-foreground disabled:opacity-50"
+                  >
+                    {toggleStatus.isPending ? "Ending…" : "End Session"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => toggleStatus.mutate("open")}
+                    className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Reopen
+                  </button>
+                )}
               </div>
             </div>
 
