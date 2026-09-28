@@ -190,6 +190,7 @@ export function LiveChatDialog({
   const fileRef = useRef<HTMLInputElement>(null);
   const escalatingRef = useRef(false);
   const pendingEscalationRef = useRef(false);
+  const sendLockRef = useRef(false);
   const [ended, setEnded] = useState(false);
   const [csatDone, setCsatDone] = useState(false);
   const [endConfirm, setEndConfirm] = useState(false);
@@ -666,15 +667,21 @@ export function LiveChatDialog({
   })();
 
   async function send() {
+    // Guard against double dispatch: a type="submit" button fires both its
+    // onClick and the form's implicit submit in the same tick.
+    if (sendLockRef.current) return;
     if (mode === "bot") {
       const text = draft.trim();
       if (!text) return;
+      sendLockRef.current = true;
       setDraft("");
       botReply(text);
+      sendLockRef.current = false;
       return;
     }
     const body = draft.trim();
     if ((!body && !file) || !sessionId || sending) return;
+    sendLockRef.current = true;
     typing.notifyStop();
     setSending(true);
     setDraft("");
@@ -699,6 +706,7 @@ export function LiveChatDialog({
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setDraft(body);
       setSending(false);
+      sendLockRef.current = false;
       return;
     }
 
@@ -732,6 +740,7 @@ export function LiveChatDialog({
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setDraft(body);
       setSending(false);
+      sendLockRef.current = false;
       return;
     }
     if (inserted) {
@@ -745,6 +754,7 @@ export function LiveChatDialog({
       .update({ last_message_at: new Date().toISOString() })
       .eq("id", sessionId);
     setSending(false);
+    sendLockRef.current = false;
   }
 
   function close() {
@@ -1002,51 +1012,59 @@ export function LiveChatDialog({
               </button>
             </div>
           ) : (
-          <div className="flex flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            {file && (
-              <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
-                <Paperclip className="size-3" />
-                <span className="truncate">{file.name}</span>
-                <button onClick={() => setFile(null)} aria-label="Remove attachment">
-                  <X className="size-3" />
-                </button>
-              </span>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,application/pdf"
-              hidden
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-            <button
-              hidden={mode === "bot"}
-              onClick={() => fileRef.current?.click()}
-              aria-label="Attach a photo or document"
-              className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
-              <Paperclip className="size-4" />
-            </button>
-            <ChatComposerInput
-              value={draft}
-              onChange={(v) => {
-                setDraft(v);
-                if (mode === "agent" && !ended) typing.notifyTyping();
+            <form
+              className="flex w-full flex-wrap items-end gap-2 border-t border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void send();
               }}
-              onSubmit={send}
-              placeholder={mode === "bot" ? "Ask a question or type 'agent'…" : "Type a message…"}
-              maxLength={4000}
-              className="rounded-md bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground"
-            />
-            <button
-              onClick={send}
-              aria-label="Send message"
-              className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
-              disabled={sending}
             >
-              <Send className="size-4" />
-            </button>
-          </div>
+              {file && (
+                <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
+                  <Paperclip className="size-3" />
+                  <span className="truncate">{file.name}</span>
+                  <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,application/pdf"
+                hidden
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <button
+                type="button"
+                hidden={mode === "bot"}
+                onClick={() => fileRef.current?.click()}
+                aria-label="Attach a photo or document"
+                className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                <Paperclip className="size-4" />
+              </button>
+              <ChatComposerInput
+                value={draft}
+                onChange={(v) => {
+                  setDraft(v);
+                  if (mode === "agent" && !ended) typing.notifyTyping();
+                }}
+                onSubmit={send}
+                placeholder={mode === "bot" ? "Ask a question or type 'agent'…" : "Type a message…"}
+                maxLength={4000}
+                className="rounded-md bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                onClick={send}
+                aria-label="Send message"
+                className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+                disabled={sending}
+              >
+                <Send className="size-4" />
+              </button>
+            </form>
           )}
         </DialogContent>
       </Dialog>
