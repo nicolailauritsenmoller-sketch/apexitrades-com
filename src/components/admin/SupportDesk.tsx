@@ -493,7 +493,7 @@ function ChatInboxes() {
                 onKeyDown={(e) =>
                   e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
                 }
-                placeholder={active.status === "closed" ? "Send follow-up — delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
+                placeholder={active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
                 disabled={!active.connectedAt && active.status !== "closed"}
                 maxLength={2000}
                 className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
@@ -780,7 +780,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                       {t.unread > 0 && (
                         <span className="size-2 shrink-0 rounded-full bg-bear" aria-label="Unread" />
                       )}
-                      {t.reference ?? "—"}
+                      {t.reference ?? "-"}
                     </span>
                     <span className="block max-w-[14rem] truncate text-[10px] text-muted-foreground">
                       {t.subject}
@@ -855,7 +855,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                 <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                   <div>
                     <dt className="opacity-70">Ticket</dt>
-                    <dd className="font-mono text-foreground">{active.reference ?? "—"}</dd>
+                    <dd className="font-mono text-foreground">{active.reference ?? "-"}</dd>
                   </div>
                   <div>
                     <dt className="opacity-70">Opened</dt>
@@ -871,18 +871,18 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                   </div>
                   <div>
                     <dt className="opacity-70">Verified email</dt>
-                    <dd className="truncate text-foreground">{active.email ?? "—"}</dd>
+                    <dd className="truncate text-foreground">{active.email ?? "-"}</dd>
                   </div>
                   <div>
                     <dt className="opacity-70">UID</dt>
-                    <dd className="font-mono text-foreground">{active.uid ?? "—"}</dd>
+                    <dd className="font-mono text-foreground">{active.uid ?? "-"}</dd>
                   </div>
                   <div>
                     <dt className="opacity-70">Last response</dt>
                     <dd className="text-foreground">
                       {active.last_response_at
                         ? new Date(active.last_response_at).toLocaleString()
-                        : "—"}
+                        : "-"}
                     </dd>
                   </div>
                 </dl>
@@ -959,7 +959,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                   >
                     {m.internal && (
                       <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase">
-                        <Lock className="size-3" /> Internal note — hidden from customer
+                        <Lock className="size-3" /> Internal note - hidden from customer
                       </p>
                     )}
                     <p className="whitespace-pre-wrap">{m.body}</p>

@@ -19,7 +19,7 @@ const fmtDate = (iso?: string | null) =>
         hour: "2-digit",
         minute: "2-digit",
       })
-    : "—";
+    : "-";
 
 const usdt = (n: number) =>
   `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT`;
@@ -117,7 +117,7 @@ function ApprovedVipTable({ onOpen }: { onOpen?: (userId: string) => void }) {
                   className={rowClass(Boolean(onOpen))}
                 >
                   <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">
-                    {r.uid ?? "—"}
+                    {r.uid ?? "-"}
                   </td>
                   <td className="py-2.5 pr-3">
                     <span className="flex items-center gap-1.5 font-semibold">
@@ -126,14 +126,14 @@ function ApprovedVipTable({ onOpen }: { onOpen?: (userId: string) => void }) {
                     </span>
                   </td>
                   <td className="max-w-[200px] truncate py-2.5 pr-3 text-xs text-muted-foreground">
-                    {r.email ?? "—"}
+                    {r.email ?? "-"}
                   </td>
                   <td className="num py-2.5 pr-3 text-xs font-semibold">{usdt(r.equityUsdt)}</td>
                   <td className="py-2.5 pr-3 text-xs text-muted-foreground">
                     {fmtDate(r.promotedAt)}
                   </td>
                   <td className="py-2.5 pr-3 text-xs text-muted-foreground">
-                    {r.approvedByName ?? "—"}
+                    {r.approvedByName ?? "-"}
                     {r.approvedById && (
                       <span className="block font-mono text-[10px] opacity-70">
                         {String(r.approvedById).slice(0, 8)}
@@ -225,14 +225,14 @@ function DeclinedVipTable({ onOpen }: { onOpen?: (userId: string) => void }) {
                   className={rowClass(Boolean(onOpen))}
                 >
                   <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">
-                    {r.uid ?? "—"}
+                    {r.uid ?? "-"}
                   </td>
                   <td className="py-2.5 pr-3 font-semibold">{r.displayName}</td>
                   <td className="max-w-[180px] truncate py-2.5 pr-3 text-xs text-muted-foreground">
-                    {r.email ?? "—"}
+                    {r.email ?? "-"}
                   </td>
                   <td className="num py-2.5 pr-3 text-xs font-semibold">
-                    {r.depositUsdt > 0 ? usdt(r.depositUsdt) : "—"}
+                    {r.depositUsdt > 0 ? usdt(r.depositUsdt) : "-"}
                   </td>
                   <td className="max-w-[220px] py-2.5 pr-3 text-xs text-muted-foreground">
                     {r.reason ?? (r.action === "vip.revoke" ? "VIP status revoked" : "No reason recorded")}

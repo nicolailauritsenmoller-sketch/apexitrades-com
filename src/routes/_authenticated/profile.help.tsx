@@ -76,7 +76,7 @@ export const Route = createFileRoute("/_authenticated/profile/help")({
         content:
           "Search the Velocity Trade knowledge base for deposits, withdrawals, verification, trading, margin, fees and account security.",
       },
-      { property: "og:title", content: "Help Center — Velocity Trade" },
+      { property: "og:title", content: "Help Center - Velocity Trade" },
       {
         property: "og:description",
         content: "FAQs and platform documentation for traders.",

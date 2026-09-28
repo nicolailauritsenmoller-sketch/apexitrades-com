@@ -35,13 +35,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export const Route = createFileRoute("/_authenticated/profile/")({
   head: () => ({
     meta: [
-      { title: "My Profile — identity, security & referrals | Velocity Trade" },
+      { title: "My Profile - identity, security & referrals | Velocity Trade" },
       {
         name: "description",
         content:
           "Manage your Velocity Trade account: identity verification, security centre, referral rewards, notifications and support.",
       },
-      { property: "og:title", content: "My Profile — Velocity Trade" },
+      { property: "og:title", content: "My Profile - Velocity Trade" },
       {
         property: "og:description",
         content: "Identity verification, security, referrals and account settings.",
@@ -201,7 +201,7 @@ function ProfileHome() {
               onClick={() => profile?.uid && copy(profile.uid, "UID")}
               className="mt-0.5 inline-flex touch-manipulation items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
-              ID: {profile?.uid ?? "—"}
+              ID: {profile?.uid ?? "-"}
               <Copy className="size-3" />
             </button>
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -251,7 +251,7 @@ function ProfileHome() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Account Health reflects margin risk and liquidation safety — how much of your
+                  Account Health reflects margin risk and liquidation safety - how much of your
                   available margin is committed to open leveraged exposure.
                 </TooltipContent>
               </Tooltip>
@@ -262,7 +262,7 @@ function ProfileHome() {
               ? `${HEALTH_LABEL[health.status]} · ${(health.pct ?? 100).toFixed(1)}%${
                   health.hasExposure ? "" : " · No active margin exposure"
                 }`
-              : "—"}
+              : "-"}
           </p>
           <div className="mt-4 space-y-2 border-t border-border pt-4 text-xs">
             <div className="flex items-center justify-between gap-3">
@@ -294,7 +294,7 @@ function ProfileHome() {
             <div className="flex items-center justify-between gap-3">
               <span className="text-muted-foreground">Trader Trust Score</span>
               <span className="font-semibold tabular-nums">
-                {trust ? `${trust.scorePct}%` : "—"}
+                {trust ? `${trust.scorePct}%` : "-"}
               </span>
             </div>
             {trust ? (
@@ -314,7 +314,7 @@ function ProfileHome() {
             <div>
               <p className="text-xs text-muted-foreground">Trading tier</p>
               <p className="mt-1 text-lg font-semibold">
-                {volume ? volume.tier.label : "—"}
+                {volume ? volume.tier.label : "-"}
                 {tierLabel === "Standard" ? "" : ` · ${tierLabel}`}
               </p>
             </div>
@@ -325,7 +325,7 @@ function ProfileHome() {
             <p className="mt-1 text-sm font-semibold tabular-nums">
               {volume
                 ? `${usd(volume.monthUsdt)}${volume.nextTier ? ` / ${usd(volume.nextTier.thresholdUsdt)}` : ""}`
-                : "—"}
+                : "-"}
             </p>
             {volume ? (
               <>

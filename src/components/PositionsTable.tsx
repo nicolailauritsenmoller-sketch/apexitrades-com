@@ -144,7 +144,7 @@ export function PositionsTable({
                     : p.status === "open"
                     ? mark
                       ? formatPrice(mark, p.symbol)
-                      : "—"
+                      : "-"
                     : formatPrice(p.exitPrice ?? 0, p.symbol)}
                 </td>
                 <td className="px-4 py-3 text-right font-medium">

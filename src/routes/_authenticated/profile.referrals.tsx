@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/profile/referrals")({
         content:
           "Share your Velocity Trade referral link, track invited traders and see the USDT rewards you have earned.",
       },
-      { property: "og:title", content: "Referral Program — Velocity Trade" },
+      { property: "og:title", content: "Referral Program - Velocity Trade" },
       {
         property: "og:description",
         content: "Invite traders and earn USDT rewards on their activity.",
@@ -61,7 +61,7 @@ function ReferralsPage() {
           value={formatMoney(stats?.earned ?? 0, "USDT")}
           tone="text-bull"
         />
-        <Card title="Your code" value={code || "—"} hint={`${reward} USDT per referral`} />
+        <Card title="Your code" value={code || "-"} hint={`${reward} USDT per referral`} />
       </div>
 
       <Section
@@ -123,7 +123,7 @@ function ReferralsPage() {
 
       <Section icon={Gift} title="How rewards work">
         <ul className="space-y-2 text-sm text-muted-foreground">
-          <li>1. Share your link — your friend signs up and verifies their identity.</li>
+          <li>1. Share your link - your friend signs up and verifies their identity.</li>
           <li>2. Once their identity check passes, the referral becomes eligible.</li>
           <li>3. {reward} USDT is credited to your USDT wallet and logged in your history.</li>
         </ul>

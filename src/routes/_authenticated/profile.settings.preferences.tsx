@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/profile/settings/preferenc
         content:
           "Set your display currency, interface language and light or dark theme for the Velocity Trade terminal.",
       },
-      { property: "og:title", content: "Display Preferences — Velocity Trade" },
+      { property: "og:title", content: "Display Preferences - Velocity Trade" },
       {
         property: "og:description",
         content: "Currency, language and theme controls for your account.",

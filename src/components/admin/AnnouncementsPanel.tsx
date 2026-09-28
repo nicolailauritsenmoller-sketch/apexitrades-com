@@ -235,7 +235,7 @@ export function AnnouncementsPanel() {
                   <option value="">Select a user…</option>
                   {matches.slice(0, 100).map((u) => (
                     <option key={u.id} value={u.id}>
-                      {u.displayName} — #{u.uid ?? String(u.id).slice(0, 8)}
+                      {u.displayName} - #{u.uid ?? String(u.id).slice(0, 8)}
                     </option>
                   ))}
                 </select>
@@ -301,7 +301,7 @@ export function AnnouncementsPanel() {
             )}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Critical banners stay pinned for users — they cannot be dismissed until you unpublish
+            Critical banners stay pinned for users - they cannot be dismissed until you unpublish
             them.
           </p>
         </div>

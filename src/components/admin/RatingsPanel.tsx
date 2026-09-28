@@ -78,7 +78,7 @@ export function RatingsPanel() {
                     )}
                   </td>
                   <td className="max-w-sm px-4 py-2 text-xs text-muted-foreground">
-                    {r.feedback ?? "—"}
+                    {r.feedback ?? "-"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-[11px] text-muted-foreground">
                     {new Date(r.createdAt).toLocaleString()}

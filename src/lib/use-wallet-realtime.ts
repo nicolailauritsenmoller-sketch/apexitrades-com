@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Keeps balances, transaction history and trade activity in sync with the
- * backend in real time. Refunds from declined/rejected withdrawals — and admin
- * activity resets — land instantly, without a refresh.
+ * backend in real time. Refunds from declined/rejected withdrawals - and admin
+ * activity resets - land instantly, without a refresh.
  */
 export function useWalletRealtime(channelName = "wallet-live") {
   const qc = useQueryClient();

@@ -12,7 +12,7 @@ const VISIT_KEY = "velocity:entry-played";
  * Renders nothing.
  */
 export function EntryChime() {
-  // Entry chime — needs a user gesture before audio is allowed to play.
+  // Entry chime - needs a user gesture before audio is allowed to play.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const fire = () => {

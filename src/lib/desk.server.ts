@@ -4,8 +4,8 @@ type Ctx = { supabase: any; userId: string };
 
 export async function myRoles(context: Ctx): Promise<string[]> {
   // Read through the caller's own client first (RLS: users can read their own
-  // roles). If that returns nothing — e.g. the row is only visible to the
-  // service role — fall back to a service-role lookup scoped strictly to the
+  // roles). If that returns nothing - e.g. the row is only visible to the
+  // service role - fall back to a service-role lookup scoped strictly to the
   // authenticated user id, never to a client-supplied value.
   const { data, error } = await context.supabase
     .from("user_roles")
@@ -36,7 +36,7 @@ export async function assertAdmin(context: Ctx) {
   if (!roles.includes("admin")) throw new Error("Forbidden: Control Center access required.");
 }
 
-/** Service-role client — the only way privileged tables can be written. */
+/** Service-role client - the only way privileged tables can be written. */
 export async function privileged() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as any;

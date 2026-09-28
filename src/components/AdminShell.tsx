@@ -32,7 +32,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               Operations Console
             </p>
             <p className="hidden text-[11px] text-muted-foreground sm:block">
-              Restricted — authorised staff only
+              Restricted - authorised staff only
             </p>
           </div>
 

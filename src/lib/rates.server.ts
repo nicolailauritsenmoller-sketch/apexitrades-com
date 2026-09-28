@@ -35,7 +35,7 @@ async function fiatUsdValue(code: string): Promise<number> {
 }
 
 /**
- * USDT value of one unit of any tradable asset code — a wallet currency
+ * USDT value of one unit of any tradable asset code - a wallet currency
  * (USD, EUR, GBP, USDT, BTC) or an instrument symbol (AAPL, GC=F, EURUSD=X…).
  */
 export async function assetUsdtRate(code: string): Promise<number> {

@@ -3,7 +3,7 @@
  *
  * A single realtime channel listens to every public-schema change and pushes
  * the matching console queries into an immediate refetch, so operator tables
- * update the moment a user submits — no polling window, no debounce. A 5s
+ * update the moment a user submits - no polling window, no debounce. A 5s
  * heartbeat re-joins the channel if the socket ever goes idle or drops.
  */
 

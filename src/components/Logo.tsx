@@ -1,6 +1,6 @@
 import shieldMark from "@/assets/velocity-shield.png";
 
-/** Isolated shield emblem — for compact layouts, headers and avatars. */
+/** Isolated shield emblem - for compact layouts, headers and avatars. */
 export function BrandMark({
   className = "size-9",
   alt = "Velocity Trade",
@@ -19,7 +19,7 @@ export function BrandMark({
   );
 }
 
-/** Full lockup — shield emblem plus the VELOCITY TRADE wordmark. */
+/** Full lockup - shield emblem plus the VELOCITY TRADE wordmark. */
 export function BrandLockup({
   className = "",
   markClassName = "size-9",

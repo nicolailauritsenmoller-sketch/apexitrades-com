@@ -376,7 +376,7 @@ export function TransactionStatusDialog({
                 <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span>
                   Funds typically arrive within{" "}
-                  <strong className="text-foreground">{eta}</strong> —{" "}
+                  <strong className="text-foreground">{eta}</strong> -{" "}
                   <strong className="text-foreground">
                     {confirmations} of {required}
                   </strong>{" "}

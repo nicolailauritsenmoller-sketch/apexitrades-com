@@ -174,7 +174,7 @@ export function GlobalMembershipSection() {
             to="/auth"
             className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground"
           >
-            Join now — create account
+            Join now - create account
           </Link>
         </div>
       </div>

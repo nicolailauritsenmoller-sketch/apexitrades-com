@@ -132,7 +132,7 @@ export const getPortfolioValue = createServerFn({ method: "POST" })
       ]);
 
     // Margin on open leveraged positions and stakes on open timed contracts are
-    // already debited from the wallet balance — they are frozen collateral.
+    // already debited from the wallet balance - they are frozen collateral.
     const frozen: Record<string, number> = {};
     for (const p of positions ?? []) {
       const margin =
@@ -144,7 +144,7 @@ export const getPortfolioValue = createServerFn({ method: "POST" })
     }
 
     // Pending withdrawals are debited from the wallet at submission time, so
-    // they are reported for transparency only — never subtracted again here.
+    // they are reported for transparency only - never subtracted again here.
     const pending: Record<string, number> = {};
     for (const w of pendingWd ?? []) {
       pending[w.coin] = (pending[w.coin] ?? 0) + Number(w.amount);

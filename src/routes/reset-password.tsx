@@ -9,13 +9,13 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Reset password — Velocity Trade" },
+      { title: "Reset password - Velocity Trade" },
       {
         name: "description",
         content:
           "Verify your emailed code and set a new password for your Velocity Trade trading account.",
       },
-      { property: "og:title", content: "Reset password — Velocity Trade" },
+      { property: "og:title", content: "Reset password - Velocity Trade" },
       { property: "og:description", content: "Set a new password for your Velocity Trade account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -54,7 +54,7 @@ function ResetPasswordPage() {
       });
       if (error) throw error;
       setHasSession(true);
-      toast.success("Code verified — choose a new password.");
+      toast.success("Code verified - choose a new password.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid or expired code.");
     } finally {

@@ -32,7 +32,7 @@ export function LivePnl({
     return () => clearTimeout(id);
   }, [value, live]);
 
-  if (value == null) return <span className="text-muted-foreground">—</span>;
+  if (value == null) return <span className="text-muted-foreground">-</span>;
 
   const positive = value >= 0;
   const text = `${positive ? "+" : "-"}${formatMoney(Math.abs(value), currency)}`;

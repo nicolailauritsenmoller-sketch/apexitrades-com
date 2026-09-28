@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/profile/settings/notificat
         name: "description",
         content: "Configure security, wallet, trading, market and platform notification channels for your Velocity Trade account.",
       },
-      { property: "og:title", content: "Notification Matrix — Velocity Trade" },
+      { property: "og:title", content: "Notification Matrix - Velocity Trade" },
       {
         property: "og:description",
         content: "Institutional notification controls for account, trading and market events.",
@@ -252,7 +252,7 @@ function NotificationSettings() {
             <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
               <Clock3 className="size-3.5 text-muted-foreground" />
               <input aria-label="Quiet hours start" type="time" value={quietStart} onChange={(event) => setQuietStart(event.target.value)} className="w-[74px] bg-transparent font-mono text-xs outline-none" />
-              <span className="text-muted-foreground">—</span>
+              <span className="text-muted-foreground">-</span>
               <input aria-label="Quiet hours end" type="time" value={quietEnd} onChange={(event) => setQuietEnd(event.target.value)} className="w-[74px] bg-transparent font-mono text-xs outline-none" />
             </div>
             <label className="flex items-center gap-2 text-xs font-medium"><Switch checked={quietHours} onCheckedChange={setQuietHours} aria-label="Enable quiet hours" /> Quiet Hours</label>

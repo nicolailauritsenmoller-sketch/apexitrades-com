@@ -85,7 +85,7 @@ export function VipMembershipPanel({
             VIP status
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Manual override — assign or revoke VIP regardless of balance.
+            Manual override - assign or revoke VIP regardless of balance.
           </p>
         </div>
         <select

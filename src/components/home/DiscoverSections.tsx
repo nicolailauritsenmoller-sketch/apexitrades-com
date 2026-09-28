@@ -91,7 +91,7 @@ export function ExploreTokensSection() {
               </div>
               <div className="shrink-0 text-right">
                 <p className="num text-sm font-semibold">
-                  {price !== undefined ? `${isStablecoin ? "$" : ""}${formatPrice(price, t.symbol)}` : "—"}
+                  {price !== undefined ? `${isStablecoin ? "$" : ""}${formatPrice(price, t.symbol)}` : "-"}
                 </p>
                 <p className={`num text-xs ${chg >= 0 ? "text-bull" : "text-bear"}`}>
                   {q || isStablecoin ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}
@@ -141,7 +141,7 @@ export function DiscoverPerpsSection() {
                 <p className="num text-sm font-bold">{p.label}</p>
               </div>
               <p className="num mt-3 text-base font-semibold">
-                {q ? formatPrice(q.price, p.symbol) : "—"}
+                {q ? formatPrice(q.price, p.symbol) : "-"}
               </p>
               <p className={`num text-xs ${chg >= 0 ? "text-bull" : "text-bear"}`}>
                 {q ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}

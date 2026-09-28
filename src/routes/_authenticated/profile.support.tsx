@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
         content:
           "Search help topics, manage support tickets, or reach the Velocity Trade trading desk around the clock.",
       },
-      { property: "og:title", content: "Velocity Support Desk — Velocity Trade" },
+      { property: "og:title", content: "Velocity Support Desk - Velocity Trade" },
       {
         property: "og:description",
         content: "Search help topics, manage tickets, or reach 24/7 trading desk assistance.",

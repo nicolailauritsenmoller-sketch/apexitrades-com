@@ -23,13 +23,13 @@ import { AssetAllocation } from "@/components/portfolio/AssetAllocation";
 export const Route = createFileRoute("/_authenticated/portfolio")({
   head: () => ({
     meta: [
-      { title: "Portfolio — Velocity Trade" },
+      { title: "Portfolio - Velocity Trade" },
       {
         name: "description",
         content:
           "Track multi-currency wallets, open positions and realized P&L across crypto, stocks, futures, forex and gold.",
       },
-      { property: "og:title", content: "Portfolio — Velocity Trade" },
+      { property: "og:title", content: "Portfolio - Velocity Trade" },
       {
         property: "og:description",
         content: "Your multi-currency trading balances and live position P&L.",
@@ -125,7 +125,7 @@ function Portfolio() {
             </div>
             <div className="num mt-1 text-3xl font-bold tracking-tight">
               {value.isLoading ? (
-                "—"
+                "-"
               ) : balancesHidden ? (
                 "••••••"
               ) : (
@@ -148,7 +148,7 @@ function Portfolio() {
       <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <PnlCard
           label="Today's Realized P&L"
-          hint="Settled today (00:00–23:59 UTC)"
+          hint="Settled today (00:00-23:59 UTC)"
           amount={todayRealized}
           loading={dailyPnl.isLoading}
           hidden={balancesHidden}
@@ -277,7 +277,7 @@ function PnlCard({
         className={`num mt-1 text-2xl font-bold tracking-tight ${positive ? "text-bull" : "text-bear"}`}
       >
         {loading
-          ? "—"
+          ? "-"
           : hidden
             ? "••••••"
             : `${positive ? "+" : "-"}${format(Math.abs(amount))}`}

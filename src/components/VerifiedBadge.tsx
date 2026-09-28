@@ -24,7 +24,7 @@ export function UidTag({
 }) {
   return (
     <span className={`font-mono text-xs font-bold tracking-wide ${className}`}>
-      {prefix}: #{uid ?? "—"}
+      {prefix}: #{uid ?? "-"}
     </span>
   );
 }

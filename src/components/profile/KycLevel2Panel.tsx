@@ -50,7 +50,7 @@ export function KycLevel2Panel({
   if (level2 === "pending") {
     return (
       <p className="rounded-xl border border-amber-400/40 bg-amber-400/5 p-4 text-xs text-amber-400">
-        Your Level 2 documents are under compliance review. This usually takes 1–2 business days.
+        Your Level 2 documents are under compliance review. This usually takes 1-2 business days.
       </p>
     );
   }
@@ -58,7 +58,7 @@ export function KycLevel2Panel({
   if (level2 === "approved") {
     return (
       <p className="rounded-xl border border-bull/40 bg-bull/5 p-4 text-xs text-bull">
-        Level 2 verification approved — unlimited daily withdrawals, priority support, high-leverage
+        Level 2 verification approved - unlimited daily withdrawals, priority support, high-leverage
         trading and fiat rails are enabled.
       </p>
     );

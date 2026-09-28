@@ -7,7 +7,7 @@ import { translateTexts } from "@/lib/translate.functions";
  * Runtime translation layer.
  *
  * Translates every rendered UI string (text nodes + placeholder/aria-label/title)
- * on every route the moment the language changes — no reload required. Results are
+ * on every route the moment the language changes - no reload required. Results are
  * cached in localStorage per language so repeat visits are instant and free.
  * Numbers, tickers and prices are deliberately skipped.
  */
@@ -37,7 +37,7 @@ function writeCache(lang: string, cache: Record<string, string>) {
   }
 }
 
-/** Only translate human sentences — never prices, tickers or symbols. */
+/** Only translate human sentences - never prices, tickers or symbols. */
 function translatable(value: string) {
   const s = value.trim();
   if (s.length < 2 || s.length > 300) return false;

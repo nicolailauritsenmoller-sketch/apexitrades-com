@@ -88,13 +88,13 @@ export const Route = createFileRoute("/_authenticated/wallet")({
   },
   head: () => ({
     meta: [
-      { title: "Assets — deposits, withdrawals & swaps | Velocity Trade" },
+      { title: "Assets - deposits, withdrawals & swaps | Velocity Trade" },
       {
         name: "description",
         content:
           "Fund your account with USDT, BTC or ETH, request withdrawals to your own address, and swap between assets at live market rates.",
       },
-      { property: "og:title", content: "Assets — deposits, withdrawals & swaps" },
+      { property: "og:title", content: "Assets - deposits, withdrawals & swaps" },
       {
         property: "og:description",
         content: "Deposit crypto, request withdrawals and swap assets instantly at live rates.",
@@ -994,7 +994,7 @@ function WithdrawTab({
         <AssetIcon currency={coin} symbol={coin} size={24} />
         <span className="min-w-0 truncate">
           Sending <span className="num font-semibold">{amount || "0.00"}</span> {coin} to{" "}
-          {address.trim() ? shortenAddress(address.trim()) : "—"}
+          {address.trim() ? shortenAddress(address.trim()) : "-"}
         </span>
       </div>
       <button
@@ -1129,7 +1129,7 @@ function SwapTab({
           <span className="num">{balancesHidden ? "••••" : formatMoney(available, from)}</span>
         </span>
         <span className="num">
-          1 {from} = {rate ? rate.toFixed(8) : quote.isLoading ? "…" : "—"} {to}
+          1 {from} = {rate ? rate.toFixed(8) : quote.isLoading ? "…" : "-"} {to}
         </span>
       </div>
 
@@ -1155,7 +1155,7 @@ function SwapTab({
         <div className="flex items-center justify-between text-muted-foreground">
           <span>Live market rate</span>
           <span className="num text-foreground">
-            {rate ? `1 ${from} = ${rate.toFixed(8)} ${to}` : quote.isLoading ? "Fetching…" : "—"}
+            {rate ? `1 ${from} = ${rate.toFixed(8)} ${to}` : quote.isLoading ? "Fetching…" : "-"}
           </span>
         </div>
         <div className="flex items-center justify-between text-muted-foreground">
@@ -1164,7 +1164,7 @@ function SwapTab({
         </div>
         <div className="flex items-center justify-between text-muted-foreground">
           <span>Network fee</span>
-          <span className="num text-foreground">None — internal transfer</span>
+          <span className="num text-foreground">None - internal transfer</span>
         </div>
         <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
           <span className="flex items-center gap-2 text-muted-foreground">

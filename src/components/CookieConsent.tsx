@@ -35,7 +35,7 @@ function Toggle({
   );
 }
 
-/** Full preference centre — used by the banner's Customize action and the footer link. */
+/** Full preference centre - used by the banner's Customize action and the footer link. */
 export function CookiePreferencesPanel({ onDone }: { onDone?: () => void }) {
   const { consent, save, acceptAll, rejectNonEssential, withdraw } = useConsent();
   const [draft, setDraft] = useState({

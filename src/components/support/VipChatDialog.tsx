@@ -98,7 +98,7 @@ export function VipChatDialog({
       if (file) {
         const { data: auth } = await supabase.auth.getUser();
         const uid = auth.user?.id;
-        if (!uid) throw new Error("Session expired — sign in again.");
+        if (!uid) throw new Error("Session expired - sign in again.");
         const path = `${uid}/vip/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
         const { error } = await supabase.storage.from("chat-attachments").upload(path, file);
         if (error) throw new Error(error.message);
@@ -123,7 +123,7 @@ export function VipChatDialog({
   const requestMutation = useMutation({
     mutationFn: (roleKey: string) => request({ data: { roleKey: roleKey as any } }),
     onSuccess: () => {
-      toast.success("Access requested — our support desk will unlock this specialist shortly.");
+      toast.success("Access requested - our support desk will unlock this specialist shortly.");
       qc.invalidateQueries({ queryKey: ["vip-directory"] });
     },
     onError: (e: Error) => toast.error(e.message),

@@ -128,10 +128,10 @@ export function WatchlistSection() {
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="num text-sm font-semibold">
-                    {q && !q.stale ? formatPrice(q.price, symbol) : "—"}
+                    {q && !q.stale ? formatPrice(q.price, symbol) : "-"}
                   </div>
                   <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
-                    {q && !q.stale ? `${up ? "+" : ""}${chg.toFixed(2)}%` : "—"}
+                    {q && !q.stale ? `${up ? "+" : ""}${chg.toFixed(2)}%` : "-"}
                   </div>
                 </div>
               </Link>

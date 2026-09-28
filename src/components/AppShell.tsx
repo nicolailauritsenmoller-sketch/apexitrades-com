@@ -231,7 +231,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </ul>
       </nav>
 
-      {/* Launcher-less live chat dialog — opens via Contact Support or the velocity:open-chat event */}
+      {/* Launcher-less live chat dialog - opens via Contact Support or the velocity:open-chat event */}
       <SupportUnreadSync />
       <LiveChatDialog />
     </div>

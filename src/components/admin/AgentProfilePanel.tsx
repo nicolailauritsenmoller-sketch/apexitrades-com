@@ -45,7 +45,7 @@ export function AgentProfilePanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const badge = `${fullName || "Agent name"} — ${agentRole} (ID: ${staffId || "#000"})`;
+  const badge = `${fullName || "Agent name"} - ${agentRole} (ID: ${staffId || "#000"})`;
 
   return (
     <section className="rounded-lg border border-border bg-card">

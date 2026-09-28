@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command";
 import { INSTRUMENTS, ASSET_CLASS_LABEL, displaySymbol } from "@/lib/instruments";
 
-/** Global asset search — opens with Ctrl/⌘ + K and routes to the trade terminal. */
+/** Global asset search - opens with Ctrl/⌘ + K and routes to the trade terminal. */
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();

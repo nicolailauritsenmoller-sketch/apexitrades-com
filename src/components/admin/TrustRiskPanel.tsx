@@ -134,7 +134,7 @@ export function TrustRiskPanel() {
                       disabled={busy}
                       onClick={() => {
                         const n = Number(draft);
-                        if (!Number.isFinite(n) || n < 0 || n > 100) return toast.error("Enter 0–100.");
+                        if (!Number.isFinite(n) || n < 0 || n > 100) return toast.error("Enter 0-100.");
                         ovr.mutate({ userId: u.id, pct: n });
                       }}
                       className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"

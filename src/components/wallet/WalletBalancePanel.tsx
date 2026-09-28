@@ -86,7 +86,7 @@ export function WalletBalancePanel({
           <div>
             <p className="text-xs font-medium text-muted-foreground">Total Balance</p>
             <p className="num mt-1 text-3xl font-bold tracking-tight">
-              {isLoading ? "—" : hidden ? "••••••" : fmt(totalUsdt)}{" "}
+              {isLoading ? "-" : hidden ? "••••••" : fmt(totalUsdt)}{" "}
               <span className="text-base font-semibold text-muted-foreground">USDT</span>
             </p>
           </div>

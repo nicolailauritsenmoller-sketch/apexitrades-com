@@ -22,7 +22,7 @@ export async function readReferralSettings(): Promise<ReferralSettings> {
 
 /**
  * Credits the referrer's USDT wallet for a referral and records the payout in
- * the user's transaction history. Safe to call more than once — a referral that
+ * the user's transaction history. Safe to call more than once - a referral that
  * is already rewarded is skipped.
  */
 export async function payReferralReward(

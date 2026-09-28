@@ -25,7 +25,7 @@ const STATUS_TONE: Record<string, string> = {
   dismissed: "text-muted-foreground",
 };
 
-/** In-app overlay for reporting a security issue — never leaves the platform. */
+/** In-app overlay for reporting a security issue - never leaves the platform. */
 export function SecurityReportDialog({
   open,
   onOpenChange,

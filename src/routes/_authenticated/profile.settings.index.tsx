@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/profile/settings/")({
         name: "description",
         content: "Review your Velocity Trade identity, account tier, contact details and regional account settings.",
       },
-      { property: "og:title", content: "Personal Information — Velocity Trade" },
+      { property: "og:title", content: "Personal Information - Velocity Trade" },
       {
         property: "og:description",
         content: "Identity status, account limits, contact details and regional settings.",
@@ -129,7 +129,7 @@ function PersonalInformation() {
 
   const createdDate = profile?.createdAt
     ? new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(profile.createdAt))
-    : "—";
+    : "-";
   const tierLabel = isVip(vipTier)
     ? VIP_TIER_LABEL[vipTier] ?? "VIP"
     : isVipPending(vipTier)
@@ -173,7 +173,7 @@ function PersonalInformation() {
                     disabled={!profile?.uid}
                     className="h-auto gap-1.5 p-0 font-mono text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
                   >
-                    UID {profile?.uid ?? "—"} <Copy className="size-3.5" />
+                    UID {profile?.uid ?? "-"} <Copy className="size-3.5" />
                   </Button>
                   <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" /> Account opened {createdDate}</span>
                 </div>
@@ -240,7 +240,7 @@ function PersonalInformation() {
               <div>
                 <p className="text-xs text-muted-foreground">Trading tier</p>
                 <p className="mt-1 text-lg font-bold">
-                  {overview.data?.volume?.tier.label ?? "—"}
+                  {overview.data?.volume?.tier.label ?? "-"}
                   {tierLabel === "Standard" ? "" : ` · ${tierLabel}`}
                 </p>
               </div>
@@ -251,7 +251,7 @@ function PersonalInformation() {
               <p className="mt-1 text-sm font-semibold tabular-nums">
                 {overview.data?.volume
                   ? `$${overview.data.volume.monthUsdt.toLocaleString("en-US", { maximumFractionDigits: 2 })}${overview.data.volume.nextTier ? ` / $${overview.data.volume.nextTier.thresholdUsdt.toLocaleString("en-US")}` : ""}`
-                  : "—"}
+                  : "-"}
               </p>
               {overview.data?.volume ? (
                 <>

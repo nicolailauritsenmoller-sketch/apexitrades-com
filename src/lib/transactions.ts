@@ -73,7 +73,7 @@ export const STATUS_STYLE: Record<TxStatus, { label: string; badge: string; dot:
 /** Institutional exchange timestamp, e.g. "Sep 04, 2026 • 03:02 AM". */
 export function formatExchangeDateTime(iso: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   const date = d.toLocaleDateString("en-US", {
     month: "short",
     day: "2-digit",
@@ -92,11 +92,11 @@ const FIAT = new Set(["USD", "EUR", "GBP"]);
 /** Estimated time of arrival based on the rail the transfer settles on. */
 export function estimateEta(type: TxType, asset: string, network: string | null): string {
   const net = (network ?? "").toLowerCase();
-  if (net.includes("bank") || FIAT.has(asset.toUpperCase())) return "1 – 3 business days";
-  if (net.includes("bitcoin")) return "30 – 60 minutes";
-  if (net.includes("erc")) return "10 – 30 minutes";
-  if (net.includes("trc") || net.includes("bep")) return "5 – 15 minutes";
-  return type === "deposit" ? "10 – 30 minutes" : "10 – 30 minutes";
+  if (net.includes("bank") || FIAT.has(asset.toUpperCase())) return "1 - 3 business days";
+  if (net.includes("bitcoin")) return "30 - 60 minutes";
+  if (net.includes("erc")) return "10 - 30 minutes";
+  if (net.includes("trc") || net.includes("bep")) return "5 - 15 minutes";
+  return type === "deposit" ? "10 - 30 minutes" : "10 - 30 minutes";
 }
 
 export function shortenAddress(value: string, lead = 6, tail = 4): string {
@@ -151,7 +151,7 @@ export function requiredConfirmations(network: string | null): number {
   return 20;
 }
 
-/** Confirmations accrued so far — full when settled, time-derived while pending. */
+/** Confirmations accrued so far - full when settled, time-derived while pending. */
 export function confirmationsFor(
   status: TxStatus,
   network: string | null,
@@ -191,6 +191,6 @@ export function explorerName(network: string | null): string {
 export function failureReason(type: TxType, note: string | null): string {
   if (note) return note;
   return type === "withdrawal"
-    ? "Broadcast failed — the network rejected the transaction (insufficient gas limit or congestion). Reserved funds were returned to your wallet."
+    ? "Broadcast failed - the network rejected the transaction (insufficient gas limit or congestion). Reserved funds were returned to your wallet."
     : "The transfer could not be confirmed on-chain. It may have been dropped due to network congestion or an underpaid fee.";
 }

@@ -208,7 +208,7 @@ export function CreditScorePanel() {
             Credit score management
           </h2>
           <p className="text-xs text-muted-foreground">
-            Range {CREDIT_SCORE_MIN}–{CREDIT_SCORE_MAX}. Scores below 500 block withdrawals.
+            Range {CREDIT_SCORE_MIN}-{CREDIT_SCORE_MAX}. Scores below 500 block withdrawals.
           </p>
         </div>
         <div className="relative">
@@ -266,7 +266,7 @@ export function CreditScorePanel() {
                       score < CREDIT_SCORE_MIN ||
                       score > CREDIT_SCORE_MAX
                     ) {
-                      toast.error(`Score must be ${CREDIT_SCORE_MIN}–${CREDIT_SCORE_MAX}.`);
+                      toast.error(`Score must be ${CREDIT_SCORE_MIN}-${CREDIT_SCORE_MAX}.`);
                       return;
                     }
                     mutation.mutate({

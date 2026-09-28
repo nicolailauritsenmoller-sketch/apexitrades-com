@@ -223,13 +223,13 @@ export function OrderBook({
               compact ? "" : dir === "up" ? "text-bull" : "text-bear"
             }`}
           >
-            {lastPrice != null ? fmt(lastPrice, digits) : "—"}
+            {lastPrice != null ? fmt(lastPrice, digits) : "-"}
           </span>
         </div>
         <div
           className={`text-[10px] text-muted-foreground ${compact ? "text-center" : "text-right"}`}
         >
-          <div className="num">≈ ${lastPrice != null ? fmt(lastPrice, 2) : "—"}</div>
+          <div className="num">≈ ${lastPrice != null ? fmt(lastPrice, 2) : "-"}</div>
           {!compact && <div className="num">Spread {spreadPct.toFixed(3)}%</div>}
         </div>
       </div>

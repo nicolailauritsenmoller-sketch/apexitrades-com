@@ -135,7 +135,7 @@ export function wantsAgent(text: string) {
   return /\b(agent|human|person|representative|operator|live support)\b/i.test(text);
 }
 
-/** Keyword scoring — longer phrase matches weigh more. */
+/** Keyword scoring - longer phrase matches weigh more. */
 export function matchQuestion(text: string): BotQA | null {
   const t = text.toLowerCase();
   let best: BotQA | null = null;

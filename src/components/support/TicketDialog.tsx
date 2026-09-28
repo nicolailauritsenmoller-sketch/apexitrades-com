@@ -210,7 +210,7 @@ export function TicketDialog({
         <DialogHeader>
           <DialogTitle>Support requests</DialogTitle>
           <DialogDescription>
-            Submit a request or view ongoing tickets — replies from our support desk will appear below.
+            Submit a request or view ongoing tickets - replies from our support desk will appear below.
           </DialogDescription>
         </DialogHeader>
 

@@ -97,7 +97,7 @@ export const createSupportTicket = createServerFn({ method: "POST" })
     ]
       .filter(Boolean)
       .join(" · ");
-    const body = contact ? `${data.body}\n\n—\n${contact}` : data.body;
+    const body = contact ? `${data.body}\n\n-\n${contact}` : data.body;
 
     const { data: ticket, error } = await supabase
       .from("support_tickets")

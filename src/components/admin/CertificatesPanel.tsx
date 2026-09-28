@@ -221,7 +221,7 @@ export function CertificatesPanel() {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold">{c.title}</span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {c.issuer || "—"} · {c.isActive ? "Active" : "Hidden"}
+                {c.issuer || "-"} · {c.isActive ? "Active" : "Hidden"}
                 {c.expiryDate ? ` · expires ${c.expiryDate}` : ""}
               </span>
             </span>

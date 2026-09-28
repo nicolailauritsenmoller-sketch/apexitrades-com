@@ -13,13 +13,13 @@ import { institutionalizeCopy } from "@/lib/institutional-copy";
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
     meta: [
-      { title: "Notifications — Velocity Trade" },
+      { title: "Notifications - Velocity Trade" },
       {
         name: "description",
         content:
           "Your Velocity Trade message center: account alerts, trade updates and platform announcements in one place.",
       },
-      { property: "og:title", content: "Notifications — Velocity Trade" },
+      { property: "og:title", content: "Notifications - Velocity Trade" },
       {
         property: "og:description",
         content: "Account alerts, trade updates and platform announcements in one place.",

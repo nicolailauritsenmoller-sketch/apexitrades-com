@@ -234,7 +234,7 @@ function ScreenReplayModal({
         <header className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-display text-sm font-semibold">
-              Screen recording · {session.route ?? "—"}
+              Screen recording · {session.route ?? "-"}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {new Date(session.startedAt).toLocaleString()} · {session.events} events
@@ -308,7 +308,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
               {q.data?.profile?.display_name ?? "User"}
             </p>
             <p className="truncate text-xs text-muted-foreground">
-              {q.data?.profile?.email ?? "—"} · {q.data?.profile?.uid ?? "—"}
+              {q.data?.profile?.email ?? "-"} · {q.data?.profile?.uid ?? "-"}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -335,14 +335,14 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
                 {s.browser} {s.browserVersion ?? ""}
               </p>
               <p className="text-muted-foreground">
-                {s.os} {s.osVersion ?? ""} · {s.screen ?? "—"} · {s.deviceType}
+                {s.os} {s.osVersion ?? ""} · {s.screen ?? "-"} · {s.deviceType}
               </p>
               <p className="text-muted-foreground">
                 {[s.city, s.region, s.country].filter(Boolean).join(", ") || "Unknown location"} ·{" "}
-                {s.ip ?? "—"} · {s.isp ?? "—"}
+                {s.ip ?? "-"} · {s.isp ?? "-"}
               </p>
               <p className="text-muted-foreground">
-                {s.online ? "Online" : "Offline"} · {timeAgo(s.lastActiveAt)} · {s.path ?? "—"}
+                {s.online ? "Online" : "Offline"} · {timeAgo(s.lastActiveAt)} · {s.path ?? "-"}
               </p>
             </div>
           ))}
@@ -374,7 +374,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
                   <span className="min-w-0">
                     <span className="block truncate">{a.label}</span>
                     <span className="block truncate text-muted-foreground">
-                      {a.actionType} · {a.route ?? "—"} · {timeAgo(a.createdAt)} ·{" "}
+                      {a.actionType} · {a.route ?? "-"} · {timeAgo(a.createdAt)} ·{" "}
                       {(a.domEvents ?? []).length} events
                     </span>
                   </span>
@@ -403,7 +403,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
                     className="flex items-center justify-between gap-3 border-b border-border pb-2"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate">{r.route ?? "—"}</span>
+                      <span className="block truncate">{r.route ?? "-"}</span>
                       <span className="block truncate text-muted-foreground">
                         {timeAgo(r.lastAt)} · {r.events} events · {r.chunks} chunk
                         {r.chunks === 1 ? "" : "s"}
@@ -530,7 +530,7 @@ export function TelemetryPanel() {
                 className="flex items-center justify-between gap-3 rounded-lg border border-ops-red/25 bg-bear/5 px-3 py-2"
               >
                 <span className="min-w-0 truncate">
-                  <b>{a.name}</b> · {a.kind} — {a.detail}
+                  <b>{a.name}</b> · {a.kind} - {a.detail}
                 </span>
                 <button
                   onClick={() => setPicked(a.userId)}
@@ -567,7 +567,7 @@ export function TelemetryPanel() {
                       {s.deviceModel} · {s.browser} · {s.os} {s.osVersion ?? ""}
                     </span>
                     <span className="block truncate text-muted-foreground">
-                      {[s.city, s.country].filter(Boolean).join(", ") || "Unknown"} · {s.ip ?? "—"} ·{" "}
+                      {[s.city, s.country].filter(Boolean).join(", ") || "Unknown"} · {s.ip ?? "-"} ·{" "}
                       {timeAgo(s.lastActiveAt)}
                     </span>
                   </button>
@@ -599,8 +599,8 @@ export function TelemetryPanel() {
                     <b>{a.name}</b> · {a.label}
                   </span>
                   <span className="block truncate text-muted-foreground">
-                    {a.actionType} · {a.route ?? "—"} ·{" "}
-                    {[a.city, a.country].filter(Boolean).join(", ") || a.ip || "—"}
+                    {a.actionType} · {a.route ?? "-"} ·{" "}
+                    {[a.city, a.country].filter(Boolean).join(", ") || a.ip || "-"}
                   </span>
                 </button>
                 <span className="num shrink-0 text-muted-foreground">{timeAgo(a.createdAt)}</span>

@@ -160,7 +160,7 @@ export const reviewDeposit = createServerFn({ method: "POST" })
       supabase,
       dep.user_id,
       data.action === "approve" ? "Deposit settled" : "Deposit compliance check failed",
-      `${Number(dep.amount)} ${dep.coin} (${dep.network}) — ${data.action === "approve" ? "clearing complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
+      `${Number(dep.amount)} ${dep.coin} (${dep.network}) - ${data.action === "approve" ? "clearing complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
       data.action === "approve" ? "success" : "warning",
     );
 
@@ -235,7 +235,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       supabase,
       wd.user_id,
       data.action === "approve" ? "Withdrawal settled" : "Withdrawal compliance check failed",
-      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} — ${data.action === "approve" ? "settlement complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
+      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} - ${data.action === "approve" ? "settlement complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
       data.action === "approve" ? "success" : "warning",
     );
 
@@ -465,7 +465,7 @@ export const broadcastNotification = createServerFn({ method: "POST" })
 
     // Every notification row is addressed to exactly one account. A
     // platform-wide message is fanned out into one explicitly targeted row per
-    // recipient — never a single "everyone" row.
+    // recipient - never a single "everyone" row.
     let recipients: string[];
     if (data.userId) {
       recipients = [data.userId];
@@ -681,7 +681,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         revenue,
         activeTrades: C.filter((c) => c.status === "open").length,
         pendingKyc: K.filter((k) => k.status === "pending").length,
-        // Only genuinely open tickets count — resolved/closed drop out instantly.
+        // Only genuinely open tickets count - resolved/closed drop out instantly.
         openTickets: (ticketRows.data ?? []).filter((t: any) => t.status === "open").length,
       },
       series,
@@ -975,7 +975,7 @@ export const updateTicketFields = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Private note kept on the thread — never returned to the customer (RLS blocks it). */
+/** Private note kept on the thread - never returned to the customer (RLS blocks it). */
 export const addTicketInternalNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -1399,7 +1399,7 @@ export const unverifyKyc = createServerFn({ method: "POST" })
       .from("kyc_submissions")
       .update({
         status: "pending",
-        admin_note: data.note ?? "Verification revoked — re-review required.",
+        admin_note: data.note ?? "Verification revoked - re-review required.",
         reviewed_by: context.userId,
         reviewed_at: new Date().toISOString(),
       })
@@ -1557,7 +1557,7 @@ export const getPendingVipRequests = createServerFn({ method: "POST" })
     return ((rows ?? []) as any[]).map((p) => {
       const mine = deposits.filter((d) => d.user_id === p.id);
       const approved = mine.filter((d) => d.status === "approved");
-      // Prefer the stablecoin total — that is what the 20,000 USDT threshold measures.
+      // Prefer the stablecoin total - that is what the 20,000 USDT threshold measures.
       const usdtTotal = approved
         .filter((d) => String(d.coin).toUpperCase().startsWith("USD"))
         .reduce((a, d) => a + Number(d.amount ?? 0), 0);

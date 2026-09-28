@@ -12,13 +12,13 @@ import { MaintenanceAuthNotice, useMaintenanceStatus } from "@/lib/maintenance";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Velocity Trade" },
+      { title: "Sign in - Velocity Trade" },
       {
         name: "description",
         content:
           "Sign in or create a Velocity Trade account to trade crypto, stocks, futures, forex and gold with live market prices.",
       },
-      { property: "og:title", content: "Sign in — Velocity Trade" },
+      { property: "og:title", content: "Sign in - Velocity Trade" },
       {
         property: "og:description",
         content: "Access your multi-currency trading account.",
@@ -33,9 +33,9 @@ export const Route = createFileRoute("/auth")({
 type Mode = "signin" | "signup" | "forgot" | "verify" | "reset-otp" | "reset";
 
 const RESEND_SECONDS = 60;
-const OTP_TTL_SECONDS = 600; // Supabase OTP expiry — 10 minutes
+const OTP_TTL_SECONDS = 600; // Supabase OTP expiry - 10 minutes
 
-/** m••••@gmail.com — never render the full address on the verification screen. */
+/** m••••@gmail.com - never render the full address on the verification screen. */
 function maskEmail(value: string) {
   const [local = "", domain = ""] = value.split("@");
   if (!local || !domain) return value;
@@ -157,7 +157,7 @@ function AuthPage() {
           if (fallbackError) throw error;
         }
         setCodeError("");
-        toast.success("Email verified — welcome to Velocity Trade.");
+        toast.success("Email verified - welcome to Velocity Trade.");
         navigate({ to: "/dashboard", replace: true });
         return;
       }
@@ -172,7 +172,7 @@ function AuthPage() {
         setCodeError("");
         setExpiresIn(0);
         setMode("reset");
-        toast.success("Code verified — choose a new password.");
+        toast.success("Code verified - choose a new password.");
         return;
       }
 

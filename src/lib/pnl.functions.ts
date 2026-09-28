@@ -19,7 +19,7 @@ export function msUntilUtcMidnight(now = new Date()) {
  * is always bounded by the current day's start.
  *
  * Unrealized legs (open margin positions, 24h drift on spot holdings) are
- * layered on client-side from live quotes — see `useDailyPnl`.
+ * layered on client-side from live quotes - see `useDailyPnl`.
  */
 export const getDailyRealizedPnl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

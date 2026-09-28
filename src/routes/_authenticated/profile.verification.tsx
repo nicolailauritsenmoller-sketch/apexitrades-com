@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/profile/verification")({
         content:
           "Submit your identity details and upload verification documents to unlock withdrawals on Velocity Trade.",
       },
-      { property: "og:title", content: "Account Verification — Velocity Trade" },
+      { property: "og:title", content: "Account Verification - Velocity Trade" },
       {
         property: "og:description",
         content: "Upload your identity document and selfie to complete verification.",

@@ -423,7 +423,7 @@ function AdminPage() {
     refetchInterval: 30_000,
   });
 
-  // Live pending counters — refresh instantly on any queue change.
+  // Live pending counters - refresh instantly on any queue change.
   useEffect(() => {
     if (!isAdmin) return;
     const bump = () => {
@@ -659,7 +659,7 @@ function AdminPage() {
                       <p className="text-xs text-muted-foreground">
                         {unreadChats > 0
                           ? `${unreadChats} unread user message${unreadChats === 1 ? "" : "s"} waiting`
-                          : "No unread messages — inbox clear"}
+                          : "No unread messages - inbox clear"}
                       </p>
                     </div>
                     {unreadChats > 0 && (
@@ -855,7 +855,7 @@ function DepositProof({ id }: { id: string }) {
         />
       </button>
       <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-        Proof of payment — click to enlarge
+        Proof of payment - click to enlarge
       </p>
       {open && (
         <div
@@ -1934,7 +1934,7 @@ function BroadcastTab({ profiles }: { profiles: any[] }) {
           <option value="">All users (system-wide announcement)</option>
           {profiles.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.display_name} — {String(p.id).slice(0, 8)}…
+              {p.display_name} - {String(p.id).slice(0, 8)}…
             </option>
           ))}
         </select>

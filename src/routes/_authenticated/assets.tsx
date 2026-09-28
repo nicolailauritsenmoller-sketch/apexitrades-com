@@ -14,13 +14,13 @@ import { INSTRUMENTS, displaySymbol, formatMoney, formatPrice } from "@/lib/inst
 export const Route = createFileRoute("/_authenticated/assets")({
   head: () => ({
     meta: [
-      { title: "Assets & wallets — Velocity Trade" },
+      { title: "Assets & wallets - Velocity Trade" },
       {
         name: "description",
         content:
           "Track multi-fiat and digital asset balances in USD, EUR, GBP, USDT and BTC alongside your tradable instrument universe.",
       },
-      { property: "og:title", content: "Assets & wallets — Velocity Trade" },
+      { property: "og:title", content: "Assets & wallets - Velocity Trade" },
       {
         property: "og:description",
         content: "Multi-fiat and digital asset settlement, open exposure and every tradable asset in one place.",
@@ -80,7 +80,7 @@ function Assets() {
             <p className="text-xs font-medium text-muted-foreground">Total Balance</p>
             <p className="num mt-1 text-3xl font-bold tracking-tight">
               {portfolioValue.isLoading
-                ? "—"
+                ? "-"
                 : balancesHidden
                   ? "••••••"
                   : `${(portfolioValue.data?.totalUsdt ?? 0).toLocaleString("en-US", {
@@ -136,7 +136,7 @@ function Assets() {
                 ? "••••"
                 : quotes[p.symbol]
                   ? formatPrice(quotes[p.symbol].price, p.symbol)
-                  : "—"}
+                  : "-"}
             </div>
           </div>
         ))}

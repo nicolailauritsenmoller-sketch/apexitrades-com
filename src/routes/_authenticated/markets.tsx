@@ -15,13 +15,13 @@ import {
 export const Route = createFileRoute("/_authenticated/markets")({
   head: () => ({
     meta: [
-      { title: "Markets — Velocity Trade" },
+      { title: "Markets - Velocity Trade" },
       {
         name: "description",
         content:
           "Browse live prices for crypto pairs, US stocks, index futures, major forex pairs and precious metals in one terminal.",
       },
-      { property: "og:title", content: "Markets — Velocity Trade" },
+      { property: "og:title", content: "Markets - Velocity Trade" },
       {
         property: "og:description",
         content: "Live quotes across five asset classes, updated every few seconds.",
@@ -188,10 +188,10 @@ function Markets() {
                 {label}
               </div>
               <div className="num mt-1 truncate text-sm font-bold">
-                {s && !s.stale ? formatPrice(s.price, symbol) : "—"}
+                {s && !s.stale ? formatPrice(s.price, symbol) : "-"}
               </div>
               <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
-                {s && !s.stale ? `${up ? "+" : ""}${s.changePercent.toFixed(2)}%` : "—"}
+                {s && !s.stale ? `${up ? "+" : ""}${s.changePercent.toFixed(2)}%` : "-"}
               </div>
             </div>
           );
@@ -233,12 +233,12 @@ function Markets() {
               </div>
               <div className="shrink-0 text-right">
                 <div className="num text-sm font-semibold">
-                  {quote && !quote.stale ? formatPrice(quote.price, i.symbol) : "—"}
+                  {quote && !quote.stale ? formatPrice(quote.price, i.symbol) : "-"}
                 </div>
                 <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
                   {quote && !quote.stale
                     ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%`
-                    : "—"}
+                    : "-"}
                 </div>
               </div>
             </Link>
@@ -283,20 +283,20 @@ function Markets() {
                     {ASSET_CLASS_LABEL[i.assetClass]}
                   </td>
                   <td className="num px-4 py-3 text-right">
-                    {quote && !quote.stale ? formatPrice(quote.price, i.symbol) : "—"}
+                    {quote && !quote.stale ? formatPrice(quote.price, i.symbol) : "-"}
                   </td>
                   <td
                     className={`num px-4 py-3 text-right ${up ? "text-bull" : "text-bear"}`}
                   >
                     {quote && !quote.stale
                       ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%`
-                      : "—"}
+                      : "-"}
                   </td>
                   <td className="num px-4 py-3 text-right text-muted-foreground">
-                    {quote && !quote.stale ? formatPrice(quote.high, i.symbol) : "—"}
+                    {quote && !quote.stale ? formatPrice(quote.high, i.symbol) : "-"}
                   </td>
                   <td className="num px-4 py-3 text-right text-muted-foreground">
-                    {quote && !quote.stale ? formatPrice(quote.low, i.symbol) : "—"}
+                    {quote && !quote.stale ? formatPrice(quote.low, i.symbol) : "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link

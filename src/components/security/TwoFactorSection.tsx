@@ -66,7 +66,7 @@ export function TwoFactorSection() {
             <p className="mt-1 text-[11px] text-muted-foreground">
               {state.data?.recoveryPhraseSet
                 ? "12-word recovery phrase is set as your backup."
-                : "No recovery phrase saved — generate one now."}
+                : "No recovery phrase saved - generate one now."}
             </p>
           ) : null}
         </div>

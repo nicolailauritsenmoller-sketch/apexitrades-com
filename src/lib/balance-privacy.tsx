@@ -30,7 +30,7 @@ export function setHideBalances(next: boolean) {
   window.dispatchEvent(new CustomEvent<boolean>(EVENT, { detail: next }));
 }
 
-/** Returns [hidden, toggle, mask] — `mask` blanks a value when hidden. */
+/** Returns [hidden, toggle, mask] - `mask` blanks a value when hidden. */
 export function useBalancePrivacy() {
   const [hidden, setHidden] = useState(false);
 

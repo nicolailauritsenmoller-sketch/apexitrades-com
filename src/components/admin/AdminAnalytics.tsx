@@ -366,7 +366,7 @@ export function SystemActivity({ a }: { a: Analytics }) {
           {a.sessions.map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-3 border-b border-border pb-2">
               <span className="min-w-0 truncate">
-                {s.browser} · {s.os} · {s.country ?? "Unknown"} · {s.ip_address ?? "—"}
+                {s.browser} · {s.os} · {s.country ?? "Unknown"} · {s.ip_address ?? "-"}
               </span>
               <span className="num shrink-0 text-muted-foreground">
                 {new Date(s.last_active_at).toLocaleString()}
@@ -435,9 +435,9 @@ export function TradeStatsPanel({ a }: { a: Analytics }) {
                       c.result === "win" ? "text-ops-emerald" : c.result === "loss" ? "text-ops-red" : ""
                     }
                   >
-                    {c.result ?? "—"}
+                    {c.result ?? "-"}
                   </td>
-                  <td className="num">{c.payout ?? "—"}</td>
+                  <td className="num">{c.payout ?? "-"}</td>
                   <td className="num text-muted-foreground">
                     {new Date(c.opened_at).toLocaleString()}
                   </td>
