@@ -98,7 +98,7 @@ export function TimedContractPanel({
       } else if (res.result === "draw") {
         toast(`Contract closed · stake refunded`);
       } else {
-        toast.error(`Contract closed · -${formatMoney(res.stake, res.currency)}`);
+        toast.error(`Contract closed · -${formatMoney(c?.stake ?? 0, res.currency)}`);
       }
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
