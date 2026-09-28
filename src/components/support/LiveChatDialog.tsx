@@ -1,3 +1,4 @@
+import { markAllSupportRead } from "@/lib/use-support-unread";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
