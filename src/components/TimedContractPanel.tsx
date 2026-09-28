@@ -109,6 +109,11 @@ export function TimedContractPanel({
     () => (contracts.data ?? []).filter((c) => c.status === "open"),
     [contracts.data],
   );
+  const settledContracts = useMemo(
+    () => (contracts.data ?? []).filter((c) => c.status === "settled"),
+    [contracts.data],
+  );
+  const [listTab, setListTab] = useState<"running" | "settled">("running");
 
   const now = useNow(openContracts.length > 0);
   const { quotes } = useQuotes(
@@ -251,19 +256,41 @@ export function TimedContractPanel({
         </div>
       </div>
 
-      {openContracts.length > 0 && (
-        <div className="border-t border-border px-4 py-3">
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Running contracts
-          </h3>
-          <ul className="space-y-2">
-            {openContracts.map((c) => (
-              <ContractCard key={c.id} contract={c} now={now} mark={quotes[c.symbol]?.price} />
+      <div className="border-t border-border px-4 py-3">
+        <div className="mb-2 flex gap-1 rounded-lg border border-border p-1 text-[11px] font-semibold uppercase tracking-wider">
+          {(["running", "settled"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setListTab(t)}
+              className={`flex-1 touch-manipulation rounded-md px-2 py-1.5 ${
+                listTab === t ? "bg-surface-raised text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {t === "running" ? `Running Contracts (${openContracts.length})` : `Settled Contracts (${settledContracts.length})`}
+            </button>
+          ))}
+        </div>
+        {listTab === "running" ? (
+          openContracts.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted-foreground">No running contracts.</p>
+          ) : (
+            <ul className="space-y-2">
+              {openContracts.map((c) => (
+                <ContractCard key={c.id} contract={c} now={now} mark={quotes[c.symbol]?.price} />
+              ))}
+            </ul>
+          )
+        ) : settledContracts.length === 0 ? (
+          <p className="py-4 text-center text-xs text-muted-foreground">No settled contracts yet.</p>
+        ) : (
+          <ul className="max-h-96 space-y-2 overflow-y-auto">
+            {settledContracts.map((c) => (
+              <SettledCard key={c.id} contract={c} />
             ))}
           </ul>
-        </div>
-      )}
-
+        )}
+      </div>
     </div>
   );
 }
@@ -303,11 +330,14 @@ function ContractCard({
           <span className={sideClass}>{sideLabel}</span>
         </span>
         <span className="num tabular-nums">
-          {left > 0 ? formatCountdown(left) : "Settling…"}
+          {left > 0 ? formatCountdown(left) : "Settling..."}
         </span>
       </div>
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-primary transition-[width] duration-1000 ease-linear" style={{ width: `${progress}%` }} />
+      </div>
       <div className="mt-2 flex items-center gap-3">
-        <CircularTimer progress={progress} label={left > 0 ? formatCountdown(left) : "…"} />
+        <CircularTimer progress={progress} label={left > 0 ? formatCountdown(left) : "..."} />
         <div className="min-w-0 flex-1 text-[11px] text-muted-foreground">
           <p className="num">
             Entry {formatPrice(contract.entryPrice, contract.symbol)}
@@ -329,6 +359,54 @@ function ContractCard({
     </li>
   );
 }
+
+function SettledCard({ contract: c }: { contract: ContractRow }) {
+  const pnl = (c.payout ?? 0) - c.stake;
+  const win = c.result === "win";
+  const loss = c.result === "loss";
+  const delta = c.exitPrice != null ? c.exitPrice - c.entryPrice : null;
+  const deltaPct = delta != null && c.entryPrice ? (delta / c.entryPrice) * 100 : null;
+  const tone = win ? "border-bull/40 bg-bull/5" : loss ? "border-bear/40 bg-bear/5" : "border-border bg-surface";
+  const row = (k: string, v: React.ReactNode) => (
+    <div className="flex justify-between gap-2">
+      <dt className="text-muted-foreground">{k}</dt>
+      <dd className="num truncate text-right">{v}</dd>
+    </div>
+  );
+  return (
+    <li className={`rounded-md border p-2.5 text-[11px] ${tone}`}>
+      <div className="mb-1.5 flex items-center justify-between text-xs">
+        <span className="flex items-center gap-1.5 font-medium">
+          <AssetIcon symbol={c.symbol} size={16} />
+          {c.displaySymbol}
+          <span className={c.direction === "up" ? "text-bull" : "text-bear"}>
+            {c.direction === "up" ? "Buy / Long" : "Sell / Short"}
+          </span>
+        </span>
+        <span className={`num font-bold ${win ? "text-bull" : loss ? "text-bear" : "text-muted-foreground"}`}>
+          {win
+            ? `+${pnl.toFixed(2)} ${c.currency}`
+            : loss
+              ? `-${c.stake.toFixed(2)} ${c.currency} (-100%)`
+              : `0.00 ${c.currency} (Refund)`}
+        </span>
+      </div>
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-0.5 sm:grid-cols-2">
+        {row("Contract ID", c.id.slice(0, 8).toUpperCase())}
+        {row("Duration", `${c.durationSeconds}s`)}
+        {row("Entry Price", formatPrice(c.entryPrice, c.symbol))}
+        {row("Settlement Price", c.exitPrice != null ? formatPrice(c.exitPrice, c.symbol) : "-")}
+        {row(
+          "Mark Delta",
+          delta != null ? `${delta >= 0 ? "+" : "-"}${formatPrice(Math.abs(delta), c.symbol)} (${deltaPct! >= 0 ? "+" : "-"}${Math.abs(deltaPct!).toFixed(3)}%)` : "-",
+        )}
+        {row("Investment", formatMoney(c.stake, c.currency))}
+        {row("Settled", c.settledAt ? new Date(c.settledAt).toLocaleString() : "-")}
+      </dl>
+    </li>
+  );
+}
+
 
 function CircularTimer({ progress, label }: { progress: number; label: string }) {
   const size = 56;
