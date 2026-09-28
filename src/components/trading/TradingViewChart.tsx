@@ -384,7 +384,7 @@ function TradingViewChartInner({
         lastValueVisible: false,
       });
       volumeSeriesRef.current = volumeSeries;
-      volumePane.setHeight(Math.round(container.clientHeight * 0.2));
+      volumePane.setHeight(Math.round(container.clientHeight * 0.18));
 
       chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
         if (disposed) return;
@@ -763,8 +763,8 @@ function TradingViewChartInner({
       style={{ height: isFullscreen ? "100vh" : height }}
     >
       {/* Toolbar */}
-      <div className="absolute left-0 right-0 top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-card/95 px-2 py-1.5 backdrop-blur">
-        <div className="flex items-center gap-1 overflow-x-auto">
+      <div className="absolute left-0 right-0 top-0 z-10 flex flex-col gap-1 border-b border-border bg-card/95 px-2 py-1.5 backdrop-blur sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+        <div className="hidden items-center gap-1 overflow-x-auto sm:flex">
           {CHART_TYPES.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -783,9 +783,9 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="h-4 w-px bg-border" />
+        <div className="hidden h-4 w-px bg-border sm:block" />
 
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto">
           {VISIBLE_TIMEFRAMES.map((tf) => [tf, TIMEFRAME_LABELS[tf]] as const).map(([tf, label]) => (
             <button
               key={tf}
@@ -802,8 +802,20 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="h-4 w-px bg-border" />
-        <div className="flex items-center gap-1">
+        <div className="hidden h-4 w-px bg-border sm:block" />
+        <div className="flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto sm:overflow-visible">
+          {inspected && (
+            <span className="shrink-0 pr-1 font-mono text-[10px] tabular-nums sm:hidden">
+              <span className="text-muted-foreground">O </span>
+              <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>{formatPrice(inspected.o, symbol)}</span>
+              <span className="text-muted-foreground"> H </span>
+              <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>{formatPrice(inspected.h, symbol)}</span>
+              <span className="text-muted-foreground"> L </span>
+              <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>{formatPrice(inspected.l, symbol)}</span>
+              <span className="text-muted-foreground"> C </span>
+              <span className={inspected.chg >= 0 ? "text-bull" : "text-bear"}>{formatPrice(inspected.c, symbol)}</span>
+            </span>
+          )}
           {([
             ["EMA", emaOn, toggleEmaSet],
             ["BOLL", activeIndicators.includes("bollinger"), () => toggleIndicator("bollinger")],
@@ -822,9 +834,16 @@ function TradingViewChartInner({
               {label}
             </button>
           ))}
+          <button
+            onClick={handleFullscreen}
+            title="Fullscreen"
+            className="ml-auto shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary sm:hidden"
+          >
+            {isFullscreen ? <Shrink className="size-3.5" /> : <Maximize className="size-3.5" />}
+          </button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto hidden items-center gap-1 sm:flex">
           <div className="relative">
             <button
               onClick={() => setShowIndicators((s) => !s)}
@@ -930,7 +949,7 @@ function TradingViewChartInner({
 
       {/* OHLC inspector */}
       {inspected && (
-        <div className="pointer-events-none absolute left-2 top-12 z-10 flex flex-wrap gap-x-2.5 gap-y-0.5 rounded bg-card/80 px-2 py-1 font-mono text-[10px] tabular-nums sm:text-[11px]">
+        <div className="pointer-events-none absolute left-2 top-12 z-10 hidden flex-wrap gap-x-2.5 gap-y-0.5 rounded bg-card/80 px-2 py-1 font-mono text-[10px] tabular-nums sm:flex sm:text-[11px]">
           {(["o", "h", "l", "c"] as const).map((k) => (
             <span key={k}>
               <span className="text-muted-foreground">{k.toUpperCase()} </span>
