@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { AccountMetrics, useAccountOverview } from "@/components/home/AccountMetrics";
+import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -49,11 +52,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Home() {
   const t = useT();
   useWalletRealtime("dashboard-wallet-live");
+  const [depositOpen, setDepositOpen] = useState(false);
+  const overview = useAccountOverview();
   const fetchValue = useServerFn(getPortfolioValue);
   const value = useQuery({
     queryKey: ["portfolio-value"],
     queryFn: () => fetchValue(),
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 
   const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
@@ -104,17 +109,19 @@ function Home() {
             </div>
           </div>
 
-          <Link
-            to="/wallet"
-            search={{ tab: "deposit" }}
+          <button
+            type="button"
+            onClick={() => setDepositOpen(true)}
             className="flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
             style={{ boxShadow: "var(--glow-primary)" }}
           >
             <ArrowDownToLine className="size-4" strokeWidth={2.6} />
             {t("dashboard.addFunds")}
-          </Link>
+          </button>
         </div>
       </section>
+
+      <AccountMetrics data={overview.data} hidden={hidden} format={(v) => format(v)} />
 
       <WatchlistSection />
       <TopMoversSection />
@@ -122,6 +129,7 @@ function Home() {
       <ExploreTokensSection />
       <DiscoverPerpsSection />
       <MarketNewsSection />
+      <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     </AppShell>
   );
 }
