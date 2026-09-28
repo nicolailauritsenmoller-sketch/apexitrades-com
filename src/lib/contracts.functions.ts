@@ -14,6 +14,26 @@ const settleInput = z.object({ id: z.string().uuid() });
 export const getContracts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    // Server-side sweep: settle any contract that expired while the user was away.
+    const { data: expired } = await context.supabase
+      .from("contracts")
+      .select("*")
+      .eq("user_id", context.userId)
+      .eq("status", "open")
+      .lt("expires_at", new Date(Date.now() - 5000).toISOString())
+      .limit(20);
+    if (expired && expired.length > 0) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { settleContractRow } = await import("./contracts-settle.server");
+      for (const c of expired) {
+        try {
+          await settleContractRow(context.supabase, supabaseAdmin, context.userId, c);
+        } catch {
+          /* already settled concurrently */
+        }
+      }
+    }
+
     const { data } = await context.supabase
       .from("contracts")
       .select("*")
@@ -160,7 +180,6 @@ export const settleContract = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => settleInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { fetchPrice } = await import("./market.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
@@ -177,81 +196,6 @@ export const settleContract = createServerFn({ method: "POST" })
       throw new Error("Contract has not expired yet.");
     }
 
-    const exit = await fetchPrice(contract.symbol);
-    const entry = Number(contract.entry_price);
-    const stake = Number(contract.stake);
-    const pct = Number(contract.payout_pct);
-
-    // Settlement outcome can be overridden by an administrator, either for this
-    // single contract or globally for the account.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("outcome_mode")
-      .eq("id", userId)
-      .maybeSingle();
-
-    // Platform-wide default applies when neither the contract nor the account
-    // carries an explicit override.
-    const { data: globalSetting } = await db
-      .from("platform_settings")
-      .select("value")
-      .eq("key", "trading")
-      .maybeSingle();
-    const globalDefault = (globalSetting?.value?.defaultOutcome ?? "normal") as string;
-
-    const override =
-      contract.outcome_override && contract.outcome_override !== "normal"
-        ? contract.outcome_override
-        : profile?.outcome_mode && profile.outcome_mode !== "normal"
-          ? profile.outcome_mode
-          : globalDefault;
-
-    let result: "win" | "loss" | "draw";
-    if (override === "force_win") result = "win";
-    else if (override === "force_loss") result = "loss";
-    else if (exit === entry) result = "draw";
-    else if ((exit > entry && contract.direction === "up") || (exit < entry && contract.direction === "down"))
-      result = "win";
-    else result = "loss";
-
-    const payout = result === "win" ? stake + (stake * pct) / 100 : result === "draw" ? stake : 0;
-
-    const { data: settled, error: updateError } = await db
-      .from("contracts")
-      .update({
-        status: "settled",
-        exit_price: exit,
-        result,
-        payout,
-        settled_at: new Date().toISOString(),
-      })
-      .eq("id", contract.id)
-      .eq("user_id", userId)
-      .eq("status", "open")
-      .select("id");
-    if (updateError) throw new Error(updateError.message);
-    // Another concurrent settle already credited this contract.
-    if (!settled || settled.length === 0) throw new Error("Contract already settled.");
-
-    if (payout > 0) {
-      const { data: wallet } = await db
-        .from("wallets")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("currency", contract.currency)
-        .maybeSingle();
-      if (wallet) {
-        await db
-          .from("wallets")
-          .update({
-            balance: Number(wallet.balance) + payout,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", wallet.id)
-          .eq("user_id", userId);
-      }
-    }
-
-
-    return { result, exitPrice: exit, payout, currency: contract.currency };
+    const { settleContractRow } = await import("./contracts-settle.server");
+    return settleContractRow(supabase, db, userId, contract);
   });
