@@ -351,15 +351,28 @@ export function LiveChatDialog({
           filter: `id=eq.${sessionId}`,
         },
         () => {
-          void getMyChatContext({ data: { sessionId } }).then((res) => {
-            setAgent(res.agent as Agent);
-            if (res.queuedAt && res.status !== "closed") {
-              setMode("agent");
-              setQueuedAt(res.queuedAt);
-              setConnectedAt(res.connectedAt);
-              escalatingRef.current = true;
-            }
-          });
+          void getMyChatContext({ data: { sessionId } })
+            .then((res) => {
+              setAgent(res.agent as Agent);
+              if (res.status === "missing") {
+                setSessionId(null);
+                setMessages([]);
+                setMode("bot");
+                setQueuedAt(null);
+                setConnectedAt(null);
+                escalatingRef.current = false;
+                return;
+              }
+              if (res.queuedAt && res.status !== "closed") {
+                setMode("agent");
+                setQueuedAt(res.queuedAt);
+                setConnectedAt(res.connectedAt);
+                escalatingRef.current = true;
+              }
+            })
+            .catch(() => {
+              /* A stale realtime event must never escape into the page. */
+            });
         },
       )
       .subscribe();
