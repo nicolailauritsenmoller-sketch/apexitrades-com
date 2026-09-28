@@ -445,9 +445,17 @@ function ChatInboxes() {
                     {new Date(m.created_at).toLocaleString()}
                     {m.sender_role !== "user" &&
                       (m.read_at ? (
-                        <CheckCheck className="size-3" />
+                        <span className="inline-flex items-center gap-0.5 text-primary">
+                          <CheckCheck className="size-3" /> Read
+                        </span>
+                      ) : (m as { delivered_at?: string | null }).delivered_at ? (
+                        <span className="inline-flex items-center gap-0.5">
+                          <CheckCheck className="size-3" /> Delivered
+                        </span>
                       ) : (
-                        <Check className="size-3" />
+                        <span className="inline-flex items-center gap-0.5">
+                          <Check className="size-3" /> Sent
+                        </span>
                       ))}
                   </span>
                 </div>
