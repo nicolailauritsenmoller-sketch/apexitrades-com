@@ -4,7 +4,6 @@ import {
   Bot,
   Check,
   CheckCheck,
-  Clock,
   Lock,
   Paperclip,
   Send,
@@ -665,16 +664,6 @@ export function LiveChatDialog({
 
           {/* Thread */}
           <div className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {queuedAt && !agentJoined && !ended && (
-              <div className="flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-3 text-xs leading-5 text-foreground">
-                <Clock className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                <span>
-                  <strong>Hello {identity?.name ?? "User"} [{identity?.uid ?? "—"}]</strong> • You have
-                  been placed in the Live Support queue. Estimated wait time: ~2 mins. An agent will
-                  join this chat shortly.
-                </span>
-              </div>
-            )}
             {agentJoined && (
               <div className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">
                 <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
@@ -720,12 +709,12 @@ export function LiveChatDialog({
                 </div>
               </div>
             ))}
-            {mode === "agent" && visibleMessages.length === 0 && (
-              <p className="py-8 text-center text-xs text-muted-foreground">
+            {mode === "agent" && !agentJoined && !ended && (
+              <p className="flex min-h-full items-center justify-center px-6 text-center text-sm text-muted-foreground/70">
                 Send us a message and an agent will join shortly.
               </p>
             )}
-            {mode === "agent" && visibleMessages.map((m) => (
+            {mode === "agent" && agentJoined && visibleMessages.map((m) => (
               <div
                 key={m.id}
                 className={`flex items-end gap-2 ${m.sender_role === "user" ? "justify-end" : ""}`}
