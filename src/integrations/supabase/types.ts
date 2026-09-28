@@ -1558,6 +1558,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_withdrawal_limits: {
+        Row: {
+          daily_limit_usdt: number
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          daily_limit_usdt: number
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          daily_limit_usdt?: number
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       vip_access: {
         Row: {
           created_at: string
