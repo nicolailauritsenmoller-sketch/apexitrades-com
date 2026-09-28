@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
       },
-      { title: "Velocity Trade — Multi-Currency Trading Terminal" },
+      { title: "Velocity Trade - Multi-Currency Trading Terminal" },
       {
         name: "description",
         content:

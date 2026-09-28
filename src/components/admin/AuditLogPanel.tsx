@@ -37,7 +37,7 @@ const CATEGORIES = [
 
 const ipOf = (r: AuditRow) => {
   const d = (r.details ?? {}) as Record<string, unknown>;
-  return String(d["ip"] ?? d["ip_address"] ?? d["actor_ip"] ?? "—");
+  return String(d["ip"] ?? d["ip_address"] ?? d["actor_ip"] ?? "-");
 };
 
 export function AuditLogPanel() {
@@ -173,7 +173,7 @@ export function AuditLogPanel() {
                 ["Timestamp", new Date(open.created_at).toLocaleString()],
                 ["Staff member", open.actor_name ?? open.actor_id],
                 ["Staff ID", open.actor_id],
-                ["Target user", open.target_user_id ?? "—"],
+                ["Target user", open.target_user_id ?? "-"],
                 ["IP address", ipOf(open)],
               ].map(([k, v]) => (
                 <div key={k as string} className="rounded-xl border border-border/70 p-3">

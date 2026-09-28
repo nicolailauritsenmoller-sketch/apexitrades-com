@@ -220,7 +220,7 @@ export function VipDesk() {
                     )}
                   </div>
                   <p className="truncate text-xs text-primary">{label}</p>
-                  <p className="truncate text-xs text-muted-foreground">{t.lastBody ?? "—"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{t.lastBody ?? "-"}</p>
                 </button>
               );
             })}

@@ -16,13 +16,13 @@ type Pin = {
 };
 
 const esc = (v: unknown) =>
-  String(v ?? "—").replace(
+  String(v ?? "-").replace(
     /[&<>"]/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string,
   );
 
 /**
- * Leaflet map with OpenStreetMap tiles. Loaded lazily on the client only —
+ * Leaflet map with OpenStreetMap tiles. Loaded lazily on the client only -
  * Leaflet touches `window` at import time. Online sessions render as blinking
  * green beacons; offline ones as static slate dots.
  */

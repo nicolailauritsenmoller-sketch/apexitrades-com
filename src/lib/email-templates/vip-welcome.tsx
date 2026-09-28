@@ -28,7 +28,7 @@ const VipWelcomeEmail = ({
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>
-      Welcome to VIP Status — your {amount} deposit has been confirmed.
+      Welcome to VIP Status - your {amount} deposit has been confirmed.
     </Preview>
     <Body style={main}>
       <Container style={container}>
@@ -39,7 +39,7 @@ const VipWelcomeEmail = ({
           <Heading style={h1}>Welcome to VIP Status</Heading>
           <Text style={text}>{displayName ? `Hello ${displayName},` : 'Hello,'}</Text>
           <Text style={text}>
-            Welcome to VIP Status — your {amount} deposit has been confirmed and your {tierLabel} perks
+            Welcome to VIP Status - your {amount} deposit has been confirmed and your {tierLabel} perks
             are now active.
           </Text>
           <Section style={perkBox}>
@@ -64,7 +64,7 @@ const VipWelcomeEmail = ({
 
 export const template = {
   component: VipWelcomeEmail,
-  subject: 'Welcome to VIP Status — your deposit is confirmed',
+  subject: 'Welcome to VIP Status - your deposit is confirmed',
   displayName: 'VIP upgrade welcome',
   previewData: {
     siteName: 'Velocity Trade',

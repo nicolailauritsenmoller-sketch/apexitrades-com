@@ -25,7 +25,7 @@ export const getTwoFactorState = createServerFn({ method: "POST" })
     return (await readState(context.userId, sessionIdOf(context.claims as any))) as TwoFactorState;
   });
 
-/** Step 2 — issue a fresh TOTP secret and otpauth:// URI for the QR code. */
+/** Step 2 - issue a fresh TOTP secret and otpauth:// URI for the QR code. */
 export const startTwoFactorSetup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -34,7 +34,7 @@ export const startTwoFactorSetup = createServerFn({ method: "POST" })
     return beginSetup(context.userId, email);
   });
 
-/** Step 3 — verify the first code, enable 2FA and return the 12-word recovery phrase. */
+/** Step 3 - verify the first code, enable 2FA and return the 12-word recovery phrase. */
 export const confirmTwoFactorSetup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(codeInput)
@@ -43,7 +43,7 @@ export const confirmTwoFactorSetup = createServerFn({ method: "POST" })
     return completeSetup(context.userId, data.code, sessionIdOf(context.claims as any));
   });
 
-/** Login interceptor — clears the challenge for this session. */
+/** Login interceptor - clears the challenge for this session. */
 export const verifyTwoFactorChallenge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(codeInput)

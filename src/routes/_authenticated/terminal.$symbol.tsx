@@ -35,10 +35,10 @@ export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Unavailable — Velocity Trade" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Unavailable - Velocity Trade" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.ticker} scalping terminal — Velocity Trade`;
+    const title = `${loaderData.ticker} scalping terminal - Velocity Trade`;
     const description = `Live ${loaderData.name} chart, order ticket and open positions for fast scalp entries and exits.`;
     return {
       meta: [
@@ -186,7 +186,7 @@ function Terminal() {
 
 
   const formatVolume = (n?: number) => {
-    if (n == null || n === 0) return "—";
+    if (n == null || n === 0) return "-";
     if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
     if (n >= 1_000) return `${(n / 1_000).toFixed(2)}K`;
@@ -216,21 +216,21 @@ function Terminal() {
           </div>
           <div className="min-w-0">
             <div className="num text-xl font-semibold sm:text-2xl">
-              {quote ? formatPrice(quote.price, symbol) : "—"}
+              {quote ? formatPrice(quote.price, symbol) : "-"}
             </div>
             <div className={`num flex items-center gap-1 text-xs ${up ? "text-bull" : "text-bear"}`}>
               {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-              {quote ? `${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)` : "—"}
+              {quote ? `${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)` : "-"}
             </div>
           </div>
           <div className="hidden flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground sm:flex">
             <div>
               <span className="block text-[10px] uppercase tracking-wider">24h High</span>
-              <span className="num text-foreground">{quote ? formatPrice(quote.high, symbol) : "—"}</span>
+              <span className="num text-foreground">{quote ? formatPrice(quote.high, symbol) : "-"}</span>
             </div>
             <div>
               <span className="block text-[10px] uppercase tracking-wider">24h Low</span>
-              <span className="num text-foreground">{quote ? formatPrice(quote.low, symbol) : "—"}</span>
+              <span className="num text-foreground">{quote ? formatPrice(quote.low, symbol) : "-"}</span>
             </div>
             <div>
               <span className="block text-[10px] uppercase tracking-wider">24h Volume</span>
@@ -267,7 +267,7 @@ function Terminal() {
               Order ticket
             </h2>
             <span className="num text-xs text-muted-foreground">
-              {wallet ? formatMoney(wallet.balance, wallet.currency) : "—"}
+              {wallet ? formatMoney(wallet.balance, wallet.currency) : "-"}
             </span>
           </div>
 
@@ -345,13 +345,13 @@ function Terminal() {
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Est. liquidation · long</dt>
               <dd className="num text-bear">
-                {liqLong != null ? formatPrice(liqLong, symbol) : "—"}
+                {liqLong != null ? formatPrice(liqLong, symbol) : "-"}
               </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Est. liquidation · short</dt>
               <dd className="num text-bear">
-                {liqShort != null ? formatPrice(liqShort, symbol) : "—"}
+                {liqShort != null ? formatPrice(liqShort, symbol) : "-"}
               </dd>
             </div>
             <div className="flex justify-between">

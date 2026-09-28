@@ -146,7 +146,7 @@ function strip(input: string) {
     .trim();
 }
 
-/** Keyword classifier — refines the feed's default category per headline. */
+/** Keyword classifier - refines the feed's default category per headline. */
 const CLASSIFIERS: [RegExp, NewsCategory][] = [
   [/\b(sec|cftc|finra|regulat\w+|lawsuit|enforcement|compliance|sanction|fine[sd]?\b|settlement|court|approval of)\b/i, "regulation"],
   [/\b(defi|decentralized finance|dex\b|uniswap|aave|lido|makerdao|yield farm\w*|liquidity pool|staking|tvl\b|lending protocol|on-?chain|web3)\b/i, "defi"],

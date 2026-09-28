@@ -15,9 +15,9 @@ import { getPortfolio } from "@/lib/trading.functions";
 export const Route = createFileRoute("/_authenticated/history/orders/$orderId")({
   head: () => ({
     meta: [
-      { title: "Order Details — Velocity Trade" },
+      { title: "Order Details - Velocity Trade" },
       { name: "description", content: "Review settlement, execution, fees, and technical details for a completed order." },
-      { property: "og:title", content: "Order Details — Velocity Trade" },
+      { property: "og:title", content: "Order Details - Velocity Trade" },
       { property: "og:description", content: "Detailed trading order settlement and execution record." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

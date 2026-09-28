@@ -27,7 +27,7 @@ export function AmbientMarketBackdrop({
     if (!v) return;
     const tryPlay = () => void v.play().catch(() => undefined);
     tryPlay();
-    // Some browsers pause background media on tab switch — resume on return.
+    // Some browsers pause background media on tab switch - resume on return.
     document.addEventListener("visibilitychange", tryPlay);
     window.addEventListener("focus", tryPlay);
     return () => {
@@ -56,7 +56,7 @@ export function AmbientMarketBackdrop({
         <source src={videoWebm.url} type="video/webm" />
         <source src={videoAsset.url} type="video/mp4" />
       </video>
-      {/* Contrast mask — keeps headlines legible over the footage */}
+      {/* Contrast mask - keeps headlines legible over the footage */}
       <div className="absolute inset-0 bg-background/55" />
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/25 to-background/70" />
     </div>

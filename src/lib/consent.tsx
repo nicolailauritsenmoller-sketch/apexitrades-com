@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
  *
  * Consent is persisted in a first-party cookie (SameSite=Lax, Secure on https)
  * plus a localStorage mirror. It is intentionally readable by JS (so the UI can
- * gate scripts before they load) — never store secrets here. Authentication
+ * gate scripts before they load) - never store secrets here. Authentication
  * cookies/tokens are handled separately by the auth layer.
  */
 
@@ -43,7 +43,7 @@ export const CATEGORY_INFO: {
     id: "functional",
     label: "Functional",
     description:
-      "Remembers your interface choices — theme, language, chart timeframe, preferred markets and dismissed prompts.",
+      "Remembers your interface choices - theme, language, chart timeframe, preferred markets and dismissed prompts.",
   },
   {
     id: "analytics",

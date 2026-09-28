@@ -94,7 +94,7 @@ export const getRiskMonitor = createServerFn({ method: "POST" })
       return {
         id: p.id,
         userId: p.user_id,
-        userName: prof?.display_name ?? "—",
+        userName: prof?.display_name ?? "-",
         uid: prof?.uid ?? null,
         symbol: p.symbol,
         displaySymbol: p.display_symbol,
@@ -123,7 +123,7 @@ export const getRiskMonitor = createServerFn({ method: "POST" })
       const totalEquity = cash + marginUsed + openPnl;
       return {
         userId: uid,
-        userName: prof?.display_name ?? "—",
+        userName: prof?.display_name ?? "-",
         uid: prof?.uid ?? null,
         frozen: Boolean(prof?.trading_frozen),
         marginUsed,

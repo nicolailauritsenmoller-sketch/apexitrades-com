@@ -163,7 +163,7 @@ export function UserAccountControls({
 
   const password = useMutation({
     mutationFn: () => resetPw({ data: { userId } }),
-    onSuccess: () => toast.success("Password reset issued — the user was notified by email."),
+    onSuccess: () => toast.success("Password reset issued - the user was notified by email."),
     onError: (e: Error) => toast.error(e.message),
   });
 

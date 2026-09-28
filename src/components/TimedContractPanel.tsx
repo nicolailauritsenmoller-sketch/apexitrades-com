@@ -156,7 +156,7 @@ export function TimedContractPanel({
           <Timer className="size-3.5 text-primary" /> Scalping
         </h2>
         <span className="num text-xs text-muted-foreground">
-          {balance != null ? formatMoney(balance, CONTRACT_CURRENCY) : "—"}
+          {balance != null ? formatMoney(balance, CONTRACT_CURRENCY) : "-"}
         </span>
       </div>
 

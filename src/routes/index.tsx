@@ -35,13 +35,13 @@ const MARKET_GROUPS = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
+      { title: "Velocity Trade - Institutional-Grade Multi-Asset Trading Terminal" },
       {
         name: "description",
         content:
           "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
-      { property: "og:title", content: "Velocity Trade — Institutional-Grade Multi-Asset Trading Terminal" },
+      { property: "og:title", content: "Velocity Trade - Institutional-Grade Multi-Asset Trading Terminal" },
       {
         property: "og:description",
         content:
@@ -99,7 +99,7 @@ function Landing() {
             <span key={i} className="num flex items-center gap-2 text-xs">
               <AssetIcon symbol={r.symbol} size={16} />
               <span className="text-muted-foreground">{displaySymbol(r.symbol)}</span>
-              <span>{r.quote ? formatPrice(r.quote.price, r.symbol) : "—"}</span>
+              <span>{r.quote ? formatPrice(r.quote.price, r.symbol) : "-"}</span>
               <span className={(r.quote?.changePercent ?? 0) >= 0 ? "text-bull" : "text-bear"}>
                 {r.quote
                   ? `${r.quote.changePercent >= 0 ? "+" : ""}${r.quote.changePercent.toFixed(2)}%`
@@ -152,8 +152,8 @@ function Landing() {
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               Velocity Trade streams live prices from global exchanges and market data providers,
               then settles your orders against those quotes in your multi-currency wallets.
-              You get the workflow of an institutional desk — charting, order tickets, micro-duration
-              contracts, position management and verified withdrawals — inside a risk-free paper
+              You get the workflow of an institutional desk - charting, order tickets, micro-duration
+              contracts, position management and verified withdrawals - inside a risk-free paper
               trading engine.
             </p>
           </div>
@@ -188,7 +188,7 @@ function Landing() {
                       <AssetIcon symbol={s} size={16} />
                       <span className="truncate text-muted-foreground">{displaySymbol(s)}</span>
                       <span className="ml-auto shrink-0">
-                        {hydrated && quotes[s] ? formatPrice(quotes[s]!.price, s) : "—"}
+                        {hydrated && quotes[s] ? formatPrice(quotes[s]!.price, s) : "-"}
                       </span>
                       <Link
                         to={authed ? "/terminal/$symbol" : "/auth"}

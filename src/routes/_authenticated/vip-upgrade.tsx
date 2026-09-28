@@ -9,13 +9,13 @@ import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip, isVipPending } from "@/lib/vip-
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({
     meta: [
-      { title: "Upgrade to VIP — benefits & thresholds | Velocity Trade" },
+      { title: "Upgrade to VIP - benefits & thresholds | Velocity Trade" },
       {
         name: "description",
         content:
           "Unlock VIP on Velocity Trade with a 20,000 USDT balance: zero trading fees, a priority account manager, elevated withdrawal limits and exclusive scalp return rates.",
       },
-      { property: "og:title", content: "Upgrade to VIP — Velocity Trade" },
+      { property: "og:title", content: "Upgrade to VIP - Velocity Trade" },
       {
         property: "og:description",
         content:
@@ -96,7 +96,7 @@ function VipUpgradePage() {
                 {already
                   ? "VIP is active on this account."
                   : awaiting
-                    ? "Threshold reached — your VIP upgrade request is pending review."
+                    ? "Threshold reached - your VIP upgrade request is pending review."
                     : `Current balance ${balance.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT · ${remaining.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT remaining.`}
               </p>
             </div>

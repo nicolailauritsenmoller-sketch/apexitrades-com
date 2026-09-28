@@ -22,13 +22,13 @@ import {
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Home — Velocity Trade" },
+      { title: "Home - Velocity Trade" },
       {
         name: "description",
         content:
           "Your total balance, watchlist, and top market movers in one mobile-first trading home screen.",
       },
-      { property: "og:title", content: "Home — Velocity Trade" },
+      { property: "og:title", content: "Home - Velocity Trade" },
       {
         property: "og:description",
         content: "Balance, watchlist, and movers at a glance.",
@@ -83,7 +83,7 @@ function Home() {
 
             <div className="num mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
               {value.isLoading ? (
-                "—"
+                "-"
               ) : hidden ? (
                 "••••••"
               ) : (

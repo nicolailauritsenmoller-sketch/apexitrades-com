@@ -77,8 +77,8 @@ export function DevicesPanel() {
                     </span>
                   )}
                 </td>
-                <td className="py-2 pr-3 font-mono text-xs">{s.ip ?? "—"}</td>
-                <td className="py-2 pr-3">{s.country ?? "—"}</td>
+                <td className="py-2 pr-3 font-mono text-xs">{s.ip ?? "-"}</td>
+                <td className="py-2 pr-3">{s.country ?? "-"}</td>
                 <td className="py-2 pr-3 text-xs text-muted-foreground">
                   {new Date(s.lastActiveAt).toLocaleString()}
                 </td>

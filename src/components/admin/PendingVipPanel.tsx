@@ -53,7 +53,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
   if (rows.length === 0) {
     return (
       <p className="flex items-center justify-center gap-2 py-6 text-center text-sm text-muted-foreground">
-        <Crown className="size-4 text-ops-amber" /> No pending VIP requests — queue clear.
+        <Crown className="size-4 text-ops-amber" /> No pending VIP requests - queue clear.
       </p>
     );
   }
@@ -85,10 +85,10 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                 </span>
               </td>
               <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">
-                {r.uid ?? "—"}
+                {r.uid ?? "-"}
               </td>
               <td className="max-w-[180px] truncate py-2.5 pr-3 text-xs text-muted-foreground">
-                {r.email ?? "—"}
+                {r.email ?? "-"}
               </td>
               <td className="py-2.5 pr-3">
                 <span className="num text-xs font-semibold">
@@ -96,7 +96,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                     ? `${r.approvedUsdt.toLocaleString("en-US", { maximumFractionDigits: 2 })} USDT`
                     : r.lastDepositAmount != null
                       ? `${r.lastDepositAmount.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${r.lastDepositCoin ?? ""}`
-                      : "—"}
+                      : "-"}
                 </span>
               </td>
               <td className="py-2.5 pr-3 text-xs text-muted-foreground">

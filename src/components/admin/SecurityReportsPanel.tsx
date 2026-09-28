@@ -32,7 +32,7 @@ export function SecurityReportsPanel() {
     mutationFn: (v: { id: string; status: string; adminNote?: string }) =>
       review({ data: { ...v, status: v.status as any, notifyUser: true } }),
     onSuccess: () => {
-      toast.success("Report updated — reporter notified.");
+      toast.success("Report updated - reporter notified.");
       qc.invalidateQueries({ queryKey: ["security-reports"] });
     },
     onError: (e: Error) => toast.error(e.message),

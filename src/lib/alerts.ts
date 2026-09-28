@@ -1,6 +1,6 @@
 /**
  * Backend alerting: loud WebAudio chimes plus desktop push notifications.
- * Browser-only — every entry point no-ops during SSR.
+ * Browser-only - every entry point no-ops during SSR.
  */
 
 let ctx: AudioContext | null = null;
@@ -22,26 +22,26 @@ export function unlockAudio() {
 type Tone = { freq: number; at: number; dur: number; type?: OscillatorType };
 
 const PATTERNS: Record<string, Tone[]> = {
-  // "keys" — crisp, clicky arrival tone for visits / live sessions
+  // "keys" - crisp, clicky arrival tone for visits / live sessions
   visit: [
     { freq: 1760, at: 0, dur: 0.05, type: "square" },
     { freq: 2349, at: 0.06, dur: 0.06, type: "square" },
     { freq: 1568, at: 0.14, dur: 0.05, type: "square" },
   ],
-  // "glass" — bright struck-glass tone for deposits / withdrawals
+  // "glass" - bright struck-glass tone for deposits / withdrawals
   money: [
     { freq: 1318, at: 0, dur: 0.35, type: "sine" },
     { freq: 1975, at: 0.02, dur: 0.4, type: "sine" },
     { freq: 2637, at: 0.05, dur: 0.5, type: "sine" },
   ],
-  // "pulse" — insistent compliance pulse for KYC submissions
+  // "pulse" - insistent compliance pulse for KYC submissions
   kyc: [
     { freq: 520, at: 0, dur: 0.12, type: "sawtooth" },
     { freq: 520, at: 0.18, dur: 0.12, type: "sawtooth" },
     { freq: 520, at: 0.36, dur: 0.12, type: "sawtooth" },
     { freq: 780, at: 0.54, dur: 0.22, type: "sawtooth" },
   ],
-  // "bell" — ringing chat bell, looped until the desk is opened
+  // "bell" - ringing chat bell, looped until the desk is opened
   chat: [
     { freq: 2093, at: 0, dur: 0.18, type: "triangle" },
     { freq: 2793, at: 0.1, dur: 0.3, type: "triangle" },
@@ -59,7 +59,7 @@ const PATTERNS: Record<string, Tone[]> = {
     { freq: 330, at: 0.16, dur: 0.22, type: "sine" },
     { freq: 220, at: 0.36, dur: 0.3, type: "sine" },
   ],
-  // "electronic" — synthetic execution blip for trades / scalp contracts
+  // "electronic" - synthetic execution blip for trades / scalp contracts
   trade: [
     { freq: 660, at: 0, dur: 0.08, type: "square" },
     { freq: 990, at: 0.08, dur: 0.08, type: "square" },
@@ -90,7 +90,7 @@ export function playChime(kind: AlertKind, volume = 0.95) {
 
 
 /**
- * Soft, elegant iPhone "Aurora"-style entry chime — a gentle bell arpeggio with
+ * Soft, elegant iPhone "Aurora"-style entry chime - a gentle bell arpeggio with
  * a long shimmering tail. Used for first visits and successful logins.
  */
 export function playAurora(volume = 0.35) {
@@ -137,7 +137,7 @@ function isZh(text: string) {
 function pickVoice(zh = false): SpeechSynthesisVoice | null {
   const s = synth();
   if (!s) return null;
-  // iOS/Safari can leave synthesis paused after interruptions — resume first.
+  // iOS/Safari can leave synthesis paused after interruptions - resume first.
   if (s.paused) {
     try {
       s.resume();
@@ -171,7 +171,7 @@ function pickVoice(zh = false): SpeechSynthesisVoice | null {
 }
 
 /**
- * Dedicated Web Speech controller — speaks the phrase once via the native
+ * Dedicated Web Speech controller - speaks the phrase once via the native
  * window.speechSynthesis engine. Mandarin text is pinned to zh-CN/zh-HK with
  * assistant-style delivery (pitch 1.1, rate 0.95).
  */
@@ -233,8 +233,8 @@ let loopTimer: ReturnType<typeof setInterval> | null = null;
 let voiceTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
- * Repeats the alert sequence — subtle high-tech chime first, then the
- * synthesized Mandarin voice "来自客户的新消息" — every 4 seconds until
+ * Repeats the alert sequence - subtle high-tech chime first, then the
+ * synthesized Mandarin voice "来自客户的新消息" - every 4 seconds until
  * {@link stopChatLoop}. Safe to call repeatedly: a running loop never doubles.
  */
 export function startChatLoop() {

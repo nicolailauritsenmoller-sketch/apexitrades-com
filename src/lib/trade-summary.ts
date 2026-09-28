@@ -302,7 +302,7 @@ function assemble(c: Common): TradeSummary {
       label: fills > 1 ? `Partial close (${fills - 1} fill${fills > 2 ? "s" : ""})` : "No partial closes",
       detail: fills > 1 ? `Filled around ${price((c.entryPrice + c.exitPrice) / 2)}` : undefined,
     },
-    { at: time(c.closedAt), label: `Final close — ${c.closeReason}`, detail: `Net ${money(netPnl)}` },
+    { at: time(c.closedAt), label: `Final close - ${c.closeReason}`, detail: `Net ${money(netPnl)}` },
   ];
 
   return {

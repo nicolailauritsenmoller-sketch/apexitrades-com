@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/profile/security")({
         content:
           "Review active sessions, recent login history and two-factor status for your Velocity Trade account.",
       },
-      { property: "og:title", content: "Security Center — Velocity Trade" },
+      { property: "og:title", content: "Security Center - Velocity Trade" },
       {
         property: "og:description",
         content: "Active sessions, login history and account protection settings.",
@@ -65,7 +65,7 @@ function SecurityCenter() {
           <p className="mt-2 font-display text-xl font-bold">
             {rows[0]?.lastActiveAt
               ? new Date(rows[0].lastActiveAt).toLocaleString()
-              : "—"}
+              : "-"}
           </p>
         </div>
       </div>

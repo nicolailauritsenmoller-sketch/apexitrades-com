@@ -82,7 +82,7 @@ export const resetUserActivity = createServerFn({ method: "POST" })
       await wipe("notifications", "user_id", uid);
     }
 
-    // Balances are never touched — wallets and profiles are intentionally excluded.
+    // Balances are never touched - wallets and profiles are intentionally excluded.
     const { data: me } = await db
       .from("profiles")
       .select("display_name")

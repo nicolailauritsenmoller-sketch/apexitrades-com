@@ -127,7 +127,7 @@ export function UserSecurityPanel() {
                   <p className="font-semibold">{r.displayName}</p>
                   <p className="text-[11px] text-muted-foreground">{r.uid ?? r.id.slice(0, 8)}</p>
                 </td>
-                <td className="px-3 py-2 text-muted-foreground">{r.email ?? "—"}</td>
+                <td className="px-3 py-2 text-muted-foreground">{r.email ?? "-"}</td>
                 <td className="px-3 py-2 text-muted-foreground">
                   {new Date(r.createdAt).toLocaleDateString()}
                 </td>

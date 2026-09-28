@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/community")({
   head: () => ({ meta: [
     { title: "Community Management Desk | Velocity Trade" },
     { name: "description", content: "Manage official community channels, public bulletins and VIP lounge access requests." },
-    { property: "og:title", content: "Community Management Desk — Velocity Trade" },
+    { property: "og:title", content: "Community Management Desk - Velocity Trade" },
     { property: "og:description", content: "Restricted community operations and access management." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },

@@ -85,7 +85,7 @@ export function unlockDeskAudio(): Promise<boolean> {
       try {
         localStorage.setItem(DESK_AUDIO_UNLOCK_KEY, "1");
       } catch {
-        /* storage unavailable — unlock still applies for this session */
+        /* storage unavailable - unlock still applies for this session */
       }
       preloadDeskSounds();
       return true;
@@ -107,6 +107,6 @@ export function playDeskSound(kind: DeskSound, enabled = true) {
     node.volume = VOLUME[kind];
     void node.play().catch(() => undefined);
   } catch {
-    /* playback blocked — the unlock banner prompts the operator */
+    /* playback blocked - the unlock banner prompts the operator */
   }
 }

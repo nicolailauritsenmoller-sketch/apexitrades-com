@@ -277,7 +277,7 @@ export function LiveChatDialog({
     }
   }
 
-  /* Global open event — supports an optional pre-filled message.
+  /* Global open event - supports an optional pre-filled message.
      Only the uncontrolled (global) instance listens, so a controlled
      instance mounted on the support page never double-opens. */
   useEffect(() => {
@@ -565,7 +565,7 @@ export function LiveChatDialog({
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
 
-  /* Optimistically switch to the queue view on the very first click — the
+  /* Optimistically switch to the queue view on the very first click - the
      backend request must never gate the UI change. If the session row does
      not exist yet, the request is deferred until it does. */
   async function escalate(lastQuestion?: string) {
@@ -607,7 +607,7 @@ export function LiveChatDialog({
     }
   }
 
-  /* Escalation clicked before the session existed — run it once it exists. */
+  /* Escalation clicked before the session existed - run it once it exists. */
   useEffect(() => {
     if (!sessionId || !pendingEscalationRef.current) return;
     pendingEscalationRef.current = false;
@@ -646,7 +646,7 @@ export function LiveChatDialog({
     const qa = matchQuestion(text);
     if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
     else
-      botSay("I couldn't find an exact answer for that — pick a topic below.", { topics: true });
+      botSay("I couldn't find an exact answer for that - pick a topic below.", { topics: true });
   }
 
   const agentJoined = Boolean(connectedAt);
@@ -915,7 +915,7 @@ export function LiveChatDialog({
                 >
                   {m.sender_role !== "user" && agent && (
                     <p className="mb-0.5 text-[10px] font-semibold text-muted-foreground">
-                      {agent.name} — {agent.role}
+                      {agent.name} - {agent.role}
                     </p>
                   )}
                   {m.body}
@@ -1064,7 +1064,7 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
         data: { sessionId, stars, feedback: feedback.trim() || undefined },
       });
     } catch {
-      /* ignore — never block the user on feedback */
+      /* ignore - never block the user on feedback */
     }
     setBusy(false);
     onClose();
@@ -1075,7 +1075,7 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
         <h3 className="font-display text-base font-bold tracking-tight">How did we do?</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Rate your support experience — it helps us improve.
+          Rate your support experience - it helps us improve.
         </p>
         <div className="mt-4 flex justify-center gap-1">
           {[1, 2, 3, 4, 5].map((n) => (

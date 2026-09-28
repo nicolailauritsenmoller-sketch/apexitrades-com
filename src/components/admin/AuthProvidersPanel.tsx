@@ -159,7 +159,7 @@ export function AuthProvidersPanel() {
           <li>Google: Client ID & Secret configured in the backend authentication providers panel.</li>
           <li>Apple: Services ID, Team ID, Key ID and .p8 private key configured in the same panel.</li>
           <li>Redirect/return URL registered with each provider must match the backend auth callback URL.</li>
-          <li>Values stored here are operational documentation — live provider secrets stay in the backend auth settings.</li>
+          <li>Values stored here are operational documentation - live provider secrets stay in the backend auth settings.</li>
         </ul>
       </div>
 

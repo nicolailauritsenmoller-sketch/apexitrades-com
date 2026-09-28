@@ -184,7 +184,7 @@ function ContractRow({
           label="Exit price"
           value={exit}
           onChange={setExit}
-          placeholder={row["exit_price"] ? String(row["exit_price"]) : "—"}
+          placeholder={row["exit_price"] ? String(row["exit_price"]) : "-"}
         />
         <Field
           label="Payout override"
@@ -264,7 +264,7 @@ function PositionRow({
           label="Exit price"
           value={exit}
           onChange={setExit}
-          placeholder={row["exit_price"] ? String(row["exit_price"]) : "—"}
+          placeholder={row["exit_price"] ? String(row["exit_price"]) : "-"}
         />
         <Field
           label="Realised P/L override"

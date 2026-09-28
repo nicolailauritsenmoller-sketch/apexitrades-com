@@ -186,7 +186,7 @@ export function MobileTradeTabs({
                 <Wallet className="size-3.5" /> Tradeable balance
               </span>
               <span className="num text-sm font-semibold">
-                {usdt ? formatMoney(usdt.balance, "USDT") : "—"}
+                {usdt ? formatMoney(usdt.balance, "USDT") : "-"}
               </span>
             </div>
             {funded.length === 0 ? (

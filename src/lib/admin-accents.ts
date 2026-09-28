@@ -1,7 +1,7 @@
 /**
  * Institutional enterprise palette for the Admin Operations Dashboard.
  * Cards share one uniform slate border; only small icon chips and status
- * badges carry semantic colour — amber = pending, crimson = risk/alert,
+ * badges carry semantic colour - amber = pending, crimson = risk/alert,
  * emerald = verified/success. Metric values are always clean white.
  */
 export type OpsAccent = "amber" | "red" | "emerald" | "blue" | "violet" | "neutral";
@@ -10,7 +10,7 @@ export type OpsAccent = "amber" | "red" | "emerald" | "blue" | "violet" | "neutr
 const UNIFORM_EDGE = "border border-border";
 
 type AccentClasses = {
-  /** Card border emphasis — uniform slate for every accent. */
+  /** Card border emphasis - uniform slate for every accent. */
   edge: string;
   /** Icon chip background + colour. */
   chip: string;

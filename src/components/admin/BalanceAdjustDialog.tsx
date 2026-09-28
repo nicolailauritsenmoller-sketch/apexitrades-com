@@ -63,7 +63,7 @@ export function BalanceAdjustDialog({
         },
       }),
     onSuccess: (res: any) => {
-      toast.success(`Balance updated — new ${active} balance ${res?.balance ?? ""}`);
+      toast.success(`Balance updated - new ${active} balance ${res?.balance ?? ""}`);
       setAmount("");
       setReason("");
       void qc.invalidateQueries({ queryKey: ["admin-user-wallets", userId] });
@@ -150,7 +150,7 @@ export function BalanceAdjustDialog({
         </p>
 
         <label className="mb-1 block text-[10px] uppercase tracking-widest text-muted-foreground">
-          Reason (required — recorded in the audit log)
+          Reason (required - recorded in the audit log)
         </label>
         <textarea
           value={reason}

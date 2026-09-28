@@ -19,7 +19,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-border/60 py-1.5 text-xs last:border-0">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-right font-medium">{value ?? "—"}</span>
+      <span className="text-right font-medium">{value ?? "-"}</span>
     </div>
   );
 }
@@ -110,8 +110,8 @@ export function KycReviewDrawer({
             <Row label="Date of birth" value={row.date_of_birth} />
             <Row label="Country" value={row.country} />
             <Row label="Address" value={row.address} />
-            <Row label="Document" value={`${row.document_type} · ${row.document_number ?? "—"}`} />
-            <Row label="Expires" value={row.document_expires_at ?? "—"} />
+            <Row label="Document" value={`${row.document_type} · ${row.document_number ?? "-"}`} />
+            <Row label="Expires" value={row.document_expires_at ?? "-"} />
             <Row label="Submitted" value={new Date(row.created_at).toLocaleString()} />
             <Row label="User ID" value={<span className="num">{String(row.user_id).slice(0, 8)}</span>} />
           </section>
@@ -157,14 +157,14 @@ export function KycReviewDrawer({
               <p className="text-xs text-muted-foreground">Not submitted yet.</p>
             ) : (
               <>
-                <Row label="Proof type" value={row.level2_proof_type ?? "—"} />
-                <Row label="Tax ID" value={row.level2_tax_id ?? "—"} />
+                <Row label="Proof type" value={row.level2_proof_type ?? "-"} />
+                <Row label="Tax ID" value={row.level2_tax_id ?? "-"} />
                 <Row
                   label="Submitted"
                   value={
                     row.level2_submitted_at
                       ? new Date(row.level2_submitted_at).toLocaleString()
-                      : "—"
+                      : "-"
                   }
                 />
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -205,7 +205,7 @@ export function KycReviewDrawer({
                     <button
                       disabled={actL2.isPending}
                       onClick={() =>
-                        actL2.mutate({ action: "reject", note: note ? `${reason} — ${note}` : reason })
+                        actL2.mutate({ action: "reject", note: note ? `${reason} - ${note}` : reason })
                       }
                       className={`flex-1 ${DANGER_BTN}`}
                     >
@@ -255,7 +255,7 @@ export function KycReviewDrawer({
               <button
                 disabled={act.isPending}
                 onClick={() =>
-                  act.mutate({ action: "reject", note: note ? `${reason} — ${note}` : reason })
+                  act.mutate({ action: "reject", note: note ? `${reason} - ${note}` : reason })
                 }
                 className={`flex-1 ${DANGER_BTN}`}
               >

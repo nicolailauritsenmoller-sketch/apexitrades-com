@@ -100,7 +100,7 @@ function AuthenticatedLayout() {
   const notices = [
     lock.data?.tradingFrozen && "Trading is frozen on this account.",
     lock.data?.verificationRequired && "Additional verification is required before trading.",
-    lock.data?.marginRestricted && "Margin trading is restricted — 1× leverage only.",
+    lock.data?.marginRestricted && "Margin trading is restricted - 1× leverage only.",
   ].filter(Boolean) as string[];
 
   return (

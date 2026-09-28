@@ -226,7 +226,7 @@ export const markThreadRead = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Signed URL for a chat attachment — staff for any thread, users for their own. */
+/** Signed URL for a chat attachment - staff for any thread, users for their own. */
 export const getChatAttachmentUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ messageId: z.string().uuid() }).parse(input))

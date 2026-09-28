@@ -85,9 +85,9 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
                       <span className="font-medium">{r.name}</span>
                       <span className="block text-[11px] text-muted-foreground">UID {r.uid}</span>
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs">{r.path ?? "—"}</td>
-                    <td className="px-4 py-2 font-mono text-xs">{r.ip ?? "—"}</td>
-                    <td className="px-4 py-2 text-xs">{r.country ?? "—"}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{r.path ?? "-"}</td>
+                    <td className="px-4 py-2 font-mono text-xs">{r.ip ?? "-"}</td>
+                    <td className="px-4 py-2 text-xs">{r.country ?? "-"}</td>
                     <td className="px-4 py-2 text-xs">
                       {r.browser} · {r.os}
                     </td>
@@ -139,7 +139,7 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
                       {new Date(r.loginAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-2 text-xs">
-                      <span className="font-mono">{r.ip ?? "—"}</span>
+                      <span className="font-mono">{r.ip ?? "-"}</span>
                       <span className="block text-[11px] text-muted-foreground">
                         {r.country ?? "Unknown"}
                       </span>

@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/profile/settings/security"
         content:
           "Update your Velocity Trade password, review two-factor authentication status and manage logged-in devices.",
       },
-      { property: "og:title", content: "Security Settings — Velocity Trade" },
+      { property: "og:title", content: "Security Settings - Velocity Trade" },
       {
         property: "og:description",
         content: "Password updates, two-factor status and device management.",
@@ -177,7 +177,7 @@ function SecuritySettings() {
       <SecurityDialog open={dialog === "two-factor"} onOpenChange={(open) => setDialog(open ? "two-factor" : null)} title="Two-factor authentication" description="Configure TOTP protection and your 12-word recovery phrase.">
         <TwoFactorSection />
       </SecurityDialog>
-      <SecurityDialog open={dialog === "phishing"} onOpenChange={(open) => setDialog(open ? "phishing" : null)} title="Set anti-phishing code" description="Use 4–32 characters you will recognize. The full code is never displayed after saving.">
+      <SecurityDialog open={dialog === "phishing"} onOpenChange={(open) => setDialog(open ? "phishing" : null)} title="Set anti-phishing code" description="Use 4-32 characters you will recognize. The full code is never displayed after saving.">
         <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); antiPhishingMutation.mutate(); }}>
           <label className="block space-y-2"><span className="text-xs font-semibold">Private code</span><input autoFocus minLength={4} maxLength={32} required value={antiPhishingCode} onChange={(event) => setAntiPhishingCodeValue(event.target.value)} placeholder="Enter your private email code" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-1 focus:ring-ring" /></label>
           <Button type="submit" className="w-full" disabled={antiPhishingMutation.isPending || antiPhishingCode.trim().length < 4}>{antiPhishingMutation.isPending ? "Saving…" : "Save Anti-Phishing Code"}</Button>

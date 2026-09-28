@@ -67,10 +67,10 @@ export function UserWorkspaceDrawer({
           {d && (
             <>
               <Section title="Identity">
-                <p className="text-sm font-semibold">{d.profile?.display_name ?? "—"}</p>
+                <p className="text-sm font-semibold">{d.profile?.display_name ?? "-"}</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  <UidTag uid={d.profile?.uid} /> · base {d.profile?.base_currency ?? "—"} · credit{" "}
-                  {d.profile?.credit_score ?? "—"}
+                  <UidTag uid={d.profile?.uid} /> · base {d.profile?.base_currency ?? "-"} · credit{" "}
+                  {d.profile?.credit_score ?? "-"}
                 </p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   KYC: {d.kyc?.status ?? "not submitted"}
@@ -192,10 +192,10 @@ export function UserWorkspaceDrawer({
                   {d.sessions.map((s: any, i: number) => (
                     <li key={i} className="flex items-center justify-between gap-2">
                       <span className="truncate">
-                        {s.browser} · {s.os} · {s.country ?? "—"}
+                        {s.browser} · {s.os} · {s.country ?? "-"}
                       </span>
                       <span className="num shrink-0 text-muted-foreground">
-                        {s.ip_address ?? "—"}
+                        {s.ip_address ?? "-"}
                       </span>
                     </li>
                   ))}
