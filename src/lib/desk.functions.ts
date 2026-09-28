@@ -292,6 +292,7 @@ export const getMyChatContext = createServerFn({ method: "POST" })
       .update({ read_at: now })
       .eq("session_id", data.sessionId)
       .neq("sender_role", "user")
+      .eq("is_internal", false)
       .is("read_at", null);
     await db.from("chat_sessions").update({ user_last_read_at: now }).eq("id", data.sessionId);
 

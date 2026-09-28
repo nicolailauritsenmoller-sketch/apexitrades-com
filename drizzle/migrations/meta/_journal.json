@@ -127,6 +127,13 @@
       "when": 1790632977750,
       "tag": "0017_chat_message_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790636092196,
+      "tag": "0018_support_internal_notes_departments",
+      "breakpoints": true
     }
   ]
 }

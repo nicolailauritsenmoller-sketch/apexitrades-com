@@ -233,6 +233,7 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           id: string
+          is_internal: boolean
           read_at: string | null
           sender_id: string
           sender_role: string
@@ -246,6 +247,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           id?: string
+          is_internal?: boolean
           read_at?: string | null
           sender_id: string
           sender_role?: string
@@ -259,6 +261,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           id?: string
+          is_internal?: boolean
           read_at?: string | null
           sender_id?: string
           sender_role?: string
@@ -325,6 +328,7 @@ export type Database = {
           bot_context: Json | null
           connected_at: string | null
           created_at: string
+          department: string
           escalated_at: string | null
           id: string
           last_message_at: string
@@ -339,6 +343,7 @@ export type Database = {
           bot_context?: Json | null
           connected_at?: string | null
           created_at?: string
+          department?: string
           escalated_at?: string | null
           id?: string
           last_message_at?: string
@@ -353,6 +358,7 @@ export type Database = {
           bot_context?: Json | null
           connected_at?: string | null
           created_at?: string
+          department?: string
           escalated_at?: string | null
           id?: string
           last_message_at?: string

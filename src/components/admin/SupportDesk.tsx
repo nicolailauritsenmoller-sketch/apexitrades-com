@@ -19,6 +19,8 @@ import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { useChatTyping } from "@/lib/use-chat-typing";
 import { acceptLiveChat, markThreadRead, sendAgentChat } from "@/lib/desk.functions";
 import { setActiveChatSession, silenceChatAlerts } from "@/lib/alerts";
+import { addChatInternalNote, transferChat, DEPARTMENTS, DEPARTMENT_LABEL } from "@/lib/support-desk.functions";
+import { ChatUserSidebar, MACROS, SlaTimer, playQueuePing } from "./ChatDeskExtras";
 
 import {
   getSupportThreads,
@@ -134,6 +136,15 @@ function ChatInboxes() {
   const accept = useServerFn(acceptLiveChat);
   const markRead = useServerFn(markThreadRead);
   const setStatus = useServerFn(setThreadStatus);
+  const addNote = useServerFn(addChatInternalNote);
+  const transfer = useServerFn(transferChat);
+  const [noteMode, setNoteMode] = useState(false);
+  const [macroOpen, setMacroOpen] = useState(false);
+  const [meId, setMeId] = useState<string | null>(null);
+  const seenQueue = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null));
+  }, []);
 
   const threads = useQuery({
     queryKey: ["support-threads"],
@@ -316,9 +327,55 @@ function ChatInboxes() {
 
   const list = (threads.data ?? []) as any[];
   const active = list.find((t) => t.id === activeId) ?? null;
+  const lockedByOther = !!active?.activeAgentId && !!meId && active.activeAgentId !== meId;
+
+  // Audible ping whenever a new unassigned live chat enters the queue.
+  useEffect(() => {
+    if (!threads.data) return;
+    const queued = (threads.data as any[])
+      .filter((t) => t.escalatedAt && !t.activeAgentId && t.status !== "closed")
+      .map((t) => t.id as string);
+    if (seenQueue.current && queued.some((id) => !seenQueue.current!.has(id))) playQueuePing();
+    seenQueue.current = new Set(queued);
+  }, [threads.data]);
+
+  const noteMutation = useMutation({
+    mutationFn: (body: string) => addNote({ data: { sessionId: activeId!, body } }),
+    onMutate: () => setDraft(""),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["support-thread", activeId] }),
+    onError: (e: Error, body) => {
+      setDraft(body);
+      toast.error(e.message);
+    },
+  });
+  const transferMutation = useMutation({
+    mutationFn: (department: (typeof DEPARTMENTS)[number]) =>
+      transfer({ data: { sessionId: activeId!, department } }),
+    onSuccess: (_d, dep) => {
+      toast.success(`Transferred to ${DEPARTMENT_LABEL[dep]}`);
+      qc.invalidateQueries({ queryKey: ["support-threads"] });
+      qc.invalidateQueries({ queryKey: ["support-thread", activeId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const submit = () => {
+    const body = draft.trim();
+    if (noteMode) {
+      if (body) noteMutation.mutate(body);
+      return;
+    }
+    if (body || file) reply.mutate(body);
+  };
+  const composerDisabled = !noteMode && ((!active?.connectedAt && active?.status !== "closed") || lockedByOther);
+  const slaSince = (t: any): string | null => {
+    if (t.status === "closed") return null;
+    if (t.escalatedAt && !t.connectedAt) return t.escalatedAt;
+    if (t.connectedAt && t.lastSenderRole === "user") return t.lastMessageAt;
+    return null;
+  };
 
   return (
-    <div className="grid gap-3 overflow-hidden rounded-lg border border-border bg-card md:h-[32rem] md:grid-cols-[18rem_1fr]">
+    <div className="grid gap-3 overflow-hidden rounded-lg border border-border bg-card md:h-[36rem] md:grid-cols-[18rem_1fr] xl:grid-cols-[18rem_1fr_17rem]">
       <div className="max-h-72 overflow-y-auto border-border md:max-h-none md:border-r">
         {threads.isLoading && <p className="p-4 text-xs text-muted-foreground">Loading inboxes…</p>}
         {!threads.isLoading && list.length === 0 && (
@@ -341,6 +398,15 @@ function ChatInboxes() {
               <p className="truncate text-[11px] text-muted-foreground">
                 UID {t.uid ?? t.userId.slice(0, 8)} · {t.kycStatus}
               </p>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  {DEPARTMENT_LABEL[t.department] ?? "Support"}
+                </span>
+                {t.escalatedAt && !t.activeAgentId && t.status !== "closed" && (
+                  <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Unassigned</span>
+                )}
+                <SlaTimer since={slaSince(t)} />
+              </div>
               <p className="mt-1 truncate text-xs text-muted-foreground">
                 {t.preview ?? "No messages"}
               </p>
@@ -373,8 +439,30 @@ function ChatInboxes() {
                   User ID {active.userId}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {active.escalatedAt && !active.connectedAt && (
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                <select
+                  aria-label="Transfer ticket"
+                  value=""
+                  disabled={transferMutation.isPending || lockedByOther}
+                  onChange={(e) => {
+                    const dep = e.target.value as (typeof DEPARTMENTS)[number];
+                    if (dep && window.confirm(`Transfer this ticket to ${DEPARTMENT_LABEL[dep]}?`)) transferMutation.mutate(dep);
+                  }}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-xs disabled:opacity-50"
+                >
+                  <option value="">Transfer Ticket · {DEPARTMENT_LABEL[active.department] ?? "Support"}</option>
+                  {DEPARTMENTS.filter((d) => d !== active.department).map((d) => (
+                    <option key={d} value={d}>
+                      {DEPARTMENT_LABEL[d]}
+                    </option>
+                  ))}
+                </select>
+                {lockedByOther && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-foreground">
+                    <Lock className="size-3" /> Assigned to another agent
+                  </span>
+                )}
+                {active.escalatedAt && !active.connectedAt && !lockedByOther && (
                   <button
                     onClick={() => acceptMutation.mutate(active.id)}
                     disabled={acceptMutation.isPending}
@@ -430,11 +518,18 @@ function ChatInboxes() {
                 <div
                   key={m.id}
                   className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                    m.sender_role === "user"
+                    m.is_internal
+                      ? "ml-auto border border-warning/40 bg-warning/15 text-foreground"
+                      : m.sender_role === "user"
                       ? "bg-secondary text-foreground"
                       : "ml-auto bg-primary text-primary-foreground"
                   }`}
                 >
+                  {m.is_internal && (
+                    <span className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-warning">
+                      <Lock className="size-3" /> Internal note
+                    </span>
+                  )}
                   {m.body}
                   {m.attachment_path && (
                     <ChatAttachment
@@ -445,7 +540,7 @@ function ChatInboxes() {
                   )}
                   <span className="mt-1 flex items-center gap-1 text-[10px] opacity-70">
                     {new Date(m.created_at).toLocaleString()}
-                    {m.sender_role !== "user" &&
+                    {m.sender_role !== "user" && !m.is_internal &&
                       (m.read_at ? (
                         <span className="inline-flex items-center gap-0.5 text-primary">
                           <CheckCheck className="size-3" /> Read
@@ -468,7 +563,53 @@ function ChatInboxes() {
               <div ref={endRef} />
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 border-t border-border p-2">
+            <div className="relative flex flex-wrap items-center gap-2 border-t border-border p-2">
+              <div className="flex w-full items-center gap-1">
+                {(["public", "internal"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setNoteMode(m === "internal")}
+                    className={`rounded-md px-2.5 py-1 text-[11px] font-medium ${
+                      (m === "internal") === noteMode
+                        ? m === "internal"
+                          ? "bg-warning/20 text-warning"
+                          : "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m === "internal" ? "Internal Note" : "Public Message"}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setMacroOpen((v) => !v)}
+                  className="ml-auto rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  / Macros
+                </button>
+              </div>
+              {macroOpen && (
+                <div className="absolute bottom-full left-2 right-2 z-10 mb-1 max-h-56 overflow-y-auto rounded-md border border-border bg-card p-1 shadow-lg">
+                  {MACROS.filter((mc) => {
+                    const q = draft.startsWith("/") ? draft.slice(1).toLowerCase() : "";
+                    return !q || mc.label.toLowerCase().includes(q);
+                  }).map((mc) => (
+                    <button
+                      key={mc.id}
+                      type="button"
+                      onClick={() => {
+                        setDraft(mc.body);
+                        setMacroOpen(false);
+                      }}
+                      className="block w-full rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                    >
+                      <span className="font-medium">{mc.label}</span>
+                      <span className="block truncate text-muted-foreground">{mc.body}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {file && (
                 <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
                   <Paperclip className="size-3" />
@@ -495,20 +636,23 @@ function ChatInboxes() {
               <input
                 value={draft}
                 onChange={(e) => {
-                  setDraft(e.target.value);
-                  typing.notifyTyping();
+                  const v = e.target.value;
+                  setDraft(v);
+                  setMacroOpen(v.startsWith("/"));
+                  if (!noteMode) typing.notifyTyping();
                 }}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && (draft.trim() || file) && reply.mutate(draft.trim())
-                }
-                placeholder={active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent…" : "Accept chat to reply…"}
-                disabled={!active.connectedAt && active.status !== "closed"}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setMacroOpen(false);
+                  if (e.key === "Enter" && !draft.startsWith("/")) submit();
+                }}
+                placeholder={noteMode ? "Internal note - visible to staff only…" : lockedByOther ? "Assigned to another agent" : active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent… (type / for macros)" : "Accept chat to reply…"}
+                disabled={composerDisabled}
                 maxLength={2000}
-                className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+                className={`flex-1 rounded-md px-3 py-2 text-sm outline-none placeholder:text-muted-foreground ${noteMode ? "bg-warning/15" : "bg-secondary"}`}
               />
               <button
-                onClick={() => (draft.trim() || file) && reply.mutate(draft.trim())}
-                disabled={(!active.connectedAt && active.status !== "closed") || reply.isPending || uploading}
+                onClick={submit}
+                disabled={composerDisabled || reply.isPending || noteMutation.isPending || uploading}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
@@ -522,6 +666,7 @@ function ChatInboxes() {
           </>
         )}
       </div>
+      {active ? <ChatUserSidebar userId={active.userId} /> : <div className="hidden xl:block" />}
     </div>
   );
 }
