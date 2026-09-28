@@ -187,6 +187,7 @@ export function LiveChatDialog({
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const escalatingRef = useRef(false);
+  const pendingEscalationRef = useRef(false);
   const [ended, setEnded] = useState(false);
   const [csatDone, setCsatDone] = useState(false);
   const [endConfirm, setEndConfirm] = useState(false);
@@ -209,6 +210,7 @@ export function LiveChatDialog({
       setConnectedAt(null);
       setEnded(false);
       escalatingRef.current = false;
+      pendingEscalationRef.current = false;
       return;
     }
     if (res.status === "closed") {
@@ -248,6 +250,7 @@ export function LiveChatDialog({
   async function startNewInquiry() {
     if (sessionId) localStorage.setItem(RATED_KEY, sessionId);
     escalatingRef.current = false;
+    pendingEscalationRef.current = false;
     endedByMeRef.current = false;
     setEndedByAgent(false);
     setEnded(false);
@@ -562,11 +565,23 @@ export function LiveChatDialog({
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
 
+  /* Optimistically switch to the queue view on the very first click — the
+     backend request must never gate the UI change. If the session row does
+     not exist yet, the request is deferred until it does. */
   async function escalate(lastQuestion?: string) {
-    if (mode === "agent" || escalatingRef.current || !sessionId) return;
+    if (mode === "agent" || escalatingRef.current) return;
     escalatingRef.current = true;
     setMode("agent");
     setConnectedAt(null);
+    if (!sessionId) {
+      pendingEscalationRef.current = true;
+      return;
+    }
+    await runEscalation(lastQuestion);
+  }
+
+  async function runEscalation(lastQuestion?: string, attempt = 0) {
+    if (!sessionId) return;
     try {
       const transcript = botLog
         .map(({ role, text }) => ({ role, text }))
@@ -580,11 +595,25 @@ export function LiveChatDialog({
       });
       setQueuedAt(res.queuedAt);
       setConnectedAt(res.connectedAt);
+      pendingEscalationRef.current = false;
     } catch {
-      escalatingRef.current = false;
-      setMode("bot");
+      if (attempt < 2) {
+        setTimeout(() => void runEscalation(lastQuestion, attempt + 1), 800 * (attempt + 1));
+      } else {
+        escalatingRef.current = false;
+        pendingEscalationRef.current = false;
+        setMode("bot");
+      }
     }
   }
+
+  /* Escalation clicked before the session existed — run it once it exists. */
+  useEffect(() => {
+    if (!sessionId || !pendingEscalationRef.current) return;
+    pendingEscalationRef.current = false;
+    void runEscalation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   function handleTopic(topicId: BotTopicId) {
     const t = findTopic(topicId);
@@ -839,6 +868,7 @@ export function LiveChatDialog({
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
                         <button
+                          type="button"
                           key={c.action + c.label}
                           onClick={() => handleChip(c)}
                           className={`touch-manipulation rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -941,6 +971,7 @@ export function LiveChatDialog({
             <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-border bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground">
               <span>Need urgent manual help?</span>
               <button
+                type="button"
                 onClick={() => void escalate()}
                 className="touch-manipulation font-semibold text-primary hover:underline"
               >
