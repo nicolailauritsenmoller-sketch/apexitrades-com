@@ -70,40 +70,92 @@ export function TimedContractPanel({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const amountRef = useRef<HTMLInputElement>(null);
+  const [listTab, setListTab] = useState<"running" | "settled">("running");
+
+  // Single-trigger guard: each settled contract opens the modal at most once, across refreshes.
+  const SHOWN_KEY = "velocity:contract-summary-shown";
+  const wasShown = (id: string) => {
+    try {
+      return (JSON.parse(localStorage.getItem(SHOWN_KEY) ?? "[]") as string[]).includes(id);
+    } catch {
+      return false;
+    }
+  };
+  const markShown = (id: string) => {
+    try {
+      const ids = (JSON.parse(localStorage.getItem(SHOWN_KEY) ?? "[]") as string[]).filter((x) => x !== id);
+      ids.push(id);
+      localStorage.setItem(SHOWN_KEY, JSON.stringify(ids.slice(-200)));
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  const showSettled = (
+    c: ContractRow,
+    res: { result: "win" | "loss" | "draw"; exitPrice: number; payout: number; currency: string },
+    closedAt?: string | null,
+  ) => {
+    if (wasShown(c.id)) return;
+    markShown(c.id);
+    setSummary(
+      buildContractSummary({
+        id: c.id,
+        symbol: c.symbol,
+        displaySymbol: c.displaySymbol,
+        direction: c.direction,
+        stake: c.stake,
+        currency: res.currency,
+        entryPrice: c.entryPrice,
+        exitPrice: res.exitPrice,
+        payout: res.payout,
+        result: res.result,
+        openedAt: c.openedAt,
+        closedAt: closedAt ?? new Date().toISOString(),
+        balanceBefore: balance,
+      }),
+    );
+    if (res.result === "win") {
+      toast.success(`Contract closed · payout ${formatMoney(res.payout, res.currency)}`);
+    } else if (res.result === "draw") {
+      toast(`Contract closed · stake refunded`);
+    } else {
+      toast.error(`Contract closed · -${formatMoney(c.stake, res.currency)}`);
+    }
+  };
+
+  const settlingRef = useRef<Set<string>>(new Set());
   const settleMutation = useMutation({
     mutationFn: async (id: string) => ({ id, res: await settle({ data: { id } }) }),
     onSuccess: ({ id, res }) => {
       const c = (contracts.data ?? []).find((row) => row.id === id);
-      if (c) {
-        setSummary(
-          buildContractSummary({
-            id: c.id,
-            symbol: c.symbol,
-            displaySymbol: c.displaySymbol,
-            direction: c.direction,
-            stake: c.stake,
-            currency: res.currency,
-            entryPrice: c.entryPrice,
-            exitPrice: res.exitPrice,
-            payout: res.payout,
-            result: res.result,
-            openedAt: c.openedAt,
-            closedAt: new Date().toISOString(),
-            balanceBefore: balance,
-          }),
-        );
-      }
-      if (res.result === "win") {
-        toast.success(`Contract closed · payout ${formatMoney(res.payout, res.currency)}`);
-      } else if (res.result === "draw") {
-        toast(`Contract closed · stake refunded`);
-      } else {
-        toast.error(`Contract closed · -${formatMoney(c?.stake ?? 0, res.currency)}`);
-      }
+      if (c) showSettled(c, res);
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
     },
+    onError: (_e, id) => {
+      // Retry shortly instead of leaving the card stuck on "Settling...".
+      setTimeout(() => settlingRef.current.delete(id), 1000);
+    },
   });
+
+  // Contracts seen running in this view; if the background sweep settles one, still show its summary.
+  const seenOpenRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const c of contracts.data ?? []) {
+      if (c.status === "open") seenOpenRef.current.add(c.id);
+      else if (c.status === "settled" && seenOpenRef.current.has(c.id) && c.result && c.exitPrice != null) {
+        seenOpenRef.current.delete(c.id);
+        showSettled(
+          c,
+          { result: c.result as "win" | "loss" | "draw", exitPrice: c.exitPrice, payout: c.payout ?? 0, currency: c.currency },
+          c.settledAt,
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contracts.data]);
 
   const openContracts = useMemo(
     () => (contracts.data ?? []).filter((c) => c.status === "open"),
@@ -113,7 +165,6 @@ export function TimedContractPanel({
     () => (contracts.data ?? []).filter((c) => c.status === "settled"),
     [contracts.data],
   );
-  const [listTab, setListTab] = useState<"running" | "settled">("running");
 
   const now = useNow(openContracts.length > 0);
   const { quotes } = useQuotes(
@@ -121,23 +172,29 @@ export function TimedContractPanel({
     1000,
   );
 
-  // Auto-settle expired contracts, after a brief clearing ("Settling…") window.
-  const settlingRef = useRef<Set<string>>(new Set());
+  // Settle the instant the countdown hits zero (precise per-contract timers, not the 1s tick).
   useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
     for (const c of openContracts) {
-      if (new Date(c.expiresAt).getTime() <= now && !settlingRef.current.has(c.id)) {
-        settlingRef.current.add(c.id);
-        setTimeout(() => settleMutation.mutate(c.id), SETTLEMENT_CLEARING_MS);
-      }
+      if (settlingRef.current.has(c.id)) continue;
+      const wait = Math.max(0, new Date(c.expiresAt).getTime() - Date.now());
+      timers.push(
+        setTimeout(() => {
+          if (settlingRef.current.has(c.id)) return;
+          settlingRef.current.add(c.id);
+          settleMutation.mutate(c.id);
+        }, wait),
+      );
     }
-  }, [now, openContracts, settleMutation]);
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openContracts, now]);
 
   const stake = Number(amount) || 0;
   const belowMin = stake < tier.minInvestment;
   const overBalance = balance != null && stake > balance;
   const expectedProfit = (stake * tier.profitPct) / 100;
   const disabled = belowMin || overBalance || placeMutation.isPending;
-
 
   return (
     <div className="panel overflow-hidden border border-border bg-card p-0">
@@ -147,11 +204,15 @@ export function TimedContractPanel({
           onClose={() => setSummary(null)}
           onTradeAgain={() => {
             setSummary(null);
-            placeMutation.mutate(summary.side === "Long" ? "up" : "down");
+            setTimeout(() => {
+              amountRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+              amountRef.current?.focus();
+              amountRef.current?.select();
+            }, 50);
           }}
-          onReverse={() => {
+          onViewHistory={() => {
             setSummary(null);
-            placeMutation.mutate(summary.side === "Long" ? "down" : "up");
+            setListTab("settled");
           }}
         />
       )}
