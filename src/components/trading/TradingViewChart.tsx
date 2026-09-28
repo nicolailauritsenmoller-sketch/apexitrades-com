@@ -834,8 +834,6 @@ function TradingViewChartInner({
               {label}
             </button>
           ))}
-        </div>
-
           <button
             onClick={handleFullscreen}
             title="Fullscreen"
