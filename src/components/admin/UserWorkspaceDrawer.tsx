@@ -6,6 +6,7 @@ import { BalanceAdjustDialog } from "@/components/admin/BalanceAdjustDialog";
 import { UserAccountControls } from "@/components/admin/UserAccountControls";
 import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
 import { VipMembershipPanel } from "@/components/admin/VipMembershipPanel";
+import { CompliancePanel } from "@/components/admin/CompliancePanel";
 
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -76,6 +77,10 @@ export function UserWorkspaceDrawer({
                   KYC: {d.kyc?.status ?? "not submitted"}
                   {d.kyc?.country ? ` · ${d.kyc.country}` : ""}
                 </p>
+              </Section>
+
+              <Section title="Compliance risk & overrides">
+                <CompliancePanel userId={userId} />
               </Section>
 
               <Section title="Account controls">
