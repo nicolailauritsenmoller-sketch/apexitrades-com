@@ -24,13 +24,22 @@ const level2Input = z.object({
 export const getMyKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
-      .from("kyc_submissions")
-      .select("*")
-      .eq("user_id", context.userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [{ data }, { data: limitRow }] = await Promise.all([
+      context.supabase
+        .from("kyc_submissions")
+        .select("*")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      context.supabase
+        .from("user_withdrawal_limits")
+        .select("daily_limit_usdt")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+    ]);
+
+    const dailyLimitUsdt = limitRow ? Number((limitRow as any).daily_limit_usdt) : null;
 
     if (!data) return null;
 
@@ -43,8 +52,10 @@ export const getMyKyc = createServerFn({ method: "POST" })
     };
 
     const row = data as Record<string, any>;
-    const level1Status = data.status as string;
-    const level2Status = (row["level2_status"] as string) ?? "unsubmitted";
+    // Each tier carries its own independent state field.
+    const level1Status = (row["kyc_level_1_status"] as string) ?? (data.status as string);
+    const level2Status =
+      (row["kyc_level_2_status"] as string) ?? (row["level2_status"] as string) ?? "unsubmitted";
     const verificationLevel =
       level1Status === "approved" ? (level2Status === "approved" ? 2 : 1) : 0;
 
