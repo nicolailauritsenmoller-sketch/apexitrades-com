@@ -9,6 +9,7 @@ import {
   setUserVipStatus,
 } from "@/lib/admin.functions";
 import { PendingVipPanel, usePendingVipRequests } from "./PendingVipPanel";
+import { VipFeeTiersPanel } from "./VipFeeTiersPanel";
 
 const fmtDate = (iso?: string | null) =>
   iso
@@ -269,7 +270,7 @@ function DeclinedVipTable({ onOpen }: { onOpen?: (userId: string) => void }) {
 
 /** Dedicated VIP membership management view: pending, approved and declined. */
 export function VipMembershipsPage({ onOpen }: { onOpen?: (userId: string) => void }) {
-  const [view, setView] = useState<"pending" | "approved" | "declined">("pending");
+  const [view, setView] = useState<"pending" | "approved" | "declined" | "tiers">("pending");
   const pending = usePendingVipRequests(true);
   const pendingCount = ((pending.data ?? []) as any[]).length;
 
@@ -277,6 +278,7 @@ export function VipMembershipsPage({ onOpen }: { onOpen?: (userId: string) => vo
     { id: "pending" as const, label: "Pending requests", count: pendingCount },
     { id: "approved" as const, label: "Approved VIPs", count: 0 },
     { id: "declined" as const, label: "Declined requests", count: 0 },
+    { id: "tiers" as const, label: "Fee tiers & engine", count: 0 },
   ];
 
   return (
@@ -306,6 +308,7 @@ export function VipMembershipsPage({ onOpen }: { onOpen?: (userId: string) => vo
       {view === "pending" && <PendingVipPanel onOpen={onOpen} />}
       {view === "approved" && <ApprovedVipTable onOpen={onOpen} />}
       {view === "declined" && <DeclinedVipTable onOpen={onOpen} />}
+      {view === "tiers" && <VipFeeTiersPanel onOpen={onOpen} />}
     </div>
   );
 }
