@@ -534,6 +534,7 @@ export type Database = {
           entry_price: number
           exit_price: number | null
           expires_at: string
+          fee_paid: number
           id: string
           opened_at: string
           outcome_override: Database["public"]["Enums"]["outcome_mode"]
@@ -554,6 +555,7 @@ export type Database = {
           entry_price: number
           exit_price?: number | null
           expires_at: string
+          fee_paid?: number
           id?: string
           opened_at?: string
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
@@ -574,6 +576,7 @@ export type Database = {
           entry_price?: number
           exit_price?: number | null
           expires_at?: string
+          fee_paid?: number
           id?: string
           opened_at?: string
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
@@ -812,6 +815,7 @@ export type Database = {
           display_symbol: string
           entry_price: number
           exit_price: number | null
+          fees_paid: number
           id: string
           leverage: number
           opened_at: string
@@ -829,6 +833,7 @@ export type Database = {
           display_symbol: string
           entry_price: number
           exit_price?: number | null
+          fees_paid?: number
           id?: string
           leverage?: number
           opened_at?: string
@@ -846,6 +851,7 @@ export type Database = {
           display_symbol?: string
           entry_price?: number
           exit_price?: number | null
+          fees_paid?: number
           id?: string
           leverage?: number
           opened_at?: string
@@ -1393,6 +1399,45 @@ export type Database = {
           },
         ]
       }
+      user_fee_overrides: {
+        Row: {
+          futures_maker: number | null
+          futures_taker: number | null
+          note: string | null
+          scalp_maker: number | null
+          scalp_taker: number | null
+          spot_maker: number | null
+          spot_taker: number | null
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          futures_maker?: number | null
+          futures_taker?: number | null
+          note?: string | null
+          scalp_maker?: number | null
+          scalp_taker?: number | null
+          spot_maker?: number | null
+          spot_taker?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          futures_maker?: number | null
+          futures_taker?: number | null
+          note?: string | null
+          scalp_maker?: number | null
+          scalp_taker?: number | null
+          spot_maker?: number | null
+          spot_taker?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_recovery_codes: {
         Row: {
           code_hash: string
@@ -1609,6 +1654,102 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_accounts: {
+        Row: {
+          account_manager_email: string | null
+          account_manager_name: string | null
+          evaluated_at: string | null
+          futures_volume_30d: number
+          grace_until: string | null
+          level: number
+          portfolio_usdt: number
+          recommended_level: number | null
+          scalp_volume_30d: number
+          spot_volume_30d: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_manager_email?: string | null
+          account_manager_name?: string | null
+          evaluated_at?: string | null
+          futures_volume_30d?: number
+          grace_until?: string | null
+          level?: number
+          portfolio_usdt?: number
+          recommended_level?: number | null
+          scalp_volume_30d?: number
+          spot_volume_30d?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_manager_email?: string | null
+          account_manager_name?: string | null
+          evaluated_at?: string | null
+          futures_volume_30d?: number
+          grace_until?: string | null
+          level?: number
+          portfolio_usdt?: number
+          recommended_level?: number | null
+          scalp_volume_30d?: number
+          spot_volume_30d?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vip_fee_tiers: {
+        Row: {
+          futures_maker: number
+          futures_taker: number
+          level: number
+          min_futures_volume: number
+          min_portfolio_usdt: number
+          min_scalp_volume: number
+          min_spot_volume: number
+          name: string
+          scalp_maker: number
+          scalp_taker: number
+          spot_maker: number
+          spot_taker: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          futures_maker?: number
+          futures_taker?: number
+          level: number
+          min_futures_volume?: number
+          min_portfolio_usdt?: number
+          min_scalp_volume?: number
+          min_spot_volume?: number
+          name: string
+          scalp_maker?: number
+          scalp_taker?: number
+          spot_maker?: number
+          spot_taker?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          futures_maker?: number
+          futures_taker?: number
+          level?: number
+          min_futures_volume?: number
+          min_portfolio_usdt?: number
+          min_scalp_volume?: number
+          min_spot_volume?: number
+          name?: string
+          scalp_maker?: number
+          scalp_taker?: number
+          spot_maker?: number
+          spot_taker?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       vip_messages: {
         Row: {
           attachment_name: string | null
@@ -1802,6 +1943,10 @@ export type Database = {
       set_withdrawal_password: {
         Args: { p_password_hash: string; p_user_id: string }
         Returns: Json
+      }
+      verify_cron_token: {
+        Args: { p_name: string; p_token: string }
+        Returns: boolean
       }
       verify_withdrawal_password: {
         Args: { p_provided_hash: string; p_user_id: string }
