@@ -260,10 +260,12 @@ export const reviewKyc = createServerFn({ method: "POST" })
       .from("kyc_submissions")
       .update({
         status,
+        // Level 1 state is stored independently and never touches Level 2.
+        kyc_level_1_status: status,
         admin_note: data.note ?? null,
         reviewed_by: userId,
         reviewed_at: new Date().toISOString(),
-      })
+      } as never)
       .eq("id", data.id)
       .select()
       .maybeSingle();
@@ -302,6 +304,8 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
       .from("kyc_submissions")
       .update({
         level2_status: status,
+        // Level 2 state is stored independently and never touches Level 1.
+        kyc_level_2_status: status,
         level2_admin_note: data.note ?? null,
         level2_reviewed_by: userId,
         level2_reviewed_at: new Date().toISOString(),

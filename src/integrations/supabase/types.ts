@@ -685,6 +685,8 @@ export type Database = {
           document_type: string
           full_name: string
           id: string
+          kyc_level_1_status: string
+          kyc_level_2_status: string
           level2_admin_note: string | null
           level2_proof_path: string | null
           level2_proof_type: string | null
@@ -713,6 +715,8 @@ export type Database = {
           document_type: string
           full_name: string
           id?: string
+          kyc_level_1_status?: string
+          kyc_level_2_status?: string
           level2_admin_note?: string | null
           level2_proof_path?: string | null
           level2_proof_type?: string | null
@@ -741,6 +745,8 @@ export type Database = {
           document_type?: string
           full_name?: string
           id?: string
+          kyc_level_1_status?: string
+          kyc_level_2_status?: string
           level2_admin_note?: string | null
           level2_proof_path?: string | null
           level2_proof_type?: string | null

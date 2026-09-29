@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/UserAvatar";
 import { copy, KYC_LABEL } from "@/components/profile/ui";
+import { VerificationCenter } from "@/components/profile/VerificationCenter";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -180,6 +181,8 @@ function PersonalInformation() {
               </div>
             </div>
           </section>
+
+          <VerificationCenter kyc={kyc.data ?? null} />
 
           <section className="overflow-hidden rounded-lg border border-border bg-card">
             <header className="border-b border-border px-4 py-4 sm:px-5">

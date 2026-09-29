@@ -24,13 +24,22 @@ const level2Input = z.object({
 export const getMyKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
-      .from("kyc_submissions")
-      .select("*")
-      .eq("user_id", context.userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [{ data }, { data: limitRow }] = await Promise.all([
+      context.supabase
+        .from("kyc_submissions")
+        .select("*")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      context.supabase
+        .from("user_withdrawal_limits")
+        .select("daily_limit_usdt")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+    ]);
+
+    const dailyLimitUsdt = limitRow ? Number((limitRow as any).daily_limit_usdt) : null;
 
     if (!data) return null;
 
@@ -43,8 +52,10 @@ export const getMyKyc = createServerFn({ method: "POST" })
     };
 
     const row = data as Record<string, any>;
-    const level1Status = data.status as string;
-    const level2Status = (row["level2_status"] as string) ?? "unsubmitted";
+    // Each tier carries its own independent state field.
+    const level1Status = (row["kyc_level_1_status"] as string) ?? (data.status as string);
+    const level2Status =
+      (row["kyc_level_2_status"] as string) ?? (row["level2_status"] as string) ?? "unsubmitted";
     const verificationLevel =
       level1Status === "approved" ? (level2Status === "approved" ? 2 : 1) : 0;
 
@@ -54,6 +65,8 @@ export const getMyKyc = createServerFn({ method: "POST" })
     return {
       id: data.id,
       fullName: data.full_name,
+      dateOfBirth: (row["date_of_birth"] as string | null) ?? null,
+      address: (row["address"] as string | null) ?? null,
       country: data.country,
       documentType: data.document_type,
       documentNumber: data.document_number,
@@ -62,10 +75,13 @@ export const getMyKyc = createServerFn({ method: "POST" })
       createdAt: data.created_at,
       documentExpiresAt: expiresAt,
       expired,
+      dailyLimitUsdt,
       documentUrl: await sign(data.document_path),
       selfieUrl: await sign(data.selfie_path),
       level1Status,
       level2Status,
+      kycLevel1Status: level1Status,
+      kycLevel2Status: level2Status,
       verificationLevel,
       level2AdminNote: (row["level2_admin_note"] as string | null) ?? null,
       level2SubmittedAt: (row["level2_submitted_at"] as string | null) ?? null,
@@ -73,6 +89,8 @@ export const getMyKyc = createServerFn({ method: "POST" })
       level2TaxId: (row["level2_tax_id"] as string | null) ?? null,
       level2SelfieUrl: await sign((row["level2_selfie_path"] as string | null) ?? null),
       level2ProofUrl: await sign((row["level2_proof_path"] as string | null) ?? null),
+      biometricSubmitted: Boolean(row["level2_selfie_path"]),
+      sourceOfFundsSubmitted: Boolean(row["level2_proof_path"]),
     };
   });
 
