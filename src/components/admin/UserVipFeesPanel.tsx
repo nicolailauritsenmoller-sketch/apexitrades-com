@@ -20,7 +20,7 @@ export function UserVipFeesPanel({ userId }: { userId: string }) {
 
   useEffect(() => {
     if (!d) return;
-    setRates(Object.fromEntries(KEYS.map((k) => [k, d.override?.[k] ?? "" ].map(String)) as any));
+    setRates(Object.fromEntries(KEYS.map((k) => [k, d.override?.[k] == null ? "" : String(d.override[k])])));
     setNote(d.override?.note ?? "");
     setMgr({ name: d.account?.account_manager_name ?? "", email: d.account?.account_manager_email ?? "" });
   }, [d]);
