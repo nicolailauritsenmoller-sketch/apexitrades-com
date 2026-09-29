@@ -316,6 +316,32 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     if ((profile as any)?.withdrawals_disabled) {
       throw new Error("Withdrawals are disabled on this account. Contact support.");
     }
+    {
+      const { data: lim } = await supabase
+        .from("user_withdrawal_limits")
+        .select("daily_limit_usdt")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const coin = data.coin.toUpperCase();
+      if (lim && (coin === "USDT" || coin === "USDC")) {
+        const since = new Date(Date.now() - 86_400_000).toISOString();
+        const { data: recent } = await supabase
+          .from("withdrawals")
+          .select("amount,coin,status")
+          .eq("user_id", userId)
+          .gte("created_at", since)
+          .neq("status", "rejected");
+        const used = (recent ?? [])
+          .filter((r: any) => ["USDT", "USDC"].includes(String(r.coin).toUpperCase()))
+          .reduce((s: number, r: any) => s + Number(r.amount), 0);
+        const cap = Number((lim as any).daily_limit_usdt);
+        if (used + Number(data.amount) > cap) {
+          throw new Error(
+            `This exceeds your daily withdrawal limit of ${cap.toLocaleString()} USDT (${Math.max(0, cap - used).toLocaleString()} remaining).`,
+          );
+        }
+      }
+    }
     if ((kyc as any)?.status !== "approved") {
       throw new Error("Withdrawals require an approved identity verification (KYC).");
     }

@@ -69,6 +69,12 @@ const reviewInput = z.object({
   id: z.string().uuid(),
   action: z.enum(["approve", "reject"]),
   note: z.string().trim().max(500).optional(),
+  /** Standardized rejection code, required when rejecting. */
+  code: z.string().trim().max(40).optional(),
+});
+
+const kycReviewInput = reviewInput.refine((v) => v.action === "approve" || Boolean(v.code), {
+  message: "Pick a rejection code before rejecting.",
 });
 
 async function notify(supabase: any, userId: string, title: string, body: string, kind = "info") {
@@ -244,7 +250,7 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
 
 export const reviewKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .inputValidator((input: unknown) => kycReviewInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabase, userId } = context;
@@ -263,7 +269,11 @@ export const reviewKyc = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (row) {
-      await writeAudit(context, `kyc.${data.action}`, row.user_id, { note: data.note ?? null });
+      await writeAudit(context, `kyc.level1.${data.action}`, row.user_id, {
+        tier: "Lv.1",
+        code: data.code ?? null,
+        note: data.note ?? null,
+      });
       await notify(
         supabase,
         row.user_id,
@@ -282,7 +292,7 @@ export const reviewKyc = createServerFn({ method: "POST" })
 /** Approve or reject the enhanced (Level 2) verification stage independently. */
 export const reviewKycLevel2 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => reviewInput.parse(input))
+  .inputValidator((input: unknown) => kycReviewInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabase, userId } = context;
@@ -302,6 +312,8 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (row) {
       await writeAudit(context, `kyc.level2.${data.action}`, row.user_id, {
+        tier: "Lv.2",
+        code: data.code ?? null,
         note: data.note ?? null,
       });
       await notify(

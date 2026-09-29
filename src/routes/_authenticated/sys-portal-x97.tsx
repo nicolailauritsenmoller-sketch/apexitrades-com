@@ -76,7 +76,7 @@ import { RiskMonitor } from "@/components/admin/RiskMonitor";
 import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
-import { KycReviewDrawer } from "@/components/admin/KycReviewDrawer";
+import { KycReviewDrawer, TierBadge } from "@/components/admin/KycReviewDrawer";
 import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
 import { VipMembershipsPage } from "@/components/admin/VipMembershipsPage";
 import { supabase } from "@/integrations/supabase/client";
@@ -1656,17 +1656,7 @@ function UsersTab({
         )}
       </Card>
 
-      <Card title={`KYC submissions (${kyc.length})`}>
-        {kyc.length === 0 ? (
-          <Empty label="No KYC submissions yet." />
-        ) : (
-          <ul className="space-y-2">
-            {kyc.map((k) => (
-              <KycRow key={k.id} row={k} onDone={onDone} />
-            ))}
-          </ul>
-        )}
-      </Card>
+      <KycQueue kyc={kyc} onDone={onDone} />
 
       {inspect && <UserWorkspaceDrawer userId={inspect} onClose={() => setInspect(null)} />}
     </div>
@@ -1788,6 +1778,55 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
   );
 }
 
+const KYC_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "l1", label: "Lv.1 pending" },
+  { key: "l2", label: "Lv.2 pending" },
+  { key: "expiring", label: "ID expiring" },
+] as const;
+
+function KycQueue({ kyc, onDone }: { kyc: any[]; onDone: () => void }) {
+  const [filter, setFilter] = useState<(typeof KYC_FILTERS)[number]["key"]>("all");
+  const soon = Date.now() + 30 * 86_400_000;
+  const expiring = (k: any) => k.document_expires_at && new Date(k.document_expires_at).getTime() < soon;
+  const match = (k: any) =>
+    filter === "all" ||
+    (filter === "l1" && k.status === "pending") ||
+    (filter === "l2" && k.level2_status === "pending") ||
+    (filter === "expiring" && expiring(k));
+  const rows = kyc.filter(match);
+  const count = (key: string) =>
+    kyc.filter((k) =>
+      key === "all" ? true : key === "l1" ? k.status === "pending" : key === "l2" ? k.level2_status === "pending" : expiring(k),
+    ).length;
+  return (
+    <Card title={`KYC / Compliance desk (${kyc.length})`}>
+      <div className="mb-3 flex gap-1.5 overflow-x-auto whitespace-nowrap">
+        {KYC_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`touch-manipulation rounded-full border px-3 py-1 text-[11px] font-semibold ${
+              filter === f.key ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+            }`}
+          >
+            {f.label} ({count(f.key)})
+          </button>
+        ))}
+      </div>
+      {rows.length === 0 ? (
+        <Empty label="No submissions in this queue." />
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((k) => (
+            <KycRow key={k.id} row={k} onDone={onDone} />
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const review = useReview(reviewKyc, onDone, "KYC");
   const fetchDocs = useServerFn(getKycDocumentUrls);
@@ -1821,13 +1860,13 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <span className={`text-xs uppercase ${STATUS_TONE[row.status] ?? ""}`}>
-            L1 · {row.status}
+          <span className={`flex items-center gap-1.5 text-xs uppercase ${STATUS_TONE[row.status] ?? ""}`}>
+            <TierBadge tier="L1" /> {row.status}
           </span>
           <span
-            className={`text-[11px] uppercase ${STATUS_TONE[row.level2_status] ?? "text-muted-foreground"}`}
+            className={`flex items-center gap-1.5 text-[11px] uppercase ${STATUS_TONE[row.level2_status] ?? "text-muted-foreground"}`}
           >
-            L2 · {row.level2_status ?? "unsubmitted"}
+            <TierBadge tier="L2" /> {row.level2_status ?? "unsubmitted"}
           </span>
         </div>
       </div>
@@ -1837,21 +1876,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
           onClick={() => setReviewOpen(true)}
           className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
         >
-          Open review drawer
-        </button>
-        <button
-          disabled={load.isPending}
-          onClick={() => {
-            if (docsVisible) {
-              setDocsVisible(false);
-              return;
-            }
-            setDocsVisible(true);
-            if (!docs) load.mutate();
-          }}
-          className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
-        >
-          {docsVisible ? "Hide ID document" : "View ID document"}
+          {row.status === "pending" || row.level2_status === "pending" ? "Review submission" : "Open inspection"}
         </button>
         {row.status === "approved" && (
           <button
@@ -1861,20 +1886,6 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
           >
             Unverify user
           </button>
-        )}
-        {row.status === "pending" && (
-          <>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Optional note"
-              className="h-8 min-w-[160px] flex-1 rounded-md border border-border bg-background px-2 text-xs"
-            />
-            <ReviewButtons
-              pending={review.isPending}
-              onAction={(action) => review.mutate({ id: row.id, action, note: note || undefined })}
-            />
-          </>
         )}
       </div>
 
