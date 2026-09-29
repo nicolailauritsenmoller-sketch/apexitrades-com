@@ -65,6 +65,8 @@ export const getMyKyc = createServerFn({ method: "POST" })
     return {
       id: data.id,
       fullName: data.full_name,
+      dateOfBirth: (row["date_of_birth"] as string | null) ?? null,
+      address: (row["address"] as string | null) ?? null,
       country: data.country,
       documentType: data.document_type,
       documentNumber: data.document_number,
@@ -73,10 +75,13 @@ export const getMyKyc = createServerFn({ method: "POST" })
       createdAt: data.created_at,
       documentExpiresAt: expiresAt,
       expired,
+      dailyLimitUsdt,
       documentUrl: await sign(data.document_path),
       selfieUrl: await sign(data.selfie_path),
       level1Status,
       level2Status,
+      kycLevel1Status: level1Status,
+      kycLevel2Status: level2Status,
       verificationLevel,
       level2AdminNote: (row["level2_admin_note"] as string | null) ?? null,
       level2SubmittedAt: (row["level2_submitted_at"] as string | null) ?? null,
@@ -84,6 +89,8 @@ export const getMyKyc = createServerFn({ method: "POST" })
       level2TaxId: (row["level2_tax_id"] as string | null) ?? null,
       level2SelfieUrl: await sign((row["level2_selfie_path"] as string | null) ?? null),
       level2ProofUrl: await sign((row["level2_proof_path"] as string | null) ?? null),
+      biometricSubmitted: Boolean(row["level2_selfie_path"]),
+      sourceOfFundsSubmitted: Boolean(row["level2_proof_path"]),
     };
   });
 
