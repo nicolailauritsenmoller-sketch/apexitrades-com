@@ -304,6 +304,8 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
       .from("kyc_submissions")
       .update({
         level2_status: status,
+        // Level 2 state is stored independently and never touches Level 1.
+        kyc_level_2_status: status,
         level2_admin_note: data.note ?? null,
         level2_reviewed_by: userId,
         level2_reviewed_at: new Date().toISOString(),
