@@ -35,7 +35,7 @@ export async function resolveFeeRate(
 }
 
 export function feeAmount(notional: number, ratePct: number) {
-  return Math.round(notional * ratePct * 1e4) / 1e8 * 100 / 100; // notional * pct / 100, 8dp
+  return Math.round(((notional * ratePct) / 100) * 1e8) / 1e8;
 }
 
 type Tier = {
