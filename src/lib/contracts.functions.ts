@@ -96,6 +96,10 @@ export const placeContract = createServerFn({ method: "POST" })
       );
     }
 
+    const { resolveFeeRate, feeAmount } = await import("./vip-fees.server");
+    const fee = feeAmount(data.stake, await resolveFeeRate(db, userId, "scalp", "taker"));
+    const required = data.stake + fee;
+
     const { data: wallet } = await supabase
       .from("wallets")
       .select("*")
@@ -104,9 +108,9 @@ export const placeContract = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!wallet) throw new Error(`No ${CONTRACT_CURRENCY} wallet found.`);
-    if (Number(wallet.balance) < data.stake) {
+    if (Number(wallet.balance) < required) {
       throw new Error(
-        `Insufficient ${CONTRACT_CURRENCY} balance. Need ${data.stake.toFixed(2)}, have ${Number(wallet.balance).toFixed(2)}.`,
+        `Insufficient ${CONTRACT_CURRENCY} balance. Need ${required.toFixed(2)}, have ${Number(wallet.balance).toFixed(2)}.`,
       );
     }
 
@@ -117,7 +121,7 @@ export const placeContract = createServerFn({ method: "POST" })
     const { error: debitError } = await db
       .from("wallets")
       .update({
-        balance: Number(wallet.balance) - data.stake,
+        balance: Number(wallet.balance) - required,
         updated_at: new Date().toISOString(),
       })
       .eq("id", wallet.id)
@@ -139,6 +143,7 @@ export const placeContract = createServerFn({ method: "POST" })
         payout_pct: tier.profitPct,
         entry_price: price,
         expires_at: expiresAt,
+        fee_paid: fee,
       })
       .select()
       .single();

@@ -12,3 +12,4 @@
 - Live-support bot transcripts belong in private `chat_sessions.bot_context`; only genuine customer/agent messages belong in `chat_messages`, so internal handoff context cannot leak into the customer transcript.
 
 - Compliance overrides (risk category, forced 2FA re-auth, daily withdrawal limits in `user_withdrawal_limits`) live in src/lib/compliance.functions.ts; `admin_audit_logs` is append-only via DB trigger - why: immutable audit trail enforced at the database, not just RLS.
+- VIP tier engine: fee resolution + 30-day evaluation in src/lib/vip-fees.server.ts, admin fns in src/lib/vip-tiers.functions.ts; daily cron hits /api/public/hooks/vip-evaluate authenticated by a token in private.cron_tokens - why: no secret literal in SQL, one code path for cron and "Run now".

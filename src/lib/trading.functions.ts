@@ -82,6 +82,10 @@ export const openPosition = createServerFn({ method: "POST" })
     const acknowledgedAt = Date.now();
     const notional = price * data.quantity;
     const margin = notional / data.leverage;
+    const { resolveFeeRate, feeAmount, productFor } = await import("./vip-fees.server");
+    const feeRate = await resolveFeeRate(db, userId, productFor(inst.assetClass, data.leverage), "taker");
+    const fee = feeAmount(notional, feeRate);
+    const required = margin + fee;
 
     const { data: wallet } = await supabase
       .from("wallets")
@@ -91,15 +95,15 @@ export const openPosition = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!wallet) throw new Error(`No ${inst.currency} wallet found.`);
-    if (Number(wallet.balance) < margin) {
+    if (Number(wallet.balance) < required) {
       throw new Error(
-        `Insufficient ${inst.currency} margin. Need ${margin.toFixed(2)}, have ${Number(wallet.balance).toFixed(2)}.`,
+        `Insufficient ${inst.currency} margin. Need ${required.toFixed(2)} (incl. ${fee.toFixed(2)} fee), have ${Number(wallet.balance).toFixed(2)}.`,
       );
     }
 
     const { error: debitError } = await db
       .from("wallets")
-      .update({ balance: Number(wallet.balance) - margin, updated_at: new Date().toISOString() })
+      .update({ balance: Number(wallet.balance) - required, updated_at: new Date().toISOString() })
       .eq("id", wallet.id)
       .eq("user_id", userId);
     if (debitError) throw new Error(debitError.message);
@@ -116,6 +120,7 @@ export const openPosition = createServerFn({ method: "POST" })
         entry_price: price,
         leverage: data.leverage,
         currency: inst.currency,
+        fees_paid: fee,
       })
       .select()
       .single();
@@ -171,8 +176,17 @@ export const closePosition = createServerFn({ method: "POST" })
     const entry = Number(position.entry_price);
     const qty = Number(position.quantity);
     const direction = position.side === "long" ? 1 : -1;
-    const pnl = (price - entry) * qty * direction;
+    const grossPnl = (price - entry) * qty * direction;
     const margin = (entry * qty) / Number(position.leverage);
+    const { resolveFeeRate, feeAmount, productFor } = await import("./vip-fees.server");
+    const closeRate = await resolveFeeRate(
+      db,
+      userId,
+      productFor(position.asset_class, Number(position.leverage)),
+      "taker",
+    );
+    const closeFee = feeAmount(price * qty, closeRate);
+    const pnl = grossPnl - closeFee;
     const payout = Math.max(0, margin + pnl);
 
     const { data: closed, error: closeError } = await db
@@ -181,6 +195,7 @@ export const closePosition = createServerFn({ method: "POST" })
         status: "closed",
         exit_price: price,
         realized_pnl: pnl,
+        fees_paid: Number((position as any).fees_paid ?? 0) + closeFee,
         closed_at: new Date().toISOString(),
       })
       .eq("id", position.id)

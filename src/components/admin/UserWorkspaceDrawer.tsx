@@ -7,6 +7,7 @@ import { UserAccountControls } from "@/components/admin/UserAccountControls";
 import { AccountMaintenancePanel } from "@/components/admin/AccountMaintenancePanel";
 import { VipMembershipPanel } from "@/components/admin/VipMembershipPanel";
 import { CompliancePanel } from "@/components/admin/CompliancePanel";
+import { UserVipFeesPanel } from "@/components/admin/UserVipFeesPanel";
 
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -81,6 +82,10 @@ export function UserWorkspaceDrawer({
 
               <Section title="Compliance risk & overrides">
                 <CompliancePanel userId={userId} />
+              </Section>
+
+              <Section title="VIP tier, fees & account manager">
+                <UserVipFeesPanel userId={userId} />
               </Section>
 
               <Section title="Account controls">

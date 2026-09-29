@@ -40,6 +40,7 @@ import { Route as AuthenticatedProfileSettingsIndexRouteImport } from './routes/
 import { Route as AuthenticatedProfileSettingsNotificationsRouteImport } from './routes/_authenticated/profile.settings.notifications'
 import { Route as AuthenticatedProfileSettingsPreferencesRouteImport } from './routes/_authenticated/profile.settings.preferences'
 import { Route as AuthenticatedProfileSettingsSecurityRouteImport } from './routes/_authenticated/profile.settings.security'
+import { Route as ApiPublicHooksVipEvaluateRouteImport } from './routes/api/public/hooks/vip-evaluate'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -213,6 +214,12 @@ const AuthenticatedProfileSettingsSecurityRoute =
     path: '/settings/security',
     getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
+const ApiPublicHooksVipEvaluateRoute =
+  ApiPublicHooksVipEvaluateRouteImport.update({
+    id: '/api/public/hooks/vip-evaluate',
+    path: '/api/public/hooks/vip-evaluate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -260,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
+  '/api/public/hooks/vip-evaluate': typeof ApiPublicHooksVipEvaluateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -293,6 +301,7 @@ export interface FileRoutesByTo {
   '/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
+  '/api/public/hooks/vip-evaluate': typeof ApiPublicHooksVipEvaluateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -330,6 +339,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/settings/notifications': typeof AuthenticatedProfileSettingsNotificationsRoute
   '/_authenticated/profile/settings/preferences': typeof AuthenticatedProfileSettingsPreferencesRoute
   '/_authenticated/profile/settings/security': typeof AuthenticatedProfileSettingsSecurityRoute
+  '/api/public/hooks/vip-evaluate': typeof ApiPublicHooksVipEvaluateRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/profile/settings/notifications'
     | '/profile/settings/preferences'
     | '/profile/settings/security'
+    | '/api/public/hooks/vip-evaluate'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/profile/settings/notifications'
     | '/profile/settings/preferences'
     | '/profile/settings/security'
+    | '/api/public/hooks/vip-evaluate'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -436,6 +448,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/settings/notifications'
     | '/_authenticated/profile/settings/preferences'
     | '/_authenticated/profile/settings/security'
+    | '/api/public/hooks/vip-evaluate'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -450,6 +463,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TradeRoute: typeof TradeRoute
   LegalDocRoute: typeof LegalDocRoute
+  ApiPublicHooksVipEvaluateRoute: typeof ApiPublicHooksVipEvaluateRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -674,6 +688,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedProfileRoute
     }
+    '/api/public/hooks/vip-evaluate': {
+      id: '/api/public/hooks/vip-evaluate'
+      path: '/api/public/hooks/vip-evaluate'
+      fullPath: '/api/public/hooks/vip-evaluate'
+      preLoaderRoute: typeof ApiPublicHooksVipEvaluateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -786,6 +807,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TradeRoute: TradeRoute,
   LegalDocRoute: LegalDocRoute,
+  ApiPublicHooksVipEvaluateRoute: ApiPublicHooksVipEvaluateRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
