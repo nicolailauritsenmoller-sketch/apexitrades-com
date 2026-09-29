@@ -181,6 +181,8 @@ function PersonalInformation() {
             </div>
           </section>
 
+          <VerificationCenter kyc={kyc.data ?? null} />
+
           <section className="overflow-hidden rounded-lg border border-border bg-card">
             <header className="border-b border-border px-4 py-4 sm:px-5">
               <h2 className="text-base font-bold">Personal details</h2>
