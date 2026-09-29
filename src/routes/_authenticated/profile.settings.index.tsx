@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/UserAvatar";
 import { copy, KYC_LABEL } from "@/components/profile/ui";
+import { VerificationCenter } from "@/components/profile/VerificationCenter";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
