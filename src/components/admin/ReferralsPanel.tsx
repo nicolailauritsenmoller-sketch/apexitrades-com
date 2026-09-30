@@ -93,7 +93,7 @@ export function ReferralsPanel() {
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
-            <p className="mt-1 font-display text-xl font-bold">{s.value}</p>
+            <p className="num mt-1 text-xl font-bold">{s.value}</p>
           </div>
         ))}
       </div>

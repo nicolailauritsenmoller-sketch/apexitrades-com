@@ -326,7 +326,7 @@ function Terminal() {
               <button
                 key={m}
                 onClick={() => setQuantity(String(+(inst.step * m).toFixed(8)))}
-                className="flex-1 rounded border border-border py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="num flex-1 rounded border border-border py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 {+(inst.step * m).toFixed(8)}
               </button>
@@ -341,7 +341,7 @@ function Terminal() {
               <button
                 key={l}
                 onClick={() => setLeverage(l)}
-                className={`flex-1 rounded py-1 text-xs transition-colors ${
+                className={`num flex-1 rounded py-1 text-xs transition-colors ${
                   leverage === l
                     ? "bg-primary text-primary-foreground"
                     : "border border-border text-muted-foreground hover:bg-secondary"

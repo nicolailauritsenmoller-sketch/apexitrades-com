@@ -1163,7 +1163,7 @@ function DrawingOverlay({
       return (
         <g key={d.id}>
           <line x1={0} y1={a.y} x2={size.w} y2={a.y} stroke={colors.primary} strokeWidth={1} strokeDasharray="4 3" />
-          <text x={size.w - 4} y={a.y - 4} fill={colors.primary} fontSize={10} textAnchor="end">
+          <text x={size.w - 4} y={a.y - 4} fill={colors.primary} fontSize={10} fontFamily="var(--font-mono)" textAnchor="end">
             {formatPrice(d.a.price, "")}
           </text>
         </g>
@@ -1227,7 +1227,7 @@ function DrawingOverlay({
                   strokeDasharray="3 3"
                   opacity={0.7}
                 />
-                <text x={x2 + 4} y={coord.y + 3} fill={colors.foreground} fontSize={9}>
+                <text x={x2 + 4} y={coord.y + 3} fill={colors.foreground} fontSize={9} fontFamily="var(--font-mono)">
                   {(lvl * 100).toFixed(1)}%
                 </text>
               </g>

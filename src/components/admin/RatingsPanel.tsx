@@ -34,7 +34,7 @@ export function RatingsPanel() {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Stars value={Math.round(data.average)} />
             <span>
-              {data.average.toFixed(2)} average · {data.total} reviews
+              <span className="num">{data.average.toFixed(2)}</span> average · {data.total} reviews
             </span>
           </div>
         )}
