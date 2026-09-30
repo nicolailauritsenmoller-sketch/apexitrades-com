@@ -238,8 +238,8 @@ export function OrderBook({
 
       <div className="mt-auto border-t border-border px-3 py-2">
         <div className="mb-1 flex justify-between text-[10px]">
-          <span className="text-bull">B {buyPct.toFixed(2)}%</span>
-          <span className="text-bear">{(100 - buyPct).toFixed(2)}% S</span>
+          <span className="num text-bull">B {buyPct.toFixed(2)}%</span>
+          <span className="num text-bear">{(100 - buyPct).toFixed(2)}% S</span>
         </div>
         <div className="flex h-1.5 overflow-hidden rounded-full bg-bear/40">
           <div className="bg-bull" style={{ width: `${buyPct}%` }} />
