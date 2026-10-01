@@ -505,11 +505,8 @@ async function creditWallet(db: any, userId: string, currency: string, delta: nu
     .eq("currency", currency)
     .maybeSingle();
   if (!wallet) return;
-  await db
-    .from("wallets")
-    .update({ balance: Number(wallet.balance) + delta })
-    .eq("user_id", userId)
-    .eq("currency", currency);
+  const { walletAdjust } = await import("./wallet-atomic.server");
+  await walletAdjust(db, userId, currency, delta);
 }
 
 /** Edit or force-settle a fixed-time contract; wallet balance is reconciled. */

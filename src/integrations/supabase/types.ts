@@ -1955,6 +1955,10 @@ export type Database = {
         }
         Returns: Json
       }
+      reward_referral_atomic: {
+        Args: { p_actor: string; p_amount: number; p_id: string }
+        Returns: Json
+      }
       set_withdrawal_password: {
         Args: { p_password_hash: string; p_user_id: string }
         Returns: Json
@@ -1975,6 +1979,17 @@ export type Database = {
           p_note: string
           p_reviewer: string
           p_status: string
+        }
+        Returns: Json
+      }
+      swap_assets_atomic: {
+        Args: {
+          p_from: string
+          p_from_amount: number
+          p_rate: number
+          p_to: string
+          p_to_amount: number
+          p_user: string
         }
         Returns: Json
       }

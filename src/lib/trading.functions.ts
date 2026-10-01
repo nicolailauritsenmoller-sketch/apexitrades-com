@@ -101,12 +101,8 @@ export const openPosition = createServerFn({ method: "POST" })
       );
     }
 
-    const { error: debitError } = await db
-      .from("wallets")
-      .update({ balance: Number(wallet.balance) - required, updated_at: new Date().toISOString() })
-      .eq("id", wallet.id)
-      .eq("user_id", userId);
-    if (debitError) throw new Error(debitError.message);
+    const { walletAdjust } = await import("./wallet-atomic.server");
+    await walletAdjust(db, userId, inst.currency, -required);
 
     const { data: position, error } = await db
       .from("positions")
@@ -126,11 +122,7 @@ export const openPosition = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      await db
-        .from("wallets")
-        .update({ balance: Number(wallet.balance) })
-        .eq("id", wallet.id)
-        .eq("user_id", userId);
+      await walletAdjust(db, userId, inst.currency, required);
       throw new Error(error.message);
     }
 
@@ -213,14 +205,8 @@ export const closePosition = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (wallet) {
-      await db
-        .from("wallets")
-        .update({
-          balance: Number(wallet.balance) + payout,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", wallet.id)
-        .eq("user_id", userId);
+      const { walletAdjust } = await import("./wallet-atomic.server");
+      await walletAdjust(db, userId, position.currency, payout);
     }
 
     const { recordExecution } = await import("./execution.server");

@@ -383,15 +383,8 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
-    const { error: holdError } = await db
-      .from("wallets")
-      .update({
-        balance: Number(wallet.balance) - data.amount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", wallet.id)
-      .gte("balance", data.amount);
-    if (holdError) throw new Error(holdError.message);
+    const { walletAdjust } = await import("./wallet-atomic.server");
+    await walletAdjust(db, userId, data.coin, -data.amount);
 
     const { data: row, error } = await supabase
       .from("withdrawals")
@@ -406,18 +399,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       .single();
     if (error) {
       // Roll the hold back if the request could not be recorded.
-      const { data: current } = await db
-        .from("wallets")
-        .select("balance")
-        .eq("id", wallet.id)
-        .maybeSingle();
-      await db
-        .from("wallets")
-        .update({
-          balance: Number(current?.balance ?? 0) + data.amount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", wallet.id);
+      await walletAdjust(db, userId, data.coin, data.amount);
       throw new Error(error.message);
     }
     return { ok: true, id: row.id as string, createdAt: row.created_at as string };
@@ -458,34 +440,19 @@ export const swapAssets = createServerFn({ method: "POST" })
       throw new Error(`Insufficient ${data.from} balance.`);
     }
 
-    const now = new Date().toISOString();
-    const { error: debitError } = await db
-      .from("wallets")
-      .update({ balance: Number(fromWallet.balance) - data.amount, updated_at: now })
-      .eq("id", fromWallet.id)
-      .eq("user_id", userId);
-    if (debitError) throw new Error(debitError.message);
-
-    if (toWallet) {
-      await db
-        .from("wallets")
-        .update({ balance: Number(toWallet.balance) + toAmount, updated_at: now })
-        .eq("id", toWallet.id)
-        .eq("user_id", userId);
-    } else {
-      await db
-        .from("wallets")
-        .insert({ user_id: userId, currency: data.to, balance: toAmount });
-    }
-
-    await supabase.from("swaps").insert({
-      user_id: userId,
-      from_currency: data.from,
-      to_currency: data.to,
-      from_amount: data.amount,
-      to_amount: toAmount,
-      rate,
+    void toWallet;
+    const { error: swapError } = await db.rpc("swap_assets_atomic", {
+      p_user: userId,
+      p_from: data.from,
+      p_to: data.to,
+      p_from_amount: data.amount,
+      p_to_amount: toAmount,
+      p_rate: rate,
     });
+    if (swapError) {
+      if (/insufficient/i.test(swapError.message)) throw new Error(`Insufficient ${data.from} balance.`);
+      throw new Error(swapError.message);
+    }
 
     return { toAmount, rate };
   });

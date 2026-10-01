@@ -503,18 +503,10 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
       data.mode === "set" ? data.amount : Number(wallet?.balance ?? 0) + data.amount;
     if (next < 0) throw new Error("Resulting balance cannot be negative.");
 
-    if (wallet) {
-      const { error } = await db
-        .from("wallets")
-        .update({ balance: next, updated_at: new Date().toISOString() })
-        .eq("id", wallet.id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await db
-        .from("wallets")
-        .insert({ user_id: data.userId, currency, balance: next });
-      if (error) throw new Error(error.message);
-    }
+    const { walletAdjust } = await import("./wallet-atomic.server");
+    const delta = data.mode === "set" ? next - Number(wallet?.balance ?? 0) : data.amount;
+    const applied = await walletAdjust(db, data.userId, currency, delta);
+    if (applied !== null) (data as any)._resulting = applied;
 
 
     await writeAudit(context, `balance.${data.kind}`, data.userId, {

@@ -188,13 +188,8 @@ export const forceLiquidatePosition = createServerFn({ method: "POST" })
       .eq("currency", position.currency)
       .maybeSingle();
     if (wallet) {
-      await db
-        .from("wallets")
-        .update({
-          balance: Number(wallet.balance) + payout,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", wallet.id);
+      const { walletAdjust } = await import("./wallet-atomic.server");
+      await walletAdjust(db, position.user_id, position.currency, payout);
     }
 
     await notify(
