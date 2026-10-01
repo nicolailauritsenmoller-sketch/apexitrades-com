@@ -5,7 +5,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfileLayout,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-sm text-bear">
-      {error.message}
+      {(error as Error).message}
     </div>
   ),
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
