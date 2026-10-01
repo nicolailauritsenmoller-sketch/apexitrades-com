@@ -1946,8 +1946,36 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       purge_old_session_replays: { Args: never; Returns: number }
+      review_withdrawal_atomic: {
+        Args: {
+          p_id: string
+          p_note: string
+          p_reviewer: string
+          p_status: string
+        }
+        Returns: Json
+      }
       set_withdrawal_password: {
         Args: { p_password_hash: string; p_user_id: string }
+        Returns: Json
+      }
+      settle_contract_atomic: {
+        Args: {
+          p_exit: number
+          p_id: string
+          p_payout: number
+          p_result: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      settle_deposit_atomic: {
+        Args: {
+          p_id: string
+          p_note: string
+          p_reviewer: string
+          p_status: string
+        }
         Returns: Json
       }
       verify_cron_token: {
@@ -1957,6 +1985,10 @@ export type Database = {
       verify_withdrawal_password: {
         Args: { p_provided_hash: string; p_user_id: string }
         Returns: boolean
+      }
+      wallet_adjust: {
+        Args: { p_currency: string; p_delta: number; p_user: string }
+        Returns: number
       }
     }
     Enums: {

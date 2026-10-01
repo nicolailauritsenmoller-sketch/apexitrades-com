@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/terminal/$symbol")({
   component: Terminal,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-sm text-bear">
-      {error.message}
+      {(error as Error).message}
     </div>
   ),
   notFoundComponent: () => (

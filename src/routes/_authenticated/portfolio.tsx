@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/portfolio")({
   component: Portfolio,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-8 text-sm text-bear">
-      {error.message}
+      {(error as Error).message}
     </div>
   ),
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
