@@ -24,39 +24,13 @@ async function db() {
 /** Credits the wallet and settles a pending deposit. Idempotent per deposit. */
 async function settleDeposit(dep: any, confirmations: number) {
   const admin = await db();
-  const { data: settled } = await admin
-    .from("deposits")
-    .update({
-      status: "approved",
-      admin_note: `Auto-confirmed on-chain (${confirmations} confirmations).`,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq("id", dep.id)
-    .eq("status", "pending")
-    .select("id")
-    .maybeSingle();
-  if (!settled) return false; // another pass (or an admin) already handled it
-
-  const { data: wallet } = await admin
-    .from("wallets")
-    .select("id,balance")
-    .eq("user_id", dep.user_id)
-    .eq("currency", dep.coin)
-    .maybeSingle();
-
-  if (wallet) {
-    await admin
-      .from("wallets")
-      .update({
-        balance: Number(wallet.balance) + Number(dep.amount),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", wallet.id);
-  } else {
-    await admin
-      .from("wallets")
-      .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
-  }
+  const { data: r, error } = await admin.rpc("settle_deposit_atomic", {
+    p_id: dep.id,
+    p_status: "approved",
+    p_note: `Auto-confirmed on-chain (${confirmations} confirmations).`,
+    p_reviewer: null,
+  });
+  if (error || !r?.settled) return false; // another pass (or an admin) already handled it
 
   await admin.from("notifications").insert({
     user_id: dep.user_id,

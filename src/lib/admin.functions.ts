@@ -116,41 +116,14 @@ export const reviewDeposit = createServerFn({ method: "POST" })
     if (dep.status !== "pending") throw new Error("Deposit already reviewed.");
 
     const status = data.action === "approve" ? "approved" : "rejected";
-    const { error } = await supabase
-      .from("deposits")
-      .update({
-        status,
-        admin_note: data.note ?? null,
-        reviewed_by: userId,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq("id", dep.id)
-      .eq("status", "pending");
+    const db = await privileged();
+    const { data: r, error } = await db.rpc("settle_deposit_atomic", {
+      p_id: dep.id, p_status: status, p_note: data.note ?? null, p_reviewer: userId,
+    });
     if (error) throw new Error(error.message);
+    if (!r?.settled) throw new Error("Deposit already reviewed.");
 
     if (data.action === "approve") {
-      const db = await privileged();
-      const { data: wallet } = await db
-        .from("wallets")
-        .select("*")
-        .eq("user_id", dep.user_id)
-        .eq("currency", dep.coin)
-        .maybeSingle();
-
-      if (wallet) {
-        await db
-          .from("wallets")
-          .update({
-            balance: Number(wallet.balance) + Number(dep.amount),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", wallet.id);
-      } else {
-        await db
-          .from("wallets")
-          .insert({ user_id: dep.user_id, currency: dep.coin, balance: Number(dep.amount) });
-      }
-
       const { maybeFlagVipRequest } = await import("./vip-activation.server");
       await maybeFlagVipRequest(dep.user_id);
     }
@@ -192,43 +165,12 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     // Approval simply finalises it; rejection refunds the held amount.
     // Settle the status first so a failed update can never double-credit.
     const status = data.action === "approve" ? "approved" : "rejected";
-    const { data: settled, error } = await supabase
-      .from("withdrawals")
-      .update({
-        status,
-        admin_note: data.note ?? null,
-        reviewed_by: userId,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq("id", wd.id)
-      .eq("status", "pending")
-      .select("id")
-      .maybeSingle();
+    const db = await privileged();
+    const { data: r, error } = await db.rpc("review_withdrawal_atomic", {
+      p_id: wd.id, p_status: status, p_note: data.note ?? null, p_reviewer: userId,
+    });
     if (error) throw new Error(error.message);
-    if (!settled) throw new Error("Withdrawal already reviewed.");
-
-    if (data.action !== "approve") {
-      const db = await privileged();
-      const { data: wallet } = await db
-        .from("wallets")
-        .select("*")
-        .eq("user_id", wd.user_id)
-        .eq("currency", wd.coin)
-        .maybeSingle();
-      if (wallet) {
-        await db
-          .from("wallets")
-          .update({
-            balance: Number(wallet.balance) + Number(wd.amount),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", wallet.id);
-      } else {
-        await db
-          .from("wallets")
-          .insert({ user_id: wd.user_id, currency: wd.coin, balance: Number(wd.amount) });
-      }
-    }
+    if (!r?.settled) throw new Error("Withdrawal already reviewed.");
 
     await writeAudit(context, `withdrawal.${data.action}`, wd.user_id, {
       amount: Number(wd.amount),

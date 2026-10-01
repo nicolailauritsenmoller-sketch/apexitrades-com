@@ -41,55 +41,15 @@ export async function settleContractRow(supabase: any, db: any, userId: string, 
 
     const payout = result === "win" ? stake + (stake * pct) / 100 : result === "draw" ? stake : 0;
 
-    const { data: settled, error: updateError } = await db
-      .from("contracts")
-      .update({
-        status: "settled",
-        exit_price: exit,
-        result,
-        payout,
-        settled_at: new Date().toISOString(),
-      })
-      .eq("id", contract.id)
-      .eq("user_id", userId)
-      .eq("status", "open")
-      .select("id");
-    if (updateError) throw new Error(updateError.message);
-    // Another concurrent settle already credited this contract - return its stored result.
-    if (!settled || settled.length === 0) {
-      const { data: existing } = await db
-        .from("contracts")
-        .select("result, exit_price, payout, currency")
-        .eq("id", contract.id)
-        .eq("user_id", userId)
-        .maybeSingle();
-      return {
-        result: (existing?.result ?? result) as typeof result,
-        exitPrice: Number(existing?.exit_price ?? exit),
-        payout: Number(existing?.payout ?? 0),
-        currency: (existing?.currency ?? contract.currency) as string,
-      };
-    }
-
-    if (payout > 0) {
-      const { data: wallet } = await db
-        .from("wallets")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("currency", contract.currency)
-        .maybeSingle();
-      if (wallet) {
-        await db
-          .from("wallets")
-          .update({
-            balance: Number(wallet.balance) + payout,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", wallet.id)
-          .eq("user_id", userId);
-      }
-    }
-
-
-    return { result, exitPrice: exit, payout, currency: contract.currency as string };
+    const { data: r, error: rpcError } = await db.rpc("settle_contract_atomic", {
+      p_id: contract.id, p_user: userId, p_exit: exit, p_result: result, p_payout: payout,
+    });
+    if (rpcError) throw new Error(rpcError.message);
+    // Already settled by a concurrent call - return the stored result.
+    return {
+      result: (r?.result ?? result) as typeof result,
+      exitPrice: Number(r?.exit_price ?? exit),
+      payout: Number(r?.payout ?? 0),
+      currency: (r?.currency ?? contract.currency) as string,
+    };
 }
