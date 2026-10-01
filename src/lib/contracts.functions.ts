@@ -118,15 +118,8 @@ export const placeContract = createServerFn({ method: "POST" })
     const price = await fetchPrice(inst.symbol);
     const acknowledgedAt = Date.now();
 
-    const { error: debitError } = await db
-      .from("wallets")
-      .update({
-        balance: Number(wallet.balance) - required,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", wallet.id)
-      .eq("user_id", userId);
-    if (debitError) throw new Error(debitError.message);
+    const { walletAdjust } = await import("./wallet-atomic.server");
+    await walletAdjust(db, userId, CONTRACT_CURRENCY, -required);
 
     const expiresAt = new Date(Date.now() + tier.seconds * 1000).toISOString();
 
@@ -149,11 +142,7 @@ export const placeContract = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      await db
-        .from("wallets")
-        .update({ balance: Number(wallet.balance) })
-        .eq("id", wallet.id)
-        .eq("user_id", userId);
+      await walletAdjust(db, userId, CONTRACT_CURRENCY, required);
       throw new Error(error.message);
     }
 
