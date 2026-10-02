@@ -44,56 +44,14 @@ export async function payReferralReward(
     overrideAmount ?? referral.reward_amount ?? settings.rewardAmount ?? DEFAULT_REFERRAL_REWARD,
   );
 
-  const { data: wallet } = await db
-    .from("wallets")
-    .select("*")
-    .eq("user_id", referral.referrer_id)
-    .eq("currency", "USDT")
-    .maybeSingle();
-
-  const next = Number(wallet?.balance ?? 0) + amount;
-  if (wallet) {
-    await db
-      .from("wallets")
-      .update({ balance: next, updated_at: new Date().toISOString() })
-      .eq("id", wallet.id);
-  } else {
-    await db
-      .from("wallets")
-      .insert({ user_id: referral.referrer_id, currency: "USDT", balance: next });
-  }
-
-  // Ledger entry so the payout shows up in the member's transaction history.
-  await db.from("deposits").insert({
-    user_id: referral.referrer_id,
-    coin: "USDT",
-    network: "Referral reward",
-    amount,
-    status: "approved",
-    admin_note: `Referral Bonus (+${amount} USDT)`,
-    reviewed_by: actorId,
-    reviewed_at: new Date().toISOString(),
+  // Wallet credit, ledger entry, referrer total and status change in one locked step.
+  const { data: res, error } = await (db as any).rpc("reward_referral_atomic", {
+    p_id: referral.id,
+    p_amount: amount,
+    p_actor: actorId,
   });
-
-  const { data: profile } = await db
-    .from("profiles")
-    .select("referral_rewards_usdt")
-    .eq("id", referral.referrer_id)
-    .maybeSingle();
-  await db
-    .from("profiles")
-    .update({ referral_rewards_usdt: Number(profile?.referral_rewards_usdt ?? 0) + amount })
-    .eq("id", referral.referrer_id);
-
-  await db
-    .from("referrals")
-    .update({
-      status: "rewarded",
-      reward_amount: amount,
-      rewarded_at: new Date().toISOString(),
-      reviewed_by: actorId,
-    })
-    .eq("id", referral.id);
+  if (error) throw new Error(error.message);
+  if (!(res as any)?.rewarded) return { alreadyRewarded: true, amount: 0 };
 
   await db.from("notifications").insert({
     user_id: referral.referrer_id,
