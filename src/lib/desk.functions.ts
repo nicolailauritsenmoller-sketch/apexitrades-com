@@ -114,11 +114,11 @@ export const acceptLiveChat = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: session } = await db
       .from("chat_sessions")
-      .select("id,status,active_agent_id,connected_at")
+      .select("id,status,active_agent_id,connected_at,escalated_at")
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!session) throw new Error("Conversation not found.");
-    if (session.active_agent_id && session.active_agent_id !== context.userId) {
+    if (session.active_agent_id && session.active_agent_id !== context.userId && session.connected_at) {
       throw new Error("This conversation is already assigned to another support agent.");
     }
     if (session.active_agent_id === context.userId && session.connected_at) {
@@ -131,6 +131,8 @@ export const acceptLiveChat = createServerFn({ method: "POST" })
       .update({
         active_agent_id: context.userId,
         connected_at: now,
+        escalated_at: (session as any).escalated_at ?? now,
+        handover_state: "AGENT_HANDOVER",
         status: "open",
         agent_last_read_at: now,
       })
@@ -271,7 +273,7 @@ export const getMyChatContext = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: session } = await db
       .from("chat_sessions")
-      .select("id,user_id,status,active_agent_id,escalated_at,connected_at")
+      .select("id,user_id,status,active_agent_id,escalated_at,connected_at,priority,handover_state")
       .eq("id", data.sessionId)
       .maybeSingle();
     // A session can be replaced while an older modal subscription is still
@@ -313,6 +315,8 @@ export const getMyChatContext = createServerFn({ method: "POST" })
       status: session.status,
       queuedAt: session.escalated_at,
       connectedAt: session.connected_at,
+      priority: (session as any).priority as string,
+      handoverState: (session as any).handover_state as string | null,
       agent: agent
         ? {
             name: agent.full_name,
@@ -655,4 +659,95 @@ export const correctPosition = createServerFn({ method: "POST" })
     });
 
     return { ok: true };
+  });
+
+/** VIP Tier 3+ direct line: tag the session VIP_PRIORITY and route it to the assigned account manager. */
+export const requestManagerChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const db = await privileged();
+    const [{ data: session }, { data: vip }, { data: me }] = await Promise.all([
+      db.from("chat_sessions").select("id,user_id,status,escalated_at,connected_at,priority").eq("id", data.sessionId).maybeSingle(),
+      db.from("vip_accounts").select("level,account_manager_name,account_manager_email").eq("user_id", context.userId).maybeSingle(),
+      db.from("profiles").select("display_name,uid").eq("id", context.userId).maybeSingle(),
+    ]);
+    if (!session || session.user_id !== context.userId) throw new Error("Session not found.");
+    if (!vip || Number(vip.level) < 3 || !vip.account_manager_name) {
+      throw new Error("A dedicated account manager is not assigned to this account.");
+    }
+    if ((session as any).priority === "VIP_PRIORITY" && session.status !== "closed" && session.escalated_at) {
+      return { queuedAt: session.escalated_at, connectedAt: session.connected_at };
+    }
+    const email = (vip.account_manager_email ?? "").toLowerCase() || null;
+
+    // Route to the manager's admin inbox when the email belongs to a staff account.
+    let managerId: string | null = null;
+    if (email) {
+      const { data: prof } = await db.from("profiles").select("id").ilike("email", email).maybeSingle();
+      if (prof?.id) {
+        const { data: roles } = await db.from("user_roles").select("role").eq("user_id", prof.id);
+        if ((roles ?? []).some((r: any) => ["admin", "agent", "finance"].includes(r.role))) managerId = prof.id;
+      }
+    }
+
+    const now = new Date().toISOString();
+    const { error } = await db
+      .from("chat_sessions")
+      .update({
+        priority: "VIP_PRIORITY",
+        assigned_manager_email: email,
+        department: "account_manager",
+        escalated_at: now,
+        connected_at: null,
+        active_agent_id: managerId,
+        handover_state: null,
+        status: "pending",
+        subject: "VIP - Account Manager request",
+        last_message_at: now,
+      } as any)
+      .eq("id", data.sessionId);
+    if (error) throw new Error(error.message);
+
+    const who = `${me?.display_name ?? "VIP client"} (UID ${me?.uid ?? "-"})`;
+    if (managerId) {
+      await db.from("notifications").insert({
+        user_id: managerId,
+        title: "VIP priority chat",
+        body: `${who} opened a priority chat with you. Open Support - Live Chats to take over.`,
+        kind: "warning",
+      });
+    }
+    if (email) {
+      try {
+        const { sendTemplateEmail } = await import("./email-templates/send-email");
+        await sendTemplateEmail("vip-manager-chat", email, {
+          templateData: { managerName: vip.account_manager_name, clientLabel: who },
+          idempotencyKey: `vip-chat-${data.sessionId}-${now}`,
+        });
+      } catch {
+        /* email delivery must never block the chat routing */
+      }
+    }
+    await logAudit(db, context.userId, "chat.vip_priority", context.userId, { session_id: data.sessionId, manager_email: email, routed_to_inbox: Boolean(managerId) });
+    return { queuedAt: now, connectedAt: null };
+  });
+
+/** The caller's latest deposits, withdrawals and scalp contracts for chat context. */
+export const getMyRecentActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = context.supabase;
+    const [d, w, c] = await Promise.all([
+      sb.from("deposits").select("id,coin,network,amount,tx_hash,status,created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(5),
+      sb.from("withdrawals").select("id,coin,network,amount,status,created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(5),
+      sb.from("contracts").select("id,display_symbol,direction,stake,currency,status,result,opened_at").eq("user_id", context.userId).order("opened_at", { ascending: false }).limit(5),
+    ]);
+    type Item = { kind: "Deposit" | "Withdrawal" | "Contract"; ref: string; label: string; status: string; amount: string; at: string };
+    const items: Item[] = [
+      ...(d.data ?? []).map((r: any) => ({ kind: "Deposit" as const, ref: r.tx_hash ?? r.id, label: `${r.coin} on ${r.network}`, status: r.status, amount: `${Number(r.amount)} ${r.coin}`, at: r.created_at })),
+      ...(w.data ?? []).map((r: any) => ({ kind: "Withdrawal" as const, ref: r.id, label: `${r.coin} on ${r.network}`, status: r.status, amount: `${Number(r.amount)} ${r.coin}`, at: r.created_at })),
+      ...(c.data ?? []).map((r: any) => ({ kind: "Contract" as const, ref: r.id, label: `${r.display_symbol} ${String(r.direction).toUpperCase()}`, status: r.result ? `${r.status} - ${r.result}` : r.status, amount: `${Number(r.stake)} ${r.currency}`, at: r.opened_at })),
+    ];
+    return items.sort((a, b) => b.at.localeCompare(a.at));
   });
