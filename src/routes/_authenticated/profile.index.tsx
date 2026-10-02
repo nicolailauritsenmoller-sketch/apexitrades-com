@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SupportUnreadBadge } from "@/components/support/SupportUnreadBadge";
+import { RelationshipManagerCard } from "@/components/profile/RelationshipManagerCard";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -347,6 +348,8 @@ function ProfileHome() {
           </div>
         </section>
       </div>
+
+      <RelationshipManagerCard />
 
       {/* Support banner */}
       <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
