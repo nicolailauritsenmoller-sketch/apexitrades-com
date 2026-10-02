@@ -8,6 +8,7 @@ export const DEPARTMENT_LABEL: Record<string, string> = {
   support: "Support",
   compliance: "Compliance",
   risk: "Risk Management",
+  account_manager: "Account Manager",
 };
 
 /** Live identity, verification and risk snapshot for the customer in an open chat. */

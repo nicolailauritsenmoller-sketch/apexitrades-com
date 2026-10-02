@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { template as vipWelcomeTemplate } from './vip-welcome'
+import { template as vipManagerChatTemplate } from './vip-manager-chat'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -20,4 +21,5 @@ export interface TemplateEntry {
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'vip-welcome': vipWelcomeTemplate,
+  'vip-manager-chat': vipManagerChatTemplate,
 }

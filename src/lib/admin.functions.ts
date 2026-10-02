@@ -749,6 +749,8 @@ export const getSupportThreads = createServerFn({ method: "POST" })
         escalatedAt: s.escalated_at ?? null,
         botContext: s.bot_context ?? null,
         department: s.department ?? "support",
+        priority: s.priority ?? "normal",
+        handoverState: s.handover_state ?? null,
         lastSenderRole: mine[0]?.sender_role ?? null,
       };
     });

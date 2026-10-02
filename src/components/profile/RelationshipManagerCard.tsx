@@ -34,7 +34,7 @@ export function RelationshipManagerCard() {
         <button
           onClick={() =>
             window.dispatchEvent(
-              new CustomEvent("velocity:open-chat", { detail: { department: "account_manager" } }),
+              new CustomEvent("velocity:open-chat", { detail: { vipManager: true } }),
             )
           }
           className="inline-flex touch-manipulation items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold transition-colors hover:bg-secondary/80"

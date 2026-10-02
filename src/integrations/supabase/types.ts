@@ -325,13 +325,16 @@ export type Database = {
         Row: {
           active_agent_id: string | null
           agent_last_read_at: string
+          assigned_manager_email: string | null
           bot_context: Json | null
           connected_at: string | null
           created_at: string
           department: string
           escalated_at: string | null
+          handover_state: string | null
           id: string
           last_message_at: string
+          priority: string
           status: string
           subject: string | null
           user_id: string
@@ -340,13 +343,16 @@ export type Database = {
         Insert: {
           active_agent_id?: string | null
           agent_last_read_at?: string
+          assigned_manager_email?: string | null
           bot_context?: Json | null
           connected_at?: string | null
           created_at?: string
           department?: string
           escalated_at?: string | null
+          handover_state?: string | null
           id?: string
           last_message_at?: string
+          priority?: string
           status?: string
           subject?: string | null
           user_id: string
@@ -355,13 +361,16 @@ export type Database = {
         Update: {
           active_agent_id?: string | null
           agent_last_read_at?: string
+          assigned_manager_email?: string | null
           bot_context?: Json | null
           connected_at?: string | null
           created_at?: string
           department?: string
           escalated_at?: string | null
+          handover_state?: string | null
           id?: string
           last_message_at?: string
+          priority?: string
           status?: string
           subject?: string | null
           user_id?: string

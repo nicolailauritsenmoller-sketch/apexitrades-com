@@ -327,7 +327,35 @@ function ChatInboxes() {
 
   const list = (threads.data ?? []) as any[];
   const active = list.find((t) => t.id === activeId) ?? null;
-  const lockedByOther = !!active?.activeAgentId && !!meId && active.activeAgentId !== meId;
+  const lockedByOther = !!active?.activeAgentId && !!meId && active.activeAgentId !== meId && !!active?.connectedAt;
+
+  // Chime on every new incoming customer message across the inbox.
+  const lastUserMsg = useRef<Map<string, string> | null>(null);
+  useEffect(() => {
+    if (!threads.data) return;
+    const next = new Map<string, string>();
+    let fresh = false;
+    for (const t of threads.data as any[]) {
+      if (t.lastSenderRole !== "user") continue;
+      next.set(t.id, t.lastMessageAt);
+      const prev = lastUserMsg.current?.get(t.id);
+      if (lastUserMsg.current && prev !== t.lastMessageAt) fresh = true;
+    }
+    if (fresh) playQueuePing();
+    lastUserMsg.current = next;
+  }, [threads.data]);
+
+  useEffect(() => {
+    const ch = supabase
+      .channel("admin-inbox-incoming")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (p: any) => {
+        if (p.new?.sender_role === "user") qc.invalidateQueries({ queryKey: ["support-threads"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [qc]);
 
   // Audible ping whenever a new unassigned live chat enters the queue.
   useEffect(() => {
@@ -401,6 +429,9 @@ function ChatInboxes() {
               <div className="mt-1 flex flex-wrap items-center gap-1">
                 <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">
                   {DEPARTMENT_LABEL[t.department] ?? "Support"}
+                  {t.priority === "VIP_PRIORITY" && (
+                    <span className="ml-1 rounded bg-primary/15 px-1 text-[9px] font-bold uppercase text-primary">VIP Priority</span>
+                  )}
                 </span>
                 {t.escalatedAt && !t.activeAgentId && t.status !== "closed" && (
                   <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">Unassigned</span>
@@ -462,13 +493,13 @@ function ChatInboxes() {
                     <Lock className="size-3" /> Assigned to another agent
                   </span>
                 )}
-                {active.escalatedAt && !active.connectedAt && !lockedByOther && (
+                {active.status !== "closed" && !active.connectedAt && (!lockedByOther || !active.connectedAt) && (
                   <button
                     onClick={() => acceptMutation.mutate(active.id)}
                     disabled={acceptMutation.isPending}
                     className="rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-50"
                   >
-                    {acceptMutation.isPending ? "Connecting…" : "Accept chat"}
+                    {acceptMutation.isPending ? "Connecting…" : "Take Over Chat"}
                   </button>
                 )}
                 {active.status !== "closed" ? (
