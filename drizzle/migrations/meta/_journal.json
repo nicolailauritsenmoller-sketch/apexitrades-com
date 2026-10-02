@@ -169,6 +169,13 @@
       "when": 1790814715177,
       "tag": "0023_atomic_swap_and_referral",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790901569481,
+      "tag": "0024_chat_vip_priority_handover",
+      "breakpoints": true
     }
   ]
 }
