@@ -31,7 +31,8 @@ import { ChatAttachment } from "@/components/chat/ChatAttachment";
 import { useChatTyping } from "@/lib/use-chat-typing";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { UserAvatar } from "@/components/UserAvatar";
-import { getMyChatContext, requestLiveAgent, submitChatRating } from "@/lib/desk.functions";
+import { getMyChatContext, getMyRecentActivity, requestLiveAgent, requestManagerChat, submitChatRating } from "@/lib/desk.functions";
+import { History } from "lucide-react";
 import { shieldMark } from "@/components/Logo";
 
 type Message = {
@@ -198,6 +199,22 @@ export function LiveChatDialog({
   const [endedByAgent, setEndedByAgent] = useState(false);
   const [history, setHistory] = useState<PastSession[]>([]);
   const endedByMeRef = useRef(false);
+  const vipPendingRef = useRef(false);
+  type Activity = { kind: string; ref: string; label: string; status: string; amount: string; at: string };
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [activity, setActivity] = useState<Activity[] | null>(null);
+  const [attached, setAttached] = useState<Activity | null>(null);
+
+  async function openActivity(v: boolean) {
+    setActivityOpen(v);
+    if (v && !activity) {
+      try {
+        setActivity((await getMyRecentActivity()) as Activity[]);
+      } catch {
+        setActivity([]);
+      }
+    }
+  }
 
   /** Apply the durable session state reported by the backend. */
   function applyContext(res: {
@@ -287,8 +304,9 @@ export function LiveChatDialog({
     if (controlledOpen !== undefined) return;
     const handler = (e: Event) => {
       setOpen(true);
-      const detail = (e as CustomEvent<{ message?: string }>).detail;
+      const detail = (e as CustomEvent<{ message?: string; vipManager?: boolean }>).detail;
       if (detail?.message) setDraft(detail.message);
+      if (detail?.vipManager) vipPendingRef.current = true;
     };
     window.addEventListener("velocity:open-chat", handler);
     return () => window.removeEventListener("velocity:open-chat", handler);
@@ -610,6 +628,23 @@ export function LiveChatDialog({
     }
   }
 
+  /* "Contact Manager" - route the session to the VIP account manager once it exists. */
+  useEffect(() => {
+    if (!open || !sessionId || !vipPendingRef.current) return;
+    vipPendingRef.current = false;
+    escalatingRef.current = true;
+    setMode("agent");
+    requestManagerChat({ data: { sessionId } })
+      .then((res) => {
+        setQueuedAt(res.queuedAt);
+        setConnectedAt(res.connectedAt);
+      })
+      .catch(() => {
+        escalatingRef.current = false;
+        setMode("bot");
+      });
+  }, [open, sessionId]);
+
   /* Escalation clicked before the session existed - run it once it exists. */
   useEffect(() => {
     if (!sessionId || !pendingEscalationRef.current) return;
@@ -679,8 +714,13 @@ export function LiveChatDialog({
       sendLockRef.current = false;
       return;
     }
-    const body = draft.trim();
+    const typed = draft.trim();
+    const ctxLine = attached
+      ? `[${attached.kind}] ${attached.kind === "Deposit" ? "TxHash" : "ID"} ${attached.ref} · ${attached.label} · ${attached.amount} · Status: ${attached.status} · ${new Date(attached.at).toLocaleString()}`
+      : "";
+    const body = [typed, ctxLine].filter(Boolean).join("\n");
     if ((!body && !file) || !sessionId || sending) return;
+    setAttached(null);
     sendLockRef.current = true;
     typing.notifyStop();
     setSending(true);
@@ -788,7 +828,9 @@ export function LiveChatDialog({
                   : ended
                     ? "Session Closed"
                     : agentJoined
-                      ? "Connected with Agent"
+                      ? agent?.name
+                        ? `Assigned Specialist: ${agent.name}`
+                        : "Connected with Agent"
                       : "Queued for Support Agent · ~2 mins"}
               </p>
             </div>
@@ -1035,6 +1077,52 @@ export function LiveChatDialog({
                 hidden
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              {attached && (
+                <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
+                  <History className="size-3" />
+                  <span className="truncate">{attached.kind} · {attached.amount} · {attached.status}</span>
+                  <button type="button" onClick={() => setAttached(null)} aria-label="Remove activity">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+              {mode !== "bot" && (
+                <Popover open={activityOpen} onOpenChange={(v) => void openActivity(v)}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Select recent activity"
+                      title="Select Recent Activity"
+                      className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    >
+                      <History className="size-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="max-h-72 w-80 overflow-y-auto p-1">
+                    <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Select Recent Activity
+                    </p>
+                    {activity === null && <p className="px-2 py-2 text-xs text-muted-foreground">Loading…</p>}
+                    {activity?.length === 0 && <p className="px-2 py-2 text-xs text-muted-foreground">No recent activity.</p>}
+                    {activity?.map((a) => (
+                      <button
+                        key={`${a.kind}-${a.ref}`}
+                        type="button"
+                        onClick={() => {
+                          setAttached(a);
+                          setActivityOpen(false);
+                        }}
+                        className="w-full touch-manipulation rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                      >
+                        <span className="font-semibold">{a.kind}</span> · <span className="num">{a.amount}</span> · {a.status}
+                        <span className="block truncate text-[10px] text-muted-foreground">
+                          {a.label} · {a.ref.slice(0, 18)} · {new Date(a.at).toLocaleString()}
+                        </span>
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+              )}
               <button
                 type="button"
                 hidden={mode === "bot"}
