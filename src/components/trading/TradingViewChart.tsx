@@ -555,11 +555,8 @@ function TradingViewChartInner({
           if (l?.parent) l.parent.remove();
         } catch {}
       }
-      if (item.pane && item.pane !== volumePaneRef.current) {
-        try {
-          chart.removePane(item.pane.paneIndex?.() ?? item.pane);
-        } catch {}
-      }
+      // The chart drops a pane automatically once its last series is removed;
+      // removing it again by index would dispose a different (live) pane.
     }
     indicatorRefs.current = indicatorRefs.current.filter((i) => keep.has(i.key));
 
