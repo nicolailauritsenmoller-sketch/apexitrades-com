@@ -55,6 +55,58 @@ const TABS: ("all" | AssetClass)[] = [
   "metal",
 ];
 
+type SortKey = "instrument" | "class" | "last" | "change" | "high" | "low" | "volume";
+
+const SORTABLE_COLUMNS: readonly { key: SortKey; label: string; numeric: boolean }[] = [
+  { key: "instrument", label: "Instrument", numeric: false },
+  { key: "class", label: "Class", numeric: false },
+  { key: "last", label: "Last", numeric: true },
+  { key: "change", label: "24h", numeric: true },
+  { key: "high", label: "High", numeric: true },
+  { key: "low", label: "Low", numeric: true },
+];
+
+function sortRows(
+  rows: typeof INSTRUMENTS,
+  key: SortKey,
+  dir: "asc" | "desc",
+  quotes: Record<string, { price: number; changePercent: number; high: number; low: number; volume?: number; stale: boolean }>,
+) {
+  const mult = dir === "asc" ? 1 : -1;
+  const missing = (s: string) => {
+    const q = quotes[s];
+    return !q || q.stale;
+  };
+  return [...rows].sort((a, b) => {
+    // Instruments without a live quote sort to the bottom in either direction.
+    const aMissing = missing(a.symbol);
+    const bMissing = missing(b.symbol);
+    if (aMissing !== bMissing) return aMissing ? 1 : -1;
+    if (aMissing) return 0;
+
+    switch (key) {
+      case "instrument":
+        return mult * displaySymbol(a.symbol).localeCompare(displaySymbol(b.symbol));
+      case "class":
+        return (
+          mult *
+          (ASSET_CLASS_LABEL[a.assetClass].localeCompare(ASSET_CLASS_LABEL[b.assetClass]) ||
+            displaySymbol(a.symbol).localeCompare(displaySymbol(b.symbol)))
+        );
+      case "last":
+        return mult * (quotes[a.symbol].price - quotes[b.symbol].price);
+      case "change":
+        return mult * (quotes[a.symbol].changePercent - quotes[b.symbol].changePercent);
+      case "high":
+        return mult * (quotes[a.symbol].high - quotes[b.symbol].high);
+      case "low":
+        return mult * (quotes[a.symbol].low - quotes[b.symbol].low);
+      case "volume":
+        return mult * ((quotes[a.symbol].volume ?? 0) - (quotes[b.symbol].volume ?? 0));
+    }
+  });
+}
+
 
 const PAGE_SIZE = 50;
 const ROWS_PER_PAGE = 20;
@@ -71,6 +123,13 @@ function pageNumbers(current: number, total: number): (number | "…")[] {
   return out;
 }
 
+function formatVolume(v: number): string {
+  if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
+  if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
+  return v.toFixed(0);
+}
+
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
   const [q, setQ] = useState("");
@@ -79,6 +138,15 @@ function Markets() {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("instrument");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const { quotes } = useQuotes(
+    INSTRUMENTS.filter((i) => tab === "all" || i.assetClass === tab)
+      .slice(0, 500)
+      .map((i) => i.symbol),
+    8000,
+  );
 
   const filtered = useMemo(
     () =>
@@ -93,18 +161,34 @@ function Markets() {
     [tab, q],
   );
 
+  const sorted = useMemo(
+    () => sortRows(filtered, sortKey, sortDir, quotes),
+    [filtered, sortKey, sortDir, quotes],
+  );
+
+  const toggleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "instrument" || key === "class" ? "asc" : "desc");
+    }
+    setLimit(PAGE_SIZE);
+    setPage(1);
+  };
+
   const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const currentPage = Math.min(page, pageCount);
 
   const visible = useMemo(
     () =>
       infinite
-        ? filtered.slice(0, limit)
-        : filtered.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
-    [filtered, limit, infinite, currentPage],
+        ? sorted.slice(0, limit)
+        : sorted.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
+    [sorted, limit, infinite, currentPage],
   );
 
-  const hasMore = infinite && visible.length < filtered.length;
+  const hasMore = infinite && visible.length < sorted.length;
 
   useEffect(() => {
     if (!hasMore) return;
@@ -123,12 +207,7 @@ function Markets() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMore, filtered.length]);
-
-  const { quotes } = useQuotes(
-    visible.map((i) => i.symbol),
-    8000,
-  );
+  }, [hasMore, sorted.length]);
 
   const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD=X"], 8000).quotes;
 
@@ -255,13 +334,55 @@ function Markets() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 text-left font-medium">Instrument</th>
-              <th className="px-4 py-2.5 text-left font-medium">Class</th>
-              <th className="px-4 py-2.5 text-right font-medium">Last</th>
-              <th className="px-4 py-2.5 text-right font-medium">24h</th>
-              <th className="px-4 py-2.5 text-right font-medium">High</th>
-              <th className="px-4 py-2.5 text-right font-medium">Low</th>
-              <th className="px-4 py-2.5 text-right font-medium"></th>
+              {SORTABLE_COLUMNS.map((col) => {
+                const active = sortKey === col.key;
+                return (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    aria-sort={
+                      active ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                    }
+                    className={`px-4 py-2.5 font-medium ${col.numeric ? "text-right" : "text-left"}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(col.key)}
+                      className={`touch-manipulation inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground ${
+                        active ? "text-foreground" : ""
+                      }`}
+                    >
+                      {col.label}
+                      {active ? (
+                        <span aria-hidden className="text-[9px] leading-none">
+                          {sortDir === "asc" ? "▲" : "▼"}
+                        </span>
+                      ) : (
+                        <span aria-hidden className="text-[9px] leading-none opacity-30">
+                          ▼
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                );
+              })}
+              <th scope="col" className="px-4 py-2.5 text-right font-medium">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("volume")}
+                  className={`touch-manipulation inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground ${
+                    sortKey === "volume" ? "text-foreground" : ""
+                  }`}
+                >
+                  Vol
+                  {sortKey === "volume" && (
+                    <span aria-hidden className="text-[9px] leading-none">
+                      {sortDir === "asc" ? "▲" : "▼"}
+                    </span>
+                  )}
+                </button>
+              </th>
+              <th scope="col" className="px-4 py-2.5" />
             </tr>
           </thead>
           <tbody>
@@ -297,6 +418,11 @@ function Markets() {
                   </td>
                   <td className="num px-4 py-3 text-right text-muted-foreground">
                     {quote && !quote.stale ? formatPrice(quote.low, i.symbol) : "-"}
+                  </td>
+                  <td className="num px-4 py-3 text-right text-muted-foreground">
+                    {quote && !quote.stale && quote.volume != null
+                      ? formatVolume(quote.volume)
+                      : "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
