@@ -327,13 +327,55 @@ function Markets() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 text-left font-medium">Instrument</th>
-              <th className="px-4 py-2.5 text-left font-medium">Class</th>
-              <th className="px-4 py-2.5 text-right font-medium">Last</th>
-              <th className="px-4 py-2.5 text-right font-medium">24h</th>
-              <th className="px-4 py-2.5 text-right font-medium">High</th>
-              <th className="px-4 py-2.5 text-right font-medium">Low</th>
-              <th className="px-4 py-2.5 text-right font-medium"></th>
+              {SORTABLE_COLUMNS.map((col) => {
+                const active = sortKey === col.key;
+                return (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    aria-sort={
+                      active ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                    }
+                    className={`px-4 py-2.5 font-medium ${col.numeric ? "text-right" : "text-left"}`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(col.key)}
+                      className={`touch-manipulation inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground ${
+                        active ? "text-foreground" : ""
+                      }`}
+                    >
+                      {col.label}
+                      {active ? (
+                        <span aria-hidden className="text-[9px] leading-none">
+                          {sortDir === "asc" ? "▲" : "▼"}
+                        </span>
+                      ) : (
+                        <span aria-hidden className="text-[9px] leading-none opacity-0 transition-opacity group-hover/th:opacity-40">
+                          ▼
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                );
+              })}
+              <th scope="col" className="px-4 py-2.5 text-right font-medium">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("volume")}
+                  className={`touch-manipulation inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground ${
+                    sortKey === "volume" ? "text-foreground" : ""
+                  }`}
+                >
+                  Vol
+                  {sortKey === "volume" && (
+                    <span aria-hidden className="text-[9px] leading-none">
+                      {sortDir === "asc" ? "▲" : "▼"}
+                    </span>
+                  )}
+                </button>
+              </th>
+              <th scope="col" className="px-4 py-2.5" />
             </tr>
           </thead>
           <tbody>
