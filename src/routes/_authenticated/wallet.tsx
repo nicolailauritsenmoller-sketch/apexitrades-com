@@ -650,8 +650,22 @@ function DepositTab({
   });
   if (addresses.length === 0) {
     return (
-      <div className="panel p-6 text-sm text-muted-foreground">
-        No deposit addresses have been configured yet. Please contact support.
+      <div className="panel mx-auto max-w-4xl p-8 text-center">
+        <div className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-primary/10">
+          <ArrowDownToLine className="size-5 text-primary" />
+        </div>
+        <h3 className="text-base font-bold">Deposits are not enabled yet</h3>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          Your dedicated deposit addresses are set up by our operations desk. Contact support and we will enable them for your account.
+        </p>
+        <Button
+          type="button"
+          className="mt-5"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-support-chat"))}
+        >
+          <MessageCircle className="size-4" />
+          Contact Support to Enable Deposits
+        </Button>
       </div>
     );
   }
