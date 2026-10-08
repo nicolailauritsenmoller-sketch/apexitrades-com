@@ -408,6 +408,11 @@ function WalletPage() {
         {!activity.isLoading && transactions.length === 0 && (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">No activity yet.</p>
         )}
+        {!activity.isLoading && transactions.length > 0 && filteredTransactions.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            No transactions match your search.
+          </p>
+        )}
       </div>
 
       <TransactionStatusDialog
