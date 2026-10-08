@@ -33,7 +33,7 @@ const STATUS_TONE: Record<string, string> = {
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "application/pdf"];
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
