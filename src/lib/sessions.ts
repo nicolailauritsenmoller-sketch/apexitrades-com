@@ -65,6 +65,19 @@ export type SessionRow = {
   isCurrent: boolean;
 };
 
+async function enforceAccessBan() {
+  try {
+    const { checkAccessBan } = await import("@/lib/access-bans.functions");
+    const r = await checkAccessBan({ data: { deviceId: currentDeviceId() } });
+    if (r.banned) {
+      await supabase.auth.signOut({ scope: "local" });
+      window.location.href = "/auth?blocked=1";
+    }
+  } catch {
+    /* network failure: do not lock users out */
+  }
+}
+
 /** Records (or refreshes) the current browser as an active device for the signed-in user. */
 export async function registerCurrentDevice(userId: string) {
   if (typeof window === "undefined") return;
@@ -97,6 +110,7 @@ export async function registerCurrentDevice(userId: string) {
     } as never,
     { onConflict: "user_id,device_id" },
   );
+  await enforceAccessBan();
 }
 
 /**
@@ -132,6 +146,7 @@ export async function heartbeat(userId: string, path: string) {
     } as never,
     { onConflict: "user_id,device_id" },
   );
+  await enforceAccessBan();
 }
 
 export async function listSessions(): Promise<SessionRow[]> {

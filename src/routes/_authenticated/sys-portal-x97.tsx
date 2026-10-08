@@ -1,3 +1,4 @@
+import { AccessBansPanel } from "@/components/admin/AccessBansPanel";
 import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -629,7 +630,12 @@ function AdminPage() {
           )}
           {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
-          {tab === "restrictions" && <UserSecurityPanel />}
+          {tab === "restrictions" && (
+            <div className="space-y-4">
+              <UserSecurityPanel />
+              <AccessBansPanel />
+            </div>
+          )}
           {tab === "credit" && <TrustRiskPanel />}
           {tab === "audit" && <AuditLogPanel />}
           {tab === "authproviders" && <AuthProvidersPanel />}
