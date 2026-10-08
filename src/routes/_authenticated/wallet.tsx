@@ -690,7 +690,7 @@ function DepositTab({
       field.remove();
     }
     setCopied(true);
-    toast.success("Deposit address copied");
+    toast.success("Address copied to clipboard!");
     window.setTimeout(() => setCopied(false), 1800);
   }
 
