@@ -1,3 +1,7 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
+import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
+import { Button } from "@/components/ui/button";
+import { Loader2, Download } from "lucide-react";
 import { TreasuryWalletPanel } from "@/components/admin/TreasuryWalletPanel";
 import { AccessBansPanel } from "@/components/admin/AccessBansPanel";
 import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
@@ -294,8 +298,8 @@ function Card({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/70 bg-card">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
+    <section className="relative rounded-lg border border-border/70 bg-card">
+      <header className="sticky top-14 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -818,31 +822,13 @@ function useReview(fn: typeof reviewDeposit, onDone: () => void, label: string) 
   });
 }
 
-function ReviewButtons({
-  onAction,
-  pending,
-}: {
-  onAction: (action: "approve" | "reject") => void;
-  pending: boolean;
+function ReviewButtons({ onAction, pending, approveLabel = "Approve", rejectLabel = "Reject" }: {
+  onAction: (action: "approve" | "reject") => void; pending: boolean; approveLabel?: string; rejectLabel?: string;
 }) {
-  return (
-    <div className="flex gap-2">
-      <button
-        disabled={pending}
-        onClick={() => onAction("approve")}
-        className={APPROVE_BTN}
-      >
-        Approve
-      </button>
-      <button
-        disabled={pending}
-        onClick={() => onAction("reject")}
-        className={DANGER_BTN}
-      >
-        Reject
-      </button>
-    </div>
-  );
+  return <div className="ml-auto flex justify-end gap-2">
+    <Button disabled={pending} size="sm" onClick={() => onAction("approve")}>{pending && <Loader2 className="animate-spin" />}{approveLabel}</Button>
+    <Button disabled={pending} variant="destructive" size="sm" onClick={() => onAction("reject")}>{rejectLabel}</Button>
+  </div>;
 }
 
 /** Thumbnail + lightbox for a deposit's uploaded proof of payment. */
@@ -900,53 +886,18 @@ function DepositProof({ id }: { id: string }) {
 }
 
 /** Shared multi-select toolbar for approval queues. */
-function BulkBar({
-  total,
-  selected,
-  allChecked,
-  onToggleAll,
-  onApprove,
-  onReject,
-  pending,
-}: {
-  total: number;
-  selected: number;
-  allChecked: boolean;
-  onToggleAll: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  pending: boolean;
+function BulkBar({ total, selected, allChecked, onToggleAll, onApprove, onReject, onExport, pending }: {
+  total: number; selected: number; allChecked: boolean; onToggleAll: () => void;
+  onApprove: () => void; onReject: () => void; onExport?: () => void; pending: boolean;
 }) {
-  return (
-    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-background/50 px-3 py-2">
-      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <input
-          type="checkbox"
-          checked={allChecked}
-          onChange={onToggleAll}
-          className="size-3.5 accent-[hsl(var(--primary))]"
-        />
-        Select all pending ({total})
-      </label>
-      <span className="text-[11px] text-muted-foreground">{selected} selected</span>
-      <div className="ml-auto flex gap-2">
-        <button
-          disabled={pending || selected === 0}
-          onClick={onApprove}
-          className={`flex items-center gap-1.5 ${APPROVE_BTN}`}
-        >
-          <CheckCheck className="size-3.5" /> Bulk approve
-        </button>
-        <button
-          disabled={pending || selected === 0}
-          onClick={onReject}
-          className={`flex items-center gap-1.5 ${DANGER_BTN}`}
-        >
-          <XCircle className="size-3.5" /> Bulk reject
-        </button>
-      </div>
-    </div>
-  );
+  return <div className={`mb-3 flex flex-wrap items-center gap-2 border border-border bg-card px-3 py-3 ${selected ? "sticky top-32 z-30 rounded-md shadow-lg" : "rounded-md"}`}>
+    <label className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" checked={allChecked} onChange={onToggleAll} className="size-4 accent-primary" />Select pending ({total})</label>
+    {selected > 0 && <div className="ml-auto flex flex-wrap justify-end gap-2">
+      <Button size="sm" disabled={pending} onClick={onApprove}>{pending && <Loader2 className="animate-spin" />}Batch Approve ({selected})</Button>
+      <Button size="sm" variant="destructive" disabled={pending} onClick={onReject}>Batch Reject ({selected})</Button>
+      {onExport && <Button size="sm" variant="outline" onClick={onExport}><Download />Export Selected</Button>}
+    </div>}
+  </div>;
 }
 
 function useBulkSelection() {
@@ -972,38 +923,23 @@ function DepositsTab({
 }) {
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
-  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const [term, setTerm] = useState("");
+  const [status, setStatus] = useState(statusFilter ?? "all");
+  const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
+  const rows = allRows.filter((r) => (status === "all" || r.status === status) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
   const { checked, setChecked, toggle } = useBulkSelection();
   const pendingRows = rows.filter((r) => r.status === "pending");
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
   const runBulk = (action: "approve" | "reject") => {
-    for (const id of checked) review.mutate({ id, action });
-    setChecked(new Set());
+    setConfirmation({ ids: pendingRows.filter((r) => checked.has(r.id)).map((r) => r.id), action });
   };
 
 
   return (
     <Card
       title={`Deposit submissions (${rows.length})`}
-      action={
-        <ExportButton
-          label="Export CSV"
-          onClick={() =>
-            downloadCsv(
-              `deposits-${new Date().toISOString().slice(0, 10)}`,
-              rows.map((d) => ({
-                created_at: d.created_at,
-                user_id: d.user_id,
-                coin: d.coin,
-                network: d.network,
-                amount: d.amount,
-                status: d.status,
-                tx_hash: d.tx_hash ?? "",
-              })),
-            )
-          }
-        />
-      }
+      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} onExport={() => downloadCsv("deposits", rows)} />}
+
     >
       {pendingRows.length > 0 && (
         <BulkBar
@@ -1016,6 +952,7 @@ function DepositsTab({
           onApprove={() => runBulk("approve")}
           onReject={() => runBulk("reject")}
           pending={review.isPending}
+          onExport={() => downloadCsv("selected-deposits", rows.filter((r) => checked.has(r.id)))}
         />
       )}
       {rows.length === 0 ? (
@@ -1079,9 +1016,9 @@ function DepositsTab({
                   />
                   <ReviewButtons
                     pending={review.isPending}
-                    onAction={(action) =>
-                      review.mutate({ id: d.id, action, note: note[d.id] || undefined })
-                    }
+                    approveLabel="Approve & Credit"
+                    rejectLabel="Reject Deposit"
+                    onAction={(action) => setConfirmation({ ids: [d.id], action })}
                   />
                 </div>
               )}
@@ -1089,6 +1026,13 @@ function DepositsTab({
           ))}
         </ul>
       )}
+      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The audit reason is recorded for each record.`} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
+        if (!confirmation) return;
+        for (const id of confirmation.ids) {
+          await review.mutateAsync({ id, action: confirmation.action, note: reason });
+          setChecked((prev) => { const next = new Set(prev); next.delete(id); return next; });
+        }
+      }} />
     </Card>
   );
 }
@@ -1104,38 +1048,23 @@ function WithdrawalsTab({
 }) {
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
   const [note, setNote] = useState<Record<string, string>>({});
-  const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
+  const [term, setTerm] = useState("");
+  const [status, setStatus] = useState(statusFilter ?? "all");
+  const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
+  const rows = allRows.filter((r) => (status === "all" || r.status === status) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
   const { checked, setChecked, toggle } = useBulkSelection();
   const pendingRows = rows.filter((r) => r.status === "pending");
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
   const runBulk = (action: "approve" | "reject") => {
-    for (const id of checked) review.mutate({ id, action });
-    setChecked(new Set());
+    setConfirmation({ ids: pendingRows.filter((r) => checked.has(r.id)).map((r) => r.id), action });
   };
 
 
   return (
     <Card
       title={`Withdrawal requests (${rows.length})`}
-      action={
-        <ExportButton
-          label="Export CSV"
-          onClick={() =>
-            downloadCsv(
-              `withdrawals-${new Date().toISOString().slice(0, 10)}`,
-              rows.map((w) => ({
-                created_at: w.created_at,
-                user_id: w.user_id,
-                coin: w.coin,
-                network: w.network,
-                amount: w.amount,
-                destination: w.destination_address,
-                status: w.status,
-              })),
-            )
-          }
-        />
-      }
+      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} onExport={() => downloadCsv("withdrawals", rows)} />}
+
     >
       {pendingRows.length > 0 && (
         <BulkBar
@@ -1148,6 +1077,7 @@ function WithdrawalsTab({
           onApprove={() => runBulk("approve")}
           onReject={() => runBulk("reject")}
           pending={review.isPending}
+          onExport={() => downloadCsv("selected-withdrawals", rows.filter((r) => checked.has(r.id)))}
         />
       )}
       {rows.length === 0 ? (
@@ -1202,9 +1132,9 @@ function WithdrawalsTab({
                   />
                   <ReviewButtons
                     pending={review.isPending}
-                    onAction={(action) =>
-                      review.mutate({ id: w.id, action, note: note[w.id] || undefined })
-                    }
+                    approveLabel="Process Withdrawal"
+                    rejectLabel="Reject & Refund"
+                    onAction={(action) => setConfirmation({ ids: [w.id], action })}
                   />
                 </div>
               )}
@@ -1212,6 +1142,13 @@ function WithdrawalsTab({
           ))}
         </ul>
       )}
+      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Withdrawal" : "Approve Withdrawal"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. Rejected withdrawals return held funds to the customer wallet. The audit reason is recorded for each record.`} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
+        if (!confirmation) return;
+        for (const id of confirmation.ids) {
+          await review.mutateAsync({ id, action: confirmation.action, note: reason });
+          setChecked((prev) => { const next = new Set(prev); next.delete(id); return next; });
+        }
+      }} />
     </Card>
   );
 }
@@ -1764,6 +1701,7 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
   const fetchWallets = useServerFn(getUserWallets);
   const adjust = useServerFn(adjustUserBalance);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [change, setChange] = useState<{ currency: string; amount: number; mode: "delta" | "set" } | null>(null);
 
   const wallets = useQuery({
     queryKey: ["admin-wallets", userId],
@@ -1786,6 +1724,7 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
 
   return (
     <ul className="mt-3 space-y-2 border-t border-border pt-3">
+      <AdminActionConfirm open={!!change} title="Confirm balance override" description={`${change?.mode === "set" ? "Set balance to" : "Adjust balance by"} ${change?.amount ?? 0} ${change?.currency ?? ""}. This changes the customer wallet and is recorded in the ledger.`} pending={mutation.isPending} onClose={() => setChange(null)} onConfirm={async (reason) => { if (change) await mutation.mutateAsync({ userId, ...change, reason }); }} />
       {(wallets.data ?? []).map((w: any) => (
         <li key={w.id} className="flex flex-wrap items-center gap-2">
           <AssetIcon symbol={w.currency} className="size-5" />
@@ -1807,7 +1746,8 @@ function BalanceEditor({ userId, onDone }: { userId: string; onDone: () => void 
               onClick={() => {
                 const value = Number(amounts[w.currency]);
                 if (!Number.isFinite(value)) return toast.error("Enter a valid amount.");
-                mutation.mutate({ userId, currency: w.currency, amount: value, mode });
+                if (!amounts[w.currency]?.trim()) return toast.error("Enter an amount.");
+                setChange({ currency: w.currency, amount: value, mode });
               }}
               className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
