@@ -1,4 +1,3 @@
-import { ADMIN_HOST } from "@/lib/operations-routing";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
@@ -205,7 +204,7 @@ export function MaintenanceGate({ children }: { children: React.ReactNode }) {
   const { data: config } = useMaintenanceStatus();
   const { data: bypass, isLoading: roleLoading } = useBypassRole();
 
-  if (!config?.enabled || (typeof window !== "undefined" && window.location.hostname === ADMIN_HOST)) return <>{children}</>;
+  if (!config?.enabled) return <>{children}</>;
   if (BYPASS_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) return <>{children}</>;
   if (roleLoading || bypass) return <>{children}</>;
 

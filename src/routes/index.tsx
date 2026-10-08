@@ -1,7 +1,3 @@
-import { AdminRoot } from "@/components/admin/AdminRoot";
-import { getSiteHost } from "@/lib/site-host.functions";
-import { operationsHead, validateOperationsSearch } from "@/lib/operations-routing";
-import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,10 +34,7 @@ const MARKET_GROUPS = [
 ];
 
 export const Route = createFileRoute("/")({
-  validateSearch: validateOperationsSearch,
-  loaderDeps: ({ search }) => ({ tab: search.tab }),
-  loader: async ({ deps }) => ({ ...await getSiteHost(), tab: deps.tab }),
-  head: ({ loaderData }) => loaderData?.admin ? operationsHead(loaderData.tab) : ({
+  head: () => ({
     meta: [
       { title: "Velocity Trade - Institutional-Grade Multi-Asset Trading Terminal" },
       {
@@ -59,14 +52,8 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  component: RootLanding,
+  component: Landing,
 });
-
-function RootLanding() {
- const { admin, tab } = Route.useLoaderData();
- const navigate = useNavigate({ from: Route.fullPath });
- return admin ? <AdminRoot tab={tab} onTab={tab => { void navigate({ search: { tab } }); }} /> : <Landing />;
-}
 
 function Landing() {
   const { quotes } = useQuotes(TICKER, 8000);

@@ -1,7 +1,5 @@
 import { MessagesSquare, BadgeCheck, Inbox, LifeBuoy, LayoutDashboard, BarChart3, Gauge, Wrench, Radio, ShieldAlert, Users, Crown, KeySquare, CreditCard, Wallet2, Landmark, Receipt, ShieldCheck, Megaphone, Globe2, Gift, Star, IdCard, ScrollText, Fingerprint, Settings2 } from "lucide-react";
-export const ADMIN_HOST = "admin.velocitytradex.com";
 export const PLATFORM_ORIGIN = "https://veloxitrade-com.lovable.app";
-export const ADMIN_ORIGIN = `https://${ADMIN_HOST}`;
 export const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
   {
     section: "Live support",
@@ -75,5 +73,5 @@ export function operationsHead(tab = "overview") {
  const label = NAV.flatMap(g => g.items).find(i => i.id === tab)?.label;
  const title = tab === "overview" || !label ? "Operations Console | Velocity Trade" : `Operations Console - ${label} | Velocity Trade`;
  const description = "Velocity Trade staff console for trading operations, compliance, treasury and customer support.";
- return { meta: [{ title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }, { name: "robots", content: "noindex, nofollow" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }], links: [{ rel: "canonical", href: ADMIN_ORIGIN + "/" }] };
+ return { meta: [{ title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }, { name: "robots", content: "noindex, nofollow" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }], links: [{ rel: "canonical", href: PLATFORM_ORIGIN + "/admin" }] };
 }

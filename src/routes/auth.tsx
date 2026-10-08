@@ -9,6 +9,13 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { OtpInput } from "@/components/OtpInput";
 import { MaintenanceAuthNotice, useMaintenanceStatus } from "@/lib/maintenance";
 
+
+function goAfterLogin() {
+  let next = "/dashboard";
+  try { const p = sessionStorage.getItem("post_login_path"); sessionStorage.removeItem("post_login_path"); if (p && p.startsWith("/") && !p.startsWith("//")) next = p; } catch {}
+  window.location.assign(next);
+}
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -81,7 +88,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) goAfterLogin();
     });
   }, [navigate]);
 
@@ -139,7 +146,7 @@ function AuthPage() {
         });
         if (error) throw error;
         if (data.session) {
-          navigate({ to: "/dashboard", replace: true });
+          goAfterLogin();
           return;
         }
         setCode("");
@@ -164,7 +171,7 @@ function AuthPage() {
         }
         setCodeError("");
         toast.success("Email verified - welcome to Velocity Trade.");
-        navigate({ to: "/dashboard", replace: true });
+        goAfterLogin();
         return;
       }
 
@@ -195,13 +202,13 @@ function AuthPage() {
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
         toast.success("Password updated.");
-        navigate({ to: "/dashboard", replace: true });
+        goAfterLogin();
         return;
       }
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate({ to: "/dashboard", replace: true });
+      goAfterLogin();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Authentication failed.";
       if (mode === "verify" || mode === "reset-otp") setCodeError(message);
@@ -239,7 +246,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard", replace: true });
+    goAfterLogin();
   }
 
   async function onApple() {
@@ -251,7 +258,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard", replace: true });
+    goAfterLogin();
   }
 
   const heading =
