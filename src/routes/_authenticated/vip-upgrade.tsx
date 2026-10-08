@@ -37,12 +37,12 @@ export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
 });
 
-const LADDER = [
+const LADDER: { key: string; label: string; threshold: number; target?: boolean; plus?: boolean }[] = [
   { key: "vip1", label: "VIP 1", threshold: 10_000 },
   { key: "vip2", label: "VIP 2", threshold: VIP1_THRESHOLD_USDT, target: true },
   { key: "vip3", label: "VIP 3", threshold: 50_000 },
   { key: "vip4", label: "VIP Institutional", threshold: 100_000, plus: true },
-] as const;
+];
 
 const FEE_ROWS: { label: string; standard: string; vip: string }[] = [
   { label: "Spot maker fee", standard: "Standard rate", vip: "0.00%" },
