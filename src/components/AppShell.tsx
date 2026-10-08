@@ -1,3 +1,4 @@
+import { ADMIN_ORIGIN } from "@/lib/operations-routing";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -69,7 +70,7 @@ const PAGE_TITLES: ReadonlyArray<readonly [prefix: string, title: string]> = [
   ["/trade", "Trade Terminal"],
   ["/wallet", "Wallet"],
   ["/profile", "Profile"],
-  ["/sys-portal-x97", "Admin"],
+  ["/admin", "Admin"],
   ["/assets", "Assets"],
   ["/history", "History"],
   ["/notifications", "Notifications"],
@@ -185,8 +186,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
-              <Link
-                to="/sys-portal-x97"
+              <a
+                href={ADMIN_ORIGIN + "/"}
                 className="relative hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
               >
                 <ShieldCheck className="size-4" />
@@ -199,7 +200,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {pendingVipCount}
                   </span>
                 )}
-              </Link>
+              </a>
             ) : null}
             <InstallAppButton />
             {pathname === "/" || pathname === "/dashboard" ? <NotificationBell /> : null}

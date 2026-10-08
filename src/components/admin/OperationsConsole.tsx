@@ -1,3 +1,4 @@
+import { NAV, PLATFORM_ORIGIN } from "@/lib/operations-routing";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { TreasuryWalletPanel } from "@/components/admin/TreasuryWalletPanel";
 import { AccessBansPanel } from "@/components/admin/AccessBansPanel";
 import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -114,43 +115,10 @@ import {
   deleteDepositAddress,
 } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
-    tab: typeof search.tab === "string" && NAV.some((group) => group.items.some((item) => item.id === search.tab))
-      ? search.tab : "overview",
-  }),
-  loaderDeps: ({ search }) => ({ tab: search.tab }),
-  loader: ({ deps }) => ({ tab: deps.tab }),
-  head: ({ loaderData }) => {
-    const tab = loaderData?.tab ?? "overview";
-    const label = NAV.flatMap((group) => group.items).find((item) => item.id === tab)?.label;
-    const title = tab === "overview" || !label
-      ? "Operations Console | Velocity Trade"
-      : `Operations Console - ${label} | Velocity Trade`;
-    const description = "Velocity Trade staff console for trading operations, compliance, treasury and customer support.";
-    return {
-    meta: [
-      { title },
-      { name: "robots", content: "noindex, nofollow" },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:url", content: "https://veloxitrade-com.lovable.app/sys-portal-x97" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-    links: [{ rel: "canonical", href: "https://veloxitrade-com.lovable.app/sys-portal-x97" }],
-  };
-  },
-  // Role gating happens in the component (see `access` query below): the parent
-  // `_authenticated` layout only resolves the Supabase session after mount, so a
-  // beforeLoad role check races session hydration and bounces real admins home.
-
-
-  component: AdminPage,
-  errorComponent: () => <NotFoundScreen />,
-  notFoundComponent: () => <NotFoundScreen />,
-});
+function ReturnToPlatform() {
+ useEffect(() => { window.location.replace(PLATFORM_ORIGIN + "/"); }, []);
+ return <p className="p-8 text-muted-foreground">Returning to Velocity Trade...</p>;
+}
 
 /** Non-admins never learn this path exists. */
 function NotFoundScreen() {
@@ -167,72 +135,6 @@ function NotFoundScreen() {
   );
 }
 
-
-const NAV: { section: string; items: { id: string; label: string; icon: any }[] }[] = [
-  {
-    section: "Live support",
-    items: [
-      { id: "support", label: "Live Chat", icon: MessagesSquare },
-      { id: "vip", label: "Priority Support", icon: BadgeCheck },
-      { id: "requests", label: "Submitted Requests", icon: Inbox },
-      { id: "tickets", label: "Support Tickets", icon: LifeBuoy },
-    ],
-  },
-  {
-    section: "Overview",
-    items: [
-      { id: "overview", label: "Dashboard", icon: LayoutDashboard },
-      { id: "analytics", label: "Analytics & volume", icon: BarChart3 },
-      { id: "trades", label: "Trades & outcomes", icon: Gauge },
-      { id: "corrections", label: "Trade corrections", icon: Wrench },
-      { id: "active", label: "Active users now", icon: Radio },
-      { id: "risk", label: "Risk & liquidation", icon: ShieldAlert },
-    ],
-  },
-  {
-    section: "People",
-    items: [
-      { id: "users", label: "Users & KYC", icon: Users },
-      { id: "vipmembers", label: "VIP Memberships", icon: Crown },
-      { id: "roles", label: "Roles & permissions", icon: KeySquare },
-      { id: "restrictions", label: "User security & restrictions", icon: ShieldAlert },
-      { id: "credit", label: "Trader Trust & Risk", icon: CreditCard },
-    ],
-  },
-  {
-    section: "Money",
-    items: [
-      { id: "deposits", label: "Deposit clearing", icon: Wallet2 },
-      { id: "withdrawals", label: "Withdrawals", icon: Landmark },
-      { id: "treasury", label: "Treasury wallet", icon: Wallet2 },
-      { id: "transactions", label: "Transactions", icon: Receipt },
-      { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
-      { id: "gateways", label: "Payment gateways", icon: CreditCard },
-      { id: "accounting", label: "Accounting & revenue", icon: Receipt },
-    ],
-  },
-  {
-    section: "Engagement",
-    items: [
-      { id: "broadcast", label: "Broadcast", icon: Megaphone },
-      { id: "community", label: "Community Desk", icon: Globe2 },
-      { id: "referrals", label: "Referrals & rewards", icon: Gift },
-      { id: "ratings", label: "Ratings & reviews", icon: Star },
-      { id: "agent", label: "Agent persona", icon: IdCard },
-    ],
-  },
-  {
-    section: "System",
-    items: [
-      { id: "audit", label: "Audit logs", icon: ScrollText },
-      { id: "security", label: "Security reports", icon: ShieldAlert },
-      { id: "telemetry", label: "Security & activity", icon: Radio },
-      { id: "authproviders", label: "Auth & identity", icon: Fingerprint },
-      { id: "engine", label: "Engine & spreads", icon: Gauge },
-      { id: "settings", label: "Settings", icon: Settings2 },
-    ],
-  },
-];
 
 /** Tabs a Support Agent may open (no money movement, no platform config). */
 const AGENT_TABS = new Set([
@@ -347,13 +249,11 @@ function ModeToggle({
   );
 }
 
-function AdminPage() {
+export function OperationsConsole({ selectedTab = "overview", onTab }: { selectedTab?: string; onTab: (tab: string) => void }) {
   const qc = useQueryClient();
   const hasSession = useHasSession();
-  const { tab: selectedTab } = Route.useSearch();
   const tab = selectedTab ?? "overview";
-  const navigate = useNavigate({ from: Route.fullPath });
-  const setTab = (next: TabId) => { void navigate({ search: { tab: next } }); };
+  const setTab = (next: TabId) => onTab(next);
   const [filter, setFilter] = useState<DeskFilter>({});
   const [vipInspect, setVipInspect] = useState<string | null>(null);
   const statusFilter = filter.status ?? null;
@@ -483,7 +383,7 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["admin-analytics"] });
   };
 
-  if (access.isLoading) {
+  if (hasSession !== true || access.isLoading) {
     return (
       <AdminShell>
         <p className="p-8 text-sm text-muted-foreground">Checking access…</p>
@@ -508,7 +408,7 @@ function AdminPage() {
     );
   }
 
-  if (!isStaff) return <NotFoundScreen />;
+  if (!isStaff) return <ReturnToPlatform />;
   const allowedTabs = new Set(nav.flatMap((g) => g.items.map((i) => i.id)));
   if (!allowedTabs.has(tab)) return <NotFoundScreen />;
 
