@@ -1,19 +1,14 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { OperationsConsole } from "@/components/admin/OperationsConsole";
+import { validateOperationsSearch, operationsHead } from "@/lib/operations-routing";
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({
-    meta: [
-      { title: "Operations Console | Velocity Trade" },
-      { name: "description", content: "Open the Velocity Trade operations control center." },
-      { property: "og:title", content: "Operations Console | Velocity Trade" },
-      { property: "og:description", content: "Open the Velocity Trade operations control center." },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://veloxitrade-com.lovable.app/admin" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
-    links: [{ rel: "canonical", href: "https://veloxitrade-com.lovable.app/admin" }],
-  }),
-  beforeLoad: () => { throw redirect({ to: "/sys-portal-x97", replace: true }); },
-  component: () => null,
+ validateSearch: validateOperationsSearch,
+ loaderDeps: ({ search }) => ({ tab: search.tab }),
+ loader: ({ deps }) => deps,
+ head: ({ loaderData }) => operationsHead(loaderData?.tab),
+ component: ConsolePage,
 });
+function ConsolePage() {
+ const { tab } = Route.useSearch(); const navigate = useNavigate({ from: Route.fullPath });
+ return <OperationsConsole selectedTab={tab} onTab={tab => { void navigate({ search: { tab } }); }} />;
+}
