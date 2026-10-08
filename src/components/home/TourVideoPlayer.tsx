@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,14 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
   const [error, setError] = useState(false);
   const [ready, setReady] = useState(false);
   const activeChapter = CHAPTERS.reduce((active, chapter, index) => currentTime >= chapter.seconds ? index : active, 0);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    video.volume = 1;
+    void video.play().catch(() => setPlaying(false));
+  }, []);
 
   const play = () => {
     const video = videoRef.current;
@@ -70,7 +78,7 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
         </div>
       </div>
       <div className="relative aspect-video w-full bg-background">
-        <video ref={videoRef} src={quality === "hd" ? hdUrl : sdUrl} poster={poster} controls autoPlay={autoplay} playsInline preload="auto"
+        <video ref={videoRef} src={quality === "hd" ? hdUrl : sdUrl} poster={poster} controls muted={false} autoPlay={autoplay} playsInline preload="auto"
           aria-label="Velocity Trade 60-second platform walkthrough" className="h-full w-full"
           onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
           onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}

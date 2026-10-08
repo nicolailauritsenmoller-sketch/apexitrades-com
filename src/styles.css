@@ -429,6 +429,21 @@
 .flash-up { animation: tick-up 0.7s ease-out; border-radius: 4px; }
 .flash-down { animation: tick-down 0.7s ease-out; border-radius: 4px; }
 
+@keyframes tour-preview-pan {
+  from { transform: scale(1.05) translate(-0.8%, 0.4%); }
+  to { transform: scale(1.15) translate(1.2%, -0.8%); }
+}
+.tour-preview-motion {
+  animation: tour-preview-pan 16s ease-in-out infinite alternate;
+  animation-play-state: paused;
+  transform-origin: center;
+}
+.tour-preview-running { animation-play-state: running; }
+.tour-audio-badge { box-shadow: var(--glow-primary); }
+@media (prefers-reduced-motion: reduce) {
+  .tour-preview-motion { animation: none; transform: none; }
+}
+
 /* Hide chart library watermark on small screens to maximize trading area */
 @media (max-width: 767px) {
   #tv-attr-logo {
