@@ -1,3 +1,4 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -30,7 +31,7 @@ export function RiskMonitor() {
   const [reason, setReason] = useState("");
   const call = useServerFn(issueMarginCall);
   const marginCall = useMutation({
-    mutationFn: (id: string) => call({ data: { id, reason: reason.trim() } }),
+    mutationFn: (input: { id: string; reason: string }) => call({ data: input }),
     onSuccess: () => {
       toast.success("Margin call sent to the account holder");
       setConfirmId(null);
@@ -46,7 +47,7 @@ export function RiskMonitor() {
   });
 
   const kill = useMutation({
-    mutationFn: (id: string) => liquidate({ data: { id, reason: reason.trim() } }),
+    mutationFn: (input: { id: string; reason: string }) => liquidate({ data: input }),
     onSuccess: (r: any) => {
       toast.success(`Liquidated at ${n(r.exitPrice, 6)} · P&L ${n(r.pnl)} ${r.currency}`);
       setConfirmId(null);
@@ -252,42 +253,8 @@ export function RiskMonitor() {
         )}
       </section>
 
-      {confirmId && (
-        <div className="fixed inset-0 z-[120] grid place-items-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5">
-            <h4 className="font-display text-base font-bold">
-              {mode === "call" ? "Issue margin call?" : "Force liquidate position?"}
-            </h4>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {mode === "call"
-                ? "The account holder receives an in-app warning to add funds or reduce exposure. This action is audited."
-                : "The position is settled immediately at the live mark price and the remaining margin is returned to the user's wallet. This action is audited."}
-            </p>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={2}
-              placeholder="Reason (required for the audit log)"
-              className="mt-3 w-full rounded-md border border-border bg-background p-2 text-sm"
-            />
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setConfirmId(null)}
-                className="min-h-10 flex-1 touch-manipulation rounded-xl border border-border text-sm font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => (mode === "call" ? marginCall.mutate(confirmId) : kill.mutate(confirmId))}
-                disabled={kill.isPending || marginCall.isPending || reason.trim().length < 5}
-                className="min-h-10 flex-1 touch-manipulation rounded-xl bg-ops-red text-sm font-bold uppercase tracking-wide text-background disabled:opacity-50"
-              >
-                {mode === "call" ? (marginCall.isPending ? "Sending…" : "Send margin call") : kill.isPending ? "Liquidating…" : "Liquidate now"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminActionConfirm open={!!confirmId} title={mode === "call" ? "Send margin call" : "Force Liquidation"} description={mode === "call" ? "Notify the customer to add funds or reduce exposure." : "Immediately settle this position at the live mark and return remaining margin to the wallet."} pending={kill.isPending || marginCall.isPending} destructive={mode === "liquidate"} onClose={() => setConfirmId(null)} onConfirm={async (reason) => { if (!confirmId) return; if (mode === "call") await marginCall.mutateAsync({ id: confirmId, reason }); else await kill.mutateAsync({ id: confirmId, reason }); }} />
+
     </div>
   );
 }

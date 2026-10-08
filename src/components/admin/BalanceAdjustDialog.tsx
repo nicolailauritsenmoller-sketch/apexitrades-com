@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -167,13 +169,9 @@ export function BalanceAdjustDialog({
           >
             Cancel
           </button>
-          <button
-            disabled={mutation.isPending}
-            onClick={submit}
-            className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
-          >
-            {mutation.isPending ? "Applying…" : "Apply adjustment"}
-          </button>
+          <Button disabled={mutation.isPending || reason.trim().length < 5} onClick={submit} variant={kind === "debit" ? "destructive" : "default"}>
+            {mutation.isPending && <Loader2 className="animate-spin" />}Apply adjustment
+          </Button>
         </div>
       </div>
     </div>

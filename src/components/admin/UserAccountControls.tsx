@@ -1,3 +1,4 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -92,6 +93,7 @@ export function UserAccountControls({
   onChanged: () => void;
 }) {
   const qc = useQueryClient();
+  const [controlPatch, setControlPatch] = useState<{ tradingFrozen?: boolean; withdrawalsDisabled?: boolean; accountFrozen?: boolean } | null>(null);
   const setControls = useServerFn(setUserAccountControls);
   const setSuspension = useServerFn(setAccountSuspension);
   const [reason, setReason] = useState<string>(SUSPENSION_REASONS[0]);
@@ -115,6 +117,7 @@ export function UserAccountControls({
       tradingFrozen?: boolean;
       withdrawalsDisabled?: boolean;
       accountFrozen?: boolean;
+      reason?: string;
     }) => setControls({ data: { userId, ...patch } }),
     onSuccess: () => {
       toast.success("Account controls updated.");
@@ -184,27 +187,28 @@ export function UserAccountControls({
 
   return (
     <div className="space-y-3">
+      <AdminActionConfirm open={!!controlPatch} title="Confirm account restrictions" description="The selected account restriction takes effect immediately. The audit reason is retained with the account change." pending={controls.isPending} onClose={() => setControlPatch(null)} onConfirm={async (reason) => { if (controlPatch) await controls.mutateAsync({ ...controlPatch, reason }); }} />
       <div className="grid gap-2">
         <Toggle
           label="Freeze account trading"
           icon={Snowflake}
           active={tradingFrozen}
           pending={controls.isPending}
-          onClick={() => controls.mutate({ tradingFrozen: !tradingFrozen })}
+          onClick={() => setControlPatch({ tradingFrozen: !tradingFrozen })}
         />
         <Toggle
           label="Freeze withdrawals"
           icon={WalletMinimal}
           active={withdrawalsDisabled}
           pending={controls.isPending}
-          onClick={() => controls.mutate({ withdrawalsDisabled: !withdrawalsDisabled })}
+          onClick={() => setControlPatch({ withdrawalsDisabled: !withdrawalsDisabled })}
         />
         <Toggle
           label="Freeze entire account"
           icon={Lock}
           active={accountFrozen}
           pending={controls.isPending}
-          onClick={() => controls.mutate({ accountFrozen: !accountFrozen })}
+          onClick={() => setControlPatch({ accountFrozen: !accountFrozen })}
         />
         <div className="grid grid-cols-2 gap-2">
           <button
