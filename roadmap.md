@@ -3,6 +3,7 @@
 ## In Progress
 
 - [ ] Create the 60-second public Platform Tour with five chapters, quality switching, autoplay and registration CTA; verify playback.
+- [ ] Fix Operations Console browser titles across admin pages and confirm the official shield favicon.
 
 - [x] Refactor user profile terminology around data-backed account health, trading tier, margin, and KYC status.
 - [x] Redesign the Assets deposit panel with local QR, network guidance, clearing submission, and live status history.
