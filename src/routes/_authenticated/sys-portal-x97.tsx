@@ -601,7 +601,7 @@ function AdminPage() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="sticky top-16 z-20 -mx-1 mb-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/95 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+          <div className="-mx-1 mb-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/95 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
             <div className="min-w-0 flex-1 basis-56">
               <nav className="flex flex-wrap items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
                 <button onClick={() => go("overview")} className="hover:text-foreground">
@@ -970,7 +970,7 @@ function DepositsTab({
                       aria-label="Select deposit"
                       checked={checked.has(d.id)}
                       onChange={() => toggle(d.id)}
-                      className="size-4 accent-[hsl(var(--primary))]"
+                      className="size-4 accent-primary"
                     />
                   )}
                   <AssetIcon symbol={d.coin} className="size-7" />
@@ -1095,7 +1095,7 @@ function WithdrawalsTab({
                       aria-label="Select withdrawal"
                       checked={checked.has(w.id)}
                       onChange={() => toggle(w.id)}
-                      className="size-4 accent-[hsl(var(--primary))]"
+                      className="size-4 accent-primary"
                     />
                   )}
                   <AssetIcon symbol={w.coin} className="size-7" />
@@ -1560,30 +1560,11 @@ function UsersTab({
                 onChange={() =>
                   setChecked(allChecked ? new Set() : new Set(profiles.map((p) => p.id)))
                 }
-                className="size-3.5 accent-[hsl(var(--primary))]"
+                className="size-4 accent-primary"
               />
               Select all
             </label>
-            <ExportButton
-              label={checked.size > 0 ? `Export ${checked.size}` : "Export CSV"}
-              onClick={() => {
-                const rows = (checked.size > 0
-                  ? profiles.filter((p) => checked.has(p.id))
-                  : profiles
-                ).map((p) => ({
-                  created_at: p.created_at,
-                  user_id: p.id,
-                  uid: p.uid ?? "",
-                  display_name: p.display_name,
-                  base_currency: p.base_currency,
-                  credit_score: p.credit_score,
-                  referred_by: p.referred_by ?? "",
-                  kyc_verified: verifiedIds.has(p.id),
-                }));
-                if (!downloadCsv(`users-${new Date().toISOString().slice(0, 10)}`, rows))
-                  toast.error("Nothing to export.");
-              }}
-            />
+
           </div>
         }
       >
@@ -1608,7 +1589,7 @@ function UsersTab({
                     aria-label={`Select ${p.display_name}`}
                     checked={checked.has(p.id)}
                     onChange={() => toggle(p.id)}
-                    className="size-4 accent-[hsl(var(--primary))]"
+                    className="size-4 accent-primary"
                   />
                   <div>
                     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">

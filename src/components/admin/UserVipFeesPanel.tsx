@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -83,8 +85,8 @@ export function UserVipFeesPanel({ userId }: { userId: string }) {
           ))}
         </div>
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reason / agreement reference" className="mt-1.5 h-7 w-full rounded-md border border-border bg-background px-2 text-xs" />
-        <div className="mt-1.5 flex gap-1.5">
-          <button disabled={override.isPending} onClick={() => override.mutate(false)} className="flex-1 rounded-md bg-primary px-2 py-1.5 font-semibold text-primary-foreground disabled:opacity-50">Save override</button>
+        <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+          <Button size="sm" disabled={override.isPending} onClick={() => override.mutate(false)}>{override.isPending && <Loader2 className="animate-spin" />}Save Changes</Button>
           {d.override && <button disabled={override.isPending} onClick={() => override.mutate(true)} className="rounded-md border border-border px-2">Clear</button>}
         </div>
       </div>
@@ -99,8 +101,8 @@ export function UserVipFeesPanel({ userId }: { userId: string }) {
               <input value={mgr.name} onChange={(e) => setMgr((p) => ({ ...p, name: e.target.value }))} placeholder="Name" className="h-7 rounded-md border border-border bg-background px-2 text-xs" />
               <input value={mgr.email} onChange={(e) => setMgr((p) => ({ ...p, email: e.target.value }))} placeholder="Email" type="email" className="h-7 rounded-md border border-border bg-background px-2 text-xs" />
             </div>
-            <div className="mt-1.5 flex gap-1.5">
-              <button disabled={manager.isPending || !mgr.name.trim()} onClick={() => manager.mutate(false)} className="flex-1 rounded-md bg-primary px-2 py-1.5 font-semibold text-primary-foreground disabled:opacity-50">Save manager</button>
+            <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+              <Button size="sm" disabled={manager.isPending || !mgr.name.trim()} onClick={() => manager.mutate(false)}>{manager.isPending && <Loader2 className="animate-spin" />}Assign VIP Manager</Button>
               {acc?.account_manager_email && <a href={`mailto:${acc.account_manager_email}`} className="rounded-md border border-border px-2 py-1.5">Email</a>}
               {acc?.account_manager_name && <button onClick={() => manager.mutate(true)} className="rounded-md border border-border px-2">Remove</button>}
             </div>
