@@ -1,3 +1,5 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -109,14 +111,14 @@ export function TradeCorrections() {
               key={r["id"]}
               row={r}
               pending={contractMutation.isPending}
-              onSubmit={(v) => contractMutation.mutate({ id: r["id"], ...v })}
+              onSubmit={(v) => contractMutation.mutateAsync({ id: r["id"], ...v })}
             />
           ) : (
             <PositionRow
               key={r["id"]}
               row={r}
               pending={positionMutation.isPending}
-              onSubmit={(v) => positionMutation.mutate({ id: r["id"], ...v })}
+              onSubmit={(v) => positionMutation.mutateAsync({ id: r["id"], ...v })}
             />
           ),
         )}
@@ -152,9 +154,10 @@ function ContractRow({
 }: {
   row: Row;
   pending: boolean;
-  onSubmit: (v: Record<string, unknown>) => void;
+  onSubmit: (v: Record<string, unknown>) => Promise<unknown>;
 }) {
   const [entry, setEntry] = useState("");
+  const [confirmation, setConfirmation] = useState<boolean | null>(null);
   const [exit, setExit] = useState("");
   const [payout, setPayout] = useState("");
   const [result, setResult] = useState<"" | "win" | "loss" | "draw">("");
@@ -169,6 +172,7 @@ function ContractRow({
 
   return (
     <div className="space-y-3 p-4">
+      <AdminActionConfirm open={confirmation !== null} title={confirmation ? "Execute Settlement" : "Save Changes"} description={`Apply corrections to ${row["display_symbol"]}. Settlement and outcome overrides may change the customer wallet.`} pending={pending} destructive={confirmation === true} onClose={() => setConfirmation(null)} onConfirm={async (reason) => { if (confirmation !== null) await onSubmit({ ...patch(confirmation), reason }); }} />
       <RowHead
         row={row}
         right={`${row["status"]}${row["result"] ? ` · ${row["result"]}` : ""} · stake ${Number(row["stake"]).toFixed(2)} ${row["currency"]}`}
@@ -206,22 +210,22 @@ function ContractRow({
           </select>
         </label>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button
+      <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+        <Button
           disabled={pending}
-          onClick={() => onSubmit(patch(false))}
-          className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+          onClick={() => setConfirmation(false)}
+          className="min-h-9"
         >
           {pending && <Loader2 className="size-3 animate-spin" />}
           Save adjustments
-        </button>
-        <button
+        </Button>
+        <Button
           disabled={pending}
-          onClick={() => onSubmit(patch(true))}
-          className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          onClick={() => setConfirmation(true)}
+          variant="destructive"
         >
           Force settle now
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -234,9 +238,10 @@ function PositionRow({
 }: {
   row: Row;
   pending: boolean;
-  onSubmit: (v: Record<string, unknown>) => void;
+  onSubmit: (v: Record<string, unknown>) => Promise<unknown>;
 }) {
   const [entry, setEntry] = useState("");
+  const [confirmation, setConfirmation] = useState<boolean | null>(null);
   const [exit, setExit] = useState("");
   const [pnl, setPnl] = useState("");
 
@@ -249,6 +254,7 @@ function PositionRow({
 
   return (
     <div className="space-y-3 p-4">
+      <AdminActionConfirm open={confirmation !== null} title={confirmation ? "Execute Settlement" : "Save Changes"} description={`Apply corrections to ${row["display_symbol"]}. Settlement and outcome overrides may change the customer wallet.`} pending={pending} destructive={confirmation === true} onClose={() => setConfirmation(null)} onConfirm={async (reason) => { if (confirmation !== null) await onSubmit({ ...patch(confirmation), reason }); }} />
       <RowHead
         row={row}
         right={`${row["status"]} · qty ${row["quantity"]} · ${row["leverage"]}x ${row["currency"]}`}
@@ -273,22 +279,22 @@ function PositionRow({
           placeholder={row["realized_pnl"] ? String(row["realized_pnl"]) : "auto"}
         />
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button
+      <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+        <Button
           disabled={pending}
-          onClick={() => onSubmit(patch(false))}
-          className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+          onClick={() => setConfirmation(false)}
+          className="min-h-9"
         >
           {pending && <Loader2 className="size-3 animate-spin" />}
           Save adjustments
-        </button>
-        <button
+        </Button>
+        <Button
           disabled={pending}
-          onClick={() => onSubmit(patch(true))}
-          className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          onClick={() => setConfirmation(true)}
+          variant="destructive"
         >
           Force close now
-        </button>
+        </Button>
       </div>
     </div>
   );

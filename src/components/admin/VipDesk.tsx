@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -396,7 +397,7 @@ export function VipDesk() {
                     className="flex-1 rounded-md bg-secondary px-3 py-2 text-sm outline-none"
                   />
                 </div>
-                <button
+                <Button
                   onClick={() =>
                     saveMutation.mutate({
                       roleKey: s.roleKey,
@@ -407,10 +408,10 @@ export function VipDesk() {
                     })
                   }
                   disabled={saveMutation.isPending}
-                  className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+                  className="ml-auto flex"
                 >
-                  Save profile
-                </button>
+                  {saveMutation.isPending && <Loader2 className="animate-spin" />}Save Changes
+                </Button>
               </div>
             );
           })}

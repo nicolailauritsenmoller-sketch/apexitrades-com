@@ -316,6 +316,7 @@ export const setUserAccountControls = createServerFn({ method: "POST" })
         tradingFrozen: z.boolean().optional(),
         withdrawalsDisabled: z.boolean().optional(),
         accountFrozen: z.boolean().optional(),
+        reason: z.string().trim().min(5).max(400),
       })
       .parse(input),
   )
@@ -332,7 +333,7 @@ export const setUserAccountControls = createServerFn({ method: "POST" })
     const { error } = await db.from("profiles").update(patch).eq("id", data.userId);
     if (error) throw new Error(error.message);
 
-    await audit(context, "user.controls", data.userId, patch);
+    await audit(context, "user.controls", data.userId, { ...patch, reason: data.reason });
     await notify(
       db,
       data.userId,

@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -117,13 +119,7 @@ export function PlatformSettingsPanel() {
           </div>
         ))}
       </div>
-      <button
-        onClick={save}
-        disabled={saving}
-        className="mt-4 min-h-10 touch-manipulation rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-      >
-        {saving ? "Saving…" : "Save statistics"}
-      </button>
+      <footer className="mt-4 flex justify-end border-t border-border pt-4"><Button onClick={save} disabled={saving}>{saving && <Loader2 className="animate-spin" />}Save Changes</Button></footer>
     </section>
   );
 }

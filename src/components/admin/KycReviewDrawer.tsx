@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { APPROVE_BTN, DANGER_BTN } from "@/lib/admin-accents";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -203,15 +205,15 @@ export function KycReviewDrawer({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  placeholder="Additional notes for the user (optional)"
+                  placeholder="Audit reason (required)"
                   className="w-full rounded-md border border-border bg-background p-2 text-xs"
                 />
-                <div className="flex gap-2">
+                <div className="flex justify-end gap-2">
                   <button onClick={() => setRejecting(false)} className="flex-1 rounded-md border border-border px-3 py-2 text-xs">
                     Cancel
                   </button>
                   <button
-                    disabled={!code || act.isPending}
+                    disabled={!code || act.isPending || note.trim().length < 5}
                     onClick={() => act.mutate({ action: "reject" })}
                     className={`flex-1 ${DANGER_BTN} disabled:opacity-50`}
                   >
@@ -220,10 +222,10 @@ export function KycReviewDrawer({
                 </div>
               </>
             ) : (
-              <div className="flex gap-2">
-                <button disabled={act.isPending} onClick={() => act.mutate({ action: "approve" })} className={`flex-1 ${APPROVE_BTN}`}>
-                  Approve {tier === "L1" ? "Level 1" : "Level 2"}
-                </button>
+              <div className="flex justify-end gap-2">
+                <Button disabled={act.isPending} onClick={() => act.mutate({ action: "approve" })}>
+                  {act.isPending && <Loader2 className="animate-spin" />}Approve KYC {tier === "L1" ? "Level 1" : "Level 2"}
+                </Button>
                 <button onClick={() => setRejecting(true)} className={`flex-1 ${DANGER_BTN}`}>
                   Reject Verification
                 </button>

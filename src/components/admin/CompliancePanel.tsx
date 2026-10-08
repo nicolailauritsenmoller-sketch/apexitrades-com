@@ -1,3 +1,4 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,6 +39,7 @@ export function CompliancePanel({ userId }: { userId: string }) {
   const setLimit = useServerFn(setDailyWithdrawalLimit);
   const setControls = useServerFn(setUserAccountControls);
   const [limitInput, setLimitInput] = useState("");
+  const [freezeValue, setFreezeValue] = useState<boolean | null>(null);
 
   const q = useQuery({
     queryKey: ["admin-compliance", userId],
@@ -46,7 +48,7 @@ export function CompliancePanel({ userId }: { userId: string }) {
   const p = q.data;
 
   const freeze = useMutation({
-    mutationFn: (v: boolean) => setControls({ data: { userId, withdrawalsDisabled: v } }),
+    mutationFn: (v: { disabled: boolean; reason: string }) => setControls({ data: { userId, withdrawalsDisabled: v.disabled, reason: v.reason } }),
     onSuccess: () => {
       toast.success("Withdrawal status updated.");
       void q.refetch();
@@ -78,6 +80,7 @@ export function CompliancePanel({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
+      <AdminActionConfirm open={freezeValue !== null} title="Confirm withdrawal restriction" description="Change the withdrawal restriction on this account and record an audit reason." pending={freeze.isPending} onClose={() => setFreezeValue(null)} onConfirm={async (reason) => { if (freezeValue !== null) await freeze.mutateAsync({ disabled: freezeValue, reason }); }} />
       <div className="flex items-center gap-2">
         <span className={`rounded-md border px-2 py-1 text-xs font-bold uppercase tracking-wider ${TONE[p.category]}`}>
           {p.category} Risk
@@ -99,7 +102,7 @@ export function CompliancePanel({ userId }: { userId: string }) {
       <div className="grid gap-2">
         <button
           disabled={freeze.isPending}
-          onClick={() => freeze.mutate(!p.withdrawalsDisabled)}
+          onClick={() => setFreezeValue(!p.withdrawalsDisabled)}
           className={`${btn} ${p.withdrawalsDisabled ? "border-ops-red/50 bg-ops-red/10 text-ops-red" : "border-border"}`}
         >
           <WalletMinimal className="size-3.5" />

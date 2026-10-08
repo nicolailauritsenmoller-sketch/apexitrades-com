@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [x] Standardize shared action hierarchy and Users/KYC/financial queue toolbars with selected-row controls; transaction ledger remains export-only.
+- [x] Add audited confirmations for balance overrides, freezes, liquidations, financial reviews, treasury transfers and trade corrections; improve KYC/VIP/settings submit feedback.
+
 - [x] Create the 60-second public Platform Tour with five chapters, quality switching, autoplay and registration CTA; verify playback.
 - [x] Fix Operations Console browser titles across admin pages and confirm the official shield favicon.
 

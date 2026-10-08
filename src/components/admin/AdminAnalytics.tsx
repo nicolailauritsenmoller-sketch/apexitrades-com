@@ -1,3 +1,7 @@
+import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
+import { Button } from "@/components/ui/button";
+import { downloadCsv } from "@/lib/csv";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   Activity,
@@ -53,8 +57,8 @@ function Panel({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="relative touch-manipulation overflow-hidden rounded-2xl border border-border/70 bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
+    <section className="relative touch-manipulation rounded-lg border border-border/70 bg-card">
+      <header className="sticky top-14 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -452,6 +456,11 @@ export function TradeStatsPanel({ a }: { a: Analytics }) {
 }
 
 export function TransactionsPanel({ a }: { a: Analytics }) {
+  const qc = useQueryClient();
+  const [term, setTerm] = useState("");
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const rows = a.ledger.filter((l) => [l.kind, l.coin, l.status, l.id].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
+  const key = (l: any) => `${l.kind}-${l.id}`;
   return (
     <div className="space-y-3">
       <Panel title="Corporate wallet balances">
@@ -466,11 +475,13 @@ export function TransactionsPanel({ a }: { a: Analytics }) {
           ))}
         </div>
       </Panel>
-      <Panel title="Ledger">
+      <Panel title="Ledger" action={<AdminTableToolbar term={term} onSearch={setTerm} onExport={() => downloadCsv("transactions", rows)} onRefresh={() => { void qc.invalidateQueries({ queryKey: ["admin-analytics"] }); }} />}>
+        {checked.size > 0 && <div className="sticky top-14 z-20 mb-3 flex items-center justify-end gap-3 rounded-md border border-border bg-card p-3"><span className="text-xs">{checked.size} selected</span><Button variant="outline" size="sm" onClick={() => downloadCsv("selected-transactions", rows.filter((l) => checked.has(key(l))))}>Export Selected</Button><Button variant="ghost" size="sm" onClick={() => setChecked(new Set())}>Clear</Button></div>}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-xs">
             <thead className="text-left text-muted-foreground">
               <tr>
+                <th><input aria-label="Select all transactions" type="checkbox" checked={rows.length > 0 && rows.every((l) => checked.has(key(l)))} onChange={(e) => setChecked(e.target.checked ? new Set(rows.map(key)) : new Set())} className="size-4 accent-primary" /></th>
                 <th className="py-2">Type</th>
                 <th>Asset</th>
                 <th>Amount</th>
@@ -479,8 +490,9 @@ export function TransactionsPanel({ a }: { a: Analytics }) {
               </tr>
             </thead>
             <tbody>
-              {a.ledger.map((l) => (
+              {rows.map((l) => (
                 <tr key={`${l.kind}-${l.id}`} className="border-t border-border">
+                  <td><input aria-label={`Select transaction ${l.id}`} type="checkbox" checked={checked.has(key(l))} onChange={() => setChecked((prev) => { const next = new Set(prev); if (next.has(key(l))) next.delete(key(l)); else next.add(key(l)); return next; })} className="size-4 accent-primary" /></td>
                   <td className="py-2 capitalize">{l.kind}</td>
                   <td>{l.coin}</td>
                   <td className="num">{l.amount}</td>

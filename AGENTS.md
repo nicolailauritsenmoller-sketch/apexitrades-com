@@ -20,3 +20,4 @@
 - Mount the shared Platform Tour only on the public landing route after its hero, not on the authenticated dashboard - why: visitors can watch without signing in.
 - Keep tour playback and chapter seeking in a shared native-video player, with separate CDN quality sources and time-preserving quality changes - why: public playback stays independent of account access.
 - Operations Console section selection lives in validated URL search parameters with metadata derived from loader dependencies - why: tab titles, direct links and browser history remain synchronized without document-title effects.
+- Reuse AdminActionConfirm for high-impact console mutations and AdminTableToolbar for searchable/exportable queues; reason fields travel into existing audit records - why: consistent operator safeguards must not alter financial execution semantics.

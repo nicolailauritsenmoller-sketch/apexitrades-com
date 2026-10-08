@@ -1,3 +1,6 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -28,6 +31,7 @@ export function TreasuryWalletPanel() {
   const [currency, setCurrency] = useState("USDT");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [userId, setUserId] = useState("");
   const [search, setSearch] = useState("");
   const [ledgerFilter, setLedgerFilter] = useState<"all" | Dir>("all");
@@ -60,8 +64,8 @@ export function TreasuryWalletPanel() {
       (dir === "receive" && ub.data && amt > ub.data.balance));
 
   const send = useMutation({
-    mutationFn: () =>
-      transfer({ data: { direction: dir, userId: needsUser ? userId : null, currency, amount: amt, reason: reason.trim() } }),
+    mutationFn: (auditReason: string) =>
+      transfer({ data: { direction: dir, userId: needsUser ? userId : null, currency, amount: amt, reason: auditReason } }),
     onSuccess: (r) => {
       toast.success(`Done. Treasury ${currency} balance: ${fmt(r.treasury_balance)}`);
       setAmount("");
@@ -173,13 +177,10 @@ export function TreasuryWalletPanel() {
               className="w-full rounded-md border border-border bg-background p-2 text-sm"
             />
             {insufficient && <p className="text-xs text-ops-red">Insufficient balance for this transfer.</p>}
-            <button
-              disabled={!canSubmit}
-              onClick={() => send.mutate()}
-              className="h-10 w-full touch-manipulation rounded-md bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {send.isPending ? "Processing…" : DIRS.find((d) => d.id === dir)!.label}
-            </button>
+            <div className="flex justify-end border-t border-border pt-3"><Button disabled={!canSubmit} onClick={() => setConfirming(true)}>
+              {send.isPending && <Loader2 className="animate-spin" />}{DIRS.find((d) => d.id === dir)?.label}
+            </Button></div>
+            <AdminActionConfirm open={confirming} title="Confirm treasury transfer" description={`${fmt(amt)} ${currency} - ${DIRS.find((d) => d.id === dir)?.hint}. ${reason}`} pending={send.isPending} destructive={dir === "withdraw" || dir === "receive"} onClose={() => setConfirming(false)} onConfirm={async (auditReason) => { await send.mutateAsync(auditReason); }} />
           </div>
         </div>
       </section>
