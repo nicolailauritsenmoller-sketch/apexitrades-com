@@ -2,7 +2,7 @@ import { TreasuryWalletPanel } from "@/components/admin/TreasuryWalletPanel";
 import { AccessBansPanel } from "@/components/admin/AccessBansPanel";
 import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -110,17 +110,33 @@ import {
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
-  head: () => ({
+  validateSearch: (search: Record<string, unknown>): { tab: string } => ({
+    tab: typeof search.tab === "string" && NAV.some((group) => group.items.some((item) => item.id === search.tab))
+      ? search.tab : "overview",
+  }),
+  loaderDeps: ({ search }) => ({ tab: search.tab }),
+  loader: ({ deps }) => ({ tab: deps.tab }),
+  head: ({ loaderData }) => {
+    const tab = loaderData?.tab ?? "overview";
+    const label = NAV.flatMap((group) => group.items).find((item) => item.id === tab)?.label;
+    const title = tab === "overview" || !label
+      ? "Operations Console | Velocity Trade"
+      : `Operations Console - ${label} | Velocity Trade`;
+    const description = "Velocity Trade staff console for trading operations, compliance, treasury and customer support.";
+    return {
     meta: [
-      { title: "Not found" },
+      { title },
       { name: "robots", content: "noindex, nofollow" },
-      { name: "description", content: "This page is not available." },
-      { property: "og:title", content: "Not found" },
-      { property: "og:description", content: "This page is not available." },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:url", content: "https://veloxitrade-com.lovable.app/sys-portal-x97" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+    links: [{ rel: "canonical", href: "https://veloxitrade-com.lovable.app/sys-portal-x97" }],
+  };
+  },
   // Role gating happens in the component (see `access` query below): the parent
   // `_authenticated` layout only resolves the Supabase session after mount, so a
   // beforeLoad role check races session hydration and bounces real admins home.
@@ -329,7 +345,9 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const hasSession = useHasSession();
-  const [tab, setTab] = useState<TabId>("overview");
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const setTab = (next: TabId) => { void navigate({ search: { tab: next } }); };
   const [filter, setFilter] = useState<DeskFilter>({});
   const [vipInspect, setVipInspect] = useState<string | null>(null);
   const statusFilter = filter.status ?? null;

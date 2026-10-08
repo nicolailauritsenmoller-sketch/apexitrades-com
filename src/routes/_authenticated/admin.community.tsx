@@ -8,14 +8,15 @@ import { getMyAccess } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/community")({
   head: () => ({ meta: [
-    { title: "Community Management Desk | Velocity Trade" },
+    { title: "Operations Console - Community Desk | Velocity Trade" },
     { name: "description", content: "Manage official community channels, public bulletins and VIP lounge access requests." },
-    { property: "og:title", content: "Community Management Desk - Velocity Trade" },
+    { property: "og:title", content: "Operations Console - Community Desk | Velocity Trade" },
+    { property: "og:url", content: "https://veloxitrade-com.lovable.app/admin/community" },
     { property: "og:description", content: "Restricted community operations and access management." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
     { name: "robots", content: "noindex, nofollow" },
-  ] }),
+  ], links: [{ rel: "canonical", href: "https://veloxitrade-com.lovable.app/admin/community" }] }),
   component: CommunityDeskRoute,
 });
 
