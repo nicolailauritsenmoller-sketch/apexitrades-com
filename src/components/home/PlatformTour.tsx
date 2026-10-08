@@ -13,10 +13,10 @@ import tourVideo from "@/assets/platform-tour.mp4.asset.json";
 const TOUR_VIDEO_URL: string = (tourVideo as { url: string }).url;
 
 const TIMESTAMPS = [
-  { seconds: 15, label: "0:15 - Real-Time Terminal & Execution" },
-  { seconds: 45, label: "0:45 - Instant Crypto Scalping" },
-  { seconds: 70, label: "1:10 - Portfolio & Exposure Tracking" },
-  { seconds: 95, label: "1:35 - One-Click VIP & Treasury Transfers" },
+  { seconds: 0, label: "0:00 - Real-Time Terminal & Execution" },
+  { seconds: 2, label: "0:02 - Live Charts & Order Book" },
+  { seconds: 4, label: "0:04 - Portfolio & Exposure Tracking" },
+  { seconds: 6, label: "0:06 - Markets & Account Overview" },
 ];
 
 function providerOf(url: string): "mp4" | "youtube" | "vimeo" {
