@@ -34,6 +34,52 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { getMyChatContext, getMyRecentActivity, requestLiveAgent, requestManagerChat, submitChatRating } from "@/lib/desk.functions";
 import { History } from "lucide-react";
 import { shieldMark } from "@/components/Logo";
+import { Link } from "@tanstack/react-router";
+import { ArrowUpRight, Crown, Headphones, KeyRound } from "lucide-react";
+
+type QuickPath =
+  | "/wallet"
+  | "/portfolio"
+  | "/profile/verification"
+  | "/profile/security"
+  | "/profile/help"
+  | "/vip-upgrade";
+type BotLink = { label: string; to: QuickPath };
+
+type QuickActionId = "kyc" | "funds" | "password" | "vip" | "agent";
+const QUICK_ACTIONS: { id: QuickActionId; label: string; icon: LucideIcon }[] = [
+  { id: "kyc", label: "KYC Inquiry", icon: BadgeCheck },
+  { id: "funds", label: "Deposit / Withdrawal Status", icon: Wallet },
+  { id: "password", label: "Reset Password", icon: KeyRound },
+  { id: "vip", label: "VIP Account Desk", icon: Crown },
+  { id: "agent", label: "Talk to Human Agent", icon: Headphones },
+];
+
+const QUICK_ANSWERS: Record<Exclude<QuickActionId, "agent">, { text: string; links: BotLink[] }> = {
+  kyc: {
+    text:
+      "Identity verification has two independent levels:\n\n• Level 1 - personal details and government ID\n• Level 2 - proof of address and enhanced review\n\nYou can see the live status of each level, any rejection reason, and re-submit documents from your Verification page.",
+    links: [{ label: "Open Verification", to: "/profile/verification" }],
+  },
+  funds: {
+    text:
+      "Deposit and withdrawal status is shown in real time on your Assets page:\n\n• Pending - awaiting network confirmations or desk review\n• Completed - credited to or sent from your wallet\n• Rejected - funds returned with a reason attached\n\nOpen Transaction History and search by asset, type or TXID.",
+    links: [
+      { label: "Open Assets", to: "/wallet" },
+      { label: "View Portfolio", to: "/portfolio" },
+    ],
+  },
+  password: {
+    text:
+      "To change your password while signed in, go to Security and choose Change Password. If you are locked out, use \"Forgot password\" on the sign-in screen and follow the emailed link.\n\nFor your protection, withdrawals may be paused for a short period after a password change.",
+    links: [{ label: "Open Security Settings", to: "/profile/security" }],
+  },
+  vip: {
+    text:
+      "The VIP Account Desk handles priority requests, fee schedules and relationship manager assignments.\n\nCheck your progress toward VIP eligibility, or contact your dedicated manager once VIP is active.",
+    links: [{ label: "Open VIP Upgrade", to: "/vip-upgrade" }],
+  },
+};
 
 type Message = {
   id: string;
@@ -90,6 +136,7 @@ type BotMsg = {
   text: string;
   chips?: BotChip[];
   topics?: boolean;
+  links?: BotLink[];
 };
 
 const feedbackChips: BotChip[] = [
@@ -581,7 +628,7 @@ export function LiveChatDialog({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, botLog]);
 
-  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean }) =>
+  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean; links?: BotLink[] }) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, ...opts }]);
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
@@ -660,6 +707,17 @@ export function LiveChatDialog({
     botSay(`Here are common ${t.label} questions:`, {
       chips: t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
     });
+  }
+
+  function handleQuickAction(id: QuickActionId) {
+    if (id === "agent") {
+      userSay("Talk to Human Agent");
+      void escalate("Talk to Human Agent");
+      return;
+    }
+    const qa = QUICK_ANSWERS[id];
+    userSay(QUICK_ACTIONS.find((a) => a.id === id)!.label);
+    botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links });
   }
 
   function handleChip(chip: BotChip) {
@@ -918,6 +976,38 @@ export function LiveChatDialog({
                   >
                     {b.text}
                   </div>
+                  {b.links && b.links.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {b.links.map((l) => (
+                        <Link
+                          key={l.to}
+                          to={l.to}
+                          onClick={() => setOpen(false)}
+                          className="inline-flex min-h-8 touch-manipulation items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                        >
+                          {l.label} <ArrowUpRight className="size-3" />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  {b.topics && mode === "bot" && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5" aria-label="Quick actions">
+                      {QUICK_ACTIONS.map(({ id, label, icon: Icon }) => (
+                        <button
+                          type="button"
+                          key={id}
+                          onClick={() => handleQuickAction(id)}
+                          className={`inline-flex min-h-9 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            id === "agent"
+                              ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                              : "border-border bg-card text-foreground hover:border-primary/60 hover:text-primary"
+                          }`}
+                        >
+                          <Icon className="size-3.5" /> {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} />}
                   {b.chips && mode === "bot" && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -940,10 +1030,28 @@ export function LiveChatDialog({
                 </div>
               </div>
             ))}
-            {mode === "agent" && !agentJoined && !ended && (
-              <p className="pt-4 text-center text-sm text-muted-foreground">
-                Send us a message and an agent will join shortly.
-              </p>
+            {mode === "agent" && !ended && (
+              <div
+                role="status"
+                className={`flex items-start gap-2 rounded-md border px-3 py-2.5 text-xs leading-5 ${
+                  agentJoined ? "border-bull/40 bg-bull/10" : "border-primary/40 bg-primary/10"
+                }`}
+              >
+                <Headphones className={`mt-0.5 size-3.5 shrink-0 ${agentJoined ? "text-bull" : "text-primary"}`} />
+                <span>
+                  <strong>
+                    {agentJoined
+                      ? "Connected to Operations Desk - Agent Assigned"
+                      : "Connected to Operations Desk - Assigning Agent"}
+                  </strong>
+                  <br />
+                  <span className="text-muted-foreground">
+                    {agentJoined
+                      ? "Your conversation is saved and follows you across every page."
+                      : "You are in the queue. Send a message and the next available agent will join shortly."}
+                  </span>
+                </span>
+              </div>
             )}
             {mode === "agent" && threadItems.map((m) => m.id === "__joined" ? (
               <div key="__joined" className="flex items-start gap-2 rounded-md border border-bull/40 bg-bull/10 px-3 py-3 text-xs leading-5 text-foreground">

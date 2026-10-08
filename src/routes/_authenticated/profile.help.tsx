@@ -25,39 +25,39 @@ import { LiveChatDialog } from "@/components/support/LiveChatDialog";
 import { TicketDialog } from "@/components/support/TicketDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { getProfileOverview } from "@/lib/profile.functions";
+import { StatusBadge } from "@/components/support/TicketDialog";
+import { listMyTickets } from "@/lib/support.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { isVip } from "@/lib/vip-tiers";
 
-const FILTERS = ["Deposits", "Withdrawals", "Verification / KYC", "Trading & Margin", "Security"] as const;
+type FaqCategory = "Getting Started" | "Security & KYC" | "Deposits & Withdrawals" | "Trading & Margin" | "VIP Services";
+const CATEGORIES: { name: FaqCategory; icon: typeof ShieldCheck }[] = [
+  { name: "Getting Started", icon: BookOpen },
+  { name: "Security & KYC", icon: ShieldCheck },
+  { name: "Deposits & Withdrawals", icon: WalletCards },
+  { name: "Trading & Margin", icon: TrendingUp },
+  { name: "VIP Services", icon: Crown },
+];
 
-const TOPICS = [
-  {
-    icon: ShieldCheck,
-    title: "Getting Started & Account Security",
-    summary: "Identity, access, and account protection standards.",
-    tags: "verification kyc security account password 2fa",
-    articles: ["Set up account security", "Reset your password", "Understand KYC levels"],
-  },
-  {
-    icon: WalletCards,
-    title: "Deposits & Withdrawals",
-    summary: "Funding routes, network reviews, and transfer requirements.",
-    tags: "deposits withdrawals network address memo tag pending",
-    articles: ["Review supported networks", "Track a pending deposit", "Use address tags and memos"],
-  },
-  {
-    icon: TrendingUp,
-    title: "Margin & Derivatives Trading",
-    summary: "Institutional guidance for leveraged market execution.",
-    tags: "trading margin leverage liquidation contract settlement",
-    articles: ["Check leverage limits", "Review liquidation rules", "Understand contract settlements"],
-  },
-  {
-    icon: BadgeDollarSign,
-    title: "Fees & VIP Tiers",
-    summary: "Trading costs, eligibility, and client rebate structures.",
-    tags: "fees vip trading qualification rebate tiers",
-    articles: ["View trading fee schedules", "Review VIP qualification", "Understand rebate structures"],
-  },
+const FAQ: { cat: FaqCategory; q: string; a: string }[] = [
+  { cat: "Getting Started", q: "How do I start trading on Velocity Trade?", a: "Complete Level 1 verification, fund your account from the Assets page, then open the Trade Terminal from Markets to place your first order." },
+  { cat: "Getting Started", q: "Where can I see my balances and positions?", a: "Portfolio shows your estimated total value, open positions with live P&L, asset breakdown and full trade history." },
+  { cat: "Getting Started", q: "How do I contact support?", a: "Use Live Chat for instant help from the Support Assistant or a live agent, or submit a ticket for tracked cases. Your chat history is saved across every page." },
+  { cat: "Security & KYC", q: "What are KYC Level 1 and Level 2?", a: "Level 1 confirms your identity with personal details and a government ID. Level 2 adds proof of address and enhanced review. Each level is reviewed independently." },
+  { cat: "Security & KYC", q: "Why was my verification rejected?", a: "The rejection reason is shown on your Verification page. Correct the noted issue and use Re-submit to send new documents." },
+  { cat: "Security & KYC", q: "How do I enable an authenticator app?", a: "Open Profile > Security, choose Authenticator App, scan the QR code and confirm the 6-digit code. Store your backup codes safely." },
+  { cat: "Security & KYC", q: "How do I reset my password?", a: "Signed in: Profile > Security > Change Password. Locked out: use Forgot password on the sign-in screen. Withdrawals may be paused briefly after a change." },
+  { cat: "Deposits & Withdrawals", q: "Why is my deposit still pending?", a: "Deposits are credited after the required network confirmations and desk review. Track status and TXID in Assets > Transaction History." },
+  { cat: "Deposits & Withdrawals", q: "How long do withdrawals take?", a: "Withdrawals are reviewed by the operations desk before release. Status updates appear live in your Transaction History." },
+  { cat: "Deposits & Withdrawals", q: "Do I need a memo or tag?", a: "Some networks require a memo or destination tag. Always copy it exactly as shown on the deposit screen, or funds may be delayed." },
+  { cat: "Trading & Margin", q: "How do scalp contracts settle?", a: "A scalp contract locks the entry price at open and settles automatically when the countdown expires, crediting any payout to your wallet." },
+  { cat: "Trading & Margin", q: "What is Account Health?", a: "Account Health measures margin and liquidation risk on your open leveraged positions. Add margin or reduce exposure to improve it." },
+  { cat: "Trading & Margin", q: "How do I close a position?", a: "Open the Trade Terminal, find the position under Open Positions and click Close. P&L settles into your USDT wallet immediately." },
+  { cat: "VIP Services", q: "How do I qualify for VIP?", a: "VIP eligibility is based on your balance and 30-day trading activity. Track your progress on the VIP Upgrade page." },
+  { cat: "VIP Services", q: "What does VIP include?", a: "VIP clients receive reduced fees, priority support routing and, at higher levels, a dedicated relationship manager." },
+  { cat: "VIP Services", q: "How do I reach my account manager?", a: "Once VIP is active, use Contact VIP Account Manager on the VIP Upgrade page or the VIP Priority Desk below." },
 ];
 
 const POLICIES = [
@@ -102,13 +102,13 @@ function HelpCenter() {
   });
   const vipEligible = isVip(profile.data?.profile.vipTier);
 
+  const [tab, setTab] = useState<"kb" | "tickets">("kb");
   const results = useMemo(() => {
-    const term = [query.trim(), activeFilter ?? ""].filter(Boolean).join(" ").toLowerCase();
-    if (!term) return TOPICS;
-    const terms = term.split(/\s+/).filter((part) => part !== "/" && part !== "&");
-    return TOPICS.filter((topic) => {
-      const haystack = `${topic.title} ${topic.summary} ${topic.tags} ${topic.articles.join(" ")}`.toLowerCase();
-      return terms.some((part) => haystack.includes(part));
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return FAQ.filter((f) => {
+      if (activeFilter && f.cat !== activeFilter) return false;
+      const hay = `${f.cat} ${f.q} ${f.a}`.toLowerCase();
+      return terms.every((t) => hay.includes(t));
     });
   }, [activeFilter, query]);
 
@@ -133,7 +133,7 @@ function HelpCenter() {
             <input
               type="search"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => { setTab("kb"); setQuery(event.target.value); }}
               placeholder="Search articles, account issues, or trading topics..."
               aria-label="Search help articles"
               className="min-h-14 w-full rounded-md border border-help-surface bg-help-surface pl-12 pr-4 text-sm text-help-foreground outline-none transition-colors placeholder:text-help-muted/70 focus:border-help-accent focus:ring-2 focus:ring-help-accent/20"
@@ -141,14 +141,14 @@ function HelpCenter() {
           </div>
 
           <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Help categories">
-            {FILTERS.map((filter) => (
+            {CATEGORIES.map(({ name: filter }) => (
               <Button
                 key={filter}
                 type="button"
                 variant="ghost"
                 size="sm"
                 aria-pressed={activeFilter === filter}
-                onClick={() => chooseFilter(filter)}
+                onClick={() => { setTab("kb"); chooseFilter(filter); }}
                 className={activeFilter === filter
                   ? "border border-help-accent bg-help-accent/10 text-help-accent hover:bg-help-accent/15 hover:text-help-accent"
                   : "border border-help-surface bg-help-surface/60 text-help-muted hover:bg-help-surface hover:text-help-foreground"}
@@ -161,43 +161,42 @@ function HelpCenter() {
       </header>
 
       <main className="px-5 py-8 sm:px-8 sm:py-10">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase text-help-accent">Knowledge base</p>
-            <h2 className="mt-1 font-help-display text-xl font-semibold">Browse by topic</h2>
-          </div>
-          <span className="text-xs text-help-muted">{results.length} categories</span>
+        <div className="mb-6 flex gap-1 rounded-md border border-help-surface bg-help-surface/40 p-1" role="tablist">
+          {(["kb", "tickets"] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              type="button"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={`min-h-10 flex-1 touch-manipulation rounded px-3 text-sm font-semibold transition-colors ${tab === t ? "bg-help-accent text-help-background" : "text-help-muted hover:text-help-foreground"}`}
+            >
+              {t === "kb" ? "Knowledge Base" : "My Support Tickets"}
+            </button>
+          ))}
         </div>
 
-        {results.length ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {results.map(({ icon: Icon, title, summary, articles }) => (
-              <article key={title} className="group rounded-md border border-help-surface bg-help-surface/40 p-5 transition-colors hover:border-help-accent/60 hover:bg-help-surface/60 sm:p-6">
-                <div className="flex items-start gap-4">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-help-accent/10 text-help-accent">
-                    <Icon className="size-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="font-help-display text-base font-semibold">{title}</h3>
-                    <p className="mt-1 text-xs leading-5 text-help-muted">{summary}</p>
-                  </div>
-                </div>
-                <ul className="mt-5 divide-y divide-help-surface border-t border-help-surface">
-                  {articles.map((article) => (
-                    <li key={article}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setQuery(article)}
-                        className="h-auto min-h-11 w-full justify-between rounded-none px-0 py-3 text-left text-xs font-medium text-help-muted hover:bg-transparent hover:text-help-accent"
-                      >
-                        <span className="whitespace-normal">{article}</span>
-                        <ArrowRight className="size-3.5" />
-                      </Button>
-                    </li>
+        {tab === "tickets" ? (
+          <MyTickets onNew={() => setTicketOpen(true)} onOpen={() => setTicketOpen(true)} />
+        ) : results.length ? (
+          <div className="space-y-6">
+            {CATEGORIES.filter((c) => results.some((r) => r.cat === c.name)).map(({ name, icon: Icon }) => (
+              <section key={name}>
+                <h3 className="mb-2 flex items-center gap-2 font-help-display text-sm font-semibold">
+                  <Icon className="size-4 text-help-accent" /> {name}
+                </h3>
+                <div className="divide-y divide-help-surface overflow-hidden rounded-md border border-help-surface bg-help-surface/30">
+                  {results.filter((r) => r.cat === name).map((f) => (
+                    <details key={f.q} className="group" open={Boolean(query.trim())}>
+                      <summary className="flex min-h-12 cursor-pointer touch-manipulation list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium hover:text-help-accent">
+                        {f.q}
+                        <ArrowRight className="size-3.5 shrink-0 transition-transform group-open:rotate-90" />
+                      </summary>
+                      <p className="px-4 pb-4 text-xs leading-5 text-help-muted">{f.a}</p>
+                    </details>
                   ))}
-                </ul>
-              </article>
+                </div>
+              </section>
             ))}
           </div>
         ) : (
@@ -269,6 +268,59 @@ function HelpCenter() {
       <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} />
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} />
       <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
+    </div>
+  );
+}
+
+function MyTickets({ onNew, onOpen }: { onNew: () => void; onOpen: () => void }) {
+  const fetchTickets = useServerFn(listMyTickets);
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["my-tickets"], queryFn: () => fetchTickets(), refetchInterval: 20_000 });
+  useEffect(() => {
+    const ch = supabase
+      .channel("help-my-tickets")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, () =>
+        qc.invalidateQueries({ queryKey: ["my-tickets"] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [qc]);
+  const tickets = ((q.data as { tickets?: unknown[] } | undefined)?.tickets ?? (Array.isArray(q.data) ? q.data : [])) as {
+    id: string; reference: string | null; subject: string; category: string; status: string; created_at: string; updated_at: string;
+  }[];
+  if (q.isLoading) return <p className="py-10 text-center text-sm text-help-muted">Loading your cases...</p>;
+  if (!tickets.length)
+    return (
+      <div className="rounded-md border border-dashed border-help-surface px-5 py-12 text-center">
+        <TicketCheck className="mx-auto size-7 text-help-muted" />
+        <p className="mt-3 text-sm font-semibold">No support tickets yet</p>
+        <p className="mt-1 text-xs text-help-muted">Open a tracked case and follow its status here in real time.</p>
+        <Button type="button" className="mt-4 bg-help-accent text-help-background hover:bg-help-accent/90" onClick={onNew}>
+          Submit Support Ticket
+        </Button>
+      </div>
+    );
+  return (
+    <div className="overflow-hidden rounded-md border border-help-surface">
+      <div className="hidden grid-cols-[8rem_1fr_9rem_7rem] gap-3 border-b border-help-surface bg-help-surface/50 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-help-muted sm:grid">
+        <span>Case No.</span><span>Subject</span><span>Submitted</span><span className="text-right">Status</span>
+      </div>
+      <ul className="divide-y divide-help-surface">
+        {tickets.map((t) => (
+          <li key={t.id}>
+            <button type="button" onClick={onOpen} className="grid w-full touch-manipulation grid-cols-[1fr_auto] gap-x-3 gap-y-1 px-4 py-3 text-left transition-colors hover:bg-help-surface/50 sm:grid-cols-[8rem_1fr_9rem_7rem] sm:items-center">
+              <span className="font-mono text-xs font-semibold tabular-nums">#{t.reference ?? t.id.slice(0, 8).toUpperCase()}</span>
+              <span className="justify-self-end sm:order-last"><StatusBadge status={t.status} /></span>
+              <span className="col-span-2 truncate text-sm sm:col-span-1">{t.subject}<span className="ml-2 text-[11px] text-help-muted">{t.category}</span></span>
+              <span className="col-span-2 font-mono text-[11px] tabular-nums text-help-muted sm:col-span-1">
+                {new Date(t.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

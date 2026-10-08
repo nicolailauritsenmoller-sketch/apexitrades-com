@@ -33,7 +33,7 @@ const STATUS_TONE: Record<string, string> = {
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "application/pdf"];
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
@@ -241,6 +241,7 @@ export function TicketDialog({
               <CheckCircle2 className="mx-auto size-10 text-bull" />
               <div>
                 <p className="text-sm font-semibold">Request submitted successfully.</p>
+                <p className="mt-1 text-xs font-semibold text-primary">Connected to Operations Desk - case queued for agent assignment</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Ticket <span className="font-mono font-semibold text-foreground">#{created.reference}</span> created.
                   Our team will respond through your Support Inbox.
