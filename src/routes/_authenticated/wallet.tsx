@@ -764,18 +764,54 @@ function DepositTab({
             </div>
 
             <div className="flex flex-col items-center justify-center border-t border-border bg-secondary/25 p-6 lg:border-l lg:border-t-0">
-              <div className="flex size-56 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-2 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setQrOpen(true)}
+                title="Enlarge QR code"
+                className="flex size-56 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-2 shadow-sm transition-colors hover:border-primary/50"
+              >
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt={`${addr.coin} ${networkDetails.label} deposit address QR code`} width={208} height={208} />
                 ) : (
                   <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 )}
-              </div>
+              </button>
               <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="size-4 text-bull" /> Verified deposit address</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">Tap the code to enlarge for scanning</p>
             </div>
           </div>
         )}
       </section>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{addr?.coin} deposit address</DialogTitle>
+            <DialogDescription>
+              Scan with your wallet app to send {addr?.coin} via {networkDetails?.label ?? addr?.network}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mx-auto flex size-72 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-3">
+            {qrLargeDataUrl ? (
+              <img src={qrLargeDataUrl} alt="Deposit address QR code" width={264} height={264} />
+            ) : (
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          {addr && (
+            <button
+              type="button"
+              onClick={() => void copyAddress()}
+              className="w-full cursor-copy rounded-md border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/50"
+            >
+              <p className="num break-all text-xs font-medium leading-5">{addr.address}</p>
+              <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Copy className="size-3" /> Click to copy
+              </p>
+            </button>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {addr && (
         <section className="panel p-4 sm:p-6">
