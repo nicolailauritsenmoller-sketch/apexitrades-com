@@ -661,7 +661,7 @@ function DepositTab({
         <Button
           type="button"
           className="mt-5"
-          onClick={() => window.dispatchEvent(new CustomEvent("open-support-chat"))}
+          onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat", { detail: {} }))}
         >
           <MessageCircle className="size-4" />
           Contact Support to Enable Deposits
