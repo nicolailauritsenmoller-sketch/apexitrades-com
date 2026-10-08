@@ -57,8 +57,8 @@ function Panel({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="relative touch-manipulation overflow-hidden rounded-2xl border border-border/70 bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
+    <section className="relative touch-manipulation rounded-lg border border-border/70 bg-card">
+      <header className="sticky top-14 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>

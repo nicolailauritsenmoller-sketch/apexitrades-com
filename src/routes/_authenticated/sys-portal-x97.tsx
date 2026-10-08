@@ -1499,12 +1499,15 @@ function UsersTab({
   statusFilter?: string | null;
   userFilter?: "today" | "week" | "month" | "referred" | null;
 }) {
+  const [term, setTerm] = useState("");
+  const [onlySelectedKyc, setOnlySelectedKyc] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [inspect, setInspect] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const since = (days: number) => Date.now() - days * 86_400_000;
   const profiles = allProfiles.filter((p) => {
+    if (![p.display_name, p.uid, p.id].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase()))) return false;
     if (userFilter === "today") return new Date(p.created_at).getTime() >= since(1);
     if (userFilter === "week") return new Date(p.created_at).getTime() >= since(7);
     if (userFilter === "month") return new Date(p.created_at).getTime() >= since(30);
@@ -1548,7 +1551,8 @@ function UsersTab({
       <Card
         title={`${heading} (${profiles.length})`}
         action={
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <AdminTableToolbar term={term} onSearch={setTerm} onRefresh={onDone} onExport={() => downloadCsv("users", profiles.map((p) => ({ id: p.id, display_name: p.display_name, uid: p.uid, created_at: p.created_at })))} />
             <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <input
                 type="checkbox"
@@ -1583,6 +1587,12 @@ function UsersTab({
           </div>
         }
       >
+        {checked.size > 0 && <div className="sticky top-32 z-30 mb-3 flex flex-wrap items-center justify-end gap-2 rounded-md border border-border bg-card p-3 shadow-lg">
+          <span className="mr-auto text-xs">{checked.size} users selected</span>
+          <Button size="sm" onClick={() => setOnlySelectedKyc(!onlySelectedKyc)}>{onlySelectedKyc ? "Show All KYC" : "Review Selected KYC"}</Button>
+          <Button variant="outline" size="sm" onClick={() => downloadCsv("selected-users", profiles.filter((p) => checked.has(p.id)).map((p) => ({ id: p.id, display_name: p.display_name, uid: p.uid, created_at: p.created_at })))}>Export Selected</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setChecked(new Set()); setOnlySelectedKyc(false); }}>Clear</Button>
+        </div>}
         {profiles.length === 0 ? (
           <Empty label="No users match this filter." />
         ) : (
@@ -1636,7 +1646,7 @@ function UsersTab({
         )}
       </Card>
 
-      <KycQueue kyc={kyc} onDone={onDone} />
+      <KycQueue kyc={onlySelectedKyc ? kyc.filter((k) => checked.has(k.user_id)) : kyc} onDone={onDone} />
 
       {inspect && <UserWorkspaceDrawer userId={inspect} onClose={() => setInspect(null)} />}
     </div>
