@@ -298,7 +298,7 @@ function WalletPage() {
     link.remove();
     URL.revokeObjectURL(url);
     toast.success("Statement downloaded");
-    void logActivity("wallet", "Exported transaction statement", { rows: rows.length });
+    void logActivity("interaction", "Exported transaction statement", { rows: rows.length });
   }
 
   return (
