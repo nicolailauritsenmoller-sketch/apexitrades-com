@@ -12,11 +12,21 @@ import {
   ChevronDown,
   Clock3,
   Copy,
+  Download,
   Loader2,
+  MessageCircle,
   Repeat,
+  Search,
   ShieldCheck,
 } from "lucide-react";
 import QRCode from "qrcode";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
