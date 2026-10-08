@@ -131,6 +131,15 @@ function Markets() {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("instrument");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const { quotes } = useQuotes(
+    INSTRUMENTS.filter((i) => tab === "all" || i.assetClass === tab)
+      .slice(0, 500)
+      .map((i) => i.symbol),
+    8000,
+  );
 
   const filtered = useMemo(
     () =>
@@ -144,6 +153,22 @@ function Markets() {
       }),
     [tab, q],
   );
+
+  const sorted = useMemo(
+    () => sortRows(filtered, sortKey, sortDir, quotes),
+    [filtered, sortKey, sortDir, quotes],
+  );
+
+  const toggleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "instrument" || key === "class" ? "asc" : "desc");
+    }
+    setLimit(PAGE_SIZE);
+    setPage(1);
+  };
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const currentPage = Math.min(page, pageCount);
