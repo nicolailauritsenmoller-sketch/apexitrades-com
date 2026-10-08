@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [ ] Standardize Operations Console action hierarchy, persistent table toolbars and selected-row actions.
+- [ ] Require structured audit-note confirmations for high-impact console actions and improve submit/loading/toast feedback.
+
 - [x] Create the 60-second public Platform Tour with five chapters, quality switching, autoplay and registration CTA; verify playback.
 - [x] Fix Operations Console browser titles across admin pages and confirm the official shield favicon.
 
