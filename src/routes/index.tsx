@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
 import { CommunityHub } from "@/components/home/CommunityHub";
 import { BrandMark } from "@/components/Logo";
+import { PlatformTourSection } from "@/components/home/PlatformTour";
 
 const TICKER = [
   "BTCUSDT",
@@ -42,6 +43,8 @@ export const Route = createFileRoute("/")({
           "Execute trades across Crypto, Equities, Index Futures, FX, and Metals with real-time exchange liquidity, low-latency execution, and advanced risk controls.",
       },
       { property: "og:title", content: "Velocity Trade - Institutional-Grade Multi-Asset Trading Terminal" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content:
@@ -141,6 +144,10 @@ function Landing() {
           </div>
         </div>
       </section>
+
+      <div className="mx-auto w-full max-w-6xl px-4 pt-6">
+        <PlatformTourSection />
+      </div>
 
       {/* 2. Platform introduction */}
       <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16">
