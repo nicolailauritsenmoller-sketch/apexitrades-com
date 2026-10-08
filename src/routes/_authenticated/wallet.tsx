@@ -579,6 +579,7 @@ function DepositTab({
     if (!addr?.address) return;
     let active = true;
     setQrDataUrl("");
+    setQrLargeDataUrl("");
     void QRCode.toDataURL(addr.address, {
       width: 224,
       margin: 2,
@@ -586,6 +587,14 @@ function DepositTab({
       color: { dark: "#111827", light: "#FFFFFF" },
     }).then((url) => {
       if (active) setQrDataUrl(url);
+    });
+    void QRCode.toDataURL(addr.address, {
+      width: 640,
+      margin: 2,
+      errorCorrectionLevel: "H",
+      color: { dark: "#111827", light: "#FFFFFF" },
+    }).then((url) => {
+      if (active) setQrLargeDataUrl(url);
     });
     return () => {
       active = false;
