@@ -723,6 +723,24 @@ export function LiveChatDialog({
     botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links });
   }
 
+  /* Fire a pre-selected desk action once when the widget opens. */
+  const initialActionFiredRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      initialActionFiredRef.current = false;
+      return;
+    }
+    if (!initialAction || initialActionFiredRef.current) return;
+    initialActionFiredRef.current = true;
+    if (initialAction === "agent") {
+      handleQuickAction("agent");
+    } else {
+      userSay("VIP Account Desk");
+      void escalate("VIP Priority Operations Desk");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialAction]);
+
   function handleChip(chip: BotChip) {
     const [kind, id] = chip.action.split(":");
     if (kind === "agent") {
