@@ -110,7 +110,7 @@ import {
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/sys-portal-x97")({
-  validateSearch: (search: Record<string, unknown>): { tab: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" && NAV.some((group) => group.items.some((item) => item.id === search.tab))
       ? search.tab : "overview",
   }),
@@ -345,7 +345,8 @@ function ModeToggle({
 function AdminPage() {
   const qc = useQueryClient();
   const hasSession = useHasSession();
-  const { tab } = Route.useSearch();
+  const { tab: selectedTab } = Route.useSearch();
+  const tab = selectedTab ?? "overview";
   const navigate = useNavigate({ from: Route.fullPath });
   const setTab = (next: TabId) => { void navigate({ search: { tab: next } }); };
   const [filter, setFilter] = useState<DeskFilter>({});

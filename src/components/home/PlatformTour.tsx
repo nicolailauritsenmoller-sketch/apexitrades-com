@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TourVideoPlayer } from "@/components/home/TourVideoPlayer";
 import tourThumb from "@/assets/platform-tour-thumb.jpg";
-import tourVideo from "@/assets/platform-tour-1080p.mp4.asset.json";
-import tourVideoSd from "@/assets/platform-tour-720p.mp4.asset.json";
+import tourVideo from "@/assets/platform-tour-1080p.webm.asset.json";
+import tourVideoSd from "@/assets/platform-tour-720p.webm.asset.json";
 
 export function PlatformTourSection() {
   const [open, setOpen] = useState(false);
