@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, Gift, Users } from "lucide-react";
-import { Card, Section, SubPageHeader, copy } from "@/components/profile/ui";
+import { Card, Section, SubPageHeader } from "@/components/profile/ui";
+import { toast } from "sonner";
 import { formatMoney } from "@/lib/instruments";
 import { getMyReferrals } from "@/lib/referrals.functions";
 
