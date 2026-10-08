@@ -207,9 +207,12 @@ function TopicGrid({ onPick }: { onPick: (topicId: BotTopicId) => void }) {
 export function LiveChatDialog({
   open: controlledOpen,
   onOpenChange,
+  initialAction,
 }: {
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
+  /** Fired once when the widget opens: "agent" pre-selects Talk to Human Agent, "vip-desk" routes to the VIP Priority Operations Desk. */
+  initialAction?: "agent" | "vip-desk";
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
