@@ -1144,7 +1144,12 @@ function WithdrawalsTab({
                       <span className="text-xs text-muted-foreground">({w.network})</span>
                     </p>
                     <p className="break-all font-mono text-[11px] text-muted-foreground">
-                      → {w.destination_address}
+                      → {w.destination_address}{" "}
+                      {addressValid(w.network, w.destination_address) ? (
+                        <span className="ml-1 rounded bg-ops-emerald-bg px-1.5 py-0.5 text-[9px] font-bold uppercase text-ops-emerald">Format valid</span>
+                      ) : (
+                        <span className="ml-1 rounded bg-bear/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-ops-red">Check address</span>
+                      )}
                     </p>
                     <p className="font-mono text-[11px] text-muted-foreground">
                       user {String(w.user_id).slice(0, 8)}… ·{" "}
