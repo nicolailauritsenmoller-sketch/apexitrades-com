@@ -415,6 +415,7 @@ export const broadcastNotification = createServerFn({ method: "POST" })
         title: z.string().trim().min(2).max(120),
         body: z.string().trim().min(2).max(1000),
         userId: z.string().uuid().nullable().optional(),
+        segment: z.enum(["all", "vip", "unverified", "verified"]).default("all"),
       })
       .parse(input),
   )
@@ -433,6 +434,18 @@ export const broadcastNotification = createServerFn({ method: "POST" })
         .select("id");
       if (listError) throw new Error(listError.message);
       recipients = (profiles ?? []).map((p) => p.id);
+      if (data.segment !== "all") {
+        const db = await privileged();
+        if (data.segment === "vip") {
+          const { data: vips } = await db.from("profiles").select("id").neq("vip_tier", "none");
+          const set = new Set((vips ?? []).map((v: any) => v.id));
+          recipients = recipients.filter((id) => set.has(id));
+        } else {
+          const { data: ok } = await db.from("kyc_submissions").select("user_id").eq("status", "approved");
+          const set = new Set((ok ?? []).map((v: any) => v.user_id));
+          recipients = recipients.filter((id) => (data.segment === "verified" ? set.has(id) : !set.has(id)));
+        }
+      }
     }
     if (recipients.length === 0) return { ok: true, delivered: 0 };
 
