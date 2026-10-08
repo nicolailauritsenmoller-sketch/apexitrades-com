@@ -129,6 +129,7 @@ function WalletPage() {
   const navigate = useNavigate();
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
+  const [txQuery, setTxQuery] = useState("");
 
   const fetchAddresses = useServerFn(getDepositAddresses);
   const fetchValue = useServerFn(getPortfolioValue);
