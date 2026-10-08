@@ -21,7 +21,7 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
   const [currentTime, setCurrentTime] = useState(0);
   const [error, setError] = useState(false);
   const [ready, setReady] = useState(false);
-  const activeChapter = CHAPTERS.findLastIndex((chapter) => currentTime >= chapter.seconds);
+  const activeChapter = CHAPTERS.reduce((active, chapter, index) => currentTime >= chapter.seconds ? index : active, 0);
 
   const play = () => {
     const video = videoRef.current;
