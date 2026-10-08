@@ -351,7 +351,7 @@ function Markets() {
                           {sortDir === "asc" ? "▲" : "▼"}
                         </span>
                       ) : (
-                        <span aria-hidden className="text-[9px] leading-none opacity-0 transition-opacity group-hover/th:opacity-40">
+                        <span aria-hidden className="text-[9px] leading-none opacity-30">
                           ▼
                         </span>
                       )}
@@ -411,6 +411,11 @@ function Markets() {
                   </td>
                   <td className="num px-4 py-3 text-right text-muted-foreground">
                     {quote && !quote.stale ? formatPrice(quote.low, i.symbol) : "-"}
+                  </td>
+                  <td className="num px-4 py-3 text-right text-muted-foreground">
+                    {quote && !quote.stale && quote.volume != null
+                      ? formatVolume(quote.volume)
+                      : "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
