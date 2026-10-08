@@ -50,7 +50,7 @@ export function PlatformTourSection() {
         </Button>
       </section>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent aria-describedby={undefined} className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-4xl gap-0 overflow-y-auto border-border bg-surface p-0">
+        <DialogContent aria-describedby={undefined} className="z-[120] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-4xl gap-0 overflow-y-auto border-border bg-surface p-0">
           <div className="flex min-h-14 items-center px-4 pr-12">
             <DialogTitle className="text-sm font-semibold">Platform Tour</DialogTitle>
           </div>
