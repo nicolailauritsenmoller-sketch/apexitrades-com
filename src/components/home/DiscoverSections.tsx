@@ -90,11 +90,11 @@ export function ExploreTokensSection() {
                 <p className="truncate text-sm font-semibold">{t.name}</p>
                 <p className="num text-xs text-muted-foreground">{displaySymbol(t.symbol)}</p>
               </div>
-              <div className="shrink-0 text-right">
+              <div className="w-[4.75rem] shrink-0 text-right">
                 <FlashNum value={price} className="num text-sm font-semibold">
                   {price !== undefined ? `${isStablecoin ? "$" : ""}${formatPrice(price, t.symbol)}` : "-"}
                 </FlashNum>
-                <p className={`num text-xs ${chg >= 0 ? "text-bull" : "text-bear"}`}>
+                <p className={`num text-xs font-semibold ${chg >= 0 ? "text-bull" : "text-bear"}`}>
                   {q || isStablecoin ? `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%` : ""}
                 </p>
               </div>
@@ -225,13 +225,13 @@ function PublisherMark({ domain, source, size = 18 }: { domain: string; source: 
   const [failed, setFailed] = useState(false);
   if (!domain || failed) {
     return (
-      <span
-        className="grid shrink-0 place-items-center rounded-full bg-primary/15 text-[9px] font-bold uppercase text-primary"
-        style={{ width: size, height: size }}
-        aria-hidden
-      >
-        {source.slice(0, 1)}
-      </span>
+    <span
+      className="grid shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-surface-raised text-[9px] font-bold uppercase text-primary"
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
+      {source.slice(0, 1)}
+    </span>
     );
   }
   return (
@@ -242,7 +242,7 @@ function PublisherMark({ domain, source, size = 18 }: { domain: string; source: 
       height={size}
       loading="lazy"
       onError={() => setFailed(true)}
-      className="shrink-0 rounded-full bg-surface-raised object-contain"
+      className="shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised object-contain"
       style={{ width: size, height: size }}
     />
   );
@@ -258,7 +258,7 @@ function NewsPhoto({ item }: { item: NewsItem }) {
       alt=""
       loading="lazy"
       onError={() => setFailed(true)}
-      className="size-16 shrink-0 rounded-xl bg-surface-raised object-cover sm:size-20"
+      className="size-16 shrink-0 overflow-hidden rounded-xl border border-border bg-surface-raised object-cover sm:size-20"
     />
   );
 }
@@ -342,7 +342,7 @@ export function MarketNewsSection() {
                   </span>
                 </div>
                 <div className="mt-1 flex items-start gap-2">
-                  <p className="min-w-0 flex-1 line-clamp-2 text-[13px] font-semibold leading-snug group-hover:text-primary sm:text-sm">
+                  <p className="h-[2.75em] min-w-0 flex-1 overflow-hidden text-[13px] font-semibold leading-snug line-clamp-2 group-hover:text-primary sm:text-sm">
                     {n.title}
                   </p>
                   <SentimentTag title={n.title} />
