@@ -213,7 +213,7 @@ export function KycReviewDrawer({
                     Cancel
                   </button>
                   <button
-                    disabled={!code || act.isPending}
+                    disabled={!code || act.isPending || note.trim().length < 5}
                     onClick={() => act.mutate({ action: "reject" })}
                     className={`flex-1 ${DANGER_BTN} disabled:opacity-50`}
                   >
@@ -224,8 +224,8 @@ export function KycReviewDrawer({
             ) : (
               <div className="flex justify-end gap-2">
                 <Button disabled={act.isPending} onClick={() => act.mutate({ action: "approve" })}>
-                  Approve {tier === "L1" ? "Level 1" : "Level 2"}
-                </button>
+                  {act.isPending && <Loader2 className="animate-spin" />}Approve KYC {tier === "L1" ? "Level 1" : "Level 2"}
+                </Button>
                 <button onClick={() => setRejecting(true)} className={`flex-1 ${DANGER_BTN}`}>
                   Reject Verification
                 </button>

@@ -95,7 +95,7 @@ export function TradeCorrections() {
               }`}
             >
               {v}
-            </Button>
+            </button>
           ))}
         </div>
       </header>
