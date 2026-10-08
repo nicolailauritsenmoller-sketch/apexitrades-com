@@ -123,6 +123,13 @@ function pageNumbers(current: number, total: number): (number | "…")[] {
   return out;
 }
 
+function formatVolume(v: number): string {
+  if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
+  if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
+  return v.toFixed(0);
+}
+
 function Markets() {
   const [tab, setTab] = useState<"all" | AssetClass>("all");
   const [q, setQ] = useState("");
