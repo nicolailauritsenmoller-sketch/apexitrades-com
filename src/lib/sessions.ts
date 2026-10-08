@@ -1,3 +1,4 @@
+import { checkAccessBan } from "@/lib/access-bans.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { detectDevice, resolveGeo } from "@/lib/telemetry";
 
@@ -67,7 +68,6 @@ export type SessionRow = {
 
 async function enforceAccessBan() {
   try {
-    const { checkAccessBan } = await import("@/lib/access-bans.functions");
     const r = await checkAccessBan({ data: { deviceId: currentDeviceId() } });
     if (r.banned) {
       await supabase.auth.signOut({ scope: "local" });
