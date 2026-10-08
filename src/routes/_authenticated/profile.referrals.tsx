@@ -61,7 +61,15 @@ function ReferralsPage() {
           value={formatMoney(stats?.earned ?? 0, "USDT")}
           tone="text-bull"
         />
-        <Card title="Your code" value={code || "-"} hint={`${reward} USDT per referral`} />
+        <button
+          type="button"
+          onClick={() => code && copyReferral(code, "Referral ID copied!")}
+          disabled={!code}
+          className="touch-manipulation text-left"
+          aria-label="Copy referral ID"
+        >
+          <Card title="Your code (tap to copy)" value={code || "-"} hint={`${reward} USDT per referral`} />
+        </button>
       </div>
 
       <Section
@@ -73,10 +81,11 @@ function ReferralsPage() {
           <input
             readOnly
             value={link || "Referral link unavailable"}
-            className="flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
+            onClick={() => link && copyReferral(link, "Referral link copied!")}
+            className="flex-1 cursor-pointer rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
           />
           <button
-            onClick={() => link && copy(link, "Referral link")}
+            onClick={() => link && copyReferral(link, "Referral link copied!")}
             disabled={!link}
             className="inline-flex touch-manipulation items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >

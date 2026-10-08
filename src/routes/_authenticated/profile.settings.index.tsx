@@ -96,6 +96,26 @@ function PersonalInformation() {
     if (profile?.displayName) setDisplayName(profile.displayName);
   }, [profile?.displayName]);
 
+  const [phone, setPhone] = useState("");
+  useEffect(() => {
+    setPhone(profile?.phone ?? "");
+  }, [profile?.phone]);
+
+  const phoneMutation = useMutation({
+    mutationFn: async () => {
+      const value = phone.trim();
+      if (value && !/^\+?[0-9\s().-]{6,20}$/.test(value)) throw new Error("Enter a valid phone number.");
+      const { error } = await supabase.auth.updateUser({ data: { contact_phone: value || null } });
+      if (error) throw error;
+      await supabase.auth.refreshSession();
+    },
+    onSuccess: async () => {
+      toast.success("Phone number updated");
+      await queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const nameLockedDays = (() => {
     if (!profile?.nameLockedUntil) return 0;
     const difference = new Date(profile.nameLockedUntil).getTime() - Date.now();

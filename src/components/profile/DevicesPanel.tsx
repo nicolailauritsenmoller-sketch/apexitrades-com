@@ -24,7 +24,10 @@ export function DevicesPanel() {
   const logoutOthers = useMutation({
     mutationFn: signOutOtherDevices,
     onSuccess: () => {
-      toast.success("All other devices have been signed out");
+      queryClient.setQueryData(["sessions"], (old: typeof sessions.data) =>
+        (old ?? []).filter((row) => row.isCurrent),
+      );
+      toast.success("All other sessions have been logged out");
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -52,7 +55,7 @@ export function DevicesPanel() {
           disabled={logoutOthers.isPending || rows.filter((row) => !row.isCurrent).length === 0}
           className="h-10"
         >
-          <LogOut className="size-4" /> Sign Out All Other Devices
+          <LogOut className="size-4" /> {logoutOthers.isPending ? "Logging out..." : "Log out all other sessions"}
         </Button>
       </div>
       <div className="overflow-x-auto">
