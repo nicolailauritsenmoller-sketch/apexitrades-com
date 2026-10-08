@@ -55,6 +55,58 @@ const TABS: ("all" | AssetClass)[] = [
   "metal",
 ];
 
+type SortKey = "instrument" | "class" | "last" | "change" | "high" | "low" | "volume";
+
+const SORTABLE_COLUMNS: readonly { key: SortKey; label: string; numeric: boolean }[] = [
+  { key: "instrument", label: "Instrument", numeric: false },
+  { key: "class", label: "Class", numeric: false },
+  { key: "last", label: "Last", numeric: true },
+  { key: "change", label: "24h", numeric: true },
+  { key: "high", label: "High", numeric: true },
+  { key: "low", label: "Low", numeric: true },
+];
+
+function sortRows(
+  rows: typeof INSTRUMENTS,
+  key: SortKey,
+  dir: "asc" | "desc",
+  quotes: Record<string, { price: number; changePercent: number; high: number; low: number; volume?: number; stale: boolean }>,
+) {
+  const mult = dir === "asc" ? 1 : -1;
+  const missing = (s: string) => {
+    const q = quotes[s];
+    return !q || q.stale;
+  };
+  return [...rows].sort((a, b) => {
+    // Instruments without a live quote sort to the bottom in either direction.
+    const aMissing = missing(a.symbol);
+    const bMissing = missing(b.symbol);
+    if (aMissing !== bMissing) return aMissing ? 1 : -1;
+    if (aMissing) return 0;
+
+    switch (key) {
+      case "instrument":
+        return mult * displaySymbol(a.symbol).localeCompare(displaySymbol(b.symbol));
+      case "class":
+        return (
+          mult *
+          (ASSET_CLASS_LABEL[a.assetClass].localeCompare(ASSET_CLASS_LABEL[b.assetClass]) ||
+            displaySymbol(a.symbol).localeCompare(displaySymbol(b.symbol)))
+        );
+      case "last":
+        return mult * (quotes[a.symbol].price - quotes[b.symbol].price);
+      case "change":
+        return mult * (quotes[a.symbol].changePercent - quotes[b.symbol].changePercent);
+      case "high":
+        return mult * (quotes[a.symbol].high - quotes[b.symbol].high);
+      case "low":
+        return mult * (quotes[a.symbol].low - quotes[b.symbol].low);
+      case "volume":
+        return mult * ((quotes[a.symbol].volume ?? 0) - (quotes[b.symbol].volume ?? 0));
+    }
+  });
+}
+
 
 const PAGE_SIZE = 50;
 const ROWS_PER_PAGE = 20;
