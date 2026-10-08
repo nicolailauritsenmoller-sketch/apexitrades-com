@@ -83,7 +83,7 @@ import { RiskMonitor } from "@/components/admin/RiskMonitor";
 import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
-import { KycReviewDrawer, TierBadge } from "@/components/admin/KycReviewDrawer";
+import { KycReviewDrawer, TierBadge, REJECTION_CODES } from "@/components/admin/KycReviewDrawer";
 import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
 import { VipMembershipsPage } from "@/components/admin/VipMembershipsPage";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,6 +103,7 @@ import {
   deleteUserAccount,
   reviewDeposit,
   reviewKyc,
+  reviewKycLevel2,
   reviewWithdrawal,
   setContractOutcomeMode,
   setUserOutcomeMode,
@@ -1769,6 +1770,25 @@ const KYC_FILTERS = [
 
 function KycQueue({ kyc, onDone }: { kyc: any[]; onDone: () => void }) {
   const [filter, setFilter] = useState<(typeof KYC_FILTERS)[number]["key"]>("all");
+  const { checked, setChecked, toggle } = useBulkSelection();
+  const [term, setTerm] = useState("");
+  const [action, setAction] = useState<"approve" | "reject" | null>(null);
+  const [code, setCode] = useState("");
+  const l1 = useServerFn(reviewKyc);
+  const l2 = useServerFn(reviewKycLevel2);
+  const batch = useMutation({
+    mutationFn: async ({ action, reason }: { action: "approve" | "reject"; reason: string }) => {
+      for (const row of kyc.filter((k) => checked.has(k.id))) {
+        const data = { id: row.id, action, note: reason, code: action === "reject" ? code : undefined };
+        if (row.status === "pending") await l1({ data });
+        else if (row.level2_status === "pending") await l2({ data });
+        setChecked((prev) => { const next = new Set(prev); next.delete(row.id); return next; });
+        onDone();
+      }
+    },
+    onSuccess: () => toast.success("Selected KYC submissions reviewed successfully"),
+    onError: (e: Error) => toast.error(e.message),
+  });
   const soon = Date.now() + 30 * 86_400_000;
   const expiring = (k: any) => k.document_expires_at && new Date(k.document_expires_at).getTime() < soon;
   const match = (k: any) =>
@@ -1776,13 +1796,17 @@ function KycQueue({ kyc, onDone }: { kyc: any[]; onDone: () => void }) {
     (filter === "l1" && k.status === "pending") ||
     (filter === "l2" && k.level2_status === "pending") ||
     (filter === "expiring" && expiring(k));
-  const rows = kyc.filter(match);
+  const rows = kyc.filter((k) => match(k) && [k.full_name, k.country, k.user_id].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
+  const pendingRows = rows.filter((k) => k.status === "pending" || k.level2_status === "pending");
   const count = (key: string) =>
     kyc.filter((k) =>
       key === "all" ? true : key === "l1" ? k.status === "pending" : key === "l2" ? k.level2_status === "pending" : expiring(k),
     ).length;
   return (
-    <Card title={`KYC / Compliance desk (${kyc.length})`}>
+    <Card title={`KYC / Compliance desk (${kyc.length})`} action={<AdminTableToolbar term={term} onSearch={setTerm} onRefresh={onDone} refreshing={batch.isPending} onExport={() => downloadCsv("kyc", rows.map((k) => ({ id: k.id, full_name: k.full_name, country: k.country, status: k.status, level2_status: k.level2_status })))} />}>
+      <BulkBar total={pendingRows.length} selected={checked.size} allChecked={pendingRows.length > 0 && pendingRows.every((k) => checked.has(k.id))} onToggleAll={() => setChecked(checked.size ? new Set() : new Set(pendingRows.map((k) => k.id)))} pending={batch.isPending} onApprove={() => setAction("approve")} onReject={() => setAction("reject")} onExport={() => downloadCsv("selected-kyc", rows.filter((k) => checked.has(k.id)).map((k) => ({ id: k.id, full_name: k.full_name, status: k.status, level2_status: k.level2_status })))} />
+      {action === "reject" && <label className="mb-3 block text-xs">Rejection code<select aria-label="Batch rejection code" value={code} onChange={(e) => setCode(e.target.value)} className="ml-2 rounded-md border border-input bg-background p-2"><option value="">Select reason code</option>{REJECTION_CODES.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}</select></label>}
+      <AdminActionConfirm open={!!action && (action === "approve" || !!code)} title={action === "approve" ? "Approve KYC" : "Reject Document"} description={`Review ${checked.size} selected submissions. Only the pending verification level is changed; review documents before approving.`} pending={batch.isPending} destructive={action === "reject"} onClose={() => setAction(null)} onConfirm={async (reason) => { if (action) await batch.mutateAsync({ action, reason }); }} />
       <div className="mb-3 flex gap-1.5 overflow-x-auto whitespace-nowrap">
         {KYC_FILTERS.map((f) => (
           <button
@@ -1801,7 +1825,7 @@ function KycQueue({ kyc, onDone }: { kyc: any[]; onDone: () => void }) {
       ) : (
         <ul className="space-y-2">
           {rows.map((k) => (
-            <KycRow key={k.id} row={k} onDone={onDone} />
+            <div key={k.id} className="flex items-start gap-2">{(k.status === "pending" || k.level2_status === "pending") && <input type="checkbox" aria-label={`Select KYC ${k.full_name}`} checked={checked.has(k.id)} onChange={() => toggle(k.id)} className="mt-4 size-4 shrink-0 accent-primary" />}<div className="min-w-0 flex-1"><KycRow row={k} onDone={onDone} /></div></div>
           ))}
         </ul>
       )}

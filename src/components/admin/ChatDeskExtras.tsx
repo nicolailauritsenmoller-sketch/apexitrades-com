@@ -1,3 +1,4 @@
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -102,6 +103,7 @@ export function ChatUserSidebar({ userId }: { userId: string }) {
   const reset2fa = useServerFn(resetUserTwoFactor);
   const controls = useServerFn(setUserAccountControls);
   const [showLogs, setShowLogs] = useState(false);
+  const [freezeValue, setFreezeValue] = useState<boolean | null>(null);
   const ctx = useQuery({
     queryKey: ["chat-user-context", userId],
     queryFn: () => fetchCtx({ data: { userId } }),
@@ -117,9 +119,9 @@ export function ChatUserSidebar({ userId }: { userId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const wdM = useMutation({
-    mutationFn: (disabled: boolean) => controls({ data: { userId, withdrawalsDisabled: disabled } }),
+    mutationFn: (v: { disabled: boolean; reason: string }) => controls({ data: { userId, withdrawalsDisabled: v.disabled, reason: v.reason } }),
     onSuccess: (_d, disabled) => {
-      toast.success(disabled ? "Withdrawals disabled" : "Withdrawals re-enabled");
+      toast.success(disabled.disabled ? "Withdrawals disabled" : "Withdrawals re-enabled");
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -132,6 +134,7 @@ export function ChatUserSidebar({ userId }: { userId: string }) {
 
   return (
     <aside className="hidden overflow-y-auto border-l border-border p-3 xl:block">
+      <AdminActionConfirm open={freezeValue !== null} title="Confirm withdrawal restriction" description="Change this account withdrawal restriction with a recorded audit reason." pending={wdM.isPending} onClose={() => setFreezeValue(null)} onConfirm={async (reason) => { if (freezeValue !== null) await wdM.mutateAsync({ disabled: freezeValue, reason }); }} />
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">User profile</p>
       {ctx.isLoading || !d ? (
         <Loader2 className="mt-4 size-4 animate-spin text-muted-foreground" />
@@ -165,10 +168,7 @@ export function ChatUserSidebar({ userId }: { userId: string }) {
             <button
               type="button"
               disabled={wdM.isPending}
-              onClick={() =>
-                window.confirm(d.withdrawalsDisabled ? "Re-enable withdrawals?" : "Disable withdrawals for this user?") &&
-                wdM.mutate(!d.withdrawalsDisabled)
-              }
+              onClick={() => setFreezeValue(!d.withdrawalsDisabled)}
               className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-secondary disabled:opacity-50"
             >
               {d.withdrawalsDisabled ? <ShieldCheck className="size-3.5" /> : <ShieldAlert className="size-3.5 text-bear" />}
