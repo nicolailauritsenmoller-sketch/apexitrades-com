@@ -129,10 +129,20 @@ export function OrderBook({
   const lastPrice = quote?.price;
   const prevPrice = useRef<number | undefined>(undefined);
   const [dir, setDir] = useState<"up" | "down">("up");
+  // Tape of observed mark-price ticks (real feed moves, newest first).
+  const [tape, setTape] = useState<{ id: number; price: number; delta: number; up: boolean; time: string }[]>([]);
+  useEffect(() => {
+    setTape([]);
+    prevPrice.current = undefined;
+  }, [symbol]);
   useEffect(() => {
     if (lastPrice == null) return;
-    if (prevPrice.current != null && lastPrice !== prevPrice.current) {
-      setDir(lastPrice > prevPrice.current ? "up" : "down");
+    const before = prevPrice.current;
+    if (before != null && lastPrice !== before) {
+      const up = lastPrice > before;
+      setDir(up ? "up" : "down");
+      const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
+      setTape((t) => [{ id: Date.now(), price: lastPrice, delta: lastPrice - before, up, time }, ...t].slice(0, 8));
     }
     prevPrice.current = lastPrice;
   }, [lastPrice]);
@@ -235,6 +245,29 @@ export function OrderBook({
       </div>
 
       {mode !== "asks" && <div>{bids.map((r) => renderRow(r, "bid"))}</div>}
+
+      {!compact && tape.length > 0 && (
+        <div className="border-t border-border">
+          <div className="grid grid-cols-3 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span>Mark tick</span>
+            <span className="text-right">Move</span>
+            <span className="text-right">Time</span>
+          </div>
+          {tape.map((t) => (
+            <div
+              key={t.id}
+              className={`grid grid-cols-3 px-2 py-[2px] text-[11px] leading-4 ${t.up ? "ob-flash-bid" : "ob-flash-ask"}`}
+            >
+              <span className={`num ${t.up ? "text-bull" : "text-bear"}`}>{fmt(t.price, digits)}</span>
+              <span className={`num text-right ${t.up ? "text-bull" : "text-bear"}`}>
+                {t.up ? "+" : "-"}
+                {fmt(Math.abs(t.delta), digits)}
+              </span>
+              <span className="num text-right text-muted-foreground">{t.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-auto border-t border-border px-3 py-2">
         <div className="mb-1 flex justify-between text-[10px]">

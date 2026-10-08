@@ -70,10 +70,11 @@ export function PositionsTable({
           }),
         );
       }
-      toast[res.pnl >= 0 ? "success" : "error"](
-        `Closed at ${formatPrice(res.exitPrice)} · ${res.pnl >= 0 ? "+" : ""}${formatMoney(res.pnl, res.currency)}`,
-      );
+      toast.success("Position closed", {
+        description: `Market close at ${formatPrice(res.exitPrice)} · P&L ${res.pnl >= 0 ? "+" : "-"}${formatMoney(Math.abs(res.pnl), res.currency)} settled to your ${res.currency} wallet`,
+      });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
