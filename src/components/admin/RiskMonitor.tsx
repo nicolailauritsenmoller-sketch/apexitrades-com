@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AlertTriangle, ShieldAlert, Zap } from "lucide-react";
+import { AlertTriangle, BellRing, ShieldAlert, Zap } from "lucide-react";
 import { DANGER_BTN } from "@/lib/admin-accents";
-import { forceLiquidatePosition, getRiskMonitor } from "@/lib/admin-ops.functions";
+import { forceLiquidatePosition, getRiskMonitor, issueMarginCall } from "@/lib/admin-ops.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
@@ -26,6 +26,18 @@ export function RiskMonitor() {
   const liquidate = useServerFn(forceLiquidatePosition);
   const [minRisk, setMinRisk] = useState(0);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"liquidate" | "call">("liquidate");
+  const [reason, setReason] = useState("");
+  const call = useServerFn(issueMarginCall);
+  const marginCall = useMutation({
+    mutationFn: (id: string) => call({ data: { id, reason: reason.trim() } }),
+    onSuccess: () => {
+      toast.success("Margin call sent to the account holder");
+      setConfirmId(null);
+      setReason("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const q = useQuery({
     queryKey: ["admin-risk-monitor"],
@@ -34,10 +46,11 @@ export function RiskMonitor() {
   });
 
   const kill = useMutation({
-    mutationFn: (id: string) => liquidate({ data: { id, reason: "Manual risk liquidation" } }),
+    mutationFn: (id: string) => liquidate({ data: { id, reason: reason.trim() } }),
     onSuccess: (r: any) => {
       toast.success(`Liquidated at ${n(r.exitPrice, 6)} · P&L ${n(r.pnl)} ${r.currency}`);
       setConfirmId(null);
+      setReason("");
       void qc.invalidateQueries({ queryKey: ["admin-risk-monitor"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -167,7 +180,19 @@ export function RiskMonitor() {
                       </td>
                       <td className="px-3 py-2.5 text-right">
                         <button
-                          onClick={() => setConfirmId(p.id)}
+                          onClick={() => {
+                            setMode("call");
+                            setConfirmId(p.id);
+                          }}
+                          className="mr-1.5 inline-flex touch-manipulation items-center gap-1 rounded-lg border border-amber-500/40 px-2 py-1 text-[11px] font-semibold text-ops-amber"
+                        >
+                          <BellRing className="size-3" /> Margin call
+                        </button>
+                        <button
+                          onClick={() => {
+                            setMode("liquidate");
+                            setConfirmId(p.id);
+                          }}
                           className={`inline-flex items-center gap-1 ${DANGER_BTN}`}
                         >
                           <Zap className="size-3" /> Liquidate
@@ -230,11 +255,21 @@ export function RiskMonitor() {
       {confirmId && (
         <div className="fixed inset-0 z-[120] grid place-items-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5">
-            <h4 className="font-display text-base font-bold">Force liquidate position?</h4>
+            <h4 className="font-display text-base font-bold">
+              {mode === "call" ? "Issue margin call?" : "Force liquidate position?"}
+            </h4>
             <p className="mt-2 text-sm text-muted-foreground">
-              The position is settled immediately at the live mark price and the remaining margin
-              is returned to the user's wallet. This action is audited.
+              {mode === "call"
+                ? "The account holder receives an in-app warning to add funds or reduce exposure. This action is audited."
+                : "The position is settled immediately at the live mark price and the remaining margin is returned to the user's wallet. This action is audited."}
             </p>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              placeholder="Reason (required for the audit log)"
+              className="mt-3 w-full rounded-md border border-border bg-background p-2 text-sm"
+            />
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => setConfirmId(null)}
@@ -243,11 +278,11 @@ export function RiskMonitor() {
                 Cancel
               </button>
               <button
-                onClick={() => kill.mutate(confirmId)}
-                disabled={kill.isPending}
+                onClick={() => (mode === "call" ? marginCall.mutate(confirmId) : kill.mutate(confirmId))}
+                disabled={kill.isPending || marginCall.isPending || reason.trim().length < 5}
                 className="min-h-10 flex-1 touch-manipulation rounded-xl bg-ops-red text-sm font-bold uppercase tracking-wide text-background disabled:opacity-50"
               >
-                {kill.isPending ? "Liquidating…" : "Liquidate now"}
+                {mode === "call" ? (marginCall.isPending ? "Sending…" : "Send margin call") : kill.isPending ? "Liquidating…" : "Liquidate now"}
               </button>
             </div>
           </div>

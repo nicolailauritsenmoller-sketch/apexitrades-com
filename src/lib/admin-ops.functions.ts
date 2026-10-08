@@ -212,6 +212,58 @@ export const forceLiquidatePosition = createServerFn({ method: "POST" })
     return { exitPrice: price, pnl, currency: position.currency };
   });
 
+/** Send an audited margin call to the owner of an at-risk position. */
+export const issueMarginCall = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), reason: z.string().trim().min(5).max(300) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertFinance(context);
+    const db = await privileged();
+    const { data: position } = await db.from("positions").select("*").eq("id", data.id).maybeSingle();
+    if (!position || position.status !== "open") throw new Error("Position is not open.");
+    await notify(
+      db,
+      position.user_id,
+      "Margin call",
+      `Your ${position.display_symbol} ${position.side} position is close to liquidation. Add funds or reduce exposure. ${data.reason}`,
+      "warning",
+    );
+    await audit(context, "risk.margin_call", position.user_id, {
+      position_id: position.id,
+      symbol: position.symbol,
+      reason: data.reason,
+    });
+    return { ok: true };
+  });
+
+/** 24h / 7d / 30d traded notional split by asset class. */
+export const getVolumeByAssetClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertFinance(context);
+    const db = await privileged();
+    const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+    const [pos, con] = await Promise.all([
+      db.from("positions").select("asset_class,quantity,entry_price,opened_at").gte("opened_at", since).limit(10000),
+      db.from("contracts").select("stake,opened_at").gte("opened_at", since).limit(10000),
+    ]);
+    const windows = { "24h": 1, "7d": 7, "30d": 30 } as const;
+    const out: Record<string, Record<string, number>> = {};
+    for (const [w, days] of Object.entries(windows)) {
+      const cut = Date.now() - days * 86400_000;
+      const b: Record<string, number> = { crypto: 0, forex: 0, stock: 0, future: 0, metal: 0, scalp: 0 };
+      for (const p of (pos.data ?? []) as any[])
+        if (new Date(p.opened_at).getTime() >= cut)
+          b[p.asset_class] = (b[p.asset_class] ?? 0) + Number(p.quantity) * Number(p.entry_price);
+      for (const c of (con.data ?? []) as any[])
+        if (new Date(c.opened_at).getTime() >= cut) b.scalp += Number(c.stake);
+      out[w] = b;
+    }
+    return out;
+  });
+
 /* ------------------------------------------------------------------ */
 /* User account controls & internal notes                               */
 /* ------------------------------------------------------------------ */
