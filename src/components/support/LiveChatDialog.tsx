@@ -207,9 +207,12 @@ function TopicGrid({ onPick }: { onPick: (topicId: BotTopicId) => void }) {
 export function LiveChatDialog({
   open: controlledOpen,
   onOpenChange,
+  initialAction,
 }: {
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
+  /** Fired once when the widget opens: "agent" pre-selects Talk to Human Agent, "vip-desk" routes to the VIP Priority Operations Desk. */
+  initialAction?: "agent" | "vip-desk";
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -719,6 +722,24 @@ export function LiveChatDialog({
     userSay(QUICK_ACTIONS.find((a) => a.id === id)!.label);
     botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links });
   }
+
+  /* Fire a pre-selected desk action once when the widget opens. */
+  const initialActionFiredRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      initialActionFiredRef.current = false;
+      return;
+    }
+    if (!initialAction || initialActionFiredRef.current) return;
+    initialActionFiredRef.current = true;
+    if (initialAction === "agent") {
+      handleQuickAction("agent");
+    } else {
+      userSay("VIP Account Desk");
+      void escalate("VIP Priority Operations Desk");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialAction]);
 
   function handleChip(chip: BotChip) {
     const [kind, id] = chip.action.split(":");

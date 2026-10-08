@@ -1,21 +1,34 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   ArrowRight,
   CircleCheck,
   Crown,
   Headphones,
   LifeBuoy,
+  Loader2,
   Search,
   ShieldCheck,
   TicketCheck,
   WalletCards,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { TicketDialog } from "@/components/support/TicketDialog";
-import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { SupportUnreadBadge } from "@/components/support/SupportUnreadBadge";
 import { LiveChatDialog } from "@/components/support/LiveChatDialog";
+import { getProfileOverview } from "@/lib/profile.functions";
+import { createSupportTicket } from "@/lib/support.functions";
+import { VIP1_THRESHOLD_USDT, isVip } from "@/lib/vip-tiers";
 
 export const Route = createFileRoute("/_authenticated/profile/support")({
   head: () => ({
@@ -39,15 +52,39 @@ export const Route = createFileRoute("/_authenticated/profile/support")({
 });
 
 function ContactSupport() {
+  const navigate = useNavigate();
   const [ticketTab, setTicketTab] = useState<"submit" | "tickets">("submit");
   const [ticketOpen, setTicketOpen] = useState(false);
-  const [vipOpen, setVipOpen] = useState(false);
+  const [vipGateOpen, setVipGateOpen] = useState(false);
+  const [txidOpen, setTxidOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatAction, setChatAction] = useState<"agent" | "vip-desk" | undefined>(undefined);
   const [search, setSearch] = useState("");
+
+  const fetchOverview = useServerFn(getProfileOverview);
+  const overview = useQuery({
+    queryKey: ["profile-overview"],
+    queryFn: () => fetchOverview(),
+    staleTime: 30_000,
+  });
+  const vipActive = isVip((overview.data as any)?.profile?.vipTier);
 
   const openTickets = (tab: "submit" | "tickets") => {
     setTicketTab(tab);
     setTicketOpen(true);
+  };
+
+  const openChat = (action?: "agent" | "vip-desk") => {
+    setChatAction(action);
+    setChatOpen(true);
+  };
+
+  const openConcierge = () => {
+    if (vipActive) {
+      openChat("vip-desk");
+    } else {
+      setVipGateOpen(true);
+    }
   };
 
   const items = [
@@ -57,7 +94,7 @@ function ContactSupport() {
       description: "Launch real-time messaging with support agents immediately.",
       action: "Start live chat",
       keywords: "agent message assistance help",
-      onClick: () => setChatOpen(true),
+      onClick: () => openChat("agent"),
     },
     {
       icon: WalletCards,
@@ -66,7 +103,7 @@ function ContactSupport() {
         "Self-service tools for missing hashes, delayed network confirmations, or memo tags.",
       action: "Report a transaction",
       keywords: "deposit withdrawal transaction hash network confirmation memo funds",
-      onClick: () => openTickets("submit"),
+      onClick: () => setTxidOpen(true),
     },
     {
       icon: ShieldCheck,
@@ -148,7 +185,7 @@ function ContactSupport() {
               </p>
             </div>
           </div>
-          <Button onClick={() => setVipOpen(true)} className="min-h-11 shrink-0">
+          <Button onClick={openConcierge} className="min-h-11 shrink-0">
             Open VIP concierge <ArrowRight />
           </Button>
         </div>
@@ -195,7 +232,7 @@ function ContactSupport() {
                 <Link
                   key={title}
                   to={to}
-                  className="group flex min-h-44 touch-manipulation items-start gap-4 rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-secondary/50"
+                  className="group flex touch-manipulation items-start gap-4 rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-secondary/50 sm:min-h-44"
                 >
                   {content}
                 </Link>
@@ -205,7 +242,7 @@ function ContactSupport() {
                   type="button"
                   variant="ghost"
                   onClick={onClick}
-                  className="group h-auto min-h-44 w-full items-start justify-start whitespace-normal rounded-lg border border-border bg-card p-5 text-left shadow-none hover:border-primary/40 hover:bg-secondary/50"
+                  className="group h-auto w-full items-start justify-start whitespace-normal rounded-lg border border-border bg-card p-5 text-left shadow-none hover:border-primary/40 hover:bg-secondary/50 sm:min-h-44"
                 >
                   {content}
                 </Button>
@@ -223,15 +260,176 @@ function ContactSupport() {
               <Button asChild variant="outline">
                 <Link to="/profile/help">Browse help center</Link>
               </Button>
-              <Button onClick={() => setChatOpen(true)} className="relative">Start live chat<SupportUnreadBadge /></Button>
+              <Button onClick={() => openChat("agent")} className="relative">
+                Start live chat
+                <SupportUnreadBadge />
+              </Button>
             </div>
           </div>
         )}
       </section>
 
       <TicketDialog open={ticketOpen} onOpenChange={setTicketOpen} defaultTab={ticketTab} />
-      <VipChatDialog open={vipOpen} onOpenChange={setVipOpen} />
-      <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} />
+      <LiveChatDialog open={chatOpen} onOpenChange={setChatOpen} initialAction={chatAction} />
+
+      {/* VIP qualification gate for non-VIP accounts */}
+      <Dialog open={vipGateOpen} onOpenChange={setVipGateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="size-5 text-primary" /> VIP Dedicated Desk
+            </DialogTitle>
+            <DialogDescription>
+              The VIP concierge is reserved for accounts with active VIP status.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-border bg-secondary/40 p-4 text-sm leading-6">
+            <p className="font-semibold">VIP qualification</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+              <li>
+                {VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT minimum balance requirement
+              </li>
+              <li>Zero trading fees on all markets</li>
+              <li>Priority 24/7 dedicated account manager</li>
+              <li>Elevated daily withdrawal limits</li>
+            </ul>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              className="min-h-11 flex-1"
+              onClick={() => {
+                setVipGateOpen(false);
+                void navigate({ to: "/vip-upgrade" });
+              }}
+            >
+              Upgrade to VIP / Deposit Funds <ArrowRight />
+            </Button>
+            <Button variant="outline" className="min-h-11" onClick={() => setVipGateOpen(false)}>
+              Not now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <TxidReportDialog
+        open={txidOpen}
+        onOpenChange={setTxidOpen}
+        onSubmitted={() => openTickets("tickets")}
+      />
     </>
+  );
+}
+
+/** Streamlined delayed deposit/withdrawal report: paste the TXID and submit. */
+function TxidReportDialog({
+  open,
+  onOpenChange,
+  onSubmitted,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSubmitted: () => void;
+}) {
+  const [kind, setKind] = useState<"deposits" | "withdrawals">("deposits");
+  const [txid, setTxid] = useState("");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const createTicket = useServerFn(createSupportTicket);
+
+  const reset = () => {
+    setTxid("");
+    setNote("");
+    setKind("deposits");
+  };
+
+  const submit = async () => {
+    const hash = txid.trim();
+    if (hash.length < 8) {
+      toast.error("Paste a valid transaction hash (TXID).");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createTicket({
+        data: {
+          subject: `${kind === "deposits" ? "Deposit" : "Withdrawal"} review - TXID ${hash.slice(0, 12)}...`,
+          body: `Transaction hash (TXID): ${hash}\n\n${note.trim() || "Please review this delayed transaction."}`,
+          category: kind,
+          priority: "normal",
+        },
+      });
+      toast.success("Transaction reported - the desk is reviewing it.");
+      onOpenChange(false);
+      reset();
+      onSubmitted();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not submit the report.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <WalletCards className="size-5 text-primary" /> Report a transaction
+          </DialogTitle>
+          <DialogDescription>
+            Paste the transaction hash (TXID) for a delayed deposit or withdrawal review.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-2">
+          {(
+            [
+              { id: "deposits", label: "Deposit" },
+              { id: "withdrawals", label: "Withdrawal" },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => setKind(opt.id)}
+              className={`min-h-11 rounded-lg border text-sm font-semibold transition-colors ${
+                kind === opt.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <label className="block text-xs font-semibold text-muted-foreground">
+          Transaction hash (TXID)
+          <input
+            value={txid}
+            onChange={(e) => setTxid(e.target.value)}
+            placeholder="e.g. 0x9f2c... or a64b..."
+            className="mt-1.5 min-h-11 w-full rounded-lg border border-input bg-background px-3 font-mono text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </label>
+
+        <label className="block text-xs font-semibold text-muted-foreground">
+          Note for the desk (optional)
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            maxLength={500}
+            placeholder="Asset, amount, when you sent it..."
+            className="mt-1.5 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </label>
+
+        <Button onClick={() => void submit()} disabled={submitting} className="min-h-11 w-full">
+          {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+          Submit for review
+        </Button>
+      </DialogContent>
+    </Dialog>
   );
 }
