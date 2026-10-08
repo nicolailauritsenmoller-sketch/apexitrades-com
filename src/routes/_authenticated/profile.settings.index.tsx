@@ -195,12 +195,16 @@ function PersonalInformation() {
                   <div className="flex gap-2">
                     <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} disabled={nameLockedDays > 0} maxLength={60} className="h-10 min-w-0 sm:w-56" aria-label="Display name" />
                     <Button type="button" size="sm" onClick={() => nameMutation.mutate(displayName.trim())} disabled={nameMutation.isPending || nameLockedDays > 0 || displayName.trim().length < 2 || displayName.trim() === profile?.displayName} className="h-10">
-                      <Save className="size-4" /> Save
+                      {nameLockedDays > 0 ? <LockKeyhole className="size-4" /> : <Save className="size-4" />} {nameLockedDays > 0 ? "Locked" : "Save"}
                     </Button>
                   </div>
-                  <span className={nameLockedDays > 0 ? "text-[11px] font-semibold text-warning" : "text-[11px] text-muted-foreground"}>
-                    {nameLockedDays > 0 ? `Name locked • ${nameLockedDays} days remaining` : "Eligible for a change • 60-day cooldown applies"}
-                  </span>
+                  {nameLockedDays > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-[10px] font-semibold text-warning sm:self-end">
+                      <LockKeyhole className="size-3" /> Name updated. Can only be modified once every 60 days. ({nameLockedDays} days remaining)
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-muted-foreground">Eligible for a change - 60-day cooldown applies</span>
+                  )}
                 </div>
               </DetailRow>
 
@@ -213,10 +217,14 @@ function PersonalInformation() {
               </DetailRow>
 
               <DetailRow icon={Phone} label="Phone Number" description="Contact number authorized for account recovery.">
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <span className="text-sm font-medium">{maskPhone(profile?.phone)}</span>
+                <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+                  <div className="flex gap-2">
+                    <Input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+1 555 000 0000" maxLength={20} className="h-10 min-w-0 sm:w-56" aria-label="Phone number" />
+                    <Button type="button" size="sm" onClick={() => phoneMutation.mutate()} disabled={phoneMutation.isPending || phone.trim() === (profile?.phone ?? "")} className="h-10">
+                      <Save className="size-4" /> Save
+                    </Button>
+                  </div>
                   <StatusBadge active={Boolean(twoFactor.data?.enabled)}>{twoFactor.data?.enabled ? "2FA Authorized" : "2FA Not Authorized"}</StatusBadge>
-                  <Button asChild type="button" variant="outline" size="sm"><Link to="/profile/settings/security">Manage</Link></Button>
                 </div>
               </DetailRow>
 

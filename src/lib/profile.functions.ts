@@ -218,7 +218,10 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         avatarUrl: (profile as any)?.avatar_url ?? null,
         email: (claimRecord["email"] as string | undefined) ?? null,
         emailVerified: Boolean(claimRecord["email_verified"] ?? userMetadata["email_verified"]),
-        phone: (claimRecord["phone"] as string | undefined) ?? null,
+        phone:
+          ((userMetadata["contact_phone"] as string | undefined) ||
+            (claimRecord["phone"] as string | undefined)) ??
+          null,
         referralCode: (profile as any)?.referral_code ?? null,
         referralRewards: Number((profile as any)?.referral_rewards_usdt ?? 0),
         vipTier: ((profile as any)?.vip_tier ?? "regular") as string,
