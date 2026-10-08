@@ -1024,7 +1024,14 @@ function DepositsTab({
 
               {d.tx_hash && (
                 <p className="mt-2 break-all font-mono text-[11px] text-muted-foreground">
-                  tx: {d.tx_hash}
+                  tx:{" "}
+                  {explorerUrl(d.network, d.tx_hash) ? (
+                    <a href={explorerUrl(d.network, d.tx_hash)!} target="_blank" rel="noreferrer" className="text-primary underline">
+                      {d.tx_hash}
+                    </a>
+                  ) : (
+                    d.tx_hash
+                  )}
                 </p>
               )}
               {d.receipt_path && <DepositProof id={d.id} />}
@@ -1923,11 +1930,12 @@ function BroadcastTab({ profiles }: { profiles: any[] }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [userId, setUserId] = useState("");
+  const [segment, setSegment] = useState<"all" | "vip" | "unverified" | "verified">("all");
 
   const mutation = useMutation({
     mutationFn: (input: any) => send({ data: input }),
-    onSuccess: () => {
-      toast.success("Notification sent.");
+    onSuccess: (r: any) => {
+      toast.success(`Notification sent to ${r?.delivered ?? 0} account(s).`);
       setTitle("");
       setBody("");
     },
@@ -1942,13 +1950,32 @@ function BroadcastTab({ profiles }: { profiles: any[] }) {
           onChange={(e) => setUserId(e.target.value)}
           className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
         >
-          <option value="">All users (system-wide announcement)</option>
+          <option value="">Audience segment (below)</option>
           {profiles.map((p) => (
             <option key={p.id} value={p.id}>
               {p.display_name} - {String(p.id).slice(0, 8)}…
             </option>
           ))}
         </select>
+        {!userId && (
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              ["all", "All users"],
+              ["vip", "VIPs"],
+              ["verified", "Verified"],
+              ["unverified", "Unverified"],
+            ] as const).map(([k, l]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setSegment(k)}
+                className={`touch-manipulation rounded-full border px-3 py-1 text-xs ${segment === k ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        )}
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -1969,6 +1996,7 @@ function BroadcastTab({ profiles }: { profiles: any[] }) {
               title: title.trim(),
               body: body.trim(),
               userId: userId || null,
+              segment,
             })
           }
           className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
@@ -1978,4 +2006,14 @@ function BroadcastTab({ profiles }: { profiles: any[] }) {
       </div>
     </Card>
   );
+}
+
+function explorerUrl(network: string | null | undefined, hash: string): string | null {
+  const n = String(network ?? "").toUpperCase();
+  if (n.includes("TRC")) return `https://tronscan.org/#/transaction/${hash}`;
+  if (n.includes("ERC") || n === "ETH") return `https://etherscan.io/tx/${hash}`;
+  if (n.includes("BEP") || n.includes("BSC")) return `https://bscscan.com/tx/${hash}`;
+  if (n.includes("BTC") || n.includes("BITCOIN")) return `https://mempool.space/tx/${hash}`;
+  if (n.includes("SOL")) return `https://solscan.io/tx/${hash}`;
+  return null;
 }

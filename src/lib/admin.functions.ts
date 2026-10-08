@@ -437,7 +437,7 @@ export const broadcastNotification = createServerFn({ method: "POST" })
       if (data.segment !== "all") {
         const db = await privileged();
         if (data.segment === "vip") {
-          const { data: vips } = await db.from("profiles").select("id").neq("vip_tier", "none");
+          const { data: vips } = await db.from("profiles").select("id").neq("vip_tier", "regular");
           const set = new Set((vips ?? []).map((v: any) => v.id));
           recipients = recipients.filter((id) => set.has(id));
         } else {
