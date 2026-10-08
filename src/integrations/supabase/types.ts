@@ -1424,6 +1424,66 @@ export type Database = {
         }
         Relationships: []
       }
+      treasury_ledger: {
+        Row: {
+          actor_id: string
+          actor_name: string | null
+          amount: number
+          counterparty_user_id: string | null
+          created_at: string
+          currency: string
+          direction: string
+          id: string
+          reason: string
+          treasury_balance_after: number
+          user_balance_after: number | null
+        }
+        Insert: {
+          actor_id: string
+          actor_name?: string | null
+          amount: number
+          counterparty_user_id?: string | null
+          created_at?: string
+          currency: string
+          direction: string
+          id?: string
+          reason: string
+          treasury_balance_after: number
+          user_balance_after?: number | null
+        }
+        Update: {
+          actor_id?: string
+          actor_name?: string | null
+          amount?: number
+          counterparty_user_id?: string | null
+          created_at?: string
+          currency?: string
+          direction?: string
+          id?: string
+          reason?: string
+          treasury_balance_after?: number
+          user_balance_after?: number | null
+        }
+        Relationships: []
+      }
+      treasury_wallets: {
+        Row: {
+          balance: number
+          currency: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          currency: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          currency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       two_factor_sessions: {
         Row: {
           id: string
@@ -2085,6 +2145,18 @@ export type Database = {
           p_rate: number
           p_to: string
           p_to_amount: number
+          p_user: string
+        }
+        Returns: Json
+      }
+      treasury_transfer: {
+        Args: {
+          p_actor: string
+          p_actor_name: string
+          p_amount: number
+          p_currency: string
+          p_direction: string
+          p_reason: string
           p_user: string
         }
         Returns: Json
