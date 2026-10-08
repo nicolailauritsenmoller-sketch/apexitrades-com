@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation.
+- [x] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation; real staff navigation verified at /admin, hostname playback awaits DNS.
 - [ ] Activate admin hostname - blocked on domain registration, DNS connection and publication; unset primary domain redirects.
 
 - [x] Standardize shared action hierarchy and Users/KYC/financial queue toolbars with selected-row controls; transaction ledger remains export-only.
