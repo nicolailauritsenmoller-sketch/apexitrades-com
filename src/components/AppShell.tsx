@@ -1,4 +1,4 @@
-import { ADMIN_ORIGIN } from "@/lib/operations-routing";
+
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -187,7 +187,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
               <a
-                href={ADMIN_ORIGIN + "/"}
+                href="/admin"
                 className="relative hidden touch-manipulation items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:flex"
               >
                 <ShieldCheck className="size-4" />

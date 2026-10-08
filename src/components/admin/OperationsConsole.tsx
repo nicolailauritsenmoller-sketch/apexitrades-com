@@ -116,7 +116,7 @@ import {
 } from "@/lib/admin.functions";
 
 function ReturnToPlatform() {
- useEffect(() => { window.location.replace(PLATFORM_ORIGIN + "/"); }, []);
+ useEffect(() => { window.location.replace("/"); }, []);
  return <p className="p-8 text-muted-foreground">Returning to Velocity Trade...</p>;
 }
 
