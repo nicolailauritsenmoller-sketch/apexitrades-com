@@ -12,11 +12,21 @@ import {
   ChevronDown,
   Clock3,
   Copy,
+  Download,
   Loader2,
+  MessageCircle,
   Repeat,
+  Search,
   ShieldCheck,
 } from "lucide-react";
 import QRCode from "qrcode";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,6 +129,7 @@ function WalletPage() {
   const navigate = useNavigate();
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
+  const [txQuery, setTxQuery] = useState("");
 
   const fetchAddresses = useServerFn(getDepositAddresses);
   const fetchValue = useServerFn(getPortfolioValue);
@@ -237,6 +248,59 @@ function WalletPage() {
     );
   }, [activity.data]);
 
+  const filteredTransactions = useMemo(() => {
+    const q = txQuery.trim().toLowerCase();
+    if (!q) return transactions;
+    return transactions.filter((t) => {
+      const typeLabel = t.type === "deposit" ? "deposit" : t.type === "withdrawal" ? "withdrawal" : "swap";
+      return (
+        t.asset.toLowerCase().includes(q) ||
+        assetName(t.asset).toLowerCase().includes(q) ||
+        typeLabel.includes(q) ||
+        (t.txHash ?? "").toLowerCase().includes(q) ||
+        (t.address ?? "").toLowerCase().includes(q) ||
+        (t.network ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [transactions, txQuery]);
+
+  function exportCsv() {
+    const rows = filteredTransactions;
+    if (rows.length === 0) {
+      toast.error("No transactions to export.");
+      return;
+    }
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const header = ["Date", "Type", "Asset", "Amount", "Network", "Status", "Address", "TX Hash", "Note"];
+    const lines = rows.map((t) =>
+      [
+        new Date(t.createdAt).toISOString(),
+        t.type,
+        t.asset,
+        String(t.amount),
+        t.network ?? "",
+        t.rawStatus,
+        t.address ?? "",
+        t.txHash ?? "",
+        t.note ?? "",
+      ]
+        .map(escape)
+        .join(","),
+    );
+    const csv = [header.map(escape).join(","), ...lines].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `velocity-trade-statement-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Statement downloaded");
+    void logActivity("interaction", "Exported transaction statement", { rows: rows.length });
+  }
+
   return (
     <AppShell>
       <h1 className="text-2xl font-bold">Assets</h1>
@@ -282,11 +346,32 @@ function WalletPage() {
         />
       )}
 
-      <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
-        Transaction history
-      </h2>
+      <div className="mb-3 mt-8 flex flex-wrap items-center gap-2">
+        <h2 className="mr-auto text-xs uppercase tracking-widest text-muted-foreground">
+          Transaction history
+        </h2>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={txQuery}
+            onChange={(e) => setTxQuery(e.target.value)}
+            placeholder="Search asset, type or TXID"
+            className="h-8 w-52 rounded-md border border-border bg-secondary/40 pl-8 pr-2 text-xs outline-none focus:border-primary"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={exportCsv}
+        >
+          <Download className="size-3.5" />
+          Export CSV
+        </Button>
+      </div>
       <div className="panel divide-y divide-border">
-        {transactions.map((t) => {
+        {filteredTransactions.map((t) => {
           const style = STATUS_STYLE[t.status];
           return (
             <button
@@ -322,6 +407,11 @@ function WalletPage() {
         })}
         {!activity.isLoading && transactions.length === 0 && (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">No activity yet.</p>
+        )}
+        {!activity.isLoading && transactions.length > 0 && filteredTransactions.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            No transactions match your search.
+          </p>
         )}
       </div>
 
@@ -554,6 +644,8 @@ function DepositTab({
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrLargeDataUrl, setQrLargeDataUrl] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const submit = useServerFn(requestDeposit);
 
@@ -567,6 +659,7 @@ function DepositTab({
     if (!addr?.address) return;
     let active = true;
     setQrDataUrl("");
+    setQrLargeDataUrl("");
     void QRCode.toDataURL(addr.address, {
       width: 224,
       margin: 2,
@@ -574,6 +667,14 @@ function DepositTab({
       color: { dark: "#111827", light: "#FFFFFF" },
     }).then((url) => {
       if (active) setQrDataUrl(url);
+    });
+    void QRCode.toDataURL(addr.address, {
+      width: 640,
+      margin: 2,
+      errorCorrectionLevel: "H",
+      color: { dark: "#111827", light: "#FFFFFF" },
+    }).then((url) => {
+      if (active) setQrLargeDataUrl(url);
     });
     return () => {
       active = false;
@@ -629,8 +730,22 @@ function DepositTab({
   });
   if (addresses.length === 0) {
     return (
-      <div className="panel p-6 text-sm text-muted-foreground">
-        No deposit addresses have been configured yet. Please contact support.
+      <div className="panel mx-auto max-w-4xl p-8 text-center">
+        <div className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-primary/10">
+          <ArrowDownToLine className="size-5 text-primary" />
+        </div>
+        <h3 className="text-base font-bold">Deposits are not enabled yet</h3>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          Your dedicated deposit addresses are set up by our operations desk. Contact support and we will enable them for your account.
+        </p>
+        <Button
+          type="button"
+          className="mt-5"
+          onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat", { detail: {} }))}
+        >
+          <MessageCircle className="size-4" />
+          Contact Support to Enable Deposits
+        </Button>
       </div>
     );
   }
@@ -655,7 +770,7 @@ function DepositTab({
       field.remove();
     }
     setCopied(true);
-    toast.success("Deposit address copied");
+    toast.success("Address copied to clipboard!");
     window.setTimeout(() => setCopied(false), 1800);
   }
 
@@ -697,10 +812,19 @@ function DepositTab({
 
               <div>
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Deposit address</p>
-                <div className="rounded-md border border-border bg-secondary/40 p-3">
+                <button
+                  type="button"
+                  onClick={() => void copyAddress()}
+                  title="Click to copy"
+                  className="w-full cursor-copy rounded-md border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/60"
+                >
                   <p className="num break-all text-sm font-medium leading-6">{addr.address}</p>
                   {addr.memo && <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">Memo / tag: <span className="num text-foreground">{addr.memo}</span></p>}
-                </div>
+                  <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    {copied ? <Check className="size-3 text-bull" /> : <Copy className="size-3" />}
+                    {copied ? "Copied" : "Click to copy"}
+                  </p>
+                </button>
                 <Button type="button" size="lg" className="mt-3 h-12 w-full font-bold" onClick={() => void copyAddress()}>
                   {copied ? <Check /> : <Copy />}
                   {copied ? "Address copied" : "Copy address"}
@@ -720,18 +844,54 @@ function DepositTab({
             </div>
 
             <div className="flex flex-col items-center justify-center border-t border-border bg-secondary/25 p-6 lg:border-l lg:border-t-0">
-              <div className="flex size-56 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-2 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setQrOpen(true)}
+                title="Enlarge QR code"
+                className="flex size-56 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-2 shadow-sm transition-colors hover:border-primary/50"
+              >
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt={`${addr.coin} ${networkDetails.label} deposit address QR code`} width={208} height={208} />
                 ) : (
                   <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 )}
-              </div>
+              </button>
               <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="size-4 text-bull" /> Verified deposit address</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">Tap the code to enlarge for scanning</p>
             </div>
           </div>
         )}
       </section>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{addr?.coin} deposit address</DialogTitle>
+            <DialogDescription>
+              Scan with your wallet app to send {addr?.coin} via {networkDetails?.label ?? addr?.network}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mx-auto flex size-72 items-center justify-center overflow-hidden rounded-md border border-border bg-background p-3">
+            {qrLargeDataUrl ? (
+              <img src={qrLargeDataUrl} alt="Deposit address QR code" width={264} height={264} />
+            ) : (
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          {addr && (
+            <button
+              type="button"
+              onClick={() => void copyAddress()}
+              className="w-full cursor-copy rounded-md border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/50"
+            >
+              <p className="num break-all text-xs font-medium leading-5">{addr.address}</p>
+              <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Copy className="size-3" /> Click to copy
+              </p>
+            </button>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {addr && (
         <section className="panel p-4 sm:p-6">
