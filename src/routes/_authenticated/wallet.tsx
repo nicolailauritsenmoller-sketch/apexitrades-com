@@ -248,6 +248,59 @@ function WalletPage() {
     );
   }, [activity.data]);
 
+  const filteredTransactions = useMemo(() => {
+    const q = txQuery.trim().toLowerCase();
+    if (!q) return transactions;
+    return transactions.filter((t) => {
+      const typeLabel = t.type === "deposit" ? "deposit" : t.type === "withdrawal" ? "withdrawal" : "swap";
+      return (
+        t.asset.toLowerCase().includes(q) ||
+        assetName(t.asset).toLowerCase().includes(q) ||
+        typeLabel.includes(q) ||
+        (t.txHash ?? "").toLowerCase().includes(q) ||
+        (t.address ?? "").toLowerCase().includes(q) ||
+        (t.network ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [transactions, txQuery]);
+
+  function exportCsv() {
+    const rows = filteredTransactions;
+    if (rows.length === 0) {
+      toast.error("No transactions to export.");
+      return;
+    }
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const header = ["Date", "Type", "Asset", "Amount", "Network", "Status", "Address", "TX Hash", "Note"];
+    const lines = rows.map((t) =>
+      [
+        new Date(t.createdAt).toISOString(),
+        t.type,
+        t.asset,
+        String(t.amount),
+        t.network ?? "",
+        t.rawStatus,
+        t.address ?? "",
+        t.txHash ?? "",
+        t.note ?? "",
+      ]
+        .map(escape)
+        .join(","),
+    );
+    const csv = [header.map(escape).join(","), ...lines].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `velocity-trade-statement-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Statement downloaded");
+    void logActivity("wallet", "Exported transaction statement", { rows: rows.length });
+  }
+
   return (
     <AppShell>
       <h1 className="text-2xl font-bold">Assets</h1>
