@@ -176,12 +176,12 @@ function Markets() {
   const visible = useMemo(
     () =>
       infinite
-        ? filtered.slice(0, limit)
-        : filtered.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
-    [filtered, limit, infinite, currentPage],
+        ? sorted.slice(0, limit)
+        : sorted.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
+    [sorted, limit, infinite, currentPage],
   );
 
-  const hasMore = infinite && visible.length < filtered.length;
+  const hasMore = infinite && visible.length < sorted.length;
 
   useEffect(() => {
     if (!hasMore) return;
@@ -200,12 +200,7 @@ function Markets() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMore, filtered.length]);
-
-  const { quotes } = useQuotes(
-    visible.map((i) => i.symbol),
-    8000,
-  );
+  }, [hasMore, sorted.length]);
 
   const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD=X"], 8000).quotes;
 
