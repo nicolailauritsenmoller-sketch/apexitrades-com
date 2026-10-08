@@ -124,6 +124,8 @@ function Home() {
 
       <AccountMetrics data={overview.data} hidden={hidden} format={(v) => format(v)} />
 
+      <PlatformTourSection />
+
       <WatchlistSection />
       <TopMoversSection />
 
