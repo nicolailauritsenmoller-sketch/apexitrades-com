@@ -65,6 +65,12 @@ function AuthPage() {
   const [expiresIn, setExpiresIn] = useState(0);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("blocked") === "1") {
+      toast.error("Access from this device or network has been restricted. Contact support for assistance.", { duration: 10000 });
+    }
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
