@@ -140,3 +140,10 @@ function ReferralsPage() {
     </>
   );
 }
+
+function copyReferral(text: string, message: string) {
+  navigator.clipboard.writeText(text).then(
+    () => toast.success(message),
+    () => toast.error("Could not copy"),
+  );
+}
