@@ -83,7 +83,7 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
               event.currentTarget.currentTime = time;
               setCurrentTime(time);
               pendingTime.current = null;
-              if (resumePlayback.current) play();
+              if (resumePlayback.current) play(); else event.currentTarget.pause();
             }
           }} />
         {!ready && !error && <span role="status" className="pointer-events-none absolute left-3 top-3 rounded-md bg-background/90 px-3 py-2 text-xs text-muted-foreground">Loading video...</span>}
