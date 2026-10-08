@@ -732,10 +732,19 @@ function DepositTab({
 
               <div>
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Deposit address</p>
-                <div className="rounded-md border border-border bg-secondary/40 p-3">
+                <button
+                  type="button"
+                  onClick={() => void copyAddress()}
+                  title="Click to copy"
+                  className="w-full cursor-copy rounded-md border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/60"
+                >
                   <p className="num break-all text-sm font-medium leading-6">{addr.address}</p>
                   {addr.memo && <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">Memo / tag: <span className="num text-foreground">{addr.memo}</span></p>}
-                </div>
+                  <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    {copied ? <Check className="size-3 text-bull" /> : <Copy className="size-3" />}
+                    {copied ? "Copied" : "Click to copy"}
+                  </p>
+                </button>
                 <Button type="button" size="lg" className="mt-3 h-12 w-full font-bold" onClick={() => void copyAddress()}>
                   {copied ? <Check /> : <Copy />}
                   {copied ? "Address copied" : "Copy address"}
