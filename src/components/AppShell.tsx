@@ -59,6 +59,31 @@ const MOBILE_NAV = [
   { to: "/wallet", params: {}, label: "nav.assets", icon: Wallet, exact: false, center: false },
 ] as const;
 
+/** Resolves the active page title shown next to the brand mark in the header. */
+const PAGE_TITLES: ReadonlyArray<readonly [prefix: string, title: string]> = [
+  ["/dashboard", "Home"],
+  ["/portfolio", "Portfolio"],
+  ["/markets", "Markets"],
+  ["/market", "Markets"],
+  ["/terminal/", "Trade Terminal"],
+  ["/trade", "Trade Terminal"],
+  ["/wallet", "Wallet"],
+  ["/profile", "Profile"],
+  ["/sys-portal-x97", "Admin"],
+  ["/assets", "Assets"],
+  ["/history", "History"],
+  ["/notifications", "Notifications"],
+  ["/reset-password", "Reset Password"],
+  ["/auth", "Sign In"],
+];
+
+function resolvePageTitle(pathname: string): string {
+  const matched = PAGE_TITLES.find(([prefix]) => pathname.startsWith(prefix));
+  if (matched) return matched[1];
+  const tail = pathname.replace(/^\//, "").split("/")[0];
+  if (!tail) return "Home";
+  return tail.charAt(0).toUpperCase() + tail.slice(1);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -132,8 +157,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
             <BrandMark className="size-9" alt="Velocity Trade logo" />
-            <span className="truncate font-display text-sm font-bold tracking-tight">
-              VELOCITY TRADE
+            <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+              {resolvePageTitle(pathname)}
             </span>
           </Link>
 
