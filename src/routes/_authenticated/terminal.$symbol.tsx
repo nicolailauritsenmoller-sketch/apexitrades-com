@@ -81,9 +81,32 @@ function Terminal() {
   const [orderPriceValue, setOrderPriceValue] = useState("");
   const setOrderPrice = (p: number) => setOrderPriceValue(String(+p.toFixed(inst.precision)));
 
-  const { quotes } = useQuotes([symbol], 3000);
+  const { quotes } = useQuotes([symbol], 1500);
   const quote = quotes[symbol];
   const candles = useCandles(symbol, timeframe);
+
+  // Switching pair via Related/search: reset ticket parameters to the new instrument.
+  useEffect(() => {
+    setQuantity(String(inst.step));
+    setOrderPriceValue("");
+  }, [symbol, inst.step]);
+
+  // Header mark price flash on each tick.
+  const prevHeaderPrice = useRef<number | undefined>(undefined);
+  const [headerFlash, setHeaderFlash] = useState<"" | "flash-up" | "flash-down">("");
+  useEffect(() => {
+    const p = quote?.price;
+    if (p == null) return;
+    const before = prevHeaderPrice.current;
+    prevHeaderPrice.current = p;
+    if (before == null || before === p) return;
+    setHeaderFlash(p > before ? "flash-up" : "flash-down");
+    const id = setTimeout(() => setHeaderFlash(""), 600);
+    return () => clearTimeout(id);
+  }, [quote?.price]);
+  useEffect(() => {
+    prevHeaderPrice.current = undefined;
+  }, [symbol]);
 
   const fetchPortfolio = useServerFn(getPortfolio);
   const portfolio = useQuery({
@@ -235,7 +258,7 @@ function Terminal() {
             </p>
           </div>
           <div className="min-w-0">
-            <div className="num text-xl font-semibold sm:text-2xl">
+            <div className={`num rounded px-1 text-xl font-semibold sm:text-2xl ${headerFlash}`}>
               {quote ? formatPrice(quote.price, symbol) : "-"}
             </div>
             <div className={`num flex items-center gap-1 text-xs ${up ? "text-bull" : "text-bear"}`}>
