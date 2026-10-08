@@ -7,9 +7,10 @@ import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   DOC_TYPES,
   FileUploadField,
-  IMAGE_TYPES,
+
   type UploadStage,
 } from "@/components/profile/FileUploadField";
+import { LiveSelfieCapture, type SelfieCaptureMeta } from "@/components/profile/LiveSelfieCapture";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
@@ -31,6 +32,7 @@ export function KycPanel({
     documentNumber: string;
     documentPath: string;
     selfiePath: string;
+    selfieCapture: SelfieCaptureMeta;
     documentExpiresAt?: string;
   }) => Promise<void>;
 }) {
@@ -46,7 +48,7 @@ export function KycPanel({
     documentExpiresAt: "",
   });
   const [docFile, setDocFile] = useState<File | null>(null);
-  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [selfie, setSelfie] = useState<{ file: File; meta: SelfieCaptureMeta } | null>(null);
   const [stage, setStage] = useState<UploadStage>("idle");
 
   const isPending = kyc?.status === "pending";
@@ -64,7 +66,7 @@ export function KycPanel({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!userId) return;
-    if (!docFile || !selfieFile) {
+    if (!docFile || !selfie) {
       toast.error("Upload both your document and a selfie.");
       return;
     }
@@ -73,18 +75,19 @@ export function KycPanel({
     try {
       const [documentPath, selfiePath] = await Promise.all([
         upload(docFile, "document"),
-        upload(selfieFile, "selfie"),
+        upload(selfie.file, "selfie"),
       ]);
       setStage("done");
       await onSubmit({
         ...form,
         documentPath,
         selfiePath,
+        selfieCapture: selfie.meta,
         documentExpiresAt: form.documentExpiresAt || undefined,
       });
       setOpen(false);
       setDocFile(null);
-      setSelfieFile(null);
+      setSelfie(null);
       setStage("idle");
     } catch (err) {
       setStage("idle");
@@ -231,15 +234,7 @@ export function KycPanel({
               onChange={setDocFile}
               stage={stage}
             />
-            <FileUploadField
-              label="Live selfie photo"
-              accept="image/*"
-              allowed={IMAGE_TYPES}
-              capture="user"
-              file={selfieFile}
-              onChange={setSelfieFile}
-              stage={stage}
-            />
+            <LiveSelfieCapture label="Live selfie photo" value={selfie} onChange={setSelfie} />
           </div>
           <button
             type="submit"

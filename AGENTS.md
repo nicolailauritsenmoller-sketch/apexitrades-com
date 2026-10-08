@@ -13,3 +13,5 @@
 
 - Compliance overrides (risk category, forced 2FA re-auth, daily withdrawal limits in `user_withdrawal_limits`) live in src/lib/compliance.functions.ts; `admin_audit_logs` is append-only via DB trigger - why: immutable audit trail enforced at the database, not just RLS.
 - VIP tier engine: fee resolution + 30-day evaluation in src/lib/vip-fees.server.ts, admin fns in src/lib/vip-tiers.functions.ts; daily cron hits /api/public/hooks/vip-evaluate authenticated by a token in private.cron_tokens - why: no secret literal in SQL, one code path for cron and "Run now".
+- Every money movement is mirrored into `public.transactions` by DB triggers on deposits/withdrawals/swaps/contracts/positions (admin corrections insert directly) - why: one ledger with COMPLETED/PENDING/FAILED status that app code cannot skip.
+- KYC selfies must carry in-app camera capture metadata, validated by the `validate_kyc_submission` trigger; display-name 60-day cooldown is enforced by a profiles trigger - why: rules hold even if a client bypasses the UI.
