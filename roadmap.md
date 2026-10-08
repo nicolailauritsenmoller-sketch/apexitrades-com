@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [ ] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation.
+- [ ] Activate admin hostname - blocked on domain registration, DNS connection and publication; unset primary domain redirects.
+
 - [x] Standardize shared action hierarchy and Users/KYC/financial queue toolbars with selected-row controls; transaction ledger remains export-only.
 - [x] Add audited confirmations for balance overrides, freezes, liquidations, financial reviews, treasury transfers and trade corrections; improve KYC/VIP/settings submit feedback.
 

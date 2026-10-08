@@ -21,3 +21,5 @@
 - Keep tour playback and chapter seeking in a shared native-video player, with separate CDN quality sources and time-preserving quality changes - why: public playback stays independent of account access.
 - Operations Console section selection lives in validated URL search parameters with metadata derived from loader dependencies - why: tab titles, direct links and browser history remain synchronized without document-title effects.
 - Reuse AdminActionConfirm for high-impact console mutations and AdminTableToolbar for searchable/exportable queues; reason fields travel into existing audit records - why: consistent operator safeguards must not alter financial execution semantics.
+
+- Admin hostname root renders the shared Operations Console with session, account-lock and 2FA gates; server role checks remain authoritative and customer links use the admin origin - why: hostname routing is not authorization, and cross-origin sessions must never be copied.

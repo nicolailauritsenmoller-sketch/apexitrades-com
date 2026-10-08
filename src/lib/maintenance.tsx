@@ -1,3 +1,4 @@
+import { ADMIN_HOST } from "@/lib/operations-routing";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
@@ -194,7 +195,7 @@ function useMaintenanceRealtime() {
 }
 
 /** Routes that stay reachable during a lockout so administrators can sign in. */
-const BYPASS_PREFIXES = ["/auth", "/reset-password", "/sys-portal-x97", "/admin", "/legal"];
+const BYPASS_PREFIXES = ["/auth", "/reset-password", "/admin", "/legal"];
 
 /** Wraps the app and replaces it with the maintenance screen for non-admin visitors. */
 export function MaintenanceGate({ children }: { children: React.ReactNode }) {
@@ -204,7 +205,7 @@ export function MaintenanceGate({ children }: { children: React.ReactNode }) {
   const { data: config } = useMaintenanceStatus();
   const { data: bypass, isLoading: roleLoading } = useBypassRole();
 
-  if (!config?.enabled) return <>{children}</>;
+  if (!config?.enabled || (typeof window !== "undefined" && window.location.hostname === ADMIN_HOST)) return <>{children}</>;
   if (BYPASS_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) return <>{children}</>;
   if (roleLoading || bypass) return <>{children}</>;
 

@@ -1,3 +1,4 @@
+import { ADMIN_HOST } from "@/lib/operations-routing";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,7 @@ export function AuthenticatedGate({ children }: { children: React.ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       if (!data.session) {
-        navigate({ to: "/auth", replace: true });
+        navigate({ to: window.location.hostname === ADMIN_HOST ? "/" : "/auth", replace: true });
         return;
       }
       setStatus("authed");
