@@ -1,3 +1,4 @@
+import { TreasuryWalletPanel } from "@/components/admin/TreasuryWalletPanel";
 import { AccessBansPanel } from "@/components/admin/AccessBansPanel";
 import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
 import { useEffect, useState } from "react";
@@ -182,6 +183,7 @@ const NAV: { section: string; items: { id: string; label: string; icon: any }[] 
     items: [
       { id: "deposits", label: "Deposit clearing", icon: Wallet2 },
       { id: "withdrawals", label: "Withdrawals", icon: Landmark },
+      { id: "treasury", label: "Treasury wallet", icon: Wallet2 },
       { id: "transactions", label: "Transactions", icon: Receipt },
       { id: "addresses", label: "Receiving addresses", icon: ShieldCheck },
       { id: "gateways", label: "Payment gateways", icon: CreditCard },
@@ -630,6 +632,7 @@ function AdminPage() {
           )}
           {tab === "security" && <SecurityReportsPanel />}
           {tab === "roles" && <RolesPanel />}
+          {tab === "treasury" && <TreasuryWalletPanel />}
           {tab === "restrictions" && (
             <div className="space-y-4">
               <UserSecurityPanel />
