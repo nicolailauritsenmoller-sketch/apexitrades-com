@@ -564,6 +564,8 @@ function DepositTab({
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrLargeDataUrl, setQrLargeDataUrl] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const submit = useServerFn(requestDeposit);
 
