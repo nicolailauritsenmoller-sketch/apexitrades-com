@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
+import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useDisplayCurrency } from "@/lib/display-currency";
@@ -91,7 +93,14 @@ function Portfolio() {
   const positions = (data?.positions ?? []) as PositionRow[];
   const open = positions.filter((p) => p.status === "open");
   const closed = positions.filter((p) => p.status === "closed");
-  const { quotes } = useQuotes(Array.from(new Set(open.map((p) => p.symbol))), 5000);
+  const { quotes } = useQuotes(Array.from(new Set(open.map((p) => p.symbol))), 2000);
+
+  // When a contract settles, wallet balances change - refresh valuation.
+  const settledCount = (contracts.data ?? []).filter((c: any) => c.status === "settled").length;
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: ["portfolio-value"] });
+    qc.invalidateQueries({ queryKey: ["daily-pnl"] });
+  }, [qc, settledCount]);
 
   const unrealizedByCurrency: Record<string, number> = {};
   for (const p of open) {
@@ -103,8 +112,10 @@ function Portfolio() {
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
   const display = useDisplayCurrency();
   const [range, setRange] = useState<Range>("1M");
+  const [depositOpen, setDepositOpen] = useState(false);
   const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
+  const liveTotal = (value.data?.totalUsdt ?? 0) + totalUnrealized;
   const available = value.data?.wallets?.reduce(
     (sum: number, w: any) => sum + Number(w.availableUsdt ?? w.usdtValue ?? 0),
     0,
@@ -129,21 +140,49 @@ function Portfolio() {
               ) : balancesHidden ? (
                 "••••••"
               ) : (
-                display.format(value.data?.totalUsdt ?? 0)
+                display.format(liveTotal)
               )}
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
+              Includes live mark-to-market on open positions
             </div>
           </div>
           <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
         </div>
 
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setDepositOpen(true)}
+            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            <ArrowDownToLine className="size-4" /> Deposit
+          </button>
+          <Link
+            to="/wallet"
+            search={{ tab: "withdraw" }}
+            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
+          >
+            <ArrowUpFromLine className="size-4" /> Withdraw
+          </Link>
+          <Link
+            to="/wallet"
+            search={{ tab: "swap" }}
+            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
+          >
+            <Repeat className="size-4" /> Swap / Convert
+          </Link>
+        </div>
+
         <PortfolioPerformance
-          total={value.data?.totalUsdt ?? 0}
+          total={liveTotal}
           drift={realized + totalUnrealized}
           range={range}
           onRangeChange={setRange}
           hidden={balancesHidden}
         />
       </section>
+      <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
 
       <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <PnlCard

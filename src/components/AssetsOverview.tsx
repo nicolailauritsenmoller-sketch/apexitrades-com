@@ -258,8 +258,21 @@ export function AssetsOverview({
             <Wallet className="size-6 text-muted-foreground" />
           </div>
           <p className="max-w-xs text-sm text-muted-foreground">
-            No assets to display. Deposit or trade to build your portfolio.
+            {search.trim()
+              ? `No assets match "${search.trim()}".`
+              : hideZero
+                ? "No assets held. Click Deposit to add funds."
+                : "No assets to display. Deposit or trade to build your portfolio."}
           </p>
+          {!search.trim() && (
+            <Link
+              to="/wallet"
+              search={{ tab: "deposit" }}
+              className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+            >
+              Deposit
+            </Link>
+          )}
         </div>
       )}
     </section>
