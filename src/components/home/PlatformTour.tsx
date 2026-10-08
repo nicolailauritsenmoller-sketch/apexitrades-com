@@ -34,13 +34,13 @@ export function PlatformTourSection() {
           <h2 className="text-sm font-semibold tracking-tight">
             See How Velocity Trade Works
           </h2>
-          <span className="num text-xs text-muted-foreground">2 min</span>
+          <span className="num text-xs text-muted-foreground">Tour</span>
         </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="group relative m-4 block w-[calc(100%-2rem)] touch-manipulation overflow-hidden rounded-xl border border-border text-left"
-          aria-label="Play Platform Tour (2 Min)"
+          aria-label="Play Platform Tour"
         >
           <img
             src={tourThumb}
