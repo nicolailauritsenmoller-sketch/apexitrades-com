@@ -21,6 +21,7 @@ import {
   DiscoverPerpsSection,
   MarketNewsSection,
 } from "@/components/home/DiscoverSections";
+import { PlatformTourSection } from "@/components/home/PlatformTour";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
