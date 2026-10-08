@@ -11,11 +11,13 @@ const submitInput = z.object({
   documentNumber: z.string().trim().min(2).max(60),
   documentPath: z.string().trim().min(1).max(300),
   selfiePath: z.string().trim().min(1).max(300),
+  selfieCapture: z.object({ source: z.literal("camera"), capturedAt: z.string().min(10).max(40), width: z.number().int().positive(), height: z.number().int().positive(), device: z.string().max(200) }),
   documentExpiresAt: z.string().trim().min(4).max(20).optional(),
 });
 
 const level2Input = z.object({
   livenessSelfiePath: z.string().trim().min(1).max(300),
+  livenessCapture: z.object({ source: z.literal("camera"), capturedAt: z.string().min(10).max(40), width: z.number().int().positive(), height: z.number().int().positive(), device: z.string().max(200) }),
   proofPath: z.string().trim().min(1).max(300),
   proofType: z.enum(["utility_bill", "bank_statement", "tax_document"]),
   taxId: z.string().trim().max(60).optional(),
@@ -102,7 +104,7 @@ export const submitKyc = createServerFn({ method: "POST" })
       const { error } = await context.supabase
         .from("kyc_submissions")
         .upsert(
-          {
+          ({
             user_id: context.userId,
             full_name: data.fullName,
             date_of_birth: data.dateOfBirth,
@@ -112,9 +114,10 @@ export const submitKyc = createServerFn({ method: "POST" })
             document_number: data.documentNumber,
             document_path: data.documentPath,
             selfie_path: data.selfiePath,
+            selfie_capture: data.selfieCapture,
             document_expires_at: data.documentExpiresAt || null,
             status: "pending",
-          },
+          }) as any,
           { onConflict: "user_id" },
         );
 
@@ -170,6 +173,7 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
       .update({
         level2_status: "pending",
         level2_selfie_path: data.livenessSelfiePath,
+        level2_selfie_capture: data.livenessCapture,
         level2_proof_path: data.proofPath,
         level2_proof_type: data.proofType,
         level2_tax_id: data.taxId || null,

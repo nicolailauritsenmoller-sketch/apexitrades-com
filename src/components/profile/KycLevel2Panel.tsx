@@ -9,11 +9,13 @@ import {
   IMAGE_TYPES,
   type UploadStage,
 } from "@/components/profile/FileUploadField";
+import { LiveSelfieCapture, type SelfieCaptureMeta } from "@/components/profile/LiveSelfieCapture";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
 export type Level2Payload = {
   livenessSelfiePath: string;
+  livenessCapture: SelfieCaptureMeta;
   proofPath: string;
   proofType: "utility_bill" | "bank_statement" | "tax_document";
   taxId?: string;
@@ -32,7 +34,7 @@ export function KycLevel2Panel({
   const [busy, setBusy] = useState(false);
   const [proofType, setProofType] = useState<Level2Payload["proofType"]>("utility_bill");
   const [taxId, setTaxId] = useState("");
-  const [selfie, setSelfie] = useState<File | null>(null);
+  const [selfie, setSelfie] = useState<{ file: File; meta: SelfieCaptureMeta } | null>(null);
   const [proof, setProof] = useState<File | null>(null);
   const [stage, setStage] = useState<UploadStage>("idle");
 
@@ -82,12 +84,13 @@ export function KycLevel2Panel({
     setStage("uploading");
     try {
       const [livenessSelfiePath, proofPath] = await Promise.all([
-        upload(selfie, "level2-selfie"),
+        upload(selfie.file, "level2-selfie"),
         upload(proof, "level2-proof"),
       ]);
       setStage("done");
       await onSubmit({
         livenessSelfiePath,
+        livenessCapture: selfie.meta,
         proofPath,
         proofType,
         taxId: taxId.trim() || undefined,
@@ -129,15 +132,7 @@ export function KycLevel2Panel({
         className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-        <FileUploadField
-          label="Live selfie / liveness photo"
-          accept="image/*"
-          allowed={IMAGE_TYPES}
-          capture="user"
-          file={selfie}
-          onChange={setSelfie}
-          stage={stage}
-        />
+        <LiveSelfieCapture label="Live selfie / liveness photo" value={selfie} onChange={setSelfie} />
         <FileUploadField
           label="Proof of address document"
           accept="image/*,application/pdf"
