@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
-import { Clock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Clock, Search } from "lucide-react";
+
+const PAGE = 20;
 import { AssetIcon } from "@/lib/asset-icons";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
@@ -145,21 +147,127 @@ export function TradeHistoryList({
   isLoading?: boolean;
   hidden?: boolean;
 }) {
-  const entries = useMemo(() => buildHistory(positions, contracts), [positions, contracts]);
+  const all = useMemo(() => buildHistory(positions, contracts), [positions, contracts]);
   const [active, setActive] = useState<TradeSummary | null>(null);
+  const [kind, setKind] = useState<"all" | "contract" | "position">("all");
+  const [q, setQ] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [limit, setLimit] = useState(PAGE);
+
+  const entries = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    const fromMs = from ? new Date(`${from}T00:00:00`).getTime() : -Infinity;
+    const toMs = to ? new Date(`${to}T23:59:59`).getTime() : Infinity;
+    return all.filter((e) => {
+      if (kind !== "all" && e.kind !== kind) return false;
+      if (term && !e.displaySymbol.toLowerCase().includes(term) && !e.symbol.toLowerCase().includes(term)) return false;
+      const t = new Date(e.closedAt).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+  }, [all, kind, q, from, to]);
+
+  useEffect(() => setLimit(PAGE), [kind, q, from, to]);
+
+  const sentinel = useRef<HTMLDivElement>(null);
+  const hasMore = entries.length > limit;
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !hasMore) return;
+    const io = new IntersectionObserver((obs) => {
+      if (obs[0]?.isIntersecting) setLimit((l) => l + PAGE);
+    }, { rootMargin: "200px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, limit]);
+
+  const counts = {
+    all: all.length,
+    contract: all.filter((e) => e.kind === "contract").length,
+    position: all.filter((e) => e.kind === "position").length,
+  };
+  const tabs = [
+    { id: "all", label: "All" },
+    { id: "contract", label: "Scalp Contracts" },
+    { id: "position", label: "Margin Trades" },
+  ] as const;
+  const filtered = Boolean(q.trim() || from || to || kind !== "all");
+
+  const toolbar = (
+    <div className="space-y-2.5 border-b border-border/60 p-3">
+      <div className="flex gap-1.5 overflow-x-auto" role="tablist">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={kind === t.id}
+            onClick={() => setKind(t.id)}
+            className={`touch-manipulation whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              kind === t.id ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.label} <span className="num opacity-70">{counts[t.id]}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[160px] flex-1">
+          <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search symbol"
+            className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs outline-none focus:border-primary"
+          />
+        </div>
+        <input
+          type="date"
+          value={from}
+          max={to || undefined}
+          onChange={(e) => setFrom(e.target.value)}
+          aria-label="From date"
+          className="num h-9 rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+        />
+        <span className="text-xs text-muted-foreground">-</span>
+        <input
+          type="date"
+          value={to}
+          min={from || undefined}
+          onChange={(e) => setTo(e.target.value)}
+          aria-label="To date"
+          className="num h-9 rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+        />
+        {filtered && (
+          <button
+            onClick={() => { setKind("all"); setQ(""); setFrom(""); setTo(""); }}
+            className="h-9 rounded-lg px-2 text-xs font-semibold text-primary"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   if (!isLoading && entries.length === 0) {
     return (
-      <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-        No closed trades yet. Executed trades appear here with a full performance report.
-      </p>
+      <>
+        {all.length > 0 && toolbar}
+        <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+          {all.length > 0
+            ? "No trades match these filters."
+            : "No closed trades yet. Executed trades appear here with a full performance report."}
+        </p>
+      </>
     );
   }
 
   return (
+    <div>
+      {toolbar}
     <div className="divide-y divide-border/60">
       {active && <TradeCloseSummary summary={active} onClose={() => setActive(null)} />}
-      {entries.map((e) => {
+      {entries.slice(0, limit).map((e) => {
         const positive = e.pnl >= 0;
         return (
           <button
@@ -208,7 +316,16 @@ export function TradeHistoryList({
           </button>
         );
       })}
-
+    </div>
+      <div ref={sentinel} className="px-4 py-3 text-center text-[11px] text-muted-foreground">
+        {hasMore ? (
+          <button onClick={() => setLimit((l) => l + PAGE)} className="font-semibold text-primary">
+            Load more
+          </button>
+        ) : (
+          <span className="num">{entries.length} trades</span>
+        )}
+      </div>
     </div>
   );
 }
