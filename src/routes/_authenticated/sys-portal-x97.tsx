@@ -1,3 +1,4 @@
+import { VolumeByClassPanel } from "@/components/admin/VolumeByClassPanel";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -684,7 +685,8 @@ function AdminPage() {
                         <ActiveUsersPanel compact />
                       </button>
                       <MetricsBar a={analytics} onOpen={go} />
-                      <AnalyticsCharts a={analytics} />
+                      <VolumeByClassPanel />
+                    <AnalyticsCharts a={analytics} />
                       <KycExpiry a={analytics} />
                       <SystemActivity a={analytics} />
                     </>
