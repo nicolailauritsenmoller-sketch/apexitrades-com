@@ -383,7 +383,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
     qc.invalidateQueries({ queryKey: ["admin-analytics"] });
   };
 
-  if (access.isLoading) {
+  if (hasSession !== true || access.isLoading) {
     return (
       <AdminShell>
         <p className="p-8 text-sm text-muted-foreground">Checking access…</p>
