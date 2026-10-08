@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_bans: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          lifted_at: string | null
+          lifted_by: string | null
+          reason: string
+          value: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason: string
+          value: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          lifted_at?: string | null
+          lifted_by?: string | null
+          reason?: string
+          value?: string
+        }
+        Relationships: []
+      }
       account_security_settings: {
         Row: {
           address_whitelisting_enabled: boolean

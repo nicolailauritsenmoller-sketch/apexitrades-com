@@ -183,6 +183,13 @@
       "when": 1791427064287,
       "tag": "0025_ledger_kyc_name_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791427837573,
+      "tag": "0026_access_bans",
+      "breakpoints": true
     }
   ]
 }
