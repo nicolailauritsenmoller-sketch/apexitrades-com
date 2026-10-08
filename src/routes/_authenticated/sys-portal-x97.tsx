@@ -2024,3 +2024,14 @@ function explorerUrl(network: string | null | undefined, hash: string): string |
   if (n.includes("SOL")) return `https://solscan.io/tx/${hash}`;
   return null;
 }
+
+/** Format-only check of a receiving address against its network. */
+function addressValid(network: string | null | undefined, addr: string): boolean {
+  const n = String(network ?? "").toUpperCase();
+  const a = String(addr ?? "").trim();
+  if (n.includes("TRC")) return /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a);
+  if (n.includes("ERC") || n.includes("BEP") || n.includes("BSC") || n === "ETH") return /^0x[0-9a-fA-F]{40}$/.test(a);
+  if (n.includes("BTC") || n.includes("BITCOIN")) return /^(bc1[0-9a-z]{25,62}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/.test(a);
+  if (n.includes("SOL")) return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a);
+  return a.length >= 20;
+}
