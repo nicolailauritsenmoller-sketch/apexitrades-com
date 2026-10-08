@@ -346,11 +346,32 @@ function WalletPage() {
         />
       )}
 
-      <h2 className="mb-3 mt-8 text-xs uppercase tracking-widest text-muted-foreground">
-        Transaction history
-      </h2>
+      <div className="mb-3 mt-8 flex flex-wrap items-center gap-2">
+        <h2 className="mr-auto text-xs uppercase tracking-widest text-muted-foreground">
+          Transaction history
+        </h2>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={txQuery}
+            onChange={(e) => setTxQuery(e.target.value)}
+            placeholder="Search asset, type or TXID"
+            className="h-8 w-52 rounded-md border border-border bg-secondary/40 pl-8 pr-2 text-xs outline-none focus:border-primary"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={exportCsv}
+        >
+          <Download className="size-3.5" />
+          Export CSV
+        </Button>
+      </div>
       <div className="panel divide-y divide-border">
-        {transactions.map((t) => {
+        {filteredTransactions.map((t) => {
           const style = STATUS_STYLE[t.status];
           return (
             <button
