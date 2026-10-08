@@ -520,6 +520,7 @@ export const correctContract = createServerFn({ method: "POST" })
     z
       .object({
         id: z.string().uuid(),
+        reason: z.string().trim().min(5).max(400),
         entryPrice: z.number().positive().optional(),
         exitPrice: z.number().positive().optional(),
         payout: z.number().min(0).optional(),
@@ -580,6 +581,7 @@ export const correctContract = createServerFn({ method: "POST" })
       contractId: data.id,
       patch,
       walletDelta: delta,
+      reason: data.reason,
     });
 
     await db.from("notifications").insert({
@@ -599,6 +601,7 @@ export const correctPosition = createServerFn({ method: "POST" })
     z
       .object({
         id: z.string().uuid(),
+        reason: z.string().trim().min(5).max(400),
         entryPrice: z.number().positive().optional(),
         exitPrice: z.number().positive().optional(),
         realizedPnl: z.number().optional(),
@@ -649,6 +652,7 @@ export const correctPosition = createServerFn({ method: "POST" })
       positionId: data.id,
       patch,
       walletDelta: delta,
+      reason: data.reason,
     });
 
     await db.from("notifications").insert({
