@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,8 +16,20 @@ import { PLATFORM_ORIGIN } from "@/lib/operations-routing";
 export function AdminRoot({ tab, onTab }: { tab?: string; onTab: (tab: string) => void }) {
   const hasSession = useHasSession();
   return hasSession === null ? <p className="p-8 text-muted-foreground">Checking session...</p>
-    : hasSession ? <AuthenticatedGate><OperationsConsole selectedTab={tab} onTab={onTab} /></AuthenticatedGate>
+    : hasSession ? <StaffRoot tab={tab} onTab={onTab} />
     : <StaffLogin />;
+}
+
+function StaffRoot({ tab, onTab }: { tab?: string; onTab: (tab: string) => void }) {
+  const fetchAccess = useServerFn(getMyAccess);
+  const access = useQuery({ queryKey: ["my-access"], queryFn: () => fetchAccess(), retry: false, refetchInterval: 30_000 });
+  useEffect(() => {
+    if (access.data && !access.data.isStaff) window.location.replace(PLATFORM_ORIGIN + "/");
+    if (access.data?.isAgent && !access.data.canFinance && (!tab || tab === "overview")) onTab("support");
+  }, [access.data, tab, onTab]);
+  if (access.isError) return <div role="alert" className="p-8 text-muted-foreground">Unable to verify staff access.<Button variant="outline" onClick={() => void access.refetch()}>Retry</Button></div>;
+  if (!access.data?.isStaff) return <p className="p-8 text-muted-foreground">Checking staff access...</p>;
+  return <AuthenticatedGate><OperationsConsole selectedTab={tab} onTab={onTab} /></AuthenticatedGate>;
 }
 
 function StaffLogin() {
