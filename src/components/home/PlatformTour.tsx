@@ -60,9 +60,9 @@ export function PlatformTourSection() {
             </span>
           </span>
           <span className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold">Play Platform Tour (2 Min)</span>
+            <span className="text-sm font-semibold">Play Platform Tour</span>
             <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur">
-              Watch 2-Min Platform Walkthrough
+              Watch Platform Walkthrough
             </span>
           </span>
         </button>
