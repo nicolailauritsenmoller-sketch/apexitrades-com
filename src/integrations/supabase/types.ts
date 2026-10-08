@@ -701,12 +701,14 @@ export type Database = {
           level2_proof_type: string | null
           level2_reviewed_at: string | null
           level2_reviewed_by: string | null
+          level2_selfie_capture: Json | null
           level2_selfie_path: string | null
           level2_status: string
           level2_submitted_at: string | null
           level2_tax_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          selfie_capture: Json | null
           selfie_path: string | null
           status: Database["public"]["Enums"]["request_status"]
           updated_at: string
@@ -731,12 +733,14 @@ export type Database = {
           level2_proof_type?: string | null
           level2_reviewed_at?: string | null
           level2_reviewed_by?: string | null
+          level2_selfie_capture?: Json | null
           level2_selfie_path?: string | null
           level2_status?: string
           level2_submitted_at?: string | null
           level2_tax_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selfie_capture?: Json | null
           selfie_path?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
@@ -761,12 +765,14 @@ export type Database = {
           level2_proof_type?: string | null
           level2_reviewed_at?: string | null
           level2_reviewed_by?: string | null
+          level2_selfie_capture?: Json | null
           level2_selfie_path?: string | null
           level2_status?: string
           level2_submitted_at?: string | null
           level2_tax_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selfie_capture?: Json | null
           selfie_path?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
@@ -1333,6 +1339,51 @@ export type Database = {
           status?: string
           submitted_at?: string
           symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          note: string | null
+          ref_id: string
+          ref_table: string
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          kind: string
+          note?: string | null
+          ref_id: string
+          ref_table: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          ref_id?: string
+          ref_table?: string
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

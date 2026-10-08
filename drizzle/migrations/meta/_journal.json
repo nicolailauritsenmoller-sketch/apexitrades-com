@@ -176,6 +176,13 @@
       "when": 1790901569481,
       "tag": "0024_chat_vip_priority_handover",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791427064287,
+      "tag": "0025_ledger_kyc_name_rules",
+      "breakpoints": true
     }
   ]
 }
