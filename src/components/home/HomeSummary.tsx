@@ -127,7 +127,7 @@ export function WatchlistSection() {
                     {symbol.replace("USDT", "")}
                   </div>
                 </div>
-                <div className="shrink-0 text-right">
+                <div className="w-[5rem] shrink-0 text-right">
                   <FlashNum value={q && !q.stale ? q.price : undefined} className="num text-sm font-semibold">
                     {q && !q.stale ? formatPrice(q.price, symbol) : "-"}
                   </FlashNum>
@@ -190,7 +190,7 @@ function MoverCard({
               </span>
               <FlashNum
                 value={chg}
-                className={`num shrink-0 px-0.5 text-[11px] font-semibold ${chg >= 0 ? "text-bull" : "text-bear"}`}
+                className={`num w-[3.75rem] shrink-0 text-right text-[11px] font-semibold ${chg >= 0 ? "text-bull" : "text-bear"}`}
               >
                 {chg >= 0 ? "+" : ""}
                 {chg.toFixed(2)}%
