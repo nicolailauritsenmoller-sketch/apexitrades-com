@@ -6,7 +6,7 @@ import { institutionalizeCopy } from "@/lib/institutional-copy";
 import {
   DOC_TYPES,
   FileUploadField,
-  IMAGE_TYPES,
+
   type UploadStage,
 } from "@/components/profile/FileUploadField";
 import { LiveSelfieCapture, type SelfieCaptureMeta } from "@/components/profile/LiveSelfieCapture";
