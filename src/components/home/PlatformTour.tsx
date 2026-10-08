@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TourVideoPlayer } from "@/components/home/TourVideoPlayer";
 import tourThumb from "@/assets/platform-tour-thumb.jpg";
-import tourVideo from "@/assets/platform-tour.mp4.asset.json";
+import tourVideo from "@/assets/platform-tour-1080p.mp4.asset.json";
+import tourVideoSd from "@/assets/platform-tour-720p.mp4.asset.json";
 
 export function PlatformTourSection() {
   const [open, setOpen] = useState(false);
@@ -54,7 +55,7 @@ export function PlatformTourSection() {
           <div className="flex min-h-14 items-center px-4 pr-12">
             <DialogTitle className="text-sm font-semibold">Platform Tour</DialogTitle>
           </div>
-          {open && <TourVideoPlayer hdUrl={tourVideo.url} sdUrl={tourVideo.url} poster={tourThumb} />}
+          {open && <TourVideoPlayer hdUrl={tourVideo.url} sdUrl={tourVideoSd.url} poster={tourThumb} />}
         </DialogContent>
       </Dialog>
     </>
