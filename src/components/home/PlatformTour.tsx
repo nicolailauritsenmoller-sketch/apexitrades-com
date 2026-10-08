@@ -13,10 +13,10 @@ import tourVideo from "@/assets/platform-tour.mp4.asset.json";
 const TOUR_VIDEO_URL: string = (tourVideo as { url: string }).url;
 
 const TIMESTAMPS = [
-  { seconds: 15, label: "0:15 - Real-Time Terminal & Execution" },
-  { seconds: 45, label: "0:45 - Instant Crypto Scalping" },
-  { seconds: 70, label: "1:10 - Portfolio & Exposure Tracking" },
-  { seconds: 95, label: "1:35 - One-Click VIP & Treasury Transfers" },
+  { seconds: 0, label: "0:00 - Real-Time Terminal & Execution" },
+  { seconds: 2, label: "0:02 - Live Charts & Order Book" },
+  { seconds: 4, label: "0:04 - Portfolio & Exposure Tracking" },
+  { seconds: 6, label: "0:06 - Markets & Account Overview" },
 ];
 
 function providerOf(url: string): "mp4" | "youtube" | "vimeo" {
@@ -34,13 +34,13 @@ export function PlatformTourSection() {
           <h2 className="text-sm font-semibold tracking-tight">
             See How Velocity Trade Works
           </h2>
-          <span className="num text-xs text-muted-foreground">2 min</span>
+          <span className="num text-xs text-muted-foreground">Tour</span>
         </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="group relative m-4 block w-[calc(100%-2rem)] touch-manipulation overflow-hidden rounded-xl border border-border text-left"
-          aria-label="Play Platform Tour (2 Min)"
+          aria-label="Play Platform Tour"
         >
           <img
             src={tourThumb}
@@ -60,9 +60,9 @@ export function PlatformTourSection() {
             </span>
           </span>
           <span className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold">Play Platform Tour (2 Min)</span>
+            <span className="text-sm font-semibold">Play Platform Tour</span>
             <span className="rounded-full border border-border bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur">
-              Watch 2-Min Platform Walkthrough
+              Watch Platform Walkthrough
             </span>
           </span>
         </button>
