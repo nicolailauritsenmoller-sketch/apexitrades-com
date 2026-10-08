@@ -1,4 +1,4 @@
-import { NAV, PLATFORM_ORIGIN } from "@/lib/operations-routing";
+import { NAV } from "@/lib/operations-routing";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
 import { Button } from "@/components/ui/button";
@@ -116,7 +116,7 @@ import {
 } from "@/lib/admin.functions";
 
 function ReturnToPlatform() {
- useEffect(() => { window.location.replace(PLATFORM_ORIGIN + "/"); }, []);
+ useEffect(() => { window.location.replace("/"); }, []);
  return <p className="p-8 text-muted-foreground">Returning to Velocity Trade...</p>;
 }
 
