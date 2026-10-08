@@ -507,6 +507,19 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     const delta = data.mode === "set" ? next - Number(wallet?.balance ?? 0) : data.amount;
     const applied = await walletAdjust(db, data.userId, currency, delta);
     if (applied !== null) (data as any)._resulting = applied;
+    if (delta !== 0) {
+      await db.from("transactions").insert({
+        user_id: data.userId,
+        kind: `admin_${data.kind}`,
+        currency,
+        amount: delta,
+        status: "COMPLETED",
+        ref_table: "admin_adjustment",
+        ref_id: crypto.randomUUID(),
+        note: data.reason ?? "Account Operations adjustment",
+      } as any);
+    }
+
 
 
     await writeAudit(context, `balance.${data.kind}`, data.userId, {
