@@ -18,3 +18,5 @@
 - IP/device bans live in `public.access_bans` (admin-read only); enforcement runs server-side in checkAccessBan using the request IP header, called after every session register/heartbeat - why: client-reported IPs are spoofable.
 - Platform treasury: balances in `treasury_wallets`, append-only `treasury_ledger`; all movements go through the service-role-only `treasury_transfer` DB function (also mirrors customer legs into `transactions`) - why: treasury and customer balances change in one atomic step.
 - Mount the shared Platform Tour only on the public landing route after its hero, not on the authenticated dashboard - why: visitors can watch without signing in.
+- Keep tour playback and chapter seeking in a shared native-video player, with separate CDN quality sources and time-preserving quality changes - why: public playback stays independent of account access.
+- Operations Console section selection lives in validated URL search parameters with metadata derived from loader dependencies - why: tab titles, direct links and browser history remain synchronized without document-title effects.
