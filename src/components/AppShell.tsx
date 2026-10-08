@@ -132,8 +132,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
             <BrandMark className="size-9" alt="Velocity Trade logo" />
-            <span className="truncate font-display text-sm font-bold tracking-tight">
-              VELOCITY TRADE
+            <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+              {resolvePageTitle(pathname)}
             </span>
           </Link>
 
