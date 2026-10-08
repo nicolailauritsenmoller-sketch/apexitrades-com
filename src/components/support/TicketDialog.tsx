@@ -241,6 +241,7 @@ export function TicketDialog({
               <CheckCircle2 className="mx-auto size-10 text-bull" />
               <div>
                 <p className="text-sm font-semibold">Request submitted successfully.</p>
+                <p className="mt-1 text-xs font-semibold text-primary">Connected to Operations Desk - Agent Assigned on review</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Ticket <span className="font-mono font-semibold text-foreground">#{created.reference}</span> created.
                   Our team will respond through your Support Inbox.
