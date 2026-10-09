@@ -1266,8 +1266,19 @@ export const getAuditLogs = createServerFn({ method: "POST" })
       .from("admin_audit_logs")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(200);
-    return data ?? [];
+      .limit(500);
+    const rows = (data ?? []) as any[];
+    const ids = [...new Set(rows.flatMap((r) => [r.actor_id, r.target_user_id]).filter(Boolean))];
+    const { data: profs } = ids.length
+      ? await db.from("profiles").select("id,uid,display_name").in("id", ids)
+      : { data: [] };
+    const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    return rows.map((r) => ({
+      ...r,
+      actor_name: r.actor_name ?? (map.get(r.actor_id) as any)?.display_name ?? null,
+      actor_uid: (map.get(r.actor_id) as any)?.uid ?? null,
+      target_uid: r.target_user_id ? ((map.get(r.target_user_id) as any)?.uid ?? null) : null,
+    }));
   });
 
 /* ------------------------------------------------------------------ */

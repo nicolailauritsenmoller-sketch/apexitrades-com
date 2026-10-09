@@ -873,7 +873,7 @@ function DepositsTab({
   return (
     <Card
       title={`Deposit submissions (${rows.length})`}
-      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} onExport={() => downloadCsv("deposits", rows)} />}
+      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} exportLabel="Export Table (CSV)" onExport={() => downloadCsv("deposits", rows)} />}
 
     >
       {pendingRows.length > 0 && (
@@ -961,7 +961,7 @@ function DepositsTab({
           ))}
         </ul>
       )}
-      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The audit reason is recorded for each record.`} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
+      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The operator note is recorded for each record.`} optionalNote pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
         if (!confirmation) return;
         for (const id of confirmation.ids) {
           await review.mutateAsync({ id, action: confirmation.action, note: reason });
@@ -998,7 +998,7 @@ function WithdrawalsTab({
   return (
     <Card
       title={`Withdrawal requests (${rows.length})`}
-      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} onExport={() => downloadCsv("withdrawals", rows)} />}
+      action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} exportLabel="Export Table (CSV)" onExport={() => downloadCsv("withdrawals", rows)} />}
 
     >
       {pendingRows.length > 0 && (
@@ -1077,7 +1077,7 @@ function WithdrawalsTab({
           ))}
         </ul>
       )}
-      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Withdrawal" : "Approve Withdrawal"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. Rejected withdrawals return held funds to the customer wallet. The audit reason is recorded for each record.`} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
+      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Withdrawal" : "Approve Withdrawal"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. Rejected withdrawals return held funds to the customer wallet. The operator note is recorded for each record.`} optionalNote pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
         if (!confirmation) return;
         for (const id of confirmation.ids) {
           await review.mutateAsync({ id, action: confirmation.action, note: reason });

@@ -39,7 +39,34 @@ export async function assertAdmin(context: Ctx) {
 /** Service-role client - the only way privileged tables can be written. */
 export async function privileged() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin as any;
+  const ip = await requestIp();
+  const base = supabaseAdmin as any;
+  // Stamp the operator's request IP onto every audit entry written through this client.
+  return new Proxy(base, {
+    get(target, prop) {
+      if (prop !== "from") return Reflect.get(target, prop);
+      return (table: string) => {
+        const q = target.from(table);
+        if (table !== "admin_audit_logs") return q;
+        const insert = q.insert.bind(q);
+        q.insert = (rows: any, ...rest: any[]) => {
+          const stamp = (r: any) => ({ ...r, details: { ip, ...(r?.details ?? {}) } });
+          return insert(Array.isArray(rows) ? rows.map(stamp) : stamp(rows), ...rest);
+        };
+        return q;
+      };
+    },
+  });
+}
+
+async function requestIp(): Promise<string | null> {
+  try {
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const raw = getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? getRequestHeader("x-real-ip");
+    return raw ? raw.split(",")[0]!.trim() : null;
+  } catch {
+    return null;
+  }
 }
 
 export const AGENT_ROLES = [
