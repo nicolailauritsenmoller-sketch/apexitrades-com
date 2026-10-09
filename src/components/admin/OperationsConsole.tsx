@@ -449,6 +449,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                   className="shrink-0 lg:mt-5 lg:block lg:first:mt-0"
                 >
                   <p className="hidden items-center gap-2.5 px-2 text-xs font-bold uppercase tracking-[0.14em] text-ops-section lg:mb-2 lg:flex">
+                    <span aria-hidden className="h-3 w-0.5 shrink-0 rounded-full bg-ops-section/70" />
                     <span className="truncate">{group.section}</span>
                     <span aria-hidden className="h-px min-w-2 flex-1 bg-border" />
                   </p>
