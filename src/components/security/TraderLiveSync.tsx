@@ -47,6 +47,10 @@ export function TraderLiveSync() {
   const [overlay, setOverlay] = useState<{ title: string; message: string } | null>(null);
   const prev = useRef<AccountLockState | null>(null);
   const credited = useRef(new Set<string>());
+  const lock = useAccountLock();
+  useEffect(() => {
+    if (lock.data && !prev.current) prev.current = lock.data;
+  }, [lock.data]);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
