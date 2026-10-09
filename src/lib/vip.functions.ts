@@ -76,6 +76,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .select("*")
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
+      .eq("is_internal", false)
       .order("created_at")
       .limit(300);
 
@@ -85,6 +86,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
       .neq("sender_role", "user")
+      .eq("is_internal", false)
       .is("read_at", null);
 
     return (rows ?? []).map(mapMessage);
