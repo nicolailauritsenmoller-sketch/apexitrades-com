@@ -499,14 +499,26 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                             className={`size-4 shrink-0 ${
                               alerting && !isChat
                                 ? "text-ops-red"
-                                : tab === id
+                                : isActive
                                   ? "text-current"
-                                  : "text-muted-foreground group-hover:text-foreground"
+                                  : ia
+                                    ? ia.icon
+                                    : "text-muted-foreground group-hover:text-foreground"
                             }`}
                           />
+                          {ia && !isActive && (
+                            <span
+                              aria-hidden
+                              className={`desk-dot size-1.5 shrink-0 rounded-full ${ia.dot}`}
+                            />
+                          )}
                           <span className="truncate">{label}</span>
                           {pending > 0 && (
-                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-ops-red px-1.5 py-0.5 text-[10px] font-bold leading-none text-background">
+                            <span
+                              className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-background ${
+                                ia ? ia.pill : "bg-ops-red"
+                              }`}
+                            >
                               {pending}
                             </span>
                           )}
