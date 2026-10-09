@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertAdmin, assertFinance, privileged, myRoles } from "@/lib/desk.server";
+import { assertAdmin, assertFinance, assertStaff, privileged, myRoles } from "@/lib/desk.server";
 
 /* ------------------------------------------------------------------ */
 /* Shared helpers                                                       */
@@ -40,7 +40,7 @@ async function notify(db: any, userId: string, title: string, body: string, kind
 export const getRiskMonitor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertFinance(context);
+    await assertStaff(context);
     const db = await privileged();
     const { fetchQuotes } = await import("./market.server");
 

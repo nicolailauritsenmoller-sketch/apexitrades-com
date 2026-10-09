@@ -88,6 +88,9 @@ export const placeContract = createServerFn({ method: "POST" })
       throw new Error("Additional verification is required before trading. Complete verification in your profile.");
     }
 
+    const { assertTradingAllowed } = await import("./risk-controls.server");
+    await assertTradingAllowed(1);
+
     const tier = TIER_MAP[data.durationSeconds];
     if (!tier) throw new Error("Unknown contract duration.");
     if (data.stake < tier.minInvestment) {

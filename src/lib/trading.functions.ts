@@ -77,6 +77,9 @@ export const openPosition = createServerFn({ method: "POST" })
       throw new Error("Margin trading is restricted on this account. Use 1× leverage.");
     }
 
+    const { assertTradingAllowed } = await import("./risk-controls.server");
+    await assertTradingAllowed(data.leverage);
+
     const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);
     const acknowledgedAt = Date.now();

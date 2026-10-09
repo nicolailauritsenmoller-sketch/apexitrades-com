@@ -33,8 +33,18 @@ export const getMyAccess = createServerFn({ method: "POST" })
 export const getAdminOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    // KYC records and financial ledgers are admin-only.
-    await assertFinance(context);
+    // KYC records and full ledgers are finance-only. Support staff get a
+    // read-only view of the deposit/withdrawal queues and nothing else.
+    const roles = await myRoles(context);
+    if (!roles.includes("admin") && !roles.includes("finance")) {
+      await assertStaff(context);
+      const db = await privileged();
+      const [d, w] = await Promise.all([
+        db.from("deposits").select("*").order("created_at", { ascending: false }).limit(80),
+        db.from("withdrawals").select("*").order("created_at", { ascending: false }).limit(80),
+      ]);
+      return { deposits: d.data ?? [], withdrawals: w.data ?? [], kyc: [], addresses: [], profiles: [], openContracts: [] };
+    }
     const { supabase } = context;
 
     const [deposits, withdrawals, kyc, addresses, profiles, contracts] = await Promise.all([

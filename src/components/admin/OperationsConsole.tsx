@@ -1,6 +1,8 @@
 import { NAV } from "@/lib/operations-routing";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
+import { ReadOnlyBadge } from "@/components/admin/ReadOnlyBadge";
+import { getRiskControls } from "@/lib/risk-controls.functions";
 import { Button } from "@/components/ui/button";
 import { Loader2, Download } from "lucide-react";
 import { TreasuryWalletPanel } from "@/components/admin/TreasuryWalletPanel";
@@ -138,6 +140,9 @@ function NotFoundScreen() {
 
 /** Tabs a Support Agent may open (no money movement, no platform config). */
 const AGENT_TABS = new Set([
+  "risk",
+  "deposits",
+  "withdrawals",
   "support",
   "vip",
   "requests",
@@ -340,7 +345,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
   const overview = useQuery({
     queryKey: ["admin-overview"],
     queryFn: () => fetchOverview(),
-    enabled: canFinance,
+    enabled: isStaff,
     refetchInterval: 20_000,
   });
 
@@ -571,7 +576,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
 
 
           {tab === "corrections" && <TradeCorrections />}
-          {tab === "risk" && <RiskMonitor />}
+          {tab === "risk" && <RiskMonitor readOnly={!canFinance} />}
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
           {tab === "active" && <ActiveUsersPanel />}
@@ -707,11 +712,12 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                 </div>
               )}
               {tab === "deposits" && data && (
-                <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} />
+                <DepositsTab rows={data.deposits} onDone={refresh} statusFilter={statusFilter} readOnly={!canFinance} />
               )}
               {tab === "withdrawals" && data && (
                 <WithdrawalsTab
                   rows={data.withdrawals}
+                  readOnly={!canFinance}
                   onDone={refresh}
                   statusFilter={statusFilter}
                 />
@@ -851,10 +857,12 @@ function DepositsTab({
   rows: allRows,
   onDone,
   statusFilter,
+  readOnly = false,
 }: {
   rows: any[];
   onDone: () => void;
   statusFilter?: string | null;
+  readOnly?: boolean;
 }) {
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
@@ -876,6 +884,8 @@ function DepositsTab({
       action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} exportLabel="Export Table (CSV)" onExport={() => downloadCsv("deposits", rows)} />}
 
     >
+      {readOnly && <div className="mb-3"><ReadOnlyBadge /></div>}
+      <fieldset disabled={readOnly} className="min-w-0">
       {pendingRows.length > 0 && (
         <BulkBar
           total={pendingRows.length}
@@ -968,6 +978,7 @@ function DepositsTab({
           setChecked((prev) => { const next = new Set(prev); next.delete(id); return next; });
         }
       }} />
+      </fieldset>
     </Card>
   );
 }
@@ -976,19 +987,25 @@ function WithdrawalsTab({
   rows: allRows,
   onDone,
   statusFilter,
+  readOnly = false,
 }: {
   rows: any[];
   onDone: () => void;
   statusFilter?: string | null;
+  readOnly?: boolean;
 }) {
   const review = useReview(reviewWithdrawal, onDone, "Withdrawal");
+  const fetchRc = useServerFn(getRiskControls);
+  const rc = useQuery({ queryKey: ["risk-controls"], queryFn: () => fetchRc() });
+  const STABLE = new Set(["USDT", "USDC", "USD", "BUSD", "DAI"]);
+  const isLarge = (w: any) => !!rc.data?.largeWithdrawalReview && STABLE.has(String(w.coin).toUpperCase()) && Number(w.amount) > (rc.data?.largeWithdrawalThresholdUsd ?? 10_000);
   const [note, setNote] = useState<Record<string, string>>({});
   const [term, setTerm] = useState("");
   const [status, setStatus] = useState(statusFilter ?? "all");
   const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
   const rows = allRows.filter((r) => (status === "all" || r.status === status) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
   const { checked, setChecked, toggle } = useBulkSelection();
-  const pendingRows = rows.filter((r) => r.status === "pending");
+  const pendingRows = rows.filter((r) => r.status === "pending" && !isLarge(r));
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
   const runBulk = (action: "approve" | "reject") => {
     setConfirmation({ ids: pendingRows.filter((r) => checked.has(r.id)).map((r) => r.id), action });
@@ -1001,6 +1018,8 @@ function WithdrawalsTab({
       action={<AdminTableToolbar term={term} onSearch={setTerm} status={status} onStatus={setStatus} onRefresh={onDone} refreshing={review.isPending} exportLabel="Export Table (CSV)" onExport={() => downloadCsv("withdrawals", rows)} />}
 
     >
+      {readOnly && <div className="mb-3"><ReadOnlyBadge /></div>}
+      <fieldset disabled={readOnly} className="min-w-0">
       {pendingRows.length > 0 && (
         <BulkBar
           total={pendingRows.length}
@@ -1036,6 +1055,7 @@ function WithdrawalsTab({
                   <div>
                     <p className="text-sm font-semibold">
                       {Number(w.amount)} {w.coin}{" "}
+                      {isLarge(w) && <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold uppercase text-warning">Large - individual review</span>}{" "}
                       <span className="text-xs text-muted-foreground">({w.network})</span>
                     </p>
                     <p className="break-all font-mono text-[11px] text-muted-foreground">
@@ -1084,6 +1104,7 @@ function WithdrawalsTab({
           setChecked((prev) => { const next = new Set(prev); next.delete(id); return next; });
         }
       }} />
+      </fieldset>
     </Card>
   );
 }

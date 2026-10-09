@@ -140,7 +140,7 @@ export function RolesPanel() {
                     <div className="flex justify-end gap-1.5">
                       {(["admin", "finance", "agent"] as const).map((role) => {
                         const has = u.roles.includes(role);
-                        const roleLabel = role === "admin" ? "Control Center" : role;
+                        const roleLabel = role === "admin" ? "Super Admin" : role === "finance" ? "Treasury Manager" : "Support Agent";
                         return (
                           <button
                             key={role}
