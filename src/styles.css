@@ -113,8 +113,8 @@
   --ops-amber-bg: oklch(0.414 0.085 60);
   --ops-red-bg: oklch(0.396 0.121 26);
   --ops-emerald-bg: oklch(0.386 0.068 165);
-  /* Sidebar group headings: cool institutional silver-slate (#64748B class), AA on white. */
-  --ops-section: oklch(0.55 0.022 255);
+  /* Sidebar group headings: institutional slate cyan (#0E7490 class), AA on white. */
+  --ops-section: oklch(0.53 0.09 220);
 
   --destructive: oklch(0.57 0.2 25);
   --destructive-foreground: oklch(1 0 0);
@@ -186,8 +186,8 @@
   --ops-amber-bg: oklch(0.414 0.085 60);
   --ops-red-bg: oklch(0.396 0.121 26);
   --ops-emerald-bg: oklch(0.386 0.068 165);
-  /* Sidebar group headings: high-contrast subtle silver (#94A3B8 class) on deep slate. */
-  --ops-section: oklch(0.75 0.028 246);
+  /* Sidebar group headings: slate cyan (#38BDF8 class) on deep slate. */
+  --ops-section: oklch(0.76 0.11 226);
 
   /* 1px subtle borders: rgba(255,255,255,0.07) */
   --border: oklch(1 0 0 / 7%);
