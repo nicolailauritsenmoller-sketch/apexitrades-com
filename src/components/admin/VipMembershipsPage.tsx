@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { VipPerkDialog } from "./VipPerkDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -303,6 +304,7 @@ export function VipMembershipsPage({ onOpen }: { onOpen?: (userId: string) => vo
             )}
           </button>
         ))}
+        <div className="ml-auto"><VipPerkDialog /></div>
       </div>
 
       {view === "pending" && <PendingVipPanel onOpen={onOpen} />}
