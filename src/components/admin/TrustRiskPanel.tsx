@@ -165,8 +165,8 @@ export function TrustRiskPanel() {
                     <Milestone on={u.milestones.balanceUnlocked} label=">5k balance" />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    <Toggle on={u.tradingFrozen} label="Freeze Trading" disabled={busy} onClick={() => ctl.mutate({ userId: u.id, tradingFrozen: !u.tradingFrozen })} />
-                    <Toggle on={u.marginRestricted} label="Restrict Margin" disabled={busy} onClick={() => ctl.mutate({ userId: u.id, marginRestricted: !u.marginRestricted })} />
+                    <Toggle on={u.tradingFrozen} label="Freeze Trading" disabled={busy} onClick={() => { const m = !u.tradingFrozen ? window.prompt("Message shown to the trader (optional)") : null; if (m === null && !u.tradingFrozen) return; ctl.mutate({ userId: u.id, tradingFrozen: !u.tradingFrozen, message: m || undefined }); }} />
+                    <Toggle on={u.marginRestricted} label="Restrict Margin" disabled={busy} onClick={() => { const m = !u.marginRestricted ? window.prompt("Message shown to the trader (optional)") : null; if (m === null && !u.marginRestricted) return; ctl.mutate({ userId: u.id, marginRestricted: !u.marginRestricted, message: m || undefined }); }} />
                     <Toggle on={u.verificationRequired} label="Require Verification" disabled={busy} onClick={() => ctl.mutate({ userId: u.id, verificationRequired: !u.verificationRequired })} />
                   </div>
                 </div>
