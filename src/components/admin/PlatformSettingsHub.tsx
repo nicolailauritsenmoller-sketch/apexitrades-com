@@ -7,11 +7,12 @@ import { getPlatformSettings, savePlatformSetting } from "@/lib/admin.functions"
 type Field = {
   key: string;
   label: string;
-  kind?: "text" | "number" | "toggle";
+  kind?: "text" | "number" | "toggle" | "secret" | "select";
   hint?: string;
+  options?: string[];
 };
 
-type Group = { key: string; label: string; fields: Field[] };
+type Group = { key: string; label: string; fields: Field[]; testEmail?: boolean };
 
 const GROUPS: Group[] = [
   {
@@ -22,26 +23,30 @@ const GROUPS: Group[] = [
       { key: "logoUrl", label: "Platform logo URL" },
       { key: "contactEmail", label: "Contact email" },
       { key: "defaultCurrency", label: "Default currency", hint: "e.g. USDT" },
-      
     ],
   },
   {
     key: "trading",
     label: "Trading & risk",
     fields: [
-      { key: "spreadPct", label: "Global spread %", kind: "number" },
+      { key: "makerFeePct", label: "Default maker fee %", kind: "number", hint: "e.g. 0.02" },
+      { key: "takerFeePct", label: "Default taker fee %", kind: "number", hint: "e.g. 0.05" },
+      { key: "spreadPct", label: "Spread markup %", kind: "number" },
+      { key: "maxDefaultLeverage", label: "Maximum default leverage", kind: "select", options: ["50x", "100x", "200x"] },
       { key: "defaultLeverage", label: "Default leverage ratio", kind: "number" },
       { key: "minTradeAmount", label: "Minimum trade amount", kind: "number" },
       { key: "maxTradeAmount", label: "Maximum trade amount", kind: "number" },
       { key: "slippagePct", label: "Automated trade slippage %", kind: "number" },
-      { key: "makerFeePct", label: "Maker fee %", kind: "number", hint: "e.g. 0.02" },
-      { key: "takerFeePct", label: "Taker fee %", kind: "number", hint: "e.g. 0.05" },
     ],
   },
   {
     key: "payments",
     label: "Payments & wallets",
     fields: [
+      { key: "unverifiedDailyLimit", label: "Unverified account daily limit ($)", kind: "number" },
+      { key: "tier1DailyWithdrawalLimit", label: "Verified (Tier 1) daily withdrawal limit ($)", kind: "number" },
+      { key: "vipDailyWithdrawalLimit", label: "VIP (Tier 2) daily withdrawal limit ($)", kind: "number" },
+      { key: "withdrawalAutoApproveBelow", label: "Withdrawal auto-approval threshold ($)", kind: "number", hint: "e.g. 500" },
       { key: "depositFeePct", label: "Deposit fee %", kind: "number" },
       { key: "withdrawalFeePct", label: "Withdrawal fee %", kind: "number" },
       { key: "minDeposit", label: "Minimum deposit", kind: "number" },
@@ -50,7 +55,7 @@ const GROUPS: Group[] = [
       { key: "maxWithdrawal", label: "Maximum withdrawal per transaction", kind: "number" },
       { key: "dailyDepositLimit", label: "Daily deposit limit", kind: "number" },
       { key: "dailyWithdrawalLimit", label: "Daily withdrawal limit", kind: "number" },
-      { key: "autoApproveBelow", label: "Auto-approval threshold", kind: "number" },
+      { key: "autoApproveBelow", label: "Deposit auto-approval threshold", kind: "number" },
       { key: "bankDetails", label: "Bank transfer details" },
     ],
   },
@@ -62,6 +67,28 @@ const GROUPS: Group[] = [
       { key: "sessionTimeoutMinutes", label: "Session timeout (minutes)", kind: "number" },
       { key: "enforce2fa", label: "Enforce two-factor authentication", kind: "toggle" },
       { key: "maxLoginAttempts", label: "Max login attempts", kind: "number" },
+    ],
+  },
+  {
+    key: "integrations",
+    label: "System & API",
+    fields: [
+      { key: "providerName", label: "API provider name" },
+      { key: "apiSecret", label: "API secret / token", kind: "secret" },
+      { key: "webhookUrl", label: "Webhook callback URL", hint: "https://..." },
+      { key: "ipWhitelist", label: "IP whitelist", hint: "Comma-separated IPs" },
+    ],
+  },
+  {
+    key: "smtp",
+    label: "SMTP mail server",
+    testEmail: true,
+    fields: [
+      { key: "host", label: "SMTP host", hint: "smtp.example.com" },
+      { key: "port", label: "Port", kind: "number", hint: "587" },
+      { key: "username", label: "Username" },
+      { key: "password", label: "Password", kind: "secret" },
+      { key: "senderEmail", label: "Sender email", hint: "no-reply@example.com" },
     ],
   },
 ];
@@ -142,8 +169,19 @@ export function PlatformSettingsHub() {
               >
                 {values[f.key] ? "Enabled" : "Disabled"}
               </button>
+            ) : f.kind === "select" ? (
+              <select
+                value={values[f.key] ?? ""}
+                onChange={(e) => set(f.key, e.target.value || null)}
+                className="mt-2 min-h-10 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none focus:border-ring"
+              >
+                <option value="">Not set</option>
+                {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
             ) : (
               <input
+                type={f.kind === "secret" ? "password" : "text"}
+                autoComplete="off"
                 value={values[f.key] ?? ""}
                 inputMode={f.kind === "number" ? "decimal" : "text"}
                 onChange={(e) =>
@@ -164,13 +202,28 @@ export function PlatformSettingsHub() {
         ))}
       </div>
 
-      <button
-        onClick={() => save.mutate(group.key)}
-        disabled={save.isPending}
-        className="mt-4 min-h-10 touch-manipulation rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-      >
-        {save.isPending ? "Saving…" : `Save ${group.label.toLowerCase()} settings`}
-      </button>
+      <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+        {group.testEmail && (
+          <button
+            type="button"
+            onClick={() =>
+              values["host"] && values["senderEmail"]
+                ? toast.info("SMTP details saved. Live test delivery is not connected yet.")
+                : toast.error("Enter host and sender email first.")
+            }
+            className="min-h-10 touch-manipulation rounded-xl border border-border px-5 text-sm font-semibold"
+          >
+            Send Test Email
+          </button>
+        )}
+        <button
+          onClick={() => save.mutate(group.key)}
+          disabled={save.isPending}
+          className="min-h-10 touch-manipulation rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {save.isPending ? "Saving..." : `Save ${group.label.toLowerCase()} settings`}
+        </button>
+      </div>
     </section>
   );
 }
