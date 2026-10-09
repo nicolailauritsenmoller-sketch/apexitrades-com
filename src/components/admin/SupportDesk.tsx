@@ -628,7 +628,13 @@ function ChatInboxes() {
               <div ref={endRef} />
             </div>
 
-            <div className="relative flex flex-wrap items-center gap-2 border-t border-border p-2">
+            <form
+              className="relative flex flex-wrap items-center gap-2 border-t border-border p-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submit();
+              }}
+            >
               <div className="flex w-full items-center gap-1">
                 {(["public", "internal"] as const).map((m) => (
                   <button
