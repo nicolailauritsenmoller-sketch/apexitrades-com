@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertStaff, logAudit, privileged } from "@/lib/desk.server";
+import { assertStaff, logAudit, privileged, appendSignature } from "@/lib/desk.server";
 import { VIP_ROLE_KEYS } from "@/lib/vip";
 
 const roleKey = z.enum(VIP_ROLE_KEYS);
