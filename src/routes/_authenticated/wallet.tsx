@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { RestrictionBlock } from "@/components/security/TraderLiveSync";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -330,12 +331,14 @@ function WalletPage() {
         />
       )}
       {tab === "withdraw" && (
-        <WithdrawTab
-          balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
-          balancesHidden={balancesHidden}
-          onDone={refresh}
-          onSubmitted={setActiveTx}
-        />
+        <RestrictionBlock kind="withdrawals">
+          <WithdrawTab
+            balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
+            balancesHidden={balancesHidden}
+            onDone={refresh}
+            onSubmitted={setActiveTx}
+          />
+        </RestrictionBlock>
       )}
       {tab === "swap" && (
         <SwapTab
