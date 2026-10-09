@@ -74,7 +74,7 @@ import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
 import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
-import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, sectionAccent, tabAccent } from "@/lib/admin-accents";
+import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, itemAccent, sectionAccent, tabAccent } from "@/lib/admin-accents";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { MaintenanceModePanel } from "@/components/admin/MaintenanceModePanel";
@@ -468,6 +468,8 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                         isChat ? unreadChats : id === "vip" ? unreadVip : (pendingCounts[id] ?? 0);
                       const alerting = pending > 0;
                       const accentTheme = OPS_ACCENTS[tabAccent(id)];
+                      const ia = itemAccent(id);
+                      const isActive = tab === id;
                       return (
                         <button
                           key={id}
