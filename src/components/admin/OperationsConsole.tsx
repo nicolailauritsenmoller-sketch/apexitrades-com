@@ -86,6 +86,7 @@ import { RiskMonitor } from "@/components/admin/RiskMonitor";
 import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
+import { ForceMatchTool, AssetNetworkFilters, WithdrawalRiskFlags, TreasuryLiquidity, useWithdrawalRisk } from "@/components/admin/DeskWorkflowTools";
 import { KycReviewDrawer, TierBadge, REJECTION_CODES } from "@/components/admin/KycReviewDrawer";
 import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
 import { VipMembershipsPage } from "@/components/admin/VipMembershipsPage";
@@ -869,7 +870,9 @@ function DepositsTab({
   const [term, setTerm] = useState("");
   const [status, setStatus] = useState(statusFilter ?? "all");
   const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
-  const rows = allRows.filter((r) => (status === "all" || r.status === status) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
+  const [asset, setAsset] = useState("all");
+  const [net, setNet] = useState("all");
+  const rows = allRows.filter((r) => (status === "all" || r.status === status) && (asset === "all" || String(r.coin).toUpperCase() === asset) && (net === "all" || String(r.network).toUpperCase().includes(net)) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
   const { checked, setChecked, toggle } = useBulkSelection();
   const pendingRows = rows.filter((r) => r.status === "pending");
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
@@ -886,6 +889,8 @@ function DepositsTab({
     >
       {readOnly && <div className="mb-3"><ReadOnlyBadge /></div>}
       <fieldset disabled={readOnly} className="min-w-0">
+      <AssetNetworkFilters asset={asset} onAsset={setAsset} network={net} onNetwork={setNet} />
+      {!readOnly && <ForceMatchTool onDone={onDone} />}
       {pendingRows.length > 0 && (
         <BulkBar
           total={pendingRows.length}
@@ -1005,6 +1010,7 @@ function WithdrawalsTab({
   const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
   const rows = allRows.filter((r) => (status === "all" || r.status === status) && [r.coin, r.user_id, r.tx_hash, r.destination_address].some((v) => String(v ?? "").toLowerCase().includes(term.toLowerCase())));
   const { checked, setChecked, toggle } = useBulkSelection();
+  const risk = useWithdrawalRisk();
   const pendingRows = rows.filter((r) => r.status === "pending" && !isLarge(r));
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
   const runBulk = (action: "approve" | "reject") => {
@@ -1019,6 +1025,7 @@ function WithdrawalsTab({
 
     >
       {readOnly && <div className="mb-3"><ReadOnlyBadge /></div>}
+      <TreasuryLiquidity treasury={risk.data?.treasury ?? null} selected={rows.filter((r) => checked.has(r.id))} />
       <fieldset disabled={readOnly} className="min-w-0">
       {pendingRows.length > 0 && (
         <BulkBar
@@ -1055,7 +1062,7 @@ function WithdrawalsTab({
                   <div>
                     <p className="text-sm font-semibold">
                       {Number(w.amount)} {w.coin}{" "}
-                      {isLarge(w) && <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold uppercase text-warning">Large - individual review</span>}{" "}
+                      <WithdrawalRiskFlags flags={risk.data?.flags?.[w.id]} />{" "}{isLarge(w) && <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold uppercase text-warning">Large - individual review</span>}{" "}
                       <span className="text-xs text-muted-foreground">({w.network})</span>
                     </p>
                     <p className="break-all font-mono text-[11px] text-muted-foreground">
