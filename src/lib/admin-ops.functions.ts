@@ -40,7 +40,7 @@ async function notify(db: any, userId: string, title: string, body: string, kind
 export const getRiskMonitor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertFinance(context);
+    await assertStaff(context);
     const db = await privileged();
     const { fetchQuotes } = await import("./market.server");
 
