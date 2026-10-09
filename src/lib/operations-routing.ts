@@ -27,7 +27,7 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
       { id: "users", label: "Users & KYC", icon: Users },
       { id: "vipmembers", label: "VIP Memberships", icon: Crown },
       { id: "roles", label: "Roles & permissions", icon: KeySquare },
-      { id: "restrictions", label: "User security & restrictions", icon: ShieldAlert },
+      { id: "restrictions", label: "Security & restrictions", icon: ShieldAlert },
       { id: "credit", label: "Trader Trust & Risk", icon: CreditCard },
     ],
   },

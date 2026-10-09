@@ -442,13 +442,18 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
               <p className="font-display text-sm font-bold tracking-tight">Desk management</p>
               <p className="text-[11px] text-muted-foreground">Operations backend</p>
             </div>
-            <nav className="flex gap-1 overflow-x-auto lg:block lg:space-y-3 lg:overflow-visible">
+            <nav className="flex gap-1 overflow-x-auto lg:block lg:overflow-visible">
               {nav.map((group) => (
-                <div key={group.section} className="shrink-0 lg:block">
-                  <p className="hidden px-2 pb-1 pt-2 text-[10px] uppercase tracking-widest text-muted-foreground lg:block">
-                    {group.section}
+                <div
+                  key={group.section}
+                  className="shrink-0 lg:mt-5 lg:block lg:first:mt-0"
+                >
+                  <p className="hidden items-center gap-2.5 px-2 text-xs font-bold uppercase tracking-[0.14em] text-ops-section lg:mb-2 lg:flex">
+                    <span aria-hidden className="h-3 w-0.5 shrink-0 rounded-full bg-ops-section/70" />
+                    <span className="truncate">{group.section}</span>
+                    <span aria-hidden className="h-px min-w-2 flex-1 bg-border" />
                   </p>
-                  <div className="flex gap-1 lg:block lg:space-y-0.5">
+                  <div className="flex gap-1 lg:block lg:space-y-1">
                     {group.items.map(({ id, label, icon: Icon }) => {
                       const isChat = id === "support";
                       const pending =
@@ -466,10 +471,10 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                             go(id, alerting && !isChat ? { status: "pending" } : undefined);
                             if (isChat) silenceChatAlerts();
                           }}
-                          className={`flex w-full shrink-0 items-center gap-2 whitespace-nowrap rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
+                          className={`group flex w-full shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
                             tab === id
-                              ? `${accentTheme.tab} border-l-current font-medium`
-                              : "border-l-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              ? `${accentTheme.tab} ring-1 ring-inset ring-current/25 border-l-current font-semibold`
+                              : "border-l-transparent text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                           } ${
                             alerting
                               ? isChat
@@ -480,7 +485,11 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                         >
                           <Icon
                             className={`size-4 shrink-0 ${
-                              alerting && !isChat ? "text-ops-red" : accentTheme.text
+                              alerting && !isChat
+                                ? "text-ops-red"
+                                : tab === id
+                                  ? "text-current"
+                                  : "text-muted-foreground group-hover:text-foreground"
                             }`}
                           />
                           <span className="truncate">{label}</span>
