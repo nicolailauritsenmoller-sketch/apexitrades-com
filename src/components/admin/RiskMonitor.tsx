@@ -9,6 +9,7 @@ import { forceLiquidatePosition, getRiskMonitor, issueMarginCall } from "@/lib/a
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
+import { RiskControlsCard } from "@/components/admin/RiskControlsCard";
 
 const n = (v: unknown, d = 2) =>
   Number(v ?? 0).toLocaleString(undefined, { maximumFractionDigits: d });
@@ -21,7 +22,7 @@ function riskTone(pct: number) {
 }
 
 /** Live leverage/margin risk board with an emergency liquidation control. */
-export function RiskMonitor() {
+export function RiskMonitor({ readOnly = false }: { readOnly?: boolean }) {
   const qc = useQueryClient();
   const fetchRisk = useServerFn(getRiskMonitor);
   const liquidate = useServerFn(forceLiquidatePosition);
@@ -70,6 +71,7 @@ export function RiskMonitor() {
 
   return (
     <div className="space-y-4">
+      <RiskControlsCard readOnly={readOnly} />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
           { label: "Open positions", value: positions.length },
@@ -180,6 +182,7 @@ export function RiskMonitor() {
                         {n(p.pnl)}
                       </td>
                       <td className="px-3 py-2.5 text-right">
+                        {!readOnly && <>
                         <button
                           onClick={() => {
                             setMode("call");
@@ -198,6 +201,7 @@ export function RiskMonitor() {
                         >
                           <Zap className="size-3" /> Liquidate
                         </button>
+                        </>}
                       </td>
                     </tr>
                   );

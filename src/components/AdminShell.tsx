@@ -4,6 +4,7 @@ import { LogOut, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminAlerts } from "@/components/admin/AdminAlerts";
+import { AdminSearch } from "@/components/admin/AdminSearch";
 
 /**
  * Standalone backend layout. Deliberately shares no chrome with the customer
@@ -37,6 +38,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <AdminSearch />
             <AdminAlerts />
             <button
               onClick={signOut}
