@@ -161,3 +161,52 @@ const SECTION_SECONDARY: SectionClasses = {
 export function sectionAccent(section: string): SectionClasses {
   return SECTION_PRIMARY[section] ?? SECTION_SECONDARY;
 }
+
+/**
+ * Item-level focal highlights inside the sidebar. Key operator desks carry a
+ * tinted label/icon and a small status dot even when inactive, so the live
+ * queues and treasury desks stand out from routine navigation. Amber = live
+ * support queues, emerald = monitoring focal points and treasury desks.
+ */
+type ItemClasses = {
+  /** Label colour when the item is not the active tab. */
+  text: string;
+  /** Icon colour when the item is not the active tab. */
+  icon: string;
+  /** Small status dot shown before the label. */
+  dot: string;
+  /** Pill count badge colour when pending work exists. */
+  pill: string;
+};
+
+const ITEM_AMBER: ItemClasses = {
+  text: "text-ops-section-amber",
+  icon: "text-ops-section-amber",
+  dot: "bg-ops-section-amber text-ops-section-amber",
+  pill: "bg-ops-section-amber text-background",
+};
+
+const ITEM_EMERALD: ItemClasses = {
+  text: "text-ops-section-emerald",
+  icon: "text-ops-section-emerald",
+  dot: "bg-ops-section-emerald text-ops-section-emerald",
+  pill: "bg-ops-section-emerald text-background",
+};
+
+const ITEM_HIGHLIGHT: Record<string, ItemClasses> = {
+  // Live support queues.
+  support: ITEM_AMBER,
+  vip: ITEM_AMBER,
+  // Overview focal points.
+  overview: ITEM_EMERALD,
+  risk: ITEM_EMERALD,
+  // Identity desk.
+  users: ITEM_EMERALD,
+  // Primary treasury desks.
+  deposits: ITEM_EMERALD,
+  withdrawals: ITEM_EMERALD,
+};
+
+export function itemAccent(id: string): ItemClasses | null {
+  return ITEM_HIGHLIGHT[id] ?? null;
+}

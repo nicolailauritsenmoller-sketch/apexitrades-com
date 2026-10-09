@@ -74,7 +74,7 @@ import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
 import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
-import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, sectionAccent, tabAccent } from "@/lib/admin-accents";
+import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, itemAccent, sectionAccent, tabAccent } from "@/lib/admin-accents";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { MaintenanceModePanel } from "@/components/admin/MaintenanceModePanel";
@@ -468,6 +468,8 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                         isChat ? unreadChats : id === "vip" ? unreadVip : (pendingCounts[id] ?? 0);
                       const alerting = pending > 0;
                       const accentTheme = OPS_ACCENTS[tabAccent(id)];
+                      const ia = itemAccent(id);
+                      const isActive = tab === id;
                       return (
                         <button
                           key={id}
@@ -480,9 +482,11 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                             if (isChat) silenceChatAlerts();
                           }}
                           className={`group flex w-full shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                            tab === id
+                            isActive
                               ? `${accentTheme.tab} ring-1 ring-inset ring-current/25 border-l-current font-semibold`
-                              : "border-l-transparent text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+                              : ia
+                                ? `border-l-transparent font-medium ${ia.text} hover:bg-secondary/70`
+                                : "border-l-transparent text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                           } ${
                             alerting
                               ? isChat
@@ -495,14 +499,26 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                             className={`size-4 shrink-0 ${
                               alerting && !isChat
                                 ? "text-ops-red"
-                                : tab === id
+                                : isActive
                                   ? "text-current"
-                                  : "text-muted-foreground group-hover:text-foreground"
+                                  : ia
+                                    ? ia.icon
+                                    : "text-muted-foreground group-hover:text-foreground"
                             }`}
                           />
+                          {ia && !isActive && (
+                            <span
+                              aria-hidden
+                              className={`desk-dot size-1.5 shrink-0 rounded-full ${ia.dot}`}
+                            />
+                          )}
                           <span className="truncate">{label}</span>
                           {pending > 0 && (
-                            <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-ops-red px-1.5 py-0.5 text-[10px] font-bold leading-none text-background">
+                            <span
+                              className={`ml-auto grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-background ${
+                                ia ? ia.pill : "bg-ops-red"
+                              }`}
+                            >
                               {pending}
                             </span>
                           )}
