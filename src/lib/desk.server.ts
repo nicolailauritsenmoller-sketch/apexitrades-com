@@ -86,11 +86,14 @@ export async function logAudit(
   targetUserId: string | null,
   details: Record<string, unknown>,
 ) {
+  const { data: agent } = await db
+    .from("agent_profiles").select("staff_id,full_name").eq("user_id", actorId).maybeSingle();
   await db.from("admin_audit_logs").insert({
     actor_id: actorId,
+    actor_name: agent?.full_name ?? null,
     action,
     target_user_id: targetUserId,
-    details,
+    details: { staff_id: agent?.staff_id ?? null, ...details },
   });
 }
 

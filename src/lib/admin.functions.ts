@@ -100,17 +100,16 @@ async function writeAudit(
   details: Record<string, unknown> = {},
 ) {
   const db = await privileged();
-  const { data: me } = await db
-    .from("profiles")
-    .select("display_name")
-    .eq("id", context.userId)
-    .maybeSingle();
+  const [{ data: me }, { data: agent }] = await Promise.all([
+    db.from("profiles").select("display_name,uid").eq("id", context.userId).maybeSingle(),
+    db.from("agent_profiles").select("staff_id,full_name").eq("user_id", context.userId).maybeSingle(),
+  ]);
   await db.from("admin_audit_logs").insert({
     actor_id: context.userId,
-    actor_name: me?.display_name ?? null,
+    actor_name: agent?.full_name ?? me?.display_name ?? null,
     action,
     target_user_id: targetUserId,
-    details,
+    details: { staff_id: agent?.staff_id ?? me?.uid ?? null, ...details },
   });
 }
 
@@ -406,11 +405,16 @@ export const setUserOutcomeMode = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
+    const { data: prev } = await context.supabase
+      .from("profiles").select("outcome_mode").eq("id", data.userId).maybeSingle();
     const { error } = await context.supabase
       .from("profiles")
       .update({ outcome_mode: data.mode })
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
+    await writeAudit(context, "trade.outcome.user_override", data.userId, {
+      from: prev?.outcome_mode ?? null, to: data.mode,
+    });
     return { ok: true };
   });
 
@@ -427,11 +431,16 @@ export const setContractOutcomeMode = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const db = await privileged();
+    const { data: prev } = await db
+      .from("contracts").select("outcome_override,user_id,display_symbol").eq("id", data.contractId).maybeSingle();
     const { error } = await db
       .from("contracts")
       .update({ outcome_override: data.mode })
       .eq("id", data.contractId);
     if (error) throw new Error(error.message);
+    await writeAudit(context, "trade.outcome.contract_override", prev?.user_id ?? null, {
+      contractId: data.contractId, symbol: prev?.display_symbol, from: prev?.outcome_override ?? null, to: data.mode,
+    });
     return { ok: true };
   });
 
@@ -1466,11 +1475,17 @@ export const savePlatformSetting = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const db = await privileged();
+    const { data: prev } = await db.from("platform_settings").select("value").eq("key", data.key).maybeSingle();
     const { error } = await db
       .from("platform_settings")
       .upsert({ key: data.key, value: data.value }, { onConflict: "key" });
     if (error) throw new Error(error.message);
     await writeAudit(context, "settings.update", null, { key: data.key });
+    const before = (prev?.value as any)?.defaultOutcome ?? "normal";
+    const after = (data.value as any)?.defaultOutcome;
+    if (data.key === "trading" && after && after !== before) {
+      await writeAudit(context, "trade.outcome.global", null, { from: before, to: after });
+    }
     return { ok: true };
   });
 
