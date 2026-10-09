@@ -209,6 +209,69 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_logs: {
+        Row: {
+          actor_id: string
+          actor_name: string | null
+          actor_staff_id: string | null
+          audience: Json
+          audience_label: string
+          body: string
+          channels: string[]
+          created_at: string
+          delivered: number
+          emergency: boolean
+          failed: number
+          id: string
+          is_test: boolean
+          recipients: number
+          skipped_channels: string[]
+          status: string
+          template_key: string | null
+          title: string
+        }
+        Insert: {
+          actor_id: string
+          actor_name?: string | null
+          actor_staff_id?: string | null
+          audience?: Json
+          audience_label: string
+          body: string
+          channels?: string[]
+          created_at?: string
+          delivered?: number
+          emergency?: boolean
+          failed?: number
+          id?: string
+          is_test?: boolean
+          recipients?: number
+          skipped_channels?: string[]
+          status?: string
+          template_key?: string | null
+          title: string
+        }
+        Update: {
+          actor_id?: string
+          actor_name?: string | null
+          actor_staff_id?: string | null
+          audience?: Json
+          audience_label?: string
+          body?: string
+          channels?: string[]
+          created_at?: string
+          delivered?: number
+          emergency?: boolean
+          failed?: number
+          id?: string
+          is_test?: boolean
+          recipients?: number
+          skipped_channels?: string[]
+          status?: string
+          template_key?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           badge_key: string
@@ -825,6 +888,7 @@ export type Database = {
       notifications: {
         Row: {
           body: string
+          broadcast_id: string | null
           created_at: string
           id: string
           kind: string
@@ -834,6 +898,7 @@ export type Database = {
         }
         Insert: {
           body: string
+          broadcast_id?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -843,6 +908,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          broadcast_id?: string | null
           created_at?: string
           id?: string
           kind?: string
