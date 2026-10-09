@@ -86,6 +86,7 @@ import { RiskMonitor } from "@/components/admin/RiskMonitor";
 import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
+import { TransactionsDesk } from "@/components/admin/TransactionsDesk";
 import { ReceivingAddressesDesk } from "@/components/admin/ReceivingAddressesDesk";
 import { ForceMatchTool, AssetNetworkFilters, WithdrawalRiskFlags, TreasuryLiquidity, useWithdrawalRisk } from "@/components/admin/DeskWorkflowTools";
 import { KycReviewDrawer, TierBadge, REJECTION_CODES } from "@/components/admin/KycReviewDrawer";
@@ -689,12 +690,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                   <TradeCorrections />
                 </div>
               )}
-              {tab === "transactions" &&
-                (analytics ? (
-                  <TransactionsPanel a={analytics} />
-                ) : (
-                  <p className="text-sm text-muted-foreground">Loading ledger…</p>
-                ))}
+              {tab === "transactions" && <TransactionsDesk />}
               {tab === "support" && <SupportDesk />}
               {tab === "requests" && <SupportDesk initialView="requests" />}
               {tab === "tickets" && <SupportDesk initialView="tickets" />}
