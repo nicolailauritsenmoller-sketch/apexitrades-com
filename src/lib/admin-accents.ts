@@ -115,3 +115,49 @@ export const DANGER_BTN =
 /** Approval action button (Approve deposit, Verify KYC). */
 export const APPROVE_BTN =
   "inline-flex min-h-9 touch-manipulation items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50";
+
+/**
+ * Sidebar section-heading hierarchy. The operator-critical desks (live queue,
+ * live monitoring, ledger movement) carry an amber or emerald label plus a
+ * leading tick and, where a queue is always live, a glowing dot. Secondary
+ * desks keep the sleek slate-cyan --ops-section token.
+ */
+type SectionClasses = {
+  /** Uppercase heading label colour. */
+  label: string;
+  /** Leading tick bar before the label. */
+  tick: string;
+  /** Glowing active-desk dot after the label; empty when the section has none. */
+  dot: string;
+};
+
+const SECTION_PRIMARY: Record<string, SectionClasses> = {
+  // Amber = live operator queue.
+  "Live support": {
+    label: "text-ops-amber",
+    tick: "bg-ops-amber/75",
+    dot: "bg-ops-amber text-ops-amber",
+  },
+  // Emerald = live monitoring and ledger movement.
+  Overview: {
+    label: "text-ops-emerald",
+    tick: "bg-ops-emerald/75",
+    dot: "",
+  },
+  Money: {
+    label: "text-ops-emerald",
+    tick: "bg-ops-emerald/75",
+    dot: "bg-ops-emerald text-ops-emerald",
+  },
+};
+
+/** Secondary desks: sleek slate cyan/silver from the --ops-section token. */
+const SECTION_SECONDARY: SectionClasses = {
+  label: "text-ops-section",
+  tick: "bg-ops-section/55",
+  dot: "",
+};
+
+export function sectionAccent(section: string): SectionClasses {
+  return SECTION_PRIMARY[section] ?? SECTION_SECONDARY;
+}

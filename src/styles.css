@@ -455,3 +455,27 @@
     display: none !important;
   }
 }
+
+/* Operations Console sidebar: glowing active-desk indicator dot. */
+@keyframes desk-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@utility desk-dot {
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, currentColor 16%, transparent),
+    0 0 12px 2px color-mix(in oklab, currentColor 45%, transparent);
+  animation: desk-dot-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-dot {
+    animation: none;
+  }
+}
