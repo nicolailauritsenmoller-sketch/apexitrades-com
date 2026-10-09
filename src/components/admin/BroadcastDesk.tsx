@@ -124,7 +124,7 @@ export function BroadcastDesk() {
                 <textarea value={listText} onChange={(e) => setListText(e.target.value)} rows={3} placeholder="Paste UIDs or emails, separated by commas or new lines" className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" />
                 <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-secondary">
                   <Upload className="size-3.5" />Upload CSV / TXT
-                  <input type="file" hidden accept=".csv,.txt,text/csv,text/plain" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setListText((p) => `${p}\n${await f.text()}`.trim()); e.target.value = ""; }} />
+                  <input type="file" hidden accept=".csv,.txt,text/csv,text/plain" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const txt = await f.text(); setListText((p) => `${p}\n${txt}`.trim()); } e.target.value = ""; }} />
                 </label>
               </div>
             )}
