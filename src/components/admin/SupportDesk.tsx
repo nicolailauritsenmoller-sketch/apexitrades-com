@@ -714,7 +714,7 @@ function ChatInboxes() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setMacroOpen(false);
-                  if (e.key === "Enter" && !draft.startsWith("/")) submit();
+                  // Enter falls through to the form's onSubmit (single dispatch).
                 }}
                 placeholder={noteMode ? "Internal note - visible to staff only…" : lockedByOther ? "Assigned to another agent" : active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent… (type / for macros)" : "Accept chat to reply…"}
                 disabled={composerDisabled}
