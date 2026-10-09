@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertStaff, logAudit, privileged } from "@/lib/desk.server";
+import { assertStaff, logAudit, privileged, appendSignature } from "@/lib/desk.server";
 import { VIP_ROLE_KEYS } from "@/lib/vip";
 
 const roleKey = z.enum(VIP_ROLE_KEYS);
@@ -266,7 +266,7 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
       role_key: data.roleKey,
       sender_role: "specialist",
       sender_id: context.userId,
-      body: data.body || (data.attachmentName ?? "Attachment"),
+      body: data.internal || !data.body ? data.body || (data.attachmentName ?? "Attachment") : await appendSignature(db, context.userId, data.body),
       attachment_path: data.attachmentPath ?? null,
       attachment_name: data.attachmentName ?? null,
       attachment_type: data.attachmentType ?? null,

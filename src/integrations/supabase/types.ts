@@ -143,33 +143,96 @@ export type Database = {
         }
         Relationships: []
       }
-      agent_profiles: {
+      agent_personas: {
         Row: {
           agent_role: string
           avatar_url: string | null
           created_at: string
           full_name: string
+          id: string
+          label: string
+          language: string
+          presence: string
+          signature: string | null
           staff_id: string
           updated_at: string
           user_id: string
+          welcome_message: string | null
         }
         Insert: {
-          agent_role?: string
+          agent_role: string
           avatar_url?: string | null
           created_at?: string
           full_name: string
+          id?: string
+          label: string
+          language?: string
+          presence?: string
+          signature?: string | null
           staff_id: string
           updated_at?: string
           user_id: string
+          welcome_message?: string | null
         }
         Update: {
           agent_role?: string
           avatar_url?: string | null
           created_at?: string
           full_name?: string
+          id?: string
+          label?: string
+          language?: string
+          presence?: string
+          signature?: string | null
           staff_id?: string
           updated_at?: string
           user_id?: string
+          welcome_message?: string | null
+        }
+        Relationships: []
+      }
+      agent_profiles: {
+        Row: {
+          active_persona_id: string | null
+          agent_role: string
+          avatar_url: string | null
+          created_at: string
+          full_name: string
+          language: string
+          presence: string
+          signature: string | null
+          staff_id: string
+          updated_at: string
+          user_id: string
+          welcome_message: string | null
+        }
+        Insert: {
+          active_persona_id?: string | null
+          agent_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          full_name: string
+          language?: string
+          presence?: string
+          signature?: string | null
+          staff_id: string
+          updated_at?: string
+          user_id: string
+          welcome_message?: string | null
+        }
+        Update: {
+          active_persona_id?: string | null
+          agent_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string
+          language?: string
+          presence?: string
+          signature?: string | null
+          staff_id?: string
+          updated_at?: string
+          user_id?: string
+          welcome_message?: string | null
         }
         Relationships: []
       }
