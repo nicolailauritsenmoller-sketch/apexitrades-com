@@ -139,6 +139,7 @@ export const setRiskControls = createServerFn({ method: "POST" })
         tradingFrozen: z.boolean().optional(),
         marginRestricted: z.boolean().optional(),
         verificationRequired: z.boolean().optional(),
+        message: z.string().trim().max(400).optional(),
       })
       .parse(i),
   )
@@ -151,7 +152,7 @@ export const setRiskControls = createServerFn({ method: "POST" })
     if (data.verificationRequired !== undefined) patch["verification_required"] = data.verificationRequired;
     const { error } = await db.from("profiles").update(patch).eq("id", data.userId);
     if (error) throw new Error(error.message);
-    await logAudit(db, context.userId, "risk_controls.update", data.userId, patch);
+    await logAudit(db, context.userId, "risk_controls.update", data.userId, { ...patch, message: data.message ?? null });
     const labels: string[] = [];
     if (patch["trading_frozen"] !== undefined) labels.push(patch["trading_frozen"] ? "Trading frozen" : "Trading restored");
     if (patch["margin_restricted"] !== undefined) labels.push(patch["margin_restricted"] ? "Margin restricted" : "Margin restored");
@@ -160,7 +161,7 @@ export const setRiskControls = createServerFn({ method: "POST" })
     await db.from("notifications").insert({
       user_id: data.userId,
       title: "Account controls updated",
-      body: labels.join(" · "),
+      body: data.message ? `${labels.join(" - ")}. ${data.message}` : labels.join(" - "),
       kind: "warning",
     });
     return { ok: true };

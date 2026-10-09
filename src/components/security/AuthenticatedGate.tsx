@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { TraderLiveSync } from "@/components/security/TraderLiveSync";
 import { AccountSuspended } from "@/components/AccountSuspended";
 import { TwoFactorChallenge } from "@/components/security/TwoFactorChallenge";
 import { getMyAccountStatus, type AccountLockState } from "@/lib/account-status.functions";
@@ -38,30 +39,6 @@ export function AuthenticatedGate({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
-
-  // Live sync: admin risk controls and trust recalculations land instantly.
-  useEffect(() => {
-    if (status !== "authed") return;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    void supabase.auth.getUser().then(({ data }) => {
-      const uid = data.user?.id;
-      if (!uid) return;
-      channel = supabase
-        .channel(`profile-live-${uid}`)
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${uid}` },
-          () => {
-            void queryClient.invalidateQueries({ queryKey: ["my-account-status"] });
-            void queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
-          },
-        )
-        .subscribe();
-    });
-    return () => {
-      if (channel) void supabase.removeChannel(channel);
-    };
-  }, [status, queryClient]);
 
   // 2FA gate: re-evaluated server-side on every load, so direct URLs cannot bypass it.
   const fetchTwoFactor = useServerFn(getTwoFactorState);
@@ -109,6 +86,7 @@ export function AuthenticatedGate({ children }: { children: React.ReactNode }) {
           {notices.join(" · ")}
         </div>
       )}
+      <TraderLiveSync />
       {children}
     </>
   );

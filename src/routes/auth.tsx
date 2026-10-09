@@ -60,6 +60,13 @@ function AuthPage() {
   const navigate = useNavigate();
   const { data: maintenance } = useMaintenanceStatus();
   const [mode, setMode] = useState<Mode>("signup");
+  const [lockNotice, setLockNotice] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const n = sessionStorage.getItem("vt.lock-notice");
+      if (n) { setLockNotice(n); sessionStorage.removeItem("vt.lock-notice"); }
+    } catch {}
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -298,6 +305,12 @@ function AuthPage() {
         </div>
         <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>
+        {lockNotice && (
+          <div role="alert" className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+            <p className="font-semibold text-destructive">You were signed out by the operations desk</p>
+            <p className="mt-1 text-foreground">{lockNotice}</p>
+          </div>
+        )}
 
         {maintenance?.enabled && (
           <div className="mt-4">

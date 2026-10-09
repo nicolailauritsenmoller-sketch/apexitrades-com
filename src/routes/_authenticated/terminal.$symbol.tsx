@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { RestrictionBlock, useAccountLock } from "@/components/security/TraderLiveSync";
 import { TradingViewChart, type ChartOverlay } from "@/components/trading/TradingViewChart";
 import { getContracts } from "@/lib/contracts.functions";
 import { TimedContractPanel } from "@/components/TimedContractPanel";
@@ -141,6 +142,7 @@ function Terminal() {
 
 
   const open = useServerFn(openPosition);
+  const accountLock = useAccountLock();
   const orderMutation = useMutation({
     mutationFn: (vars: { side: "long" | "short"; quantity?: number }) =>
       open({
@@ -161,6 +163,10 @@ function Terminal() {
   });
 
   function submitOrder(side: "long" | "short", requestedQuantity?: number) {
+    if (accountLock.data?.tradingFrozen) {
+      toast.error("Trading is frozen on this account. Contact support for details.");
+      return;
+    }
     const orderQuantity = requestedQuantity ?? Number(quantity);
     if (
       orderConfirmations &&
@@ -455,22 +461,24 @@ function Terminal() {
       </div>
 
       <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 lg:hidden">
-        <MobileOrderEntry
-          symbol={symbol}
-          price={quote?.price}
-          balance={wallet?.balance}
-          orderPrice={orderPriceValue}
-          onOrderPriceChange={setOrderPriceValue}
-          onSubmit={(side, q) => submitOrder(side, q)}
-          pending={orderMutation.isPending}
-        />
+        <RestrictionBlock kind="trading">
+          <MobileOrderEntry
+            symbol={symbol}
+            price={quote?.price}
+            balance={wallet?.balance}
+            orderPrice={orderPriceValue}
+            onOrderPriceChange={setOrderPriceValue}
+            onSubmit={(side, q) => submitOrder(side, q)}
+            pending={orderMutation.isPending}
+          />
+        </RestrictionBlock>
         <OrderBook symbol={symbol} quote={quote} onSelectPrice={setOrderPrice} compact />
       </div>
 
       <div className="mt-4 grid w-full max-w-full gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="hidden lg:block" />
         <div className="min-w-0 max-w-full">
-          <TimedContractPanel symbol={symbol} balance={usdtBalance} />
+          <RestrictionBlock kind="trading"><TimedContractPanel symbol={symbol} balance={usdtBalance} /></RestrictionBlock>
         </div>
       </div>
 
