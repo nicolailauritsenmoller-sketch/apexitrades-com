@@ -67,6 +67,8 @@
   --color-ops-red-bg: var(--ops-red-bg);
   --color-ops-emerald-bg: var(--ops-emerald-bg);
   --color-ops-section: var(--ops-section);
+  --color-ops-section-amber: var(--ops-section-amber);
+  --color-ops-section-emerald: var(--ops-section-emerald);
 }
 
 :root {
@@ -115,6 +117,9 @@
   --ops-emerald-bg: oklch(0.386 0.068 165);
   /* Sidebar group headings: institutional slate cyan (#0E7490 class), AA on white. */
   --ops-section: oklch(0.53 0.09 220);
+  /* Priority desk headings darkened for AA contrast on white: amber-700 / emerald-700. */
+  --ops-section-amber: oklch(0.55 0.13 65);
+  --ops-section-emerald: oklch(0.55 0.12 165);
 
   --destructive: oklch(0.57 0.2 25);
   --destructive-foreground: oklch(1 0 0);
@@ -188,6 +193,9 @@
   --ops-emerald-bg: oklch(0.386 0.068 165);
   /* Sidebar group headings: slate cyan (#38BDF8 class) on deep slate. */
   --ops-section: oklch(0.76 0.11 226);
+  /* Priority desk headings: #F59E0B amber and #10B981 emerald on deep slate. */
+  --ops-section-amber: oklch(0.769 0.164 70);
+  --ops-section-emerald: oklch(0.696 0.149 162);
 
   /* 1px subtle borders: rgba(255,255,255,0.07) */
   --border: oklch(1 0 0 / 7%);
@@ -453,5 +461,29 @@
 @media (max-width: 767px) {
   #tv-attr-logo {
     display: none !important;
+  }
+}
+
+/* Operations Console sidebar: glowing active-desk indicator dot. */
+@keyframes desk-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@utility desk-dot {
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, currentColor 16%, transparent),
+    0 0 12px 2px color-mix(in oklab, currentColor 45%, transparent);
+  animation: desk-dot-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-dot {
+    animation: none;
   }
 }

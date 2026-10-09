@@ -74,7 +74,7 @@ import { SecurityReportsPanel } from "@/components/admin/SecurityReportsPanel";
 import { VerifiedBadge, UidTag } from "@/components/VerifiedBadge";
 import { downloadCsv } from "@/lib/csv";
 import { silenceChatAlerts } from "@/lib/alerts";
-import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, tabAccent } from "@/lib/admin-accents";
+import { APPROVE_BTN, DANGER_BTN, OPS_ACCENTS, sectionAccent, tabAccent } from "@/lib/admin-accents";
 import { AdminShell } from "@/components/AdminShell";
 import { OpsToggles } from "@/components/admin/OpsToggles";
 import { MaintenanceModePanel } from "@/components/admin/MaintenanceModePanel";
@@ -443,14 +443,22 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
               <p className="text-[11px] text-muted-foreground">Operations backend</p>
             </div>
             <nav className="flex gap-1 overflow-x-auto lg:block lg:overflow-visible">
-              {nav.map((group) => (
+              {nav.map((group) => {
+                const sa = sectionAccent(group.section);
+                return (
                 <div
                   key={group.section}
                   className="shrink-0 lg:mt-5 lg:block lg:first:mt-0"
                 >
-                  <p className="hidden items-center gap-2.5 px-2 text-xs font-bold uppercase tracking-[0.14em] text-ops-section lg:mb-2 lg:flex">
-                    <span aria-hidden className="h-3 w-0.5 shrink-0 rounded-full bg-ops-section/70" />
+                  <p className={`hidden items-center gap-2.5 px-2 text-xs font-bold uppercase tracking-[0.14em] lg:mb-2 lg:flex ${sa.label}`}>
+                    <span aria-hidden className={`h-3 w-0.5 shrink-0 rounded-full ${sa.tick}`} />
                     <span className="truncate">{group.section}</span>
+                    {sa.dot && (
+                      <span
+                        aria-hidden
+                        className={`desk-dot size-1.5 shrink-0 rounded-full ${sa.dot}`}
+                      />
+                    )}
                     <span aria-hidden className="h-px min-w-2 flex-1 bg-border" />
                   </p>
                   <div className="flex gap-1 lg:block lg:space-y-1">
@@ -504,7 +512,8 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                     })}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </nav>
           </div>
         </aside>
