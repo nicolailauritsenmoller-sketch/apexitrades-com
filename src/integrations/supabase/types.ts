@@ -640,31 +640,37 @@ export type Database = {
         Row: {
           active: boolean
           address: string
+          allocation_mode: string
           coin: string
           created_at: string
           id: string
           memo: string | null
           network: string
+          status: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           address: string
+          allocation_mode?: string
           coin: string
           created_at?: string
           id?: string
           memo?: string | null
           network: string
+          status?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           address?: string
+          allocation_mode?: string
           coin?: string
           created_at?: string
           id?: string
           memo?: string | null
           network?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []

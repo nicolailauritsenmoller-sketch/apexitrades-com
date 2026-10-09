@@ -88,6 +88,7 @@ export function PaymentGatewaysPanel({
           address: String(draft.address ?? "").trim(),
           memo: draft.memo ?? undefined,
           active: draft.active ?? true,
+          reason: draft.id ? window.prompt("Audit note for this address change (required)") ?? "" : undefined,
         } as any,
       }),
     onSuccess: () => {
@@ -99,7 +100,7 @@ export function PaymentGatewaysPanel({
   });
 
   const del = useMutation({
-    mutationFn: (id: string) => remove({ data: { id } }),
+    mutationFn: (id: string) => remove({ data: { id, reason: window.prompt("Audit note for deleting this address (required)") ?? "" } }),
     onSuccess: () => {
       toast.success("Address removed.");
       onDone();
