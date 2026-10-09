@@ -1274,10 +1274,9 @@ export function LiveChatDialog({
               />
               <button
                 type="submit"
-                onClick={send}
                 aria-label="Send message"
                 className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
-                disabled={sending}
+                disabled={sending || (!draft.trim() && !file)}
               >
                 <Send className="size-4" />
               </button>

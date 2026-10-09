@@ -628,7 +628,13 @@ function ChatInboxes() {
               <div ref={endRef} />
             </div>
 
-            <div className="relative flex flex-wrap items-center gap-2 border-t border-border p-2">
+            <form
+              className="relative flex flex-wrap items-center gap-2 border-t border-border p-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submit();
+              }}
+            >
               <div className="flex w-full items-center gap-1">
                 {(["public", "internal"] as const).map((m) => (
                   <button
@@ -708,7 +714,7 @@ function ChatInboxes() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setMacroOpen(false);
-                  if (e.key === "Enter" && !draft.startsWith("/")) submit();
+                  // Enter falls through to the form's onSubmit (single dispatch).
                 }}
                 placeholder={noteMode ? "Internal note - visible to staff only…" : lockedByOther ? "Assigned to another agent" : active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent… (type / for macros)" : "Accept chat to reply…"}
                 disabled={composerDisabled}
@@ -716,8 +722,8 @@ function ChatInboxes() {
                 className={`flex-1 rounded-md px-3 py-2 text-sm outline-none placeholder:text-muted-foreground ${noteMode ? "bg-warning/15" : "bg-secondary"}`}
               />
               <button
-                onClick={submit}
-                disabled={composerDisabled || reply.isPending || noteMutation.isPending || uploading}
+                type="submit"
+                disabled={composerDisabled || reply.isPending || noteMutation.isPending || uploading || (!draft.trim() && !file)}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
@@ -727,7 +733,7 @@ function ChatInboxes() {
                   <Send className="size-4" />
                 )}
               </button>
-            </div>
+            </form>
           </>
         )}
       </div>
