@@ -134,9 +134,3 @@ export const uploadPersonaAvatar = createServerFn({ method: "POST" })
     return { url: db.storage.from("specialist-avatars").getPublicUrl(path).data.publicUrl as string };
   });
 
-/** Server helper: active signature for outbound replies. */
-export async function appendSignature(db: any, userId: string, body: string) {
-  const { data } = await db.from("agent_profiles").select("signature").eq("user_id", userId).maybeSingle();
-  const sig = (data?.signature ?? "").trim();
-  return sig && !body.trimEnd().endsWith(sig) ? `${body.trimEnd()}\n\n${sig}` : body;
-}

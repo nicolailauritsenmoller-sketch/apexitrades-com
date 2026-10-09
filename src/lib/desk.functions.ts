@@ -138,6 +138,15 @@ export const acceptLiveChat = createServerFn({ method: "POST" })
       })
       .eq("id", data.sessionId);
     if (error) throw new Error(error.message);
+    // Personal welcome message when picking up a previously unassigned thread.
+    if (!session.active_agent_id) {
+      const { data: agent } = await db.from("agent_profiles").select("welcome_message,full_name,agent_role").eq("user_id", context.userId).maybeSingle();
+      const text = (agent?.welcome_message ?? "").trim();
+      if (text) {
+        const body = text.replaceAll("{name}", agent?.full_name ?? "").replaceAll("{role}", agent?.agent_role ?? "");
+        await db.from("chat_messages").insert({ session_id: data.sessionId, sender_id: context.userId, sender_role: "agent", body });
+      }
+    }
     return { connectedAt: now, alreadyAccepted: false };
   });
 

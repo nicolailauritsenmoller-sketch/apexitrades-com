@@ -8,6 +8,7 @@ import {
   assertFinance,
   privileged,
   logAudit,
+  appendSignature,
 } from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
@@ -1005,7 +1006,7 @@ export const addTicketInternalNote = createServerFn({ method: "POST" })
       ticket_id: data.ticketId,
       sender_id: context.userId,
       sender_role: "agent",
-      body: data.body,
+      body: await appendSignature(db, context.userId, data.body),
       internal: true,
     } as any);
     if (error) throw new Error(error.message);

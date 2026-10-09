@@ -104,3 +104,10 @@ export async function assertFinance(context: Ctx) {
     throw new Error("Forbidden: finance permissions required.");
   }
 }
+
+/** Server helper: active signature for outbound replies. */
+export async function appendSignature(db: any, userId: string, body: string) {
+  const { data } = await db.from("agent_profiles").select("signature").eq("user_id", userId).maybeSingle();
+  const sig = (data?.signature ?? "").trim();
+  return sig && !body.trimEnd().endsWith(sig) ? `${body.trimEnd()}\n\n${sig}` : body;
+}
