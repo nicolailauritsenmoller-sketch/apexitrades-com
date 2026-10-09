@@ -120,7 +120,7 @@ export const sendBroadcast = createServerFn({ method: "POST" })
     }
     if (data.channels.includes("banner")) {
       const global = !data.test && data.audience.kind === "all";
-      const rows = global ? [{ target_user_id: null }] : ids.map((u) => ({ target_user_id: u }));
+      const rows: { target_user_id: string | null }[] = global ? [{ target_user_id: null }] : ids.map((u) => ({ target_user_id: u }));
       let ok = 0;
       for (const part of chunk(rows, 500)) {
         const { error } = await db.from("announcements").insert(part.map((r) => ({ ...r, title, body: data.body, severity: data.severity, active: true, created_by: context.userId })));
@@ -156,15 +156,15 @@ export const getBroadcastDesk = createServerFn({ method: "POST" })
         reads.set(r.broadcast_id!, e);
       }
     }
-    const rows = (logs ?? []).map((l: any) => ({ ...l, inboxCount: reads.get(l.id)?.n ?? 0, readCount: reads.get(l.id)?.read ?? 0 }));
-    const real = rows.filter((r) => !r.is_test);
-    const inbox = real.reduce((s, r) => s + r.inboxCount, 0);
+    const rows: any[] = (logs ?? []).map((l: any) => ({ ...l, inboxCount: reads.get(l.id)?.n ?? 0, readCount: reads.get(l.id)?.read ?? 0 }));
+    const real: any[] = rows.filter((r: any) => !r.is_test);
+    const inbox = real.reduce((s: number, r: any) => s + r.inboxCount, 0);
     return {
       rows,
       totals: {
-        sent: real.reduce((s, r) => s + r.delivered, 0),
-        readRate: inbox ? (real.reduce((s, r) => s + r.readCount, 0) / inbox) * 100 : null,
-        failures: real.reduce((s, r) => s + r.failed, 0),
+        sent: real.reduce((s: number, r: any) => s + r.delivered, 0),
+        readRate: inbox ? (real.reduce((s: number, r: any) => s + r.readCount, 0) / inbox) * 100 : null,
+        failures: real.reduce((s: number, r: any) => s + r.failed, 0),
       },
     };
   });
