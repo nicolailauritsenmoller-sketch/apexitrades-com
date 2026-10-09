@@ -8,12 +8,15 @@ import { FileCheck2, X } from "lucide-react";
 import { toast } from "sonner";
 import { getKycDocumentUrls, reviewKyc, reviewKycLevel2 } from "@/lib/admin.functions";
 import { DocumentViewer } from "@/components/admin/DocumentViewer";
+import { KycOverridePanel } from "@/components/admin/KycOverridePanel";
 
 export const REJECTION_CODES = [
-  { code: "DOC_EXPIRED", label: "Doc Expired", message: "The submitted document has expired. Please upload a valid, unexpired document." },
+  { code: "ILLEGIBLE", label: "Illegible Document", message: "The document is illegible. Please upload a sharp, fully visible photo of every corner." },
+  { code: "DOC_EXPIRED", label: "Expired ID", message: "The submitted document has expired. Please upload a valid, unexpired document." },
   { code: "IMAGE_BLURRY", label: "Image Blurry", message: "The document image is blurry or unreadable. Please upload a clear, well-lit photo." },
   { code: "NAME_MISMATCH", label: "Name Mismatch", message: "The name on the document does not match your account details." },
   { code: "FAILED_SELFIE_MATCH", label: "Failed Selfie Match", message: "The selfie could not be matched to the document photo." },
+  { code: "POA_OLD", label: "PoA Older than 90 Days", message: "Your proof of address is older than 90 days. Please upload a document issued within the last 90 days." },
   { code: "ADDRESS_UNVERIFIED", label: "Address Unverified", message: "The proof of address could not be verified. Please upload a recent utility bill or bank statement." },
   { code: "SOF_INSUFFICIENT", label: "Source of Funds Insufficient", message: "The source of funds evidence provided is insufficient." },
   { code: "ALTERED_DOCUMENT", label: "Suspected Altered Document", message: "The document appears altered and could not be accepted." },
@@ -98,7 +101,7 @@ export function KycReviewDrawer({
   return (
     <div className="fixed inset-0 z-[115] flex justify-end bg-black/60 backdrop-blur-sm">
       <button aria-label="Close" className="flex-1" onClick={onClose} />
-      <aside className="flex h-full w-full max-w-xl flex-col border-l border-border bg-background shadow-2xl">
+      <aside className="flex h-full w-full max-w-4xl flex-col border-l border-border bg-background shadow-2xl">
         <header className="flex items-center gap-2 border-b border-border px-4 py-3">
           <FileCheck2 className="size-4 text-primary" />
           <div className="min-w-0">
@@ -152,7 +155,7 @@ export function KycReviewDrawer({
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
                 <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Government ID / passport</h4>
                 {docs.isLoading && <p className="text-xs text-muted-foreground">Loading documents...</p>}
-                <div className="grid gap-3">
+                <div className="grid gap-3 md:grid-cols-2">
                   {d?.document && <DocumentViewer src={d.document} alt={`${row.full_name} identity document`} />}
                   {d?.selfie && <DocumentViewer src={d.selfie} alt={`${row.full_name} ID holding photo`} />}
                 </div>
@@ -172,7 +175,7 @@ export function KycReviewDrawer({
               </section>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
                 <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Biometric selfie / liveness & supporting proof</h4>
-                <div className="grid gap-3">
+                <div className="grid gap-3 md:grid-cols-2">
                   {d?.level2Selfie && <DocumentViewer src={d.level2Selfie} alt={`${row.full_name} liveness selfie`} />}
                   {d?.level2Proof && <DocumentViewer src={d.level2Proof} alt={`${row.full_name} supporting proof`} />}
                 </div>
@@ -182,6 +185,7 @@ export function KycReviewDrawer({
           )}
         </div>
 
+        <div className="border-t border-border p-3"><KycOverridePanel userId={row.user_id} level={tier === "L1" ? 1 : 2} onDone={onDone} /></div>
         {canReview && (
           <footer className="space-y-2 border-t border-border p-3">
             {rejecting ? (

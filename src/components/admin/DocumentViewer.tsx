@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Maximize2 } from "lucide-react";
 import { Contrast, RotateCw, ZoomIn, ZoomOut, RefreshCcw } from "lucide-react";
 
 /** Inspection viewer with rotate, zoom and invert/contrast controls. */
@@ -12,13 +13,21 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
     "touch-manipulation rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground";
   const on = "border-primary/60 text-primary";
 
+  const [full, setFull] = useState(false);
   return (
+    <>
+    {full && (
+      <div role="dialog" aria-label="Document lightbox" onClick={() => setFull(false)} className="fixed inset-0 z-[200] grid cursor-zoom-out place-items-center bg-black/90 p-4">
+        <img src={src} alt={alt} className="max-h-full max-w-full object-contain" style={{ transform: `rotate(${rot}deg)` }} />
+      </div>
+    )}
     <figure className="rounded-lg border border-border bg-muted/30">
       <div className="flex h-56 items-center justify-center overflow-auto">
         <img
           src={src}
           alt={alt}
-          className="max-h-full max-w-full object-contain transition-transform"
+          onClick={() => setFull(true)}
+          className="max-h-full max-w-full cursor-zoom-in object-contain transition-transform"
           style={{
             transform: `rotate(${rot}deg) scale(${zoom})`,
             filter: `${invert ? "invert(1)" : ""} ${contrast ? "contrast(1.8) grayscale(1)" : ""}`.trim() || undefined,
@@ -57,10 +66,14 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
         <span className="ml-auto font-mono text-[10px] text-muted-foreground">
           {rot}° · {zoom.toFixed(1)}x
         </span>
+        <button type="button" aria-label="Open lightbox" className={btn} onClick={() => setFull(true)}>
+          <Maximize2 className="size-3.5" />
+        </button>
         <a href={src} target="_blank" rel="noreferrer" className="text-[10px] text-primary underline">
           Open
         </a>
       </figcaption>
     </figure>
+    </>
   );
 }
