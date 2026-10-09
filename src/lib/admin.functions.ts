@@ -340,6 +340,9 @@ const addressInput = z.object({
   address: z.string().trim().min(4).max(200),
   memo: z.string().trim().max(120).optional(),
   active: z.boolean().default(true),
+  status: z.enum(["active", "paused", "deprecated"]).optional(),
+  allocationMode: z.enum(["master", "hot_sweep", "vip_desk"]).optional(),
+  reason: z.string().trim().max(400).optional(),
 });
 
 export const upsertDepositAddress = createServerFn({ method: "POST" })
@@ -347,32 +350,46 @@ export const upsertDepositAddress = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => addressInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const payload = {
+    const { validateAddress } = await import("./address-validation");
+    const invalid = validateAddress(data.network, data.address, data.memo);
+    if (invalid) throw new Error(invalid);
+    if (data.id && (data.reason ?? "").length < 5) throw new Error("An audit note is required to change an address.");
+    const status = data.status ?? (data.active ? "active" : "paused");
+    const payload: Record<string, any> = {
       coin: data.coin.toUpperCase(),
       network: data.network,
       address: data.address,
       memo: data.memo || null,
-      active: data.active,
+      status,
+      active: status === "active",
       updated_at: new Date().toISOString(),
     };
-    // Caller is verified admin above; write through the service role so the
-    // save never depends on policy evaluation quirks.
+    if (data.allocationMode) payload["allocation_mode"] = data.allocationMode;
     const db = await privileged();
-    const { error } = data.id
-      ? await db.from("deposit_addresses").update(payload).eq("id", data.id)
-      : await db.from("deposit_addresses").insert(payload);
+    let before: any = null;
+    if (data.id) {
+      const { data: b } = await db.from("deposit_addresses").select("*").eq("id", data.id).maybeSingle();
+      before = b;
+    }
+    const { data: saved, error } = data.id
+      ? await db.from("deposit_addresses").update(payload).eq("id", data.id).select().single()
+      : await db.from("deposit_addresses").insert(payload).select().single();
     if (error) throw new Error(error.message);
+    const action = !data.id ? "address.create" : before?.status !== status ? "address.status" : "address.update";
+    await logAudit(db, context.userId, action, null, { address_id: saved.id, before, after: saved, reason: data.reason ?? null });
     return { ok: true };
   });
 
 export const deleteDepositAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), reason: z.string().trim().min(5).max(400) }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const db = await privileged();
+    const { data: before } = await db.from("deposit_addresses").select("*").eq("id", data.id).maybeSingle();
     const { error } = await db.from("deposit_addresses").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await logAudit(db, context.userId, "address.delete", null, { address_id: data.id, before, reason: data.reason });
     return { ok: true };
   });
 
