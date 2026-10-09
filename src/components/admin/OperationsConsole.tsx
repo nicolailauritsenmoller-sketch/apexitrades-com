@@ -88,6 +88,7 @@ import { RiskMonitor } from "@/components/admin/RiskMonitor";
 import { PaymentGatewaysPanel } from "@/components/admin/PaymentGatewaysPanel";
 import { EngineSpreadPanel } from "@/components/admin/EngineSpreadPanel";
 import { AccountingPanel } from "@/components/admin/AccountingPanel";
+import { TradesDesk } from "@/components/admin/TradesDesk";
 import { TransactionsDesk } from "@/components/admin/TransactionsDesk";
 import { ReceivingAddressesDesk } from "@/components/admin/ReceivingAddressesDesk";
 import { ForceMatchTool, AssetNetworkFilters, WithdrawalRiskFlags, TreasuryLiquidity, useWithdrawalRisk } from "@/components/admin/DeskWorkflowTools";
@@ -684,6 +685,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
               {tab === "trades" && data && (
                 <div className="space-y-4">
                   {analytics && <TradeStatsPanel a={analytics} />}
+                  <TradesDesk canSettle={isAdmin} />
                   <OutcomesTab
                     contracts={data.openContracts}
                     profiles={data.profiles}
