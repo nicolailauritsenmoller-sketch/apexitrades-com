@@ -482,9 +482,11 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
                             if (isChat) silenceChatAlerts();
                           }}
                           className={`group flex w-full shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                            tab === id
+                            isActive
                               ? `${accentTheme.tab} ring-1 ring-inset ring-current/25 border-l-current font-semibold`
-                              : "border-l-transparent text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+                              : ia
+                                ? `border-l-transparent font-medium ${ia.text} hover:bg-secondary/70`
+                                : "border-l-transparent text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                           } ${
                             alerting
                               ? isChat
