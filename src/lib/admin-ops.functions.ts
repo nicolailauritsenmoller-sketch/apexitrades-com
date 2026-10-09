@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertAdmin, assertFinance, privileged, myRoles } from "@/lib/desk.server";
+import { assertAdmin, assertFinance, assertStaff, privileged, myRoles } from "@/lib/desk.server";
 
 /* ------------------------------------------------------------------ */
 /* Shared helpers                                                       */
