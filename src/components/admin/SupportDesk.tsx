@@ -722,8 +722,8 @@ function ChatInboxes() {
                 className={`flex-1 rounded-md px-3 py-2 text-sm outline-none placeholder:text-muted-foreground ${noteMode ? "bg-warning/15" : "bg-secondary"}`}
               />
               <button
-                onClick={submit}
-                disabled={composerDisabled || reply.isPending || noteMutation.isPending || uploading}
+                type="submit"
+                disabled={composerDisabled || reply.isPending || noteMutation.isPending || uploading || (!draft.trim() && !file)}
                 aria-label="Send reply"
                 className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
               >
@@ -733,7 +733,7 @@ function ChatInboxes() {
                   <Send className="size-4" />
                 )}
               </button>
-            </div>
+            </form>
           </>
         )}
       </div>
