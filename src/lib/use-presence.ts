@@ -20,9 +20,11 @@ export function usePresenceHeartbeat() {
       const { data } = await supabase.auth.getUser();
       const userId = data.user?.id;
       if (!userId || cancelled) return;
-      const ping = () => void heartbeat(userId, pathRef.current);
+      // Ping every 20s only while the tab is visible, so a backgrounded tab ages out.
+      const ping = () => { if (document.visibilityState === "visible") void heartbeat(userId, pathRef.current); };
       ping();
-      timer = setInterval(ping, 45_000);
+      timer = setInterval(ping, 20_000);
+      document.addEventListener("visibilitychange", ping);
     })();
 
     return () => {

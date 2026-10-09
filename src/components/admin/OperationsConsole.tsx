@@ -64,6 +64,7 @@ import { TrustRiskPanel } from "@/components/admin/TrustRiskPanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
+import { ActiveUsersDesk } from "@/components/admin/ActiveUsersDesk";
 import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
@@ -582,7 +583,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
           {tab === "risk" && <RiskMonitor readOnly={!canFinance} />}
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
-          {tab === "active" && <ActiveUsersPanel />}
+          {tab === "active" && <ActiveUsersDesk />}
           {tab === "telemetry" && <TelemetryPanel />}
           {tab === "referrals" && <ReferralsPanel />}
           {tab === "ratings" && <RatingsPanel />}
