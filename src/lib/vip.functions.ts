@@ -40,7 +40,8 @@ export const getVipDirectory = createServerFn({ method: "POST" })
       db
         .from("vip_messages")
         .select("role_key,sender_role,read_at,created_at")
-        .eq("user_id", context.userId),
+        .eq("user_id", context.userId)
+        .eq("is_internal", false),
     ]);
 
     const accessMap = new Map((access.data ?? []).map((a: any) => [a.role_key, a]));
@@ -76,6 +77,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .select("*")
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
+      .eq("is_internal", false)
       .order("created_at")
       .limit(300);
 
@@ -85,6 +87,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
       .neq("sender_role", "user")
+      .eq("is_internal", false)
       .is("read_at", null);
 
     return (rows ?? []).map(mapMessage);
@@ -144,6 +147,8 @@ export const sendVipMessage = createServerFn({ method: "POST" })
       attachment_size: data.attachmentSize ?? null,
     });
     if (error) throw new Error(error.message);
+    // A new trader message reopens a resolved thread.
+    await db.from("vip_access").update({ thread_status: "open", resolved_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey).eq("thread_status", "resolved");
     return { ok: true };
   });
 
@@ -166,8 +171,16 @@ export const getVipDesk = createServerFn({ method: "POST" })
 
     const threads = (access.data ?? []).map((a: any) => {
       const thread = msgs.filter((m) => m.user_id === a.user_id && m.role_key === a.role_key);
-      const last = thread[0];
+      const visible = thread.filter((m) => !m.is_internal);
+      const last = visible[0];
+      // SLA clock starts at the oldest trader message after the last specialist reply.
+      let waitingSince: string | null = null;
+      for (const m of visible) { if (m.sender_role === "user") waitingSince = m.created_at; else break; }
       return {
+        status: a.thread_status ?? "open",
+        assignedTo: a.assigned_to ?? null,
+        assignedName: a.assigned_to ? ((pmap.get(a.assigned_to) as any)?.display_name ?? "Staff") : null,
+        waitingSince,
         userId: a.user_id,
         roleKey: a.role_key,
         unlocked: a.unlocked,
@@ -188,6 +201,7 @@ export const getVipDesk = createServerFn({ method: "POST" })
         staffId: s.staff_id,
         avatarUrl: s.avatar_url,
         active: s.active,
+        availability: s.availability ?? "available",
       })),
       threads: threads.sort((a: any, b: any) => (a.lastAt < b.lastAt ? 1 : -1)),
     };
@@ -215,7 +229,17 @@ export const getVipDeskThread = createServerFn({ method: "POST" })
       .eq("role_key", data.roleKey)
       .eq("sender_role", "user")
       .is("read_at", null);
-    return (rows ?? []).map(mapMessage);
+    const { data: audit } = await db
+      .from("admin_audit_logs")
+      .select("id,action,actor_name,details,created_at")
+      .eq("target_user_id", data.userId)
+      .like("action", "vip.%")
+      .order("created_at", { ascending: false })
+      .limit(40);
+    return {
+      messages: (rows ?? []).map((m: any) => ({ ...mapMessage(m), internal: !!m.is_internal })),
+      audit: (audit ?? []).filter((a: any) => !a.details?.roleKey || a.details.roleKey === data.roleKey || a.details.to === data.roleKey || a.details.from === data.roleKey),
+    };
   });
 
 export const sendVipDeskMessage = createServerFn({ method: "POST" })
@@ -226,6 +250,7 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
         userId: z.string().uuid(),
         roleKey,
         body: z.string().trim().max(2000).default(""),
+        internal: z.boolean().optional(),
         ...attachment,
       })
       .refine((v) => v.body.length > 0 || !!v.attachmentPath, {
@@ -246,8 +271,19 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
       attachment_name: data.attachmentName ?? null,
       attachment_type: data.attachmentType ?? null,
       attachment_size: data.attachmentSize ?? null,
+      is_internal: !!data.internal,
     });
     if (error) throw new Error(error.message);
+    if (data.internal) {
+      await logAudit(db, context.userId, "vip.thread.note", data.userId, { roleKey: data.roleKey });
+      return { ok: true };
+    }
+    // First reply auto-assigns the thread to the replying staff member.
+    const { data: acc } = await db.from("vip_access").select("assigned_to,thread_status").eq("user_id", data.userId).eq("role_key", data.roleKey).maybeSingle();
+    if (acc && (!acc.assigned_to || acc.thread_status === "resolved")) {
+      await db.from("vip_access").update({ assigned_to: acc.assigned_to ?? context.userId, thread_status: "open", resolved_at: null }).eq("user_id", data.userId).eq("role_key", data.roleKey);
+      if (!acc.assigned_to) await logAudit(db, context.userId, "vip.thread.assign", data.userId, { roleKey: data.roleKey, auto: true });
+    }
 
     const { data: specialist } = await db
       .from("vip_specialists")
@@ -274,6 +310,7 @@ export const saveVipSpecialist = createServerFn({ method: "POST" })
         staffId: z.string().trim().min(2).max(40),
         avatarUrl: z.string().trim().url().max(500).nullable().optional(),
         active: z.boolean().optional(),
+        availability: z.enum(["available", "busy", "offline"]).optional(),
       })
       .parse(input),
   )
@@ -377,4 +414,87 @@ export const getVipAttachmentUrl = createServerFn({ method: "POST" })
       .from("chat-attachments")
       .createSignedUrl(message.attachment_path, 900);
     return { url: signed?.signedUrl ?? null };
+  });
+
+/** Online status for a specialist persona (Available / In call / Offline). */
+export const setSpecialistAvailability = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ roleKey, availability: z.enum(["available", "busy", "offline"]) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const { error } = await db.from("vip_specialists").update({ availability: data.availability }).eq("role_key", data.roleKey);
+    if (error) throw new Error(error.message);
+    await logAudit(db, context.userId, "vip.specialist.availability", null, data);
+    return { ok: true };
+  });
+
+/** Uploads a specialist avatar to the public avatar bucket and returns its URL. */
+export const uploadSpecialistAvatar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      roleKey,
+      contentType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+      base64: z.string().max(3_000_000),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
+    if (bytes.byteLength > 2_000_000) throw new Error("Image must be 2 MB or smaller.");
+    await db.storage.createBucket("specialist-avatars", { public: true }).catch(() => undefined);
+    const ext = data.contentType.split("/")[1];
+    const path = `${data.roleKey}/${Date.now()}.${ext}`;
+    const { error } = await db.storage.from("specialist-avatars").upload(path, bytes, { contentType: data.contentType, upsert: true });
+    if (error) throw new Error(error.message);
+    const url = db.storage.from("specialist-avatars").getPublicUrl(path).data.publicUrl;
+    await db.from("vip_specialists").update({ avatar_url: url }).eq("role_key", data.roleKey);
+    await logAudit(db, context.userId, "vip.specialist.avatar", null, { roleKey: data.roleKey });
+    return { url };
+  });
+
+/** Thread workflow: assign to me, resolve, reopen, or transfer to another specialist role. */
+export const updateVipThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      userId: z.string().uuid(),
+      roleKey,
+      action: z.enum(["assign", "unassign", "resolve", "reopen", "transfer"]),
+      toRole: roleKey.optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const db = await privileged();
+    const match = (q: any) => q.eq("user_id", data.userId).eq("role_key", data.roleKey);
+    const now = new Date().toISOString();
+    if (data.action === "transfer") {
+      if (!data.toRole || data.toRole === data.roleKey) throw new Error("Choose a different specialist role.");
+      const { data: existing } = await db.from("vip_access").select("id").eq("user_id", data.userId).eq("role_key", data.toRole).maybeSingle();
+      if (existing) throw new Error("This trader already has a thread with that specialist.");
+      const { error } = await match(db.from("vip_access").update({ role_key: data.toRole, assigned_to: null, thread_status: "open", resolved_at: null, unlocked: true }));
+      if (error) throw new Error(error.message);
+      await match(db.from("vip_messages").update({ role_key: data.toRole }));
+      const { data: sp } = await db.from("vip_specialists").select("role_label,full_name").eq("role_key", data.toRole).maybeSingle();
+      await db.from("vip_messages").insert({
+        user_id: data.userId, role_key: data.toRole, sender_role: "specialist", sender_id: context.userId,
+        body: `Your conversation has been transferred to ${sp?.full_name ?? "a specialist"} (${sp?.role_label ?? "VIP"}).`,
+      });
+      await logAudit(db, context.userId, "vip.thread.transfer", data.userId, { from: data.roleKey, to: data.toRole });
+      return { ok: true, roleKey: data.toRole };
+    }
+    const patch =
+      data.action === "assign" ? { assigned_to: context.userId, thread_status: "open" }
+      : data.action === "unassign" ? { assigned_to: null }
+      : data.action === "resolve" ? { thread_status: "resolved", resolved_at: now }
+      : { thread_status: "open", resolved_at: null };
+    const { error } = await match(db.from("vip_access").update(patch));
+    if (error) throw new Error(error.message);
+    await logAudit(db, context.userId, `vip.thread.${data.action}`, data.userId, { roleKey: data.roleKey });
+    return { ok: true, roleKey: data.roleKey };
   });

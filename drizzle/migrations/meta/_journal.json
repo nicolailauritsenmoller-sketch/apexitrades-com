@@ -204,6 +204,13 @@
       "when": 1791518148690,
       "tag": "0028_deposit_address_status_allocation",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791519001857,
+      "tag": "0029_priority_support_desk",
+      "breakpoints": true
     }
   ]
 }

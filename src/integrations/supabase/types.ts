@@ -1794,28 +1794,37 @@ export type Database = {
       }
       vip_access: {
         Row: {
+          assigned_to: string | null
           created_at: string
           granted_by: string | null
           id: string
+          resolved_at: string | null
           role_key: string
+          thread_status: string
           unlocked: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
           id?: string
+          resolved_at?: string | null
           role_key: string
+          thread_status?: string
           unlocked?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
           id?: string
+          resolved_at?: string | null
           role_key?: string
+          thread_status?: string
           unlocked?: boolean
           updated_at?: string
           user_id?: string
@@ -1927,6 +1936,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_internal: boolean
           read_at: string | null
           role_key: string
           sender_id: string | null
@@ -1941,6 +1951,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          is_internal?: boolean
           read_at?: string | null
           role_key: string
           sender_id?: string | null
@@ -1955,6 +1966,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          is_internal?: boolean
           read_at?: string | null
           role_key?: string
           sender_id?: string | null
@@ -1966,6 +1978,7 @@ export type Database = {
       vip_specialists: {
         Row: {
           active: boolean
+          availability: string
           avatar_url: string | null
           created_at: string
           full_name: string
@@ -1978,6 +1991,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          availability?: string
           avatar_url?: string | null
           created_at?: string
           full_name: string
@@ -1990,6 +2004,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          availability?: string
           avatar_url?: string | null
           created_at?: string
           full_name?: string
