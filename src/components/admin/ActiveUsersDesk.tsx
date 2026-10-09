@@ -11,9 +11,22 @@ import { Button } from "@/components/ui/button";
 
 type Row = Awaited<ReturnType<typeof getActiveDesk>>["rows"][number];
 
+let nameToCode: Map<string, string> | null = null;
 function flag(country?: string | null) {
-  if (!country || !/^[A-Za-z]{2}$/.test(country)) return "";
-  return String.fromCodePoint(...[...country.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
+  if (!country) return "";
+  let code = /^[A-Za-z]{2}$/.test(country) ? country.toUpperCase() : "";
+  if (!code) {
+    if (!nameToCode) {
+      nameToCode = new Map();
+      const dn = new Intl.DisplayNames(["en"], { type: "region" });
+      for (let a = 65; a <= 90; a++) for (let b = 65; b <= 90; b++) {
+        const c = String.fromCharCode(a, b);
+        try { const n = dn.of(c); if (n && n !== c) nameToCode.set(n.toLowerCase(), c); } catch { /* skip */ }
+      }
+    }
+    code = nameToCode.get(country.toLowerCase()) ?? "";
+  }
+  return code ? String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0))) : "";
 }
 
 function heartbeat(last: string, now: number) {
