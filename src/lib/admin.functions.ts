@@ -7,6 +7,7 @@ import {
   assertStaff,
   assertFinance,
   privileged,
+  logAudit,
 } from "@/lib/desk.server";
 
 export const getMyAccess = createServerFn({ method: "POST" })
