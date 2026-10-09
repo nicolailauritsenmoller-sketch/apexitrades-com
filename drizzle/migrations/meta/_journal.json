@@ -218,6 +218,13 @@
       "when": 1791519312212,
       "tag": "0030_broadcast_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791520432008,
+      "tag": "0031_agent_personas",
+      "breakpoints": true
     }
   ]
 }
