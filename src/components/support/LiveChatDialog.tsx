@@ -426,15 +426,18 @@ export function LiveChatDialog({
     (async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
-      const { data: existing } = await supabase
-        .from("chat_sessions")
-        .select("*")
-        .eq("user_id", user.user.id)
-        .order("last_message_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const findOpen = () =>
+        supabase
+          .from("chat_sessions")
+          .select("*")
+          .eq("user_id", user.user!.id)
+          .neq("status", "closed")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+      const { data: existing } = await findOpen();
 
-      if (existing && existing.status !== "closed") {
+      if (existing) {
         setSessionId(existing.id);
         const saved = readBotLog(existing.bot_context);
         if (saved.length) setBotLog(saved);
@@ -452,9 +455,11 @@ export function LiveChatDialog({
         .insert({ user_id: user.user.id, subject: "Support" })
         .select()
         .single();
-      if (created) {
-        setSessionId(created.id);
-        void loadHistory(user.user.id, created.id);
+      // Another tab may have opened a session at the same moment - reuse it.
+      const session = created ?? (await findOpen()).data;
+      if (session) {
+        setSessionId(session.id);
+        void loadHistory(user.user.id, session.id);
       }
     })();
   }, [open, sessionId, loadHistory]);

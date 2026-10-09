@@ -225,6 +225,13 @@
       "when": 1791520432008,
       "tag": "0031_agent_personas",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791521264666,
+      "tag": "0032_chat_sessions_allow_multiple",
+      "breakpoints": true
     }
   ]
 }
