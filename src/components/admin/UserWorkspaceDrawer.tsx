@@ -12,6 +12,7 @@ import { UserVipFeesPanel } from "@/components/admin/UserVipFeesPanel";
 import { getUserWorkspace } from "@/lib/admin.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { UidTag } from "@/components/VerifiedBadge";
+import { supabase } from "@/integrations/supabase/client";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -24,6 +25,33 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const num = (n: unknown) =>
   Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 6 });
+
+function RecentAudit({ userId }: { userId: string }) {
+  const q = useQuery({
+    queryKey: ["admin-user-audit", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("admin_audit_logs")
+        .select("id,action,actor_name,created_at")
+        .eq("target_user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data ?? [];
+    },
+  });
+  const rows = q.data ?? [];
+  if (!rows.length) return <p className="text-xs text-muted-foreground">No audit entries.</p>;
+  return (
+    <ul className="space-y-1.5 text-xs">
+      {rows.map((r) => (
+        <li key={r.id} className="flex justify-between gap-2">
+          <span className="truncate font-mono">{r.action}<span className="text-muted-foreground"> · {r.actor_name ?? "Staff"}</span></span>
+          <span className="num shrink-0 text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 /** Read-only support view of a user's workspace: balances, trades and activity. */
 export function UserWorkspaceDrawer({
@@ -213,6 +241,10 @@ export function UserWorkspaceDrawer({
                     <p className="text-xs text-muted-foreground">No sessions recorded.</p>
                   )}
                 </ul>
+              </Section>
+
+              <Section title="Recent audit log">
+                <RecentAudit userId={userId} />
               </Section>
             </>
           )}
