@@ -23,3 +23,4 @@
 - Reuse AdminActionConfirm for high-impact console mutations and AdminTableToolbar for searchable/exportable queues; reason fields travel into existing audit records - why: consistent operator safeguards must not alter financial execution semantics.
 
 - The Operations Console lives only at /admin on the primary domain; signed-out visitors go to /auth and return to their original path after login, and server role checks remain authoritative - why: one origin keeps sessions shared and avoids DNS-dependent access.
+- Global risk controls (trading pause, leverage cap, large-withdrawal review) live in platform_settings key "risk_controls", read via src/lib/risk-controls.server.ts and enforced inside position/contract open handlers - why: circuit breakers must hold server-side, not just in the UI.
