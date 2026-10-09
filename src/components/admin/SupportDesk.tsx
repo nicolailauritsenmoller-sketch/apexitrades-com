@@ -733,6 +733,8 @@ function ChatInboxes() {
       </div>
       {active ? <ChatUserSidebar userId={active.userId} /> : <div className="hidden xl:block" />}
     </div>
+    </div>
+    </div>
   );
 }
 
