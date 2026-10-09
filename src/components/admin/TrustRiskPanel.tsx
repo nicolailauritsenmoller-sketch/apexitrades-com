@@ -61,7 +61,7 @@ export function TrustRiskPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
   const ctl = useMutation({
-    mutationFn: (v: { userId: string; tradingFrozen?: boolean; marginRestricted?: boolean; verificationRequired?: boolean }) =>
+    mutationFn: (v: { userId: string; tradingFrozen?: boolean; marginRestricted?: boolean; verificationRequired?: boolean; message?: string }) =>
       controls({ data: v }),
     onSuccess: () => done("Risk controls applied."),
     onError: (e: Error) => toast.error(e.message),
