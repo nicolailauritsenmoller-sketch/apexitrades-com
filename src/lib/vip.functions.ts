@@ -145,19 +145,10 @@ export const sendVipMessage = createServerFn({ method: "POST" })
       attachment_name: data.attachmentName ?? null,
       attachment_type: data.attachmentType ?? null,
       attachment_size: data.attachmentSize ?? null,
-      is_internal: !!data.internal,
     });
     if (error) throw new Error(error.message);
-    if (data.internal) {
-      await logAudit(db, context.userId, "vip.thread.note", data.userId, { roleKey: data.roleKey });
-      return { ok: true };
-    }
-    // First reply auto-assigns the thread to the replying staff member.
-    const { data: acc } = await db.from("vip_access").select("assigned_to,thread_status").eq("user_id", data.userId).eq("role_key", data.roleKey).maybeSingle();
-    if (acc && (!acc.assigned_to || acc.thread_status === "resolved")) {
-      await db.from("vip_access").update({ assigned_to: acc.assigned_to ?? context.userId, thread_status: "open", resolved_at: null }).eq("user_id", data.userId).eq("role_key", data.roleKey);
-      if (!acc.assigned_to) await logAudit(db, context.userId, "vip.thread.assign", data.userId, { roleKey: data.roleKey, auto: true });
-    }
+    // A new trader message reopens a resolved thread.
+    await db.from("vip_access").update({ thread_status: "open", resolved_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey).eq("thread_status", "resolved");
     return { ok: true };
   });
 
@@ -280,8 +271,19 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
       attachment_name: data.attachmentName ?? null,
       attachment_type: data.attachmentType ?? null,
       attachment_size: data.attachmentSize ?? null,
+      is_internal: !!data.internal,
     });
     if (error) throw new Error(error.message);
+    if (data.internal) {
+      await logAudit(db, context.userId, "vip.thread.note", data.userId, { roleKey: data.roleKey });
+      return { ok: true };
+    }
+    // First reply auto-assigns the thread to the replying staff member.
+    const { data: acc } = await db.from("vip_access").select("assigned_to,thread_status").eq("user_id", data.userId).eq("role_key", data.roleKey).maybeSingle();
+    if (acc && (!acc.assigned_to || acc.thread_status === "resolved")) {
+      await db.from("vip_access").update({ assigned_to: acc.assigned_to ?? context.userId, thread_status: "open", resolved_at: null }).eq("user_id", data.userId).eq("role_key", data.roleKey);
+      if (!acc.assigned_to) await logAudit(db, context.userId, "vip.thread.assign", data.userId, { roleKey: data.roleKey, auto: true });
+    }
 
     const { data: specialist } = await db
       .from("vip_specialists")
