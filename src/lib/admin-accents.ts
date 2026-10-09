@@ -134,20 +134,20 @@ type SectionClasses = {
 const SECTION_PRIMARY: Record<string, SectionClasses> = {
   // Amber = live operator queue.
   "Live support": {
-    label: "text-ops-amber",
-    tick: "bg-ops-amber/75",
-    dot: "bg-ops-amber text-ops-amber",
+    label: "text-ops-section-amber",
+    tick: "bg-ops-section-amber/75",
+    dot: "bg-ops-section-amber text-ops-section-amber",
   },
   // Emerald = live monitoring and ledger movement.
   Overview: {
-    label: "text-ops-emerald",
-    tick: "bg-ops-emerald/75",
+    label: "text-ops-section-emerald",
+    tick: "bg-ops-section-emerald/75",
     dot: "",
   },
   Money: {
-    label: "text-ops-emerald",
-    tick: "bg-ops-emerald/75",
-    dot: "bg-ops-emerald text-ops-emerald",
+    label: "text-ops-section-emerald",
+    tick: "bg-ops-section-emerald/75",
+    dot: "bg-ops-section-emerald text-ops-section-emerald",
   },
 };
 
