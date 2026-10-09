@@ -78,7 +78,7 @@ export const openPosition = createServerFn({ method: "POST" })
     }
 
     const { assertTradingAllowed } = await import("./risk-controls.server");
-    await assertTradingAllowed(data.leverage);
+    await assertTradingAllowed(data.leverage, userId);
 
     const submittedAt = Date.now();
     const price = await fetchPrice(inst.symbol);

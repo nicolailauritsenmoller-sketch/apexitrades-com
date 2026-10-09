@@ -24,10 +24,16 @@ export async function loadRiskControls(): Promise<RiskControls> {
 }
 
 /** Throws when global circuit breakers block a new trade at this leverage. */
-export async function assertTradingAllowed(leverage: number) {
+export async function assertTradingAllowed(leverage: number, userId?: string) {
   const rc = await loadRiskControls();
   if (rc.tradingPaused) throw new Error("New trade execution is temporarily paused by Risk Management.");
-  if (rc.maxLeverage && leverage > rc.maxLeverage) {
-    throw new Error(`Maximum allowed leverage is currently ${rc.maxLeverage}x.`);
+  let cap = rc.maxLeverage;
+  if (userId) {
+    const { loadVipPerk } = await import("./vip-fees.server");
+    const perk = await loadVipPerk(userId);
+    if (perk?.maxLeverage) cap = Number(perk.maxLeverage);
+  }
+  if (cap && leverage > cap) {
+    throw new Error(`Maximum allowed leverage is currently ${cap}x.`);
   }
 }

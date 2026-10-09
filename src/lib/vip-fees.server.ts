@@ -10,7 +10,25 @@ export function productFor(assetClass: string, leverage: number): FeeProduct {
 }
 
 /** Effective fee rate in percent: custom override first, then the account's tier, then Standard. */
+/** Custom per-account VIP perk (platform_settings key "vip_perks"). */
+export async function loadVipPerk(userId: string): Promise<Record<string, any> | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any).from("platform_settings").select("value").eq("key", "vip_perks").maybeSingle();
+  return (data?.value as Record<string, any> | null)?.[userId] ?? null;
+}
+
 export async function resolveFeeRate(
+  db: any,
+  userId: string,
+  product: FeeProduct,
+  side: FeeSide = "taker",
+): Promise<number> {
+  const [base, perk] = await Promise.all([baseFeeRate(db, userId, product, side), loadVipPerk(userId)]);
+  const pct = Number(perk?.[side === "maker" ? "makerDiscountPct" : "takerDiscountPct"] ?? 0);
+  return pct > 0 ? base * (1 - Math.min(pct, 100) / 100) : base;
+}
+
+async function baseFeeRate(
   db: any,
   userId: string,
   product: FeeProduct,
