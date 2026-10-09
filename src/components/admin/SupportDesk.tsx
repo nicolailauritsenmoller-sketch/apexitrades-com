@@ -329,6 +329,16 @@ function ChatInboxes() {
   const active = list.find((t) => t.id === activeId) ?? null;
   const lockedByOther = !!active?.activeAgentId && !!meId && active.activeAgentId !== meId && !!active?.connectedAt;
 
+  const [agentStatus, setAgentStatus] = useState<"online" | "away" | "in_chat">("online");
+  const [pingOn, setPingOn] = useState(true);
+  useEffect(() => {
+    const st = localStorage.getItem("velocity.desk.status");
+    if (st === "online" || st === "away" || st === "in_chat") setAgentStatus(st);
+    setPingOn(localStorage.getItem("velocity.desk.ping") !== "off");
+  }, []);
+  const pingRef = useRef(true);
+  pingRef.current = pingOn;
+
   // Chime on every new incoming customer message across the inbox.
   const lastUserMsg = useRef<Map<string, string> | null>(null);
   useEffect(() => {
@@ -341,7 +351,7 @@ function ChatInboxes() {
       const prev = lastUserMsg.current?.get(t.id);
       if (lastUserMsg.current && prev !== t.lastMessageAt) fresh = true;
     }
-    if (fresh) playQueuePing();
+    if (fresh && pingRef.current) playQueuePing();
     lastUserMsg.current = next;
   }, [threads.data]);
 
@@ -402,7 +412,31 @@ function ChatInboxes() {
     return null;
   };
 
+  const STATUS_OPTS = [
+    { id: "online", label: "Online", dot: "bg-ops-emerald" },
+    { id: "away", label: "Away", dot: "bg-warning" },
+    { id: "in_chat", label: "In Chat", dot: "bg-primary" },
+  ] as const;
+
   return (
+    <div className="space-y-3">
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2" role="toolbar" aria-label="Agent status">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="font-semibold text-muted-foreground">My status</span>
+        <div className="flex rounded-md border border-border p-0.5">
+          {STATUS_OPTS.map((o) => (
+            <button key={o.id} type="button" aria-pressed={agentStatus === o.id} onClick={() => { setAgentStatus(o.id); localStorage.setItem("velocity.desk.status", o.id); }}
+              className={`touch-manipulation flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold ${agentStatus === o.id ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <span className={`size-2 rounded-full ${o.dot}`} />{o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-muted-foreground">
+        <input type="checkbox" checked={pingOn} onChange={(e) => { setPingOn(e.target.checked); localStorage.setItem("velocity.desk.ping", e.target.checked ? "on" : "off"); if (e.target.checked) playQueuePing(); }} className="size-4 accent-primary" />
+        Sound ping for new messages
+      </label>
+    </div>
     <div className="grid gap-3 overflow-hidden rounded-lg border border-border bg-card md:h-[36rem] md:grid-cols-[18rem_1fr] xl:grid-cols-[18rem_1fr_17rem]">
       <div className="max-h-72 overflow-y-auto border-border md:max-h-none md:border-r">
         {threads.isLoading && <p className="p-4 text-xs text-muted-foreground">Loading inboxes…</p>}
