@@ -65,6 +65,7 @@ import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AnnouncementsPanel } from "@/components/admin/AnnouncementsPanel";
 import { ActiveUsersPanel } from "@/components/admin/ActiveUsersPanel";
 import { ActiveUsersDesk } from "@/components/admin/ActiveUsersDesk";
+import { BroadcastDesk } from "@/components/admin/BroadcastDesk";
 import { TelemetryPanel } from "@/components/admin/TelemetryPanel";
 import { TradeCorrections } from "@/components/admin/TradeCorrections";
 import { RatingsPanel } from "@/components/admin/RatingsPanel";
@@ -737,7 +738,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
               {tab === "broadcast" && data && (
                 <div className="space-y-4">
                   <AnnouncementsPanel />
-                  <BroadcastTab profiles={data.profiles} />
+                  <BroadcastDesk />
                 </div>
               )}
             </>
