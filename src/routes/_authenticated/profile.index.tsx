@@ -371,7 +371,15 @@ function ProfileHome() {
           className="shrink-0 touch-manipulation rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground"
         >
           <span aria-live="polite" aria-atomic="true">
-            {supportUnread > 0 ? `Get Support (${supportUnread})` : "Get Support"}
+            {supportUnread > 0 ? (
+              <>
+                Get Support (
+                <span className="font-bold text-alert">{supportUnread}</span>
+                )
+              </>
+            ) : (
+              "Get Support"
+            )}
           </span>
         </Button>
       </section>
