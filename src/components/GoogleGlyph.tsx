@@ -3,9 +3,10 @@
  * Geometry and hex values follow Google's published brand assets:
  * blue #4285F4, green #34A853, yellow #FBBC05, red #EA4335.
  *
- * Sizing is inherited from the parent (size-*, h-*/w-*), so the caller keeps
- * control of the icon box. Colors are fixed by brand policy and stay legible
- * on both the light and dark auth surfaces, so no theme classes are applied.
+ * Sizing is inherited from the parent (size-5, h-4, w-4 and friends), so the
+ * caller keeps control of the icon box. Colors are fixed by brand policy and
+ * stay legible on both the light and dark auth surfaces, so no theme classes
+ * are applied.
  */
 export function GoogleGlyph({ className }: { className?: string }) {
   return (
