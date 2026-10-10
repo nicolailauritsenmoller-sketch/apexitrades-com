@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AccountMetrics, useAccountOverview } from "@/components/home/AccountMetrics";
 import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
-import { KycDashboardCard } from "@/components/home/KycDashboardCard";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -121,8 +120,6 @@ function Home() {
           </button>
         </div>
       </section>
-
-      <KycDashboardCard />
 
       <AccountMetrics data={overview.data} hidden={hidden} format={(v) => format(v)} />
 
