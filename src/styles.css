@@ -50,6 +50,7 @@
   --color-bear: var(--bear);
   --color-bear-foreground: var(--bear-foreground);
   --color-warning: var(--warning);
+  --color-alert: var(--alert);
   --color-grid: var(--grid);
   --color-help-background: var(--help-background);
   --color-help-surface: var(--help-surface);
@@ -104,6 +105,8 @@
   --bear: oklch(0.55 0.2 25);
   --bear-foreground: oklch(1 0 0);
   --warning: oklch(0.55 0.15 78);
+  /* Inline unread/emphasis red: AA on white cards (crimson #DC2626). */
+  --alert: oklch(0.55 0.2 25);
 
   /* Muted institutional status colors: amber #F59E0B, crimson #EF4444, emerald #10B981 */
   --ops-amber: oklch(0.769 0.164 70);
@@ -178,6 +181,8 @@
   --bull: oklch(0.78 0.175 158);
   --bear: oklch(0.63 0.225 22);
   --warning: oklch(0.87 0.175 92);
+  /* Inline unread/emphasis red: brightened to stay legible on dark surfaces. */
+  --alert: oklch(0.73 0.19 22);
 
 
 
