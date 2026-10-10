@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { SupportUnreadBadge } from "@/components/support/SupportUnreadBadge";
+import { useSupportUnread } from "@/lib/use-support-unread";
+import { Button } from "@/components/ui/button";
 import { RelationshipManagerCard } from "@/components/profile/RelationshipManagerCard";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -139,6 +140,7 @@ function ListRow({
 function ProfileHome() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const supportUnread = useSupportUnread();
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -362,13 +364,16 @@ function ProfileHome() {
             <p className="text-xs text-muted-foreground">24/7 live assistance</p>
           </div>
         </div>
-        <button
+        <Button
+          type="button"
+          variant="secondary"
           onClick={() => window.dispatchEvent(new CustomEvent("velocity:open-chat", { detail: {} }))}
-          className="relative touch-manipulation rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80"
+          className="shrink-0 touch-manipulation rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground"
         >
-          Get Support
-          <SupportUnreadBadge />
-        </button>
+          <span aria-live="polite" aria-atomic="true">
+            {supportUnread > 0 ? `Get Support (${supportUnread})` : "Get Support"}
+          </span>
+        </Button>
       </section>
 
       {/* Quick tiles */}
