@@ -180,9 +180,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
+            <SupportNavButton />
             <div className="hidden items-center gap-2 md:flex">
               <GlobalSearch />
-              <SupportNavButton />
             </div>
             <MaintenanceBadge className="hidden sm:inline-flex" />
             {isAdmin ? (
