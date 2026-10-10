@@ -374,7 +374,7 @@ function ProfileHome() {
             {supportUnread > 0 ? (
               <>
                 Get Support (
-                <span className="font-bold text-bear">{supportUnread}</span>
+                <span className="font-bold text-alert">{supportUnread}</span>
                 )
               </>
             ) : (
