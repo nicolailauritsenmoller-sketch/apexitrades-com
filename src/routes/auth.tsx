@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/Logo";
+import { GoogleGlyph } from "@/components/GoogleGlyph";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
