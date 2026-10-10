@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/Logo";
+import { GoogleGlyph } from "@/components/GoogleGlyph";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -339,8 +340,9 @@ function AuthPage() {
 
             <button
               onClick={onGoogle}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary"
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface-raised px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary"
             >
+              <GoogleGlyph className="size-5 shrink-0" />
               Continue with Google
             </button>
 
