@@ -685,7 +685,7 @@ function ChatInboxes() {
                 <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
                   <Paperclip className="size-3" />
                   <span className="truncate">{file.name}</span>
-                  <button onClick={() => setFile(null)} aria-label="Remove attachment">
+                  <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
                     <X className="size-3" />
                   </button>
                 </span>
@@ -698,6 +698,7 @@ function ChatInboxes() {
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
               <button
+                type="button"
                 onClick={() => fileRef.current?.click()}
                 aria-label="Attach a file"
                 className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -714,7 +715,17 @@ function ChatInboxes() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setMacroOpen(false);
-                  // Enter falls through to the form's onSubmit (single dispatch).
+                  if (e.key === "Enter" && macroOpen && draft.startsWith("/")) {
+                    // Enter while picking a macro inserts it instead of sending.
+                    e.preventDefault();
+                    const q = draft.slice(1).toLowerCase();
+                    const mc = MACROS.find((m) => !q || m.label.toLowerCase().includes(q));
+                    if (mc) {
+                      setDraft(mc.body);
+                      setMacroOpen(false);
+                    }
+                  }
+                  // Otherwise Enter falls through to the form's onSubmit (single dispatch).
                 }}
                 placeholder={noteMode ? "Internal note - visible to staff only…" : lockedByOther ? "Assigned to another agent" : active.status === "closed" ? "Send follow-up - delivered on the user's next visit…" : active.connectedAt ? "Reply as support agent… (type / for macros)" : "Accept chat to reply…"}
                 disabled={composerDisabled}

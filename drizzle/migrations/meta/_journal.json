@@ -232,6 +232,13 @@
       "when": 1791521264666,
       "tag": "0032_chat_sessions_allow_multiple",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791626985772,
+      "tag": "0033_kyc_trigger_allow_admin_status_changes",
+      "breakpoints": true
     }
   ]
 }
