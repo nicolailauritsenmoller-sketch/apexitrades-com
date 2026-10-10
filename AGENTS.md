@@ -24,3 +24,4 @@
 
 - The Operations Console lives only at /admin on the primary domain; signed-out visitors go to /auth and return to their original path after login, and server role checks remain authoritative - why: one origin keeps sessions shared and avoids DNS-dependent access.
 - Global risk controls (trading pause, leverage cap, large-withdrawal review) live in platform_settings key "risk_controls", read via src/lib/risk-controls.server.ts and enforced inside position/contract open handlers - why: circuit breakers must hold server-side, not just in the UI.
+- Official third-party brand marks (Google, Apple) render as inline SVG components in src/components rather than externalized image assets, so they stay crisp, theme-safe and free of extra network requests.
