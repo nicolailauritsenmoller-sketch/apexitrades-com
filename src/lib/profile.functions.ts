@@ -141,9 +141,9 @@ export const getProfileOverview = createServerFn({ method: "POST" })
       utilizationPct !== null
         ? utilizationPct >= 85
           ? "critical"
-          : utilizationPct >= 60
+          : utilizationPct >= 51
           ? "high"
-          : utilizationPct >= 30
+          : utilizationPct >= 26
             ? "moderate"
             : "low"
         : exposureUsdt > 0 && equityUsdt > 0
