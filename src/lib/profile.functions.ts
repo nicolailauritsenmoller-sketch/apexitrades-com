@@ -268,11 +268,12 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         },
         margin: hasMargin
           ? {
-              usedUsdt: marginUsedUsdt,
+              usedUsdt: totalMarginUsdt,
+              scalpUsdt: scalpMarginUsdt,
               availableUsdt: marginAvailableUsdt,
               utilizationPct: utilizationPct,
               availablePct: utilizationPct === null ? null : 100 - utilizationPct,
-              openPositions: leveragedPositions.length,
+              openPositions: marginPositionCount,
             }
           : null,
         execution,
