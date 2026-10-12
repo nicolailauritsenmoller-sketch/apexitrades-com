@@ -36,8 +36,8 @@ export function useAccountOverview() {
   return query;
 }
 
-const RISK_LABEL = { none: "None", low: "Low", moderate: "Medium", high: "High" } as const;
-const RISK_TONE = { none: "text-muted-foreground", low: "text-bull", moderate: "text-primary", high: "text-bear" };
+const RISK_LABEL = { none: "None", low: "Low", moderate: "Moderate", high: "High", critical: "Critical" } as const;
+const RISK_TONE = { none: "text-muted-foreground", low: "text-bull", moderate: "text-primary", high: "text-bear", critical: "text-bear" };
 
 export function AccountMetrics({
   data,
@@ -63,7 +63,7 @@ export function AccountMetrics({
         </p>
         <Bar pct={margin?.utilizationPct ?? 0} tone={(margin?.utilizationPct ?? 0) >= 60 ? "bear" : "primary"} />
         <p className="mt-1 text-[11px] text-muted-foreground">
-          {margin ? `${hidden ? "••••" : format(margin.usedUsdt)} in use` : "No leveraged exposure"}
+          {margin ? `${hidden ? "••••" : format(margin.usedUsdt)} in use` : "0.0% of equity committed"}
         </p>
       </Card>
 
@@ -88,7 +88,7 @@ export function AccountMetrics({
         <p className="mt-2 text-[11px] text-muted-foreground">
           {data && data.risk.exposure.leverageMax > 0
             ? `Max leverage ${data.risk.exposure.leverageMax}x`
-            : "No open leveraged positions"}
+            : "No open margin or scalp trades"}
         </p>
       </Card>
     </section>

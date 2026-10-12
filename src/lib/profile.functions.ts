@@ -137,15 +137,19 @@ export const getProfileOverview = createServerFn({ method: "POST" })
     const healthPct =
       utilizationPct === null ? 100 : Math.max(0, Math.min(100, 100 - utilizationPct));
 
-    const exposureRisk: "low" | "moderate" | "high" | null =
+    const exposureRisk: "low" | "moderate" | "high" | "critical" | null =
       utilizationPct !== null
-        ? utilizationPct >= 60
+        ? utilizationPct >= 85
+          ? "critical"
+          : utilizationPct >= 60
           ? "high"
           : utilizationPct >= 30
             ? "moderate"
             : "low"
         : exposureUsdt > 0 && equityUsdt > 0
-          ? exposureUsdt / equityUsdt >= 3
+          ? exposureUsdt / equityUsdt >= 5
+            ? "critical"
+            : exposureUsdt / equityUsdt >= 3
             ? "high"
             : exposureUsdt / equityUsdt >= 1
               ? "moderate"

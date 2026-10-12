@@ -66,11 +66,12 @@ const HEALTH_TONE: Record<string, string> = {
   caution: "text-amber-500",
   at_risk: "text-bear",
 };
-const RISK_LABEL: Record<string, string> = { low: "Low", moderate: "Moderate", high: "High" };
+const RISK_LABEL: Record<string, string> = { low: "Low", moderate: "Moderate", high: "High", critical: "Critical" };
 const RISK_TONE: Record<string, string> = {
   low: "text-bull",
   moderate: "text-amber-500",
   high: "text-bear",
+  critical: "text-bear font-bold",
 };
 
 function usd(value: number) {
