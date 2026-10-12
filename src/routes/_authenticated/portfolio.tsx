@@ -113,7 +113,11 @@ function Portfolio() {
   const display = useDisplayCurrency();
   const [range, setRange] = useState<Range>("1M");
   const [depositOpen, setDepositOpen] = useState(false);
-  const realized = closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0);
+  const realized =
+    closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0) +
+    (contracts.data ?? [])
+      .filter((c: any) => c.status === "settled")
+      .reduce((sum: number, c: any) => sum + (Number(c.payout ?? 0) - Number(c.stake ?? 0)), 0);
   const totalUnrealized = Object.values(unrealizedByCurrency).reduce((a, b) => a + b, 0);
   const liveTotal = (value.data?.totalUsdt ?? 0) + totalUnrealized;
   const available = value.data?.wallets?.reduce(
