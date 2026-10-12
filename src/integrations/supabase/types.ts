@@ -707,6 +707,7 @@ export type Database = {
           expires_at: string
           fee_paid: number
           id: string
+          leverage: number
           opened_at: string
           outcome_override: Database["public"]["Enums"]["outcome_mode"]
           payout: number | null
@@ -728,6 +729,7 @@ export type Database = {
           expires_at: string
           fee_paid?: number
           id?: string
+          leverage?: number
           opened_at?: string
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
@@ -749,6 +751,7 @@ export type Database = {
           expires_at?: string
           fee_paid?: number
           id?: string
+          leverage?: number
           opened_at?: string
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
