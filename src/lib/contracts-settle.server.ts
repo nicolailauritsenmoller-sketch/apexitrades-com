@@ -6,6 +6,7 @@ export async function settleContractRow(supabase: any, db: any, userId: string, 
     const entry = Number(contract.entry_price);
     const stake = Number(contract.stake);
     const pct = Number(contract.payout_pct);
+    const leverage = Math.max(Number(contract.leverage ?? 1) || 1, 1);
 
     // Settlement outcome can be overridden by an administrator, either for this
     // single contract or globally for the account.
@@ -39,7 +40,7 @@ export async function settleContractRow(supabase: any, db: any, userId: string, 
       result = "win";
     else result = "loss";
 
-    const payout = result === "win" ? stake + (stake * pct) / 100 : result === "draw" ? stake : 0;
+    const payout = result === "win" ? stake + (stake * pct * leverage) / 100 : result === "draw" ? stake : 0;
 
     const { data: r, error: rpcError } = await db.rpc("settle_contract_atomic", {
       p_id: contract.id, p_user: userId, p_exit: exit, p_result: result, p_payout: payout,

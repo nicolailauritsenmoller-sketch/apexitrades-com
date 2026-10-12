@@ -239,6 +239,13 @@
       "when": 1791626985772,
       "tag": "0033_kyc_trigger_allow_admin_status_changes",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1791844215560,
+      "tag": "0034_contracts_leverage",
+      "breakpoints": true
     }
   ]
 }

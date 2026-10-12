@@ -100,8 +100,11 @@ export const getProfileOverview = createServerFn({ method: "POST" })
 
     const exposureUsdt =
       openPositions.reduce((s, p) => s + positionNotional(p), 0) +
-      openContracts.reduce((s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1), 0);
-    // Scalp contracts lock their full stake as margin (1x - no borrowed notional).
+      openContracts.reduce(
+        (s, c) => s + Number(c.stake) * Math.max(Number((c as any).leverage ?? 1) || 1, 1) * (rates[c.currency] ?? 1),
+        0,
+      );
+    // Scalp contracts lock their full stake as margin; leverage scales notional exposure.
     const scalpMarginUsdt = openContracts.reduce(
       (s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1),
       0,
@@ -110,7 +113,7 @@ export const getProfileOverview = createServerFn({ method: "POST" })
     const equityUsdt = spotUsdt + totalMarginUsdt;
     const maxLeverage = Math.max(
       openPositions.reduce((m, p) => Math.max(m, Number(p.leverage) || 1), 0),
-      openContracts.length > 0 ? 1 : 0,
+      openContracts.reduce((m, c) => Math.max(m, Number((c as any).leverage ?? 1) || 1), 0),
     );
 
     const marginPositionCount = leveragedPositions.length + openContracts.length;
