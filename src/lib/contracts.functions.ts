@@ -7,6 +7,7 @@ const placeInput = z.object({
   direction: z.enum(["up", "down"]),
   stake: z.number().positive().max(100_000_000),
   durationSeconds: z.number().int().positive(),
+  leverage: z.union([z.literal(1), z.literal(2), z.literal(5), z.literal(10)]).default(1),
 });
 
 const settleInput = z.object({ id: z.string().uuid() });
@@ -50,6 +51,7 @@ export const getContracts = createServerFn({ method: "POST" })
       currency: c.currency,
       durationSeconds: c.duration_seconds,
       payoutPct: Number(c.payout_pct),
+      leverage: Number((c as any).leverage ?? 1) || 1,
       entryPrice: Number(c.entry_price),
       exitPrice: c.exit_price == null ? null : Number(c.exit_price),
       status: c.status as "open" | "settled",
@@ -140,6 +142,7 @@ export const placeContract = createServerFn({ method: "POST" })
         entry_price: price,
         expires_at: expiresAt,
         fee_paid: fee,
+        leverage: data.leverage,
       })
       .select()
       .single();
@@ -167,7 +170,8 @@ export const placeContract = createServerFn({ method: "POST" })
       id: contract.id,
       entryPrice: price,
       expiresAt,
-      expectedProfit: (data.stake * tier.profitPct) / 100,
+      expectedProfit: (data.stake * tier.profitPct * data.leverage) / 100,
+      leverage: data.leverage,
       currency: CONTRACT_CURRENCY,
     };
   });

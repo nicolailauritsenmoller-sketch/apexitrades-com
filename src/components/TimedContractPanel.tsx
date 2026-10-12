@@ -43,6 +43,7 @@ export function TimedContractPanel({
   const queryClient = useQueryClient();
   const [tier, setTier] = useState<ContractTier>(CONTRACT_TIERS[0]);
   const [amount, setAmount] = useState(String(CONTRACT_TIERS[0].minInvestment));
+  const [leverage, setLeverage] = useState<1 | 2 | 5 | 10>(1);
   const [summary, setSummary] = useState<TradeSummary | null>(null);
 
   const fetchContracts = useServerFn(getContracts);
@@ -57,7 +58,7 @@ export function TimedContractPanel({
 
   const placeMutation = useMutation({
     mutationFn: (direction: "up" | "down") =>
-      place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.seconds } }),
+      place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.seconds, leverage } }),
     onSuccess: (res) => {
       void logActivity("order", `Opened ${symbol} scalp contract`, { symbol, stake: Number(amount) });
       toast.success(
@@ -192,7 +193,7 @@ export function TimedContractPanel({
   const stake = Number(amount) || 0;
   const belowMin = stake < tier.minInvestment;
   const overBalance = balance != null && stake > balance;
-  const expectedProfit = (stake * tier.profitPct) / 100;
+  const expectedProfit = (stake * tier.profitPct * leverage) / 100;
   const disabled = belowMin || overBalance || placeMutation.isPending;
 
   return (
@@ -248,6 +249,26 @@ export function TimedContractPanel({
           ))}
         </div>
 
+        <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Leverage
+        </label>
+        <div className="mb-3 grid grid-cols-4 gap-1 rounded-lg border border-border p-1" role="radiogroup" aria-label="Leverage">
+          {([1, 2, 5, 10] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={leverage === l}
+              onClick={() => setLeverage(l)}
+              className={`num rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors ${
+                leverage === l ? "bg-surface-raised text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {l}x
+            </button>
+          ))}
+        </div>
+
         <div className="mb-3 rounded-md border border-border bg-surface px-3 py-2 text-[11px] text-muted-foreground">
           Min. investment{" "}
           <span className="num text-foreground">
@@ -255,7 +276,7 @@ export function TimedContractPanel({
           </span>
           <span className="mx-1.5 text-border">|</span>
           Est. return{" "}
-          <span className="num text-bull">{tier.profitPct}%</span>
+          <span className="num text-bull">{tier.profitPct * leverage}%</span>
           <span className="mx-1.5 text-border">|</span>
           Est. payout{" "}
           <span className="num text-foreground">
@@ -296,6 +317,10 @@ export function TimedContractPanel({
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Payout on win</dt>
             <dd className="num">{formatMoney(stake + expectedProfit, CONTRACT_CURRENCY)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Max loss</dt>
+            <dd className="num text-bear">-{formatMoney(stake, CONTRACT_CURRENCY)}</dd>
           </div>
         </dl>
 
@@ -368,7 +393,8 @@ function ContractCard({
   const left = new Date(contract.expiresAt).getTime() - now;
   const total = contract.durationSeconds * 1000;
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
-  const profit = (contract.stake * contract.payoutPct) / 100;
+  const lev = contract.leverage ?? 1;
+  const profit = (contract.stake * contract.payoutPct * lev) / 100;
   const expired = left <= 0;
   // Dynamic unrealized P/L, always on the contract's financial scale: a move in
   // favor ramps smoothly from 0 to the full expected payout, an adverse move
@@ -380,7 +406,7 @@ function ContractCard({
     const signed = contract.direction === "up" ? move : -move;
     if (signed === 0) return 0;
     // A relative move equal to the payout % reaches full payout / full loss.
-    const scale = contract.payoutPct > 0 ? contract.payoutPct / 100 : 0.1;
+    const scale = contract.payoutPct > 0 ? contract.payoutPct / 100 / lev : 0.1;
     const progress = Math.min(1, Math.abs(signed) / scale);
     return signed > 0 ? profit * progress : -contract.stake * progress;
   })();
@@ -409,7 +435,7 @@ function ContractCard({
           <p className="num">
             Entry {formatPrice(contract.entryPrice, contract.symbol)}
           </p>
-          <p className="num">{contract.durationSeconds}s contract</p>
+          <p className="num">{contract.durationSeconds}s contract · {lev}x</p>
         </div>
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
