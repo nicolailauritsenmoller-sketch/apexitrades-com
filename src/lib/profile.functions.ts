@@ -101,14 +101,24 @@ export const getProfileOverview = createServerFn({ method: "POST" })
     const exposureUsdt =
       openPositions.reduce((s, p) => s + positionNotional(p), 0) +
       openContracts.reduce((s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1), 0);
-    const equityUsdt = spotUsdt + marginUsedUsdt;
-    const maxLeverage = openPositions.reduce((m, p) => Math.max(m, Number(p.leverage) || 1), 0);
+    // Scalp contracts lock their full stake as margin (1x - no borrowed notional).
+    const scalpMarginUsdt = openContracts.reduce(
+      (s, c) => s + Number(c.stake) * (rates[c.currency] ?? 1),
+      0,
+    );
+    const totalMarginUsdt = marginUsedUsdt + scalpMarginUsdt;
+    const equityUsdt = spotUsdt + totalMarginUsdt;
+    const maxLeverage = Math.max(
+      openPositions.reduce((m, p) => Math.max(m, Number(p.leverage) || 1), 0),
+      openContracts.length > 0 ? 1 : 0,
+    );
 
-    const hasMargin = leveragedPositions.length > 0;
+    const marginPositionCount = leveragedPositions.length + openContracts.length;
+    const hasMargin = marginPositionCount > 0;
     const marginAvailableUsdt = spotUsdt;
     const utilizationPct =
-      hasMargin && marginUsedUsdt + marginAvailableUsdt > 0
-        ? (marginUsedUsdt / (marginUsedUsdt + marginAvailableUsdt)) * 100
+      hasMargin && totalMarginUsdt + marginAvailableUsdt > 0
+        ? (totalMarginUsdt / (totalMarginUsdt + marginAvailableUsdt)) * 100
         : null;
 
     // ---- Execution sync (measured order latency & fill rate) ----
@@ -258,11 +268,12 @@ export const getProfileOverview = createServerFn({ method: "POST" })
         },
         margin: hasMargin
           ? {
-              usedUsdt: marginUsedUsdt,
+              usedUsdt: totalMarginUsdt,
+              scalpUsdt: scalpMarginUsdt,
               availableUsdt: marginAvailableUsdt,
               utilizationPct: utilizationPct,
               availablePct: utilizationPct === null ? null : 100 - utilizationPct,
-              openPositions: leveragedPositions.length,
+              openPositions: marginPositionCount,
             }
           : null,
         execution,

@@ -1,3 +1,4 @@
+import { useAccountOverview } from "@/components/home/AccountMetrics";
 import { useEffect } from "react";
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { Button } from "@/components/ui/button";
@@ -153,11 +154,8 @@ function ProfileHome() {
   const fetchOverview = useServerFn(getProfileOverview);
   const fetchKyc = useServerFn(getMyKyc);
 
-  const overview = useQuery({
-    queryKey: ["profile-overview"],
-    queryFn: () => fetchOverview(),
-    refetchInterval: 30_000,
-  });
+  void fetchOverview;
+  const overview = useAccountOverview();
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
 
   const profile = overview.data?.profile;
