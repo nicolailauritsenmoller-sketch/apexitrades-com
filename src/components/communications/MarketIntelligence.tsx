@@ -6,7 +6,12 @@ import { ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
 import { useQuotes } from "@/hooks/useMarket";
 import { AssetIcon } from "@/lib/asset-icons";
 import { getExpertCommentary } from "@/lib/news.functions";
-import { COMMENTARY_ROTATION_MS, commentaryPage, commentaryTopics, rankExpertCommentary } from "@/lib/market-commentary";
+import {
+  COMMENTARY_ROTATION_MS,
+  commentaryPage,
+  commentaryTopics,
+  rankExpertCommentary,
+} from "@/lib/market-commentary";
 import type { Quote } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
 import { useMarketInsights } from "@/lib/use-market-insights";
@@ -102,11 +107,17 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
           {insights.data.map((i) => (
             <article key={i.id} className="border-b border-border py-3 last:border-0">
               <p className="mb-1 text-[10px] text-muted-foreground">
-                <span className="font-semibold uppercase text-foreground">{i.category}</span> · {i.source} ·{" "}
-                {new Date(i.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                <span className="font-semibold uppercase text-foreground">{i.category}</span> ·{" "}
+                {i.source} ·{" "}
+                {new Date(i.created_at).toLocaleString([], {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </p>
               <p className="text-xs font-semibold">{i.title}</p>
-              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{i.content}</p>
+              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                {i.content}
+              </p>
             </article>
           ))}
         </section>
@@ -153,33 +164,46 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
         {news.isPending && <p className="text-xs text-muted-foreground">Loading intelligence...</p>}
         {(news.isError || (!news.isPending && !headlines.length)) && (
           <p className="text-xs text-muted-foreground">
-             No verified asset commentary is available right now.
+            No verified asset commentary is available right now.
           </p>
         )}
-        <div key={cycle} className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300" data-commentary-cycle={cycle}>
-        {headlines.map((n) => (
-          <Button
-            key={n.id}
-            asChild
-            variant="ghost"
-            className="h-auto w-full justify-start whitespace-normal rounded-none border-b border-border px-0 py-3 text-left last:border-0"
-          >
-            <a href={n.url} target="_blank" rel="noopener noreferrer">
-              <span className="min-w-0 flex-1">
-                <span className="mb-1 block text-[10px] font-normal text-muted-foreground">
-                  {n.source} · {new Date(n.publishedAt).toLocaleDateString()}
+        <div
+          key={cycle}
+          className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+          data-commentary-cycle={cycle}
+        >
+          {headlines.map((n) => (
+            <Button
+              key={n.id}
+              asChild
+              variant="ghost"
+              className="h-auto w-full justify-start whitespace-normal rounded-none border-b border-border px-0 py-3 text-left last:border-0"
+            >
+              <a href={n.url} target="_blank" rel="noopener noreferrer">
+                <span className="min-w-0 flex-1">
+                  <span className="mb-1 block text-[10px] font-normal text-muted-foreground">
+                    {n.source} · {new Date(n.publishedAt).toLocaleDateString()}
+                  </span>
+                  <span className="mb-1 block text-[10px] font-medium text-muted-foreground">
+                    {n.tickers
+                      .filter((symbol) =>
+                        ["BTCUSDT", "ETHUSDT", "XRPUSDT", "SOLUSDT", "BNBUSDT"].includes(symbol),
+                      )
+                      .map((symbol) => symbol.replace("USDT", ""))
+                      .join(" · ")}
+                    {commentaryTopics(n).length > 0 && ` / ${commentaryTopics(n).join(" · ")}`}
+                  </span>
+                  <span className="line-clamp-3 text-xs leading-relaxed">{n.title}</span>
+                  {n.excerpt && (
+                    <span className="mt-1 block line-clamp-2 text-xs font-normal leading-relaxed text-muted-foreground">
+                      {n.excerpt}
+                    </span>
+                  )}
                 </span>
-                 <span className="mb-1 block text-[10px] font-medium text-muted-foreground">
-                   {n.tickers.filter((symbol) => ["BTCUSDT", "ETHUSDT", "XRPUSDT", "SOLUSDT", "BNBUSDT"].includes(symbol)).map((symbol) => symbol.replace("USDT", "")).join(" · ")}
-                   {commentaryTopics(n).length > 0 && ` / ${commentaryTopics(n).join(" · ")}`}
-                 </span>
-                <span className="line-clamp-3 text-xs leading-relaxed">{n.title}</span>
-                 {n.excerpt && <span className="mt-1 block line-clamp-2 text-xs font-normal leading-relaxed text-muted-foreground">{n.excerpt}</span>}
-              </span>
-              <ArrowUpRight className="text-muted-foreground" />
-            </a>
-          </Button>
-        ))}
+                <ArrowUpRight className="text-muted-foreground" />
+              </a>
+            </Button>
+          ))}
         </div>
       </section>
     </div>

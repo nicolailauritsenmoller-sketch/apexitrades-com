@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Rotate Analytics commentary every two minutes and prioritize sourced BTC, ETH, XRP, SOL and BNB forecasts; verify the live drawer.
+- [x] Rotate Analytics commentary every two minutes and prioritize sourced BTC, ETH, XRP, SOL and BNB forecasts; verified real signed-in articles change order, with admin intelligence pinned.
 
 - [x] Redesign the header communications drawer with Notifications, Chat and live Analytics; verified real account alerts, specific-thread launch, live quotes and dark/light/mobile layouts.
 
