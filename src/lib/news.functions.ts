@@ -191,19 +191,22 @@ function parseRss(xml: string, feed: Feed): NewsItem[] {
     if (!cleanTitle) continue;
     // Google News suffixes the publisher: "Headline - Reuters"
     if (feed.google) cleanTitle = cleanTitle.replace(/\s+-\s+[^-]{2,40}$/, "").trim();
+    const publisherTag = block.match(/<source\b([^>]*)>([\s\S]*?)<\/source>/i);
+    const publisherUrl = publisherTag?.[1]?.match(/url=["']([^"']+)["']/i)?.[1];
+    const publisher = feed.google && publisherTag?.[2] ? strip(publisherTag[2]) : feed.source;
     const cleanUrl = link ? strip(link) : "";
     const excerpt = feed.google ? "" : strip(desc).slice(0, 180);
     const blob = `${cleanTitle} ${excerpt}`;
     items.push({
       id: `${feed.source}-${cleanTitle.slice(0, 70)}`,
       title: cleanTitle,
-      source: feed.source,
+      source: publisher,
       url: cleanUrl,
       publishedAt: date ? new Date(strip(date)).toISOString() : new Date().toISOString(),
       category: classify(blob, feed.category),
       region: feed.region,
       image: extractImage(block),
-      domain: feed.google ? guessDomain(feed.source) : hostOf(cleanUrl),
+      domain: feed.google ? (publisherUrl ? hostOf(strip(publisherUrl)) : guessDomain(feed.source)) : hostOf(cleanUrl),
       excerpt,
       tickers: detectTickers(blob),
     });
@@ -238,10 +241,9 @@ function guessDomain(source: string) {
   return DOMAINS[source] ?? "";
 }
 
-export const getMarketNews = createServerFn({ method: "GET" }).handler(
-  async (): Promise<NewsItem[]> => {
+async function fetchNewsFeeds(feeds: Feed[]): Promise<NewsItem[]> {
     const results = await Promise.allSettled(
-      FEEDS.map(async (f) => {
+      feeds.map(async (f) => {
         const res = await fetch(f.url, {
           headers: {
             "user-agent": "Mozilla/5.0 (compatible; VelocityTradeNews/1.0)",
@@ -269,5 +271,19 @@ export const getMarketNews = createServerFn({ method: "GET" }).handler(
       })
       .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
       .slice(0, 120);
-  },
-);
+}
+
+export const getMarketNews = createServerFn({ method: "GET" }).handler(() => fetchNewsFeeds(FEEDS));
+
+/** A separate, narrow feed keeps two-minute commentary refreshes off the broad news request. */
+export const getExpertCommentary = createServerFn({ method: "GET" }).handler(async () => {
+  const trustedSites = "(site:tradingview.com OR site:binance.com OR site:kraken.com OR site:coingecko.com OR site:coinmarketcap.com OR site:crypto.com OR site:coindesk.com OR site:bloomberg.com OR site:reuters.com)";
+  const subjects = ["(bitcoin OR BTC)", "(ethereum OR ETH)", "(ripple OR XRP)", "(solana OR SOL)", "(BNB OR binance coin)"];
+  return fetchNewsFeeds(subjects.map((subject) => ({
+    source: "Market commentary",
+    url: gnews(`${trustedSites} ${subject} (analysis OR forecast OR outlook OR support OR resistance OR sentiment OR institutional OR psychology)`),
+    category: "crypto",
+    region: "global",
+    google: true,
+  })));
+});
