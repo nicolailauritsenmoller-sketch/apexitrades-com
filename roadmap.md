@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Redesign the header communications drawer with Notifications, Chat and live Analytics; verify account alerts, thread launch and theme layouts.
+
 - [x] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation; real staff navigation verified at /admin, hostname playback awaits DNS.
 - [ ] Activate admin hostname - blocked on domain registration, DNS connection and publication; unset primary domain redirects.
 
