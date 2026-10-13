@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Rotate Analytics commentary every two minutes and prioritize sourced BTC, ETH, XRP, SOL and BNB forecasts; verified real signed-in articles change order, with admin intelligence pinned.
+
 - [x] Redesign the header communications drawer with Notifications, Chat and live Analytics; verified real account alerts, specific-thread launch, live quotes and dark/light/mobile layouts.
 
 - [x] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation; real staff navigation verified at /admin, hostname playback awaits DNS.

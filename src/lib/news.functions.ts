@@ -1,13 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 export type NewsCategory =
-  | "stocks"
-  | "crypto"
-  | "defi"
-  | "commodities"
-  | "forex"
-  | "macro"
-  | "regulation";
+  "stocks" | "crypto" | "defi" | "commodities" | "forex" | "macro" | "regulation";
 
 export type NewsRegion = "global" | "us" | "ca" | "uk" | "eu";
 
@@ -91,54 +85,281 @@ const gnews = (query: string) =>
 
 const FEEDS: Feed[] = [
   /* ---------------------- Global & US financial media --------------------- */
-  { source: "Investing.com", url: "https://www.investing.com/rss/news_25.rss", category: "stocks", region: "global" },
-  { source: "Investing.com", url: "https://www.investing.com/rss/news_1.rss", category: "forex", region: "global" },
-  { source: "Investing.com", url: "https://www.investing.com/rss/news_11.rss", category: "commodities", region: "global" },
-  { source: "Investing.com", url: "https://www.investing.com/rss/news_95.rss", category: "macro", region: "global" },
-  { source: "CNBC", url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664", category: "stocks", region: "us" },
-  { source: "CNBC", url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", category: "crypto", region: "us" },
-  { source: "MarketWatch", url: "https://feeds.content.dowjones.io/public/rss/mw_topstories", category: "stocks", region: "us" },
-  { source: "MarketWatch", url: "https://feeds.content.dowjones.io/public/rss/mw_marketpulse", category: "macro", region: "us" },
-  { source: "Yahoo Finance", url: "https://finance.yahoo.com/news/rssindex", category: "stocks", region: "us" },
-  { source: "Reuters", url: gnews("site:reuters.com markets OR economy"), category: "macro", region: "global", google: true },
-  { source: "Bloomberg", url: gnews("site:bloomberg.com markets"), category: "stocks", region: "global", google: true },
-  { source: "Wall Street Journal", url: gnews("site:wsj.com markets"), category: "stocks", region: "us", google: true },
-  { source: "CoinDesk", url: "https://www.coindesk.com/arc/outboundfeeds/rss/", category: "crypto", region: "global" },
-  { source: "Cointelegraph", url: "https://cointelegraph.com/rss", category: "crypto", region: "global" },
-  { source: "The Block", url: gnews("site:theblock.co defi OR protocol"), category: "defi", region: "global", google: true },
-  { source: "Decrypt", url: gnews("site:decrypt.co defi OR web3"), category: "defi", region: "global", google: true },
-  { source: "Bloomberg Crypto", url: gnews("site:bloomberg.com crypto OR bitcoin"), category: "crypto", region: "global", google: true },
+  {
+    source: "Investing.com",
+    url: "https://www.investing.com/rss/news_25.rss",
+    category: "stocks",
+    region: "global",
+  },
+  {
+    source: "Investing.com",
+    url: "https://www.investing.com/rss/news_1.rss",
+    category: "forex",
+    region: "global",
+  },
+  {
+    source: "Investing.com",
+    url: "https://www.investing.com/rss/news_11.rss",
+    category: "commodities",
+    region: "global",
+  },
+  {
+    source: "Investing.com",
+    url: "https://www.investing.com/rss/news_95.rss",
+    category: "macro",
+    region: "global",
+  },
+  {
+    source: "CNBC",
+    url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+    category: "stocks",
+    region: "us",
+  },
+  {
+    source: "CNBC",
+    url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258",
+    category: "crypto",
+    region: "us",
+  },
+  {
+    source: "MarketWatch",
+    url: "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+    category: "stocks",
+    region: "us",
+  },
+  {
+    source: "MarketWatch",
+    url: "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
+    category: "macro",
+    region: "us",
+  },
+  {
+    source: "Yahoo Finance",
+    url: "https://finance.yahoo.com/news/rssindex",
+    category: "stocks",
+    region: "us",
+  },
+  {
+    source: "Reuters",
+    url: gnews("site:reuters.com markets OR economy"),
+    category: "macro",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Bloomberg",
+    url: gnews("site:bloomberg.com markets"),
+    category: "stocks",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Wall Street Journal",
+    url: gnews("site:wsj.com markets"),
+    category: "stocks",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "CoinDesk",
+    url: "https://www.coindesk.com/arc/outboundfeeds/rss/",
+    category: "crypto",
+    region: "global",
+  },
+  {
+    source: "Cointelegraph",
+    url: "https://cointelegraph.com/rss",
+    category: "crypto",
+    region: "global",
+  },
+  {
+    source: "The Block",
+    url: gnews("site:theblock.co defi OR protocol"),
+    category: "defi",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Decrypt",
+    url: gnews("site:decrypt.co defi OR web3"),
+    category: "defi",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Bloomberg Crypto",
+    url: gnews("site:bloomberg.com crypto OR bitcoin"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
 
   /* --------------- Trading commentary & exchange research ---------------- */
-  { source: "TradingView", url: gnews("site:tradingview.com bitcoin OR crypto analysis OR outlook OR levels"), category: "crypto", region: "global", google: true },
-  { source: "Binance Square", url: gnews("site:binance.com square OR research crypto market outlook"), category: "crypto", region: "global", google: true },
-  { source: "Binance", url: gnews("site:binance.com announcement OR research"), category: "crypto", region: "global", google: true },
-  { source: "Kraken", url: gnews("site:kraken.com market update OR crypto outlook"), category: "crypto", region: "us", google: true },
-  { source: "CoinGecko", url: gnews("site:coingecko.com research OR report OR analysis"), category: "crypto", region: "global", google: true },
-  { source: "CoinMarketCap", url: gnews("site:coinmarketcap.com academy OR analysis OR market"), category: "crypto", region: "global", google: true },
-  { source: "Crypto.com", url: gnews("site:crypto.com research OR market outlook"), category: "crypto", region: "global", google: true },
+  {
+    source: "TradingView",
+    url: gnews("site:tradingview.com bitcoin OR crypto analysis OR outlook OR levels"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Binance Square",
+    url: gnews("site:binance.com square OR research crypto market outlook"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Binance",
+    url: gnews("site:binance.com announcement OR research"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Kraken",
+    url: gnews("site:kraken.com market update OR crypto outlook"),
+    category: "crypto",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "CoinGecko",
+    url: gnews("site:coingecko.com research OR report OR analysis"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "CoinMarketCap",
+    url: gnews("site:coinmarketcap.com academy OR analysis OR market"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
+  {
+    source: "Crypto.com",
+    url: gnews("site:crypto.com research OR market outlook"),
+    category: "crypto",
+    region: "global",
+    google: true,
+  },
 
   /* ------------------------- Canadian financial news ---------------------- */
-  { source: "BNN Bloomberg", url: gnews("site:bnnbloomberg.ca"), category: "stocks", region: "ca", google: true },
-  { source: "The Globe and Mail", url: gnews("site:theglobeandmail.com business investing"), category: "stocks", region: "ca", google: true },
-  { source: "Financial Post", url: gnews("site:financialpost.com markets"), category: "stocks", region: "ca", google: true },
+  {
+    source: "BNN Bloomberg",
+    url: gnews("site:bnnbloomberg.ca"),
+    category: "stocks",
+    region: "ca",
+    google: true,
+  },
+  {
+    source: "The Globe and Mail",
+    url: gnews("site:theglobeandmail.com business investing"),
+    category: "stocks",
+    region: "ca",
+    google: true,
+  },
+  {
+    source: "Financial Post",
+    url: gnews("site:financialpost.com markets"),
+    category: "stocks",
+    region: "ca",
+    google: true,
+  },
 
   /* ----------------------- UK & European financial news ------------------- */
-  { source: "Financial Times", url: gnews("site:ft.com markets"), category: "macro", region: "uk", google: true },
-  { source: "City A.M.", url: gnews("site:cityam.com markets OR economics"), category: "stocks", region: "uk", google: true },
-  { source: "The Telegraph Business", url: gnews("site:telegraph.co.uk business economy"), category: "macro", region: "uk", google: true },
+  {
+    source: "Financial Times",
+    url: gnews("site:ft.com markets"),
+    category: "macro",
+    region: "uk",
+    google: true,
+  },
+  {
+    source: "City A.M.",
+    url: gnews("site:cityam.com markets OR economics"),
+    category: "stocks",
+    region: "uk",
+    google: true,
+  },
+  {
+    source: "The Telegraph Business",
+    url: gnews("site:telegraph.co.uk business economy"),
+    category: "macro",
+    region: "uk",
+    google: true,
+  },
 
   /* ------------------- Regulatory & institutional sources ----------------- */
-  { source: "SEC", url: "https://www.sec.gov/news/pressreleases.rss", category: "regulation", region: "us" },
-  { source: "Federal Reserve", url: "https://www.federalreserve.gov/feeds/press_all.xml", category: "macro", region: "us" },
-  { source: "CFTC", url: gnews("site:cftc.gov press release"), category: "regulation", region: "us", google: true },
-  { source: "Nasdaq", url: gnews("Nasdaq listing OR exchange announcement"), category: "regulation", region: "us", google: true },
-  { source: "NYSE", url: gnews("NYSE exchange announcement OR listing"), category: "regulation", region: "us", google: true },
-  { source: "CME Group", url: gnews("CME Group futures announcement"), category: "commodities", region: "us", google: true },
-  { source: "Ontario Securities Commission", url: gnews("Ontario Securities Commission"), category: "regulation", region: "ca", google: true },
-  { source: "Bank of Canada", url: gnews("Bank of Canada rate OR policy"), category: "macro", region: "ca", google: true },
-  { source: "CIRO", url: gnews("CIRO Canadian Investment Regulatory Organization"), category: "regulation", region: "ca", google: true },
-  { source: "TMX / TSX", url: gnews("TSX OR TMX Group Toronto Stock Exchange"), category: "stocks", region: "ca", google: true },
+  {
+    source: "SEC",
+    url: "https://www.sec.gov/news/pressreleases.rss",
+    category: "regulation",
+    region: "us",
+  },
+  {
+    source: "Federal Reserve",
+    url: "https://www.federalreserve.gov/feeds/press_all.xml",
+    category: "macro",
+    region: "us",
+  },
+  {
+    source: "CFTC",
+    url: gnews("site:cftc.gov press release"),
+    category: "regulation",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "Nasdaq",
+    url: gnews("Nasdaq listing OR exchange announcement"),
+    category: "regulation",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "NYSE",
+    url: gnews("NYSE exchange announcement OR listing"),
+    category: "regulation",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "CME Group",
+    url: gnews("CME Group futures announcement"),
+    category: "commodities",
+    region: "us",
+    google: true,
+  },
+  {
+    source: "Ontario Securities Commission",
+    url: gnews("Ontario Securities Commission"),
+    category: "regulation",
+    region: "ca",
+    google: true,
+  },
+  {
+    source: "Bank of Canada",
+    url: gnews("Bank of Canada rate OR policy"),
+    category: "macro",
+    region: "ca",
+    google: true,
+  },
+  {
+    source: "CIRO",
+    url: gnews("CIRO Canadian Investment Regulatory Organization"),
+    category: "regulation",
+    region: "ca",
+    google: true,
+  },
+  {
+    source: "TMX / TSX",
+    url: gnews("TSX OR TMX Group Toronto Stock Exchange"),
+    category: "stocks",
+    region: "ca",
+    google: true,
+  },
 ];
 
 function strip(input: string) {
@@ -158,12 +379,30 @@ function strip(input: string) {
 
 /** Keyword classifier - refines the feed's default category per headline. */
 const CLASSIFIERS: [RegExp, NewsCategory][] = [
-  [/\b(sec|cftc|finra|regulat\w+|lawsuit|enforcement|compliance|sanction|fine[sd]?\b|settlement|court|approval of)\b/i, "regulation"],
-  [/\b(defi|decentralized finance|dex\b|uniswap|aave|lido|makerdao|yield farm\w*|liquidity pool|staking|tvl\b|lending protocol|on-?chain|web3)\b/i, "defi"],
-  [/\b(bitcoin|ethereum|crypto\w*|blockchain|token|stablecoin|solana|xrp|altcoin|etf inflow)\b/i, "crypto"],
-  [/\b(gold|silver|oil|crude|brent|natural gas|copper|wheat|corn|soybean|commodit\w+|opec|bullion)\b/i, "commodities"],
-  [/\b(forex|currency|currencies|dollar index|yen|euro|sterling|pound|fx market|usd\/|eur\/|gbp\/)\b/i, "forex"],
-  [/\b(federal reserve|\bfed\b|fomc|interest rate|inflation|cpi|gdp|central bank|ecb|boe|boj|monetary policy|jobs report|payrolls|yield curve|treasur\w+)\b/i, "macro"],
+  [
+    /\b(sec|cftc|finra|regulat\w+|lawsuit|enforcement|compliance|sanction|fine[sd]?\b|settlement|court|approval of)\b/i,
+    "regulation",
+  ],
+  [
+    /\b(defi|decentralized finance|dex\b|uniswap|aave|lido|makerdao|yield farm\w*|liquidity pool|staking|tvl\b|lending protocol|on-?chain|web3)\b/i,
+    "defi",
+  ],
+  [
+    /\b(bitcoin|ethereum|crypto\w*|blockchain|token|stablecoin|solana|xrp|altcoin|etf inflow)\b/i,
+    "crypto",
+  ],
+  [
+    /\b(gold|silver|oil|crude|brent|natural gas|copper|wheat|corn|soybean|commodit\w+|opec|bullion)\b/i,
+    "commodities",
+  ],
+  [
+    /\b(forex|currency|currencies|dollar index|yen|euro|sterling|pound|fx market|usd\/|eur\/|gbp\/)\b/i,
+    "forex",
+  ],
+  [
+    /\b(federal reserve|\bfed\b|fomc|interest rate|inflation|cpi|gdp|central bank|ecb|boe|boj|monetary policy|jobs report|payrolls|yield curve|treasur\w+)\b/i,
+    "macro",
+  ],
   [/\b(stock|shares|equit\w+|earnings|nasdaq|s&p|dow jones|ipo|buyback|guidance)\b/i, "stocks"],
 ];
 
@@ -191,19 +430,26 @@ function parseRss(xml: string, feed: Feed): NewsItem[] {
     if (!cleanTitle) continue;
     // Google News suffixes the publisher: "Headline - Reuters"
     if (feed.google) cleanTitle = cleanTitle.replace(/\s+-\s+[^-]{2,40}$/, "").trim();
+    const publisherTag = block.match(/<source\b([^>]*)>([\s\S]*?)<\/source>/i);
+    const publisherUrl = publisherTag?.[1]?.match(/url=["']([^"']+)["']/i)?.[1];
+    const publisher = feed.google && publisherTag?.[2] ? strip(publisherTag[2]) : feed.source;
     const cleanUrl = link ? strip(link) : "";
     const excerpt = feed.google ? "" : strip(desc).slice(0, 180);
     const blob = `${cleanTitle} ${excerpt}`;
     items.push({
       id: `${feed.source}-${cleanTitle.slice(0, 70)}`,
       title: cleanTitle,
-      source: feed.source,
+      source: publisher,
       url: cleanUrl,
       publishedAt: date ? new Date(strip(date)).toISOString() : new Date().toISOString(),
       category: classify(blob, feed.category),
       region: feed.region,
       image: extractImage(block),
-      domain: feed.google ? guessDomain(feed.source) : hostOf(cleanUrl),
+      domain: feed.google
+        ? publisherUrl
+          ? hostOf(strip(publisherUrl))
+          : guessDomain(feed.source)
+        : hostOf(cleanUrl),
       excerpt,
       tickers: detectTickers(blob),
     });
@@ -238,36 +484,63 @@ function guessDomain(source: string) {
   return DOMAINS[source] ?? "";
 }
 
-export const getMarketNews = createServerFn({ method: "GET" }).handler(
-  async (): Promise<NewsItem[]> => {
-    const results = await Promise.allSettled(
-      FEEDS.map(async (f) => {
-        const res = await fetch(f.url, {
-          headers: {
-            "user-agent": "Mozilla/5.0 (compatible; VelocityTradeNews/1.0)",
-            accept: "application/rss+xml,application/xml,text/xml,*/*",
-          },
-          signal: AbortSignal.timeout(7000),
-        });
-        if (!res.ok) return [] as NewsItem[];
-        return parseRss(await res.text(), f);
-      }),
-    );
+async function fetchNewsFeeds(feeds: Feed[]): Promise<NewsItem[]> {
+  const results = await Promise.allSettled(
+    feeds.map(async (f) => {
+      const res = await fetch(f.url, {
+        headers: {
+          "user-agent": "Mozilla/5.0 (compatible; VelocityTradeNews/1.0)",
+          accept: "application/rss+xml,application/xml,text/xml,*/*",
+        },
+        signal: AbortSignal.timeout(7000),
+      });
+      if (!res.ok) return [] as NewsItem[];
+      return parseRss(await res.text(), f);
+    }),
+  );
 
-    const all: NewsItem[] = [];
-    for (const r of results) if (r.status === "fulfilled") all.push(...r.value);
+  const all: NewsItem[] = [];
+  for (const r of results) if (r.status === "fulfilled") all.push(...r.value);
 
-    const seen = new Set<string>();
-    const cutoff = Date.now() - 1000 * 60 * 60 * 96;
-    return all
-      .filter((n) => {
-        const key = n.title.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 60);
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        const ts = new Date(n.publishedAt).getTime();
-        return Number.isFinite(ts) && ts > cutoff;
-      })
-      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-      .slice(0, 120);
-  },
-);
+  const seen = new Set<string>();
+  const cutoff = Date.now() - 1000 * 60 * 60 * 96;
+  return all
+    .filter((n) => {
+      const key = n.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 60);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      const ts = new Date(n.publishedAt).getTime();
+      return Number.isFinite(ts) && ts > cutoff;
+    })
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, 120);
+}
+
+export const getMarketNews = createServerFn({ method: "GET" }).handler(() => fetchNewsFeeds(FEEDS));
+
+/** A separate, narrow feed keeps two-minute commentary refreshes off the broad news request. */
+export const getExpertCommentary = createServerFn({ method: "GET" }).handler(async () => {
+  const trustedSites =
+    "(site:tradingview.com OR site:binance.com OR site:kraken.com OR site:coingecko.com OR site:coinmarketcap.com OR site:crypto.com OR site:coindesk.com OR site:bloomberg.com OR site:reuters.com)";
+  const subjects = [
+    "(bitcoin OR BTC)",
+    "(ethereum OR ETH)",
+    "(ripple OR XRP)",
+    "(solana OR SOL)",
+    "(BNB OR binance coin)",
+  ];
+  return fetchNewsFeeds(
+    subjects.map((subject) => ({
+      source: "Market commentary",
+      url: gnews(
+        `${trustedSites} ${subject} (analysis OR forecast OR outlook OR support OR resistance OR sentiment OR institutional OR psychology)`,
+      ),
+      category: "crypto",
+      region: "global",
+      google: true,
+    })),
+  );
+});
