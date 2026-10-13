@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
 import { useQuotes } from "@/hooks/useMarket";
 import { AssetIcon } from "@/lib/asset-icons";
-import { getMarketNews } from "@/lib/news.functions";
+import { getExpertCommentary } from "@/lib/news.functions";
+import { COMMENTARY_ROTATION_MS, commentaryPage, commentaryTopics, rankExpertCommentary } from "@/lib/market-commentary";
 import type { Quote } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
 import { useMarketInsights } from "@/lib/use-market-insights";
@@ -76,36 +77,21 @@ export function useMarketPulses() {
   return { ...market, pulses };
 }
 
-const TRUSTED = /tradingview|binance|kraken|coingecko|coinmarketcap|crypto\.com|coindesk|bloomberg|reuters/i;
-const COMMENTARY =
-  /\b(outlook|analysis|forecast|predict\w*|expect\w*|support|resistance|level|breakout|trend|technical|strategy|sentiment|psycholog\w*|risk|macro|fed|rally|correction|momentum|liquidity|weekly|outlook)\b/i;
-
-/** Ranks headlines toward trusted-source commentary: trend, levels, macro and strategy. */
-function rankCommentary<T extends { source: string; title: string; category: string; publishedAt: string }>(items: T[]): T[] {
-  return items
-    .filter((n) => ["crypto", "macro", "regulation", "defi"].includes(n.category))
-    .map((n) => ({
-      n,
-      score:
-        (TRUSTED.test(n.source) ? 2 : 0) +
-        (COMMENTARY.test(n.title) ? 2 : 0) +
-        new Date(n.publishedAt).getTime() / 864e8 / 1e6,
-    }))
-    .filter((x) => x.score >= 2)
-    .sort((a, b) => b.score - a.score || +new Date(b.n.publishedAt) - +new Date(a.n.publishedAt))
-    .map((x) => x.n);
-}
-
 export function MarketIntelligence({ market }: { market: ReturnType<typeof useMarketPulses> }) {
-  const fetchNews = useServerFn(getMarketNews);
+  const fetchNews = useServerFn(getExpertCommentary);
+  const [cycle, setCycle] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => setCycle((value) => value + 1), COMMENTARY_ROTATION_MS);
+    return () => window.clearInterval(timer);
+  }, []);
   const news = useQuery({
-    queryKey: ["market-news"],
+    queryKey: ["expert-commentary"],
     queryFn: () => fetchNews(),
-    staleTime: 60_000,
-    refetchInterval: 60_000,
+    staleTime: COMMENTARY_ROTATION_MS,
+    refetchInterval: COMMENTARY_ROTATION_MS,
   });
   const insights = useMarketInsights("comms-market-insights");
-  const headlines = rankCommentary(news.data ?? []).slice(0, 10);
+  const headlines = commentaryPage(rankExpertCommentary(news.data ?? []), cycle);
   return (
     <div className="divide-y divide-border">
       {!!insights.data?.length && (
@@ -167,9 +153,10 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
         {news.isPending && <p className="text-xs text-muted-foreground">Loading intelligence...</p>}
         {(news.isError || (!news.isPending && !headlines.length)) && (
           <p className="text-xs text-muted-foreground">
-            Intelligence feed temporarily unavailable.
+             No verified asset commentary is available right now.
           </p>
         )}
+        <div key={cycle} className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300" data-commentary-cycle={cycle}>
         {headlines.map((n) => (
           <Button
             key={n.id}
@@ -182,12 +169,18 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
                 <span className="mb-1 block text-[10px] font-normal text-muted-foreground">
                   {n.source} · {new Date(n.publishedAt).toLocaleDateString()}
                 </span>
+                 <span className="mb-1 block text-[10px] font-medium text-muted-foreground">
+                   {n.tickers.filter((symbol) => ["BTCUSDT", "ETHUSDT", "XRPUSDT", "SOLUSDT", "BNBUSDT"].includes(symbol)).map((symbol) => symbol.replace("USDT", "")).join(" · ")}
+                   {commentaryTopics(n).length > 0 && ` / ${commentaryTopics(n).join(" · ")}`}
+                 </span>
                 <span className="line-clamp-3 text-xs leading-relaxed">{n.title}</span>
+                 {n.excerpt && <span className="mt-1 block line-clamp-2 text-xs font-normal leading-relaxed text-muted-foreground">{n.excerpt}</span>}
               </span>
               <ArrowUpRight className="text-muted-foreground" />
             </a>
           </Button>
         ))}
+        </div>
       </section>
     </div>
   );
