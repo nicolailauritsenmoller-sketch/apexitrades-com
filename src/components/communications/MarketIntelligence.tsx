@@ -8,6 +8,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { getMarketNews } from "@/lib/news.functions";
 import type { Quote } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
+import { useMarketInsights } from "@/lib/use-market-insights";
 
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "DOGEUSDT", "XRPUSDT", "SOLUSDT"];
 type Pulse = {
@@ -83,45 +84,29 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
     staleTime: 60_000,
     refetchInterval: 60_000,
   });
+  const insights = useMarketInsights("comms-market-insights");
   const headlines = (news.data ?? [])
     .filter((n) => ["crypto", "macro", "regulation"].includes(n.category))
     .slice(0, 8);
   return (
     <div className="divide-y divide-border">
-      <section className="px-5 py-4">
-        <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
-          <span>Market monitor</span>
-          <span>24h change</span>
-        </div>
-        {market.isLoading && (
-          <p className="py-4 text-xs text-muted-foreground">Loading market data...</p>
-        )}
-        {!market.isLoading && !market.list.length && (
-          <p className="py-4 text-xs text-muted-foreground">Market data temporarily unavailable.</p>
-        )}
-        {market.list.map((q) => (
-          <Link
-            key={q.symbol}
-            to="/terminal/$symbol"
-            params={{ symbol: q.symbol }}
-            className="flex min-h-12 items-center gap-3 border-b border-border/60 py-2 last:border-0 hover:bg-secondary/50"
-          >
-            <AssetIcon symbol={q.symbol} className="size-7" />
-            <span className="flex-1 text-xs font-semibold">{q.symbol.replace("USDT", "")}</span>
-            <span className="text-right font-mono text-xs">
-              {q.price.toLocaleString(undefined, { maximumFractionDigits: q.price < 1 ? 5 : 2 })}
-              <span className="ml-1 text-[10px] text-muted-foreground">USDT</span>
-              {q.stale && <span className="block text-[10px] text-muted-foreground">Delayed</span>}
-            </span>
-            <span
-              className={`w-20 text-right font-mono text-xs ${q.changePercent >= 0 ? "text-bull" : "text-bear"}`}
-            >
-              {q.changePercent >= 0 ? "+" : ""}
-              {q.changePercent.toFixed(2)}%
-            </span>
-          </Link>
-        ))}
-      </section>
+      {!!insights.data?.length && (
+        <section className="px-5 py-4">
+          <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
+            Desk intelligence
+          </h3>
+          {insights.data.map((i) => (
+            <article key={i.id} className="border-b border-border py-3 last:border-0">
+              <p className="mb-1 text-[10px] text-muted-foreground">
+                <span className="font-semibold uppercase text-foreground">{i.category}</span> · {i.source} ·{" "}
+                {new Date(i.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+              </p>
+              <p className="text-xs font-semibold">{i.title}</p>
+              <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{i.content}</p>
+            </article>
+          ))}
+        </section>
+      )}
       <section className="px-5 py-4">
         <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Movement alerts
