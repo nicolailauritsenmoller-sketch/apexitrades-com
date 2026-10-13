@@ -49,47 +49,43 @@ export function AccountMetrics({
   format: (usdt: number) => string;
 }) {
   const margin = data?.risk.margin;
-  const volume = data?.volume;
+  const exposure = data?.risk.exposure;
   const riskKey = (data?.risk.exposure.risk ?? "none") as keyof typeof RISK_LABEL;
-  const trust = data?.trust.scorePct ?? 0;
-  const target = volume?.nextTier?.thresholdUsdt ?? volume?.tier.thresholdUsdt ?? 0;
   const dash = !data;
+  const utilization = margin?.utilizationPct ?? 0;
+  const masked = (v: number) => (hidden ? "••••" : format(v));
 
   return (
-    <section className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <section className="mt-4 grid grid-cols-2 gap-3">
       <Card label="Margin Utilization">
-        <p className="num text-lg font-bold">
-          {dash ? "-" : margin?.utilizationPct != null ? `${margin.utilizationPct.toFixed(1)}%` : "0.0%"}
+        <p className="num text-lg font-bold">{dash ? "-" : `${utilization.toFixed(1)}%`}</p>
+        <Bar pct={utilization} tone={utilization >= 60 ? "bear" : "primary"} />
+        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+          {margin
+            ? `${masked(margin.usedUsdt)} committed · ${masked(margin.availableUsdt)} free`
+            : "No margin committed"}
         </p>
-        <Bar pct={margin?.utilizationPct ?? 0} tone={(margin?.utilizationPct ?? 0) >= 60 ? "bear" : "primary"} />
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {margin ? `${hidden ? "••••" : format(margin.usedUsdt)} in use` : "0.0% of equity committed"}
-        </p>
-      </Card>
-
-      <Card label="Monthly Trading Volume">
-        <p className="num truncate text-sm font-bold">
-          {dash ? "-" : hidden ? "•••• / ••••" : `${format(volume!.monthUsdt)} / ${format(target)}`}
-        </p>
-        <Bar pct={volume?.progressPct ?? 0} tone="primary" />
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {volume ? `${volume.tier.label}${volume.nextTier ? ` · next: ${volume.nextTier.label}` : " · top tier"}` : ""}
-        </p>
-      </Card>
-
-      <Card label="Trader Trust Score">
-        <p className="num text-lg font-bold">{dash ? "-" : `${Math.round(trust)}%`}</p>
-        <Bar pct={trust} tone="bull" />
-        <p className="mt-1 text-[11px] text-muted-foreground">Updates with verified milestones</p>
+        {margin && margin.scalpUsdt > 0 ? (
+          <p className="truncate text-[11px] text-muted-foreground">
+            incl. {masked(margin.scalpUsdt)} from scalp trades
+          </p>
+        ) : null}
       </Card>
 
       <Card label="Exposure Risk">
         <p className={`text-lg font-bold ${RISK_TONE[riskKey]}`}>{dash ? "-" : RISK_LABEL[riskKey]}</p>
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          {data && data.risk.exposure.leverageMax > 0
-            ? `Max leverage ${data.risk.exposure.leverageMax}x`
+        <p className="mt-2 truncate text-[11px] text-muted-foreground">
+          {exposure && exposure.notionalUsdt > 0
+            ? `${masked(exposure.notionalUsdt)} exposed${
+                exposure.leverageMax > 0 ? ` · max ${exposure.leverageMax}x` : ""
+              }`
             : "No open margin or scalp trades"}
         </p>
+        {margin ? (
+          <p className="truncate text-[11px] text-muted-foreground">
+            {margin.openPositions} open position{margin.openPositions === 1 ? "" : "s"}
+          </p>
+        ) : null}
       </Card>
     </section>
   );
