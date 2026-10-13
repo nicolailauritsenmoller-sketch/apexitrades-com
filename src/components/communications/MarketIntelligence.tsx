@@ -76,6 +76,26 @@ export function useMarketPulses() {
   return { ...market, pulses };
 }
 
+const TRUSTED = /tradingview|binance|kraken|coingecko|coinmarketcap|crypto\.com|coindesk|bloomberg|reuters/i;
+const COMMENTARY =
+  /\b(outlook|analysis|forecast|predict\w*|expect\w*|support|resistance|level|breakout|trend|technical|strategy|sentiment|psycholog\w*|risk|macro|fed|rally|correction|momentum|liquidity|weekly|outlook)\b/i;
+
+/** Ranks headlines toward trusted-source commentary: trend, levels, macro and strategy. */
+function rankCommentary<T extends { source: string; title: string; category: string; publishedAt: string }>(items: T[]): T[] {
+  return items
+    .filter((n) => ["crypto", "macro", "regulation", "defi"].includes(n.category))
+    .map((n) => ({
+      n,
+      score:
+        (TRUSTED.test(n.source) ? 2 : 0) +
+        (COMMENTARY.test(n.title) ? 2 : 0) +
+        new Date(n.publishedAt).getTime() / 864e8 / 1e6,
+    }))
+    .filter((x) => x.score >= 2)
+    .sort((a, b) => b.score - a.score || +new Date(b.n.publishedAt) - +new Date(a.n.publishedAt))
+    .map((x) => x.n);
+}
+
 export function MarketIntelligence({ market }: { market: ReturnType<typeof useMarketPulses> }) {
   const fetchNews = useServerFn(getMarketNews);
   const news = useQuery({
@@ -85,9 +105,7 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
     refetchInterval: 60_000,
   });
   const insights = useMarketInsights("comms-market-insights");
-  const headlines = (news.data ?? [])
-    .filter((n) => ["crypto", "macro", "regulation"].includes(n.category))
-    .slice(0, 8);
+  const headlines = rankCommentary(news.data ?? []).slice(0, 10);
   return (
     <div className="divide-y divide-border">
       {!!insights.data?.length && (
@@ -144,7 +162,7 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
       </section>
       <section className="px-5 py-4">
         <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
-          Macro & crypto intelligence
+          Trading commentary & outlooks
         </h3>
         {news.isPending && <p className="text-xs text-muted-foreground">Loading intelligence...</p>}
         {(news.isError || (!news.isPending && !headlines.length)) && (
