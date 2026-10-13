@@ -35,6 +35,7 @@ const TICKER_MAP: [RegExp, string][] = [
   [/\bcardano\b|\bada\b/i, "ADAUSDT"],
   [/\bdogecoin\b|\bdoge\b/i, "DOGEUSDT"],
   [/\bavalanche\b|\bavax\b/i, "AVAXUSDT"],
+  [/\bchainlink\b|\blink\b/i, "LINKUSDT"],
   [/\btether\b|\busdt\b/i, "USDTUSD"],
   [/\bgold\b|\bxau\b|bullion/i, "XAUUSD=X"],
   [/\bnvidia\b|\bnvda\b/i, "NVDA"],
@@ -107,6 +108,15 @@ const FEEDS: Feed[] = [
   { source: "The Block", url: gnews("site:theblock.co defi OR protocol"), category: "defi", region: "global", google: true },
   { source: "Decrypt", url: gnews("site:decrypt.co defi OR web3"), category: "defi", region: "global", google: true },
   { source: "Bloomberg Crypto", url: gnews("site:bloomberg.com crypto OR bitcoin"), category: "crypto", region: "global", google: true },
+
+  /* --------------- Trading commentary & exchange research ---------------- */
+  { source: "TradingView", url: gnews("site:tradingview.com bitcoin OR crypto analysis OR outlook OR levels"), category: "crypto", region: "global", google: true },
+  { source: "Binance Square", url: gnews("site:binance.com square OR research crypto market outlook"), category: "crypto", region: "global", google: true },
+  { source: "Binance", url: gnews("site:binance.com announcement OR research"), category: "crypto", region: "global", google: true },
+  { source: "Kraken", url: gnews("site:kraken.com market update OR crypto outlook"), category: "crypto", region: "us", google: true },
+  { source: "CoinGecko", url: gnews("site:coingecko.com research OR report OR analysis"), category: "crypto", region: "global", google: true },
+  { source: "CoinMarketCap", url: gnews("site:coinmarketcap.com academy OR analysis OR market"), category: "crypto", region: "global", google: true },
+  { source: "Crypto.com", url: gnews("site:crypto.com research OR market outlook"), category: "crypto", region: "global", google: true },
 
   /* ------------------------- Canadian financial news ---------------------- */
   { source: "BNN Bloomberg", url: gnews("site:bnnbloomberg.ca"), category: "stocks", region: "ca", google: true },

@@ -291,7 +291,7 @@ function currencySources(code: string): string[] {
 function instrumentIcon(inst: Instrument): IconInfo {
   switch (inst.assetClass) {
     case "crypto": {
-      const base = inst.symbol.replace(/USDT$/, "");
+      const base = inst.symbol.replace(/USDT?$/, "");
       const bundled = CRYPTO_ICON[base];
       return {
         sources: bundled ? [bundled, ...cryptoCdns(base)] : cryptoCdns(base),
