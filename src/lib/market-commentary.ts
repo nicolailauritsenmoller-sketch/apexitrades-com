@@ -27,7 +27,7 @@ export function commentaryPage(items: NewsItem[], cycle: number, pageSize = 5): 
     if (pool.length && !pool.some((item) => item.tickers.some((symbol) => COMMENTARY_SYMBOLS.includes(symbol)))) ordered.push(...pool.splice(0));
   }
   const count = Math.min(pageSize, ordered.length);
-  const start = (cycle * count) % ordered.length;
+  const start = (cycle * (count < ordered.length ? count : 1)) % ordered.length;
   return Array.from({ length: count }, (_, index) => ordered[(start + index) % ordered.length]).filter((item): item is NewsItem => Boolean(item));
 }
 
