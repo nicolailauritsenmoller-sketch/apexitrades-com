@@ -347,21 +347,6 @@ export function LiveChatDialog({
     }
   }
 
-  /* Global open event - supports an optional pre-filled message.
-     Only the uncontrolled (global) instance listens, so a controlled
-     instance mounted on the support page never double-opens. */
-  useEffect(() => {
-    if (controlledOpen !== undefined) return;
-    const handler = (e: Event) => {
-      setOpen(true);
-      const detail = (e as CustomEvent<{ message?: string; vipManager?: boolean }>).detail;
-      if (detail?.message) setDraft(detail.message);
-      if (detail?.vipManager) vipPendingRef.current = true;
-    };
-    window.addEventListener("velocity:open-chat", handler);
-    return () => window.removeEventListener("velocity:open-chat", handler);
-  }, [setOpen, controlledOpen]);
-
   /* Load every earlier session for this user as a read-only transcript. */
   const loadHistory = useCallback(async (userId: string, excludeId: string) => {
     const { data: sessions } = await supabase
@@ -390,6 +375,38 @@ export function LiveChatDialog({
       .filter((s) => s.bot.some((b) => b.role === "user") || s.msgs.length > 0);
     setHistory(past);
   }, []);
+
+  /* Resolve an explicitly selected support thread before opening the global widget.
+     Ownership is checked by the scoped query; private bot context never enters the drawer. */
+  useEffect(() => {
+    if (controlledOpen !== undefined) return;
+    let active = true;
+    const handler = async (e: Event) => {
+      const detail = (e as CustomEvent<{ message?: string; vipManager?: boolean; sessionId?: string }>).detail;
+      if (detail?.sessionId) {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user || !active) return;
+        const { data: selected } = await supabase.from("chat_sessions").select("id,bot_context,escalated_at,connected_at,status").eq("id", detail.sessionId).eq("user_id", user.user.id).maybeSingle();
+        if (!selected || !active) return;
+        setMessages([]); setAgent(null); setDraft(""); setFile(null);
+        setEnded(selected.status === "closed"); setEndedByAgent(false); setEndConfirm(false); setCsatDone(false);
+        endedByMeRef.current = false;
+        escalatingRef.current = Boolean(selected.escalated_at);
+        pendingEscalationRef.current = false;
+        setBotLog(readBotLog(selected.bot_context));
+        setMode(selected.escalated_at ? "agent" : "bot");
+        setQueuedAt(selected.escalated_at); setConnectedAt(selected.connected_at);
+        setSessionId(selected.id);
+        void loadHistory(user.user.id, selected.id);
+      }
+      if (!active) return;
+      if (detail?.message) setDraft(detail.message);
+      if (detail?.vipManager) vipPendingRef.current = true;
+      setOpen(true);
+    };
+    window.addEventListener("velocity:open-chat", handler);
+    return () => { active = false; window.removeEventListener("velocity:open-chat", handler); };
+  }, [setOpen, controlledOpen, loadHistory]);
 
   /* Opening the widget clears the unread badge and keeps past-session
      follow-ups from agents (async replies) live while it stays open. */
