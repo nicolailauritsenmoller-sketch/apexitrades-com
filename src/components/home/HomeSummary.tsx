@@ -101,10 +101,10 @@ export function WatchlistSection() {
   const { quotes } = useQuotes([...WATCH], 3000);
 
   return (
-    <section className="panel mt-4 p-4">
+    <section className="mt-6 border-y border-border py-4">
       <div className="mb-1 flex items-center justify-between">
-        <h2 className="text-sm font-bold tracking-tight">Watchlist</h2>
-        <Link to="/markets" className="text-xs font-semibold text-primary">
+        <h2 className="text-sm font-semibold">Market watchlist</h2>
+        <Link to="/markets" className="flex min-h-11 items-center text-xs font-semibold text-foreground">
           View all
         </Link>
       </div>
@@ -148,14 +148,14 @@ export function WatchlistSection() {
 
 export function TopMoversSection() {
   const { quotes } = useQuotes([...MOVERS], 4000);
-  const rows = MOVERS.map((s) => ({ symbol: s, chg: quotes[s]?.changePercent ?? 0 })).sort(
+  const rows = MOVERS.filter(s => quotes[s] && !quotes[s].stale).map((s) => ({ symbol: s, chg: quotes[s].changePercent })).sort(
     (a, b) => b.chg - a.chg,
   );
-  const gainers = rows.slice(0, 3);
-  const losers = rows.slice(-3).reverse();
+  const gainers = rows.filter(row => row.chg > 0).slice(0, 3);
+  const losers = rows.filter(row => row.chg < 0).reverse().slice(0, 3);
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-3">
+    <div className="mt-5 grid gap-5 sm:grid-cols-2">
       <MoverCard title="Top gainers" rows={gainers} tone="bull" />
       <MoverCard title="Top losers" rows={losers} tone="bear" />
     </div>
@@ -172,17 +172,18 @@ function MoverCard({
   tone: "bull" | "bear";
 }) {
   return (
-    <div className="panel p-3">
+    <div className="border-b border-border pb-4">
       <h3 className={`mb-2 text-xs font-bold ${tone === "bull" ? "text-bull" : "text-bear"}`}>
         {title}
       </h3>
+      {rows.length === 0 && <p className="py-3 text-xs text-muted-foreground">No {tone === "bull" ? "gainers" : "losers"} in monitored markets</p>}
       <ul className="space-y-2">
         {rows.map(({ symbol, chg }) => (
           <li key={symbol}>
             <Link
               to="/terminal/$symbol"
               params={{ symbol }}
-              className="flex touch-manipulation items-center gap-2"
+              className="flex min-h-11 touch-manipulation items-center gap-2"
             >
               <AssetIcon symbol={symbol} size={18} />
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium">
