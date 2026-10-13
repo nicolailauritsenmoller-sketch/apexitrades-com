@@ -23,6 +23,7 @@ export async function refreshSupportUnread() {
     .from("chat_messages")
     .select("id, delivered_at")
     .in("session_id", ids)
+    .eq("is_internal", false)
     .neq("sender_role", "user")
     .is("read_at", null);
   const undelivered = (rows ?? []).filter((r) => !r.delivered_at).map((r) => r.id);
@@ -47,6 +48,7 @@ export async function markAllSupportRead() {
     .from("chat_messages")
     .update({ read_at: now, delivered_at: now })
     .in("session_id", ids)
+    .eq("is_internal", false)
     .neq("sender_role", "user")
     .is("read_at", null);
   publish(0);
