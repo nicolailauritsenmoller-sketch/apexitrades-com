@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AccountMetrics, useAccountOverview } from "@/components/home/AccountMetrics";
+import { useAccountOverview } from "@/components/home/AccountMetrics";
+import { ActiveTradingPositions, TradingRiskOverview } from "@/components/home/TradingOverview";
 import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowDownToLine, ChevronDown } from "lucide-react";
+import { ArrowDownToLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
 import { useT } from "@/lib/i18n";
@@ -16,11 +18,6 @@ import {
   WatchlistSection,
   TopMoversSection,
 } from "@/components/home/HomeSummary";
-import {
-  ExploreTokensSection,
-  DiscoverPerpsSection,
-  MarketNewsSection,
-} from "@/components/home/DiscoverSections";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -29,12 +26,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       {
         name: "description",
         content:
-          "Your total balance, watchlist, and top market movers in one mobile-first trading home screen.",
+          "Monitor account valuation, committed margin, leveraged exposure and open trading positions.",
       },
       { property: "og:title", content: "Home - Velocity Trade" },
       {
         property: "og:description",
-        content: "Balance, watchlist, and movers at a glance.",
+        content: "Account valuation, margin risk and open margin and scalp positions at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -64,30 +61,27 @@ function Home() {
   const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
 
   const { hidden, toggle } = useBalancePrivacy();
-  const { currency, convert, format } = useDisplayCurrency();
+  const { currency, format } = useDisplayCurrency();
   const total = value.data?.totalUsdt ?? 0;
   const baseline = total - todayPnl;
-  const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
+  const pct = baseline > 0 ? (todayPnl / baseline) * 100 : null;
 
   const pnlSign = todayPnl >= 0 ? "+" : "-";
-  const pctSign = pct >= 0 ? "+" : "";
-  const convertedPnl = Math.abs(convert(todayPnl));
-  const pnlDecimals = convertedPnl > 0 && convertedPnl < 0.01 ? 8 : undefined;
+  const pctText = pct == null ? "N/A" : `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
 
   return (
     <AppShell>
-      {/* Balance hero */}
-      <section className="panel p-5">
-        <div className="flex items-center justify-between gap-4">
+      <h1 className="mb-5 text-xl font-semibold">Trading overview</h1>
+      <section aria-label="Account valuation" className="border-t border-border pt-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span>Est. Total Value ({currency})</span>
-              <ChevronDown className="size-3.5" />
+              <span>Estimated account value ({currency})</span>
               <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
             </div>
 
-            <div className="num mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-              {value.isLoading ? (
+            <div className="num mt-2 break-words text-2xl font-semibold sm:text-3xl">
+              {!value.data ? (
                 "-"
               ) : hidden ? (
                 "••••••"
@@ -97,38 +91,35 @@ function Home() {
             </div>
 
             <div className="mt-2 flex items-center gap-1 text-xs font-medium text-muted-foreground">
-              <span>{t("dashboard.todaysPnl")}</span>
-              <ChevronDown className="size-3" />
+              <span>{t("dashboard.todaysPnl")} (UTC)</span>
             </div>
             <div
               className={`num text-sm font-semibold ${todayPnl >= 0 ? "text-bull" : "text-bear"}`}
             >
-              {hidden
+              {!value.data ? "-" : hidden
                 ? "••••"
-                : `${pnlSign}${format(Math.abs(todayPnl), { decimals: pnlDecimals })} (${pctSign}${pct.toFixed(2)}%)`}
+                : `${pnlSign}${format(Math.abs(todayPnl))} (${pctText})`}
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
             onClick={() => setDepositOpen(true)}
-            className="flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
-            style={{ boxShadow: "var(--glow-primary)" }}
+            variant="outline"
+            className="min-h-11 touch-manipulation"
           >
             <ArrowDownToLine className="size-4" strokeWidth={2.6} />
             {t("dashboard.addFunds")}
-          </button>
+          </Button>
         </div>
       </section>
 
-      <AccountMetrics data={overview.data} hidden={hidden} format={(v) => format(v)} />
+      <TradingRiskOverview data={overview.data} failed={overview.isError} hidden={hidden} format={format} />
+      <ActiveTradingPositions hidden={hidden} />
 
       <WatchlistSection />
       <TopMoversSection />
 
-      <ExploreTokensSection />
-      <DiscoverPerpsSection />
-      <MarketNewsSection />
       <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     </AppShell>
   );
