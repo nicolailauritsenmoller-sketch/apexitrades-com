@@ -39,6 +39,17 @@ const crypto = (base: string, name: string, precision = 4, step = 1): Instrument
   step,
 });
 
+/** Native US-dollar crypto pair (BTCUSD), priced from US-dollar order books. */
+const cryptoUsd = (base: string, name: string, precision = 4, step = 1): Instrument => ({
+  symbol: `${base}USD`,
+  name: `${name} / US Dollar`,
+  assetClass: "crypto",
+  currency: "USD",
+  source: "binance",
+  precision,
+  step,
+});
+
 const stock = (symbol: string, name: string): Instrument => ({
   symbol,
   name,
@@ -134,6 +145,10 @@ const CRYPTO: Instrument[] = [
   crypto("ADA", "Cardano", 4, 1),
   crypto("AVAX", "Avalanche", 3, 0.1),
   crypto("LINK", "Chainlink", 3, 0.1),
+  cryptoUsd("BTC", "Bitcoin", 2, 0.001),
+  cryptoUsd("ETH", "Ethereum", 2, 0.01),
+  cryptoUsd("SOL", "Solana", 3, 0.1),
+  cryptoUsd("XRP", "XRP", 4, 1),
   crypto("TON", "Toncoin", 4, 1),
   crypto("SUI", "Sui", 4, 1),
   crypto("NEAR", "NEAR Protocol", 4, 1),
@@ -517,7 +532,10 @@ export function displaySymbol(symbol: string): string {
   if (DISPLAY_ALIAS[symbol]) return DISPLAY_ALIAS[symbol];
   const inst = INSTRUMENT_MAP[symbol];
   if (!inst) return symbol;
-  if (inst.assetClass === "crypto") return `${symbol.replace(/USDT$/, "")}/USDT`;
+  if (inst.assetClass === "crypto") {
+    if (inst.currency === "USD") return `${symbol.replace(/USD$/, "")}/USD`;
+    return `${symbol.replace(/USDT$/, "")}/USDT`;
+  }
   if (inst.assetClass === "forex" || symbol.endsWith("=X")) {
     const base = symbol.replace("=X", "");
     return `${base.slice(0, 3)}/${base.slice(3)}`;

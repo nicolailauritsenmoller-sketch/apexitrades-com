@@ -49,7 +49,7 @@ const METALS = new Set(["XAU", "XAG", "XPT", "XPD", "GOLD", "SILVER"]);
 /** Crypto base codes (BTC, ETH, …) derived from the live catalog. */
 const CRYPTO_BASES = new Set(
   INSTRUMENTS.filter((i) => i.assetClass === "crypto").map((i) =>
-    i.symbol.replace(/USDT$/, ""),
+    i.symbol.replace(/USDT?$/, ""),
   ),
 );
 

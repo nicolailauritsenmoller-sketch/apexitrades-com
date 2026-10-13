@@ -203,7 +203,7 @@ function aggregateCandles(candles: Candle[], aggCount: number): Candle[] {
 
 /** Coinbase Exchange product id for a Binance-style pair (BTCUSDT -> BTC-USD). */
 function coinbaseProduct(symbol: string): string {
-  return `${symbol.replace(/USDT$/, "")}-USD`;
+  return `${symbol.replace(/USDT?$/, "")}-USD`;
 }
 
 /**
@@ -347,7 +347,7 @@ const VOLATILITY: Record<string, number> = {
  * instrument (synthetic/derived listings such as options proxies).
  */
 function syntheticQuote(inst: Instrument): Quote {
-  const anchor = ANCHOR_PRICE[inst.symbol] ?? 100;
+  const anchor = ANCHOR_PRICE[inst.symbol] ?? ANCHOR_PRICE[`${inst.symbol}T`] ?? 100;
   const vol = VOLATILITY[inst.assetClass] ?? 0.0012;
   const bucket = Math.floor(Date.now() / 60000);
   const rand = seeded(
@@ -421,6 +421,8 @@ function syntheticCandles(symbol: string, timeframe: Timeframe, anchor: number):
 }
 
 async function binanceQuotes(instruments: Instrument[]): Promise<Quote[]> {
+  // Native USD pairs are not listed on Binance; they resolve via Coinbase USD books.
+  instruments = instruments.filter((i) => i.symbol.endsWith("USDT"));
   if (instruments.length === 0) return [];
   const list = encodeURIComponent(JSON.stringify(instruments.map((i) => i.symbol)));
   return firstOk(
@@ -512,6 +514,7 @@ export async function fetchPrice(symbol: string): Promise<number> {
 }
 
 async function binanceCandles(symbol: string, timeframe: Timeframe): Promise<Candle[]> {
+  if (!symbol.endsWith("USDT")) throw new Error("Not a Binance pair");
   return firstOk(
     BINANCE_HOSTS.map(
       (h) =>
@@ -597,6 +600,6 @@ export async function fetchCandles(
   }
 
   const [quote] = await fetchQuotes([symbol]).catch(() => []);
-  const anchor = quote?.price || ANCHOR_PRICE[symbol] || 100;
+  const anchor = quote?.price || ANCHOR_PRICE[symbol] || ANCHOR_PRICE[`${symbol}T`] || 100;
   return syntheticCandles(symbol, timeframe, anchor);
 }
