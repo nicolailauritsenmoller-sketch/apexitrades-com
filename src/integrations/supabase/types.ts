@@ -951,6 +951,39 @@ export type Database = {
         }
         Relationships: []
       }
+      market_insights: {
+        Row: {
+          active: boolean
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          source: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          source: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          source?: string
+          title?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
