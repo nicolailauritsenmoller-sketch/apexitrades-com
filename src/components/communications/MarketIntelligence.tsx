@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -109,7 +109,7 @@ export function useMarketPulses() {
     }
     if (next.length) setPulses((rows) => [...next, ...rows].slice(0, 40));
   }, [market.list]);
-  return { ...market, pulses };
+  return { ...market, pulses, seen, markSeen };
 }
 
 export function MarketIntelligence({ market }: { market: ReturnType<typeof useMarketPulses> }) {
