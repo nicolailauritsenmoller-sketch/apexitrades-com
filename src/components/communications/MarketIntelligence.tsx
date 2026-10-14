@@ -156,6 +156,7 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
         <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Movement alerts
         </h3>
+        <BtcMovementCard quote={market.list.find((q) => q.symbol === "BTCUSDT")} />
         {!market.pulses.length && (
           <p className="text-xs text-muted-foreground">No qualifying movement alerts.</p>
         )}
@@ -237,5 +238,58 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
         </div>
       </section>
     </div>
+  );
+}
+
+/** Always-on BTC card: live 24h change, range and position within the range. */
+function BtcMovementCard({ quote: q }: { quote?: Quote }) {
+  if (!q || q.stale || !(q.price > 0)) {
+    return (
+      <div className="mb-3 rounded-md border border-border p-3 text-xs text-muted-foreground">
+        BTC live data unavailable right now.
+      </div>
+    );
+  }
+  const range = q.low > 0 ? (q.high / q.low - 1) * 100 : 0;
+  const pos = q.high > q.low ? ((q.price - q.low) / (q.high - q.low)) * 100 : 50;
+  const state =
+    q.changePercent >= 3
+      ? "Price surge"
+      : q.changePercent <= -3
+        ? "Sharp price decline"
+        : pos >= 98
+          ? "Testing 24h high"
+          : pos <= 2
+            ? "Testing 24h low"
+            : range >= 5
+              ? "Elevated volatility"
+              : "Range-bound";
+  const tone = q.changePercent > 0 ? "text-bull" : q.changePercent < 0 ? "text-bear" : "text-muted-foreground";
+  const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return (
+    <Link
+      to="/terminal/$symbol"
+      params={{ symbol: "BTCUSDT" }}
+      className="mb-3 block touch-manipulation rounded-md border border-border p-3 hover:bg-secondary/50"
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="flex items-center gap-2 text-xs font-semibold">
+          <AssetIcon symbol="BTCUSDT" className="size-4" /> BTC · {state}
+        </span>
+        <span className={`font-mono text-xs font-semibold ${tone}`}>
+          {q.changePercent > 0 ? "+" : ""}
+          {q.changePercent.toFixed(2)}%
+        </span>
+      </div>
+      <p className="font-mono text-sm font-semibold">{fmt(q.price)} USDT</p>
+      <div className="mt-2 h-1 rounded-full bg-secondary">
+        <div className="h-1 rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, pos))}%` }} />
+      </div>
+      <p className="mt-1 flex justify-between font-mono text-[10px] text-muted-foreground">
+        <span>L {fmt(q.low)}</span>
+        <span>24h range {range.toFixed(2)}%</span>
+        <span>H {fmt(q.high)}</span>
+      </p>
+    </Link>
   );
 }
