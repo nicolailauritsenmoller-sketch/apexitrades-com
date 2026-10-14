@@ -414,7 +414,7 @@ function classify(text: string, fallback: NewsCategory): NewsCategory {
 function parseRss(xml: string, feed: Feed): NewsItem[] {
   const items: NewsItem[] = [];
   const blocks = xml.split(/<item[\s>]/).slice(1);
-  for (const block of blocks.slice(0, 12)) {
+  for (const block of blocks.slice(0, 20)) {
     const title = block.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1];
     const link = block.match(/<link[^>]*>([\s\S]*?)<\/link>/)?.[1];
     const date =
