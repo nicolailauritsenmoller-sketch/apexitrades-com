@@ -274,7 +274,7 @@ function BtcMovementCard({ quote: q }: { quote?: Quote }) {
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-xs font-semibold">
-          <AssetIcon symbol="BTCUSDT" className="size-4" /> BTC · {state}
+          <AssetIcon symbol="BTCUSDT" size={16} /> BTC · {state}
         </span>
         <span className={`font-mono text-xs font-semibold ${tone}`}>
           {q.changePercent > 0 ? "+" : ""}
