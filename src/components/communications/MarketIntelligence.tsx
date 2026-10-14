@@ -26,11 +26,41 @@ type Pulse = {
   at: string;
 };
 
+// Module-level store: survives AppShell remounts on page navigation so
+// already-detected/seen pulses are not re-created as new unread alerts.
+const pulseStore = {
+  previous: {} as Record<string, Quote>,
+  signatures: {} as Record<string, string>,
+  pulses: [] as Pulse[],
+  seen: new Set<string>(),
+};
+const SEEN_KEY = "velocity:seen-pulses";
+if (typeof window !== "undefined") {
+  try {
+    for (const id of JSON.parse(sessionStorage.getItem(SEEN_KEY) ?? "[]")) pulseStore.seen.add(id);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function useMarketPulses() {
   const market = useQuotes(SYMBOLS, 5000);
-  const previous = useRef<Record<string, Quote>>({});
-  const signatures = useRef<Record<string, string>>({});
-  const [pulses, setPulses] = useState<Pulse[]>([]);
+  const previous = useRef(pulseStore.previous);
+  const signatures = useRef(pulseStore.signatures);
+  const [pulses, setPulsesState] = useState<Pulse[]>(pulseStore.pulses);
+  const [seen, setSeen] = useState<Set<string>>(pulseStore.seen);
+  const setPulses = (fn: (rows: Pulse[]) => Pulse[]) =>
+    setPulsesState((rows) => (pulseStore.pulses = fn(rows)));
+  const markSeen = useCallback((ids: string[]) => {
+    if (ids.every((id) => pulseStore.seen.has(id))) return;
+    ids.forEach((id) => pulseStore.seen.add(id));
+    try {
+      sessionStorage.setItem(SEEN_KEY, JSON.stringify([...pulseStore.seen].slice(-200)));
+    } catch {
+      /* ignore */
+    }
+    setSeen(new Set(pulseStore.seen));
+  }, []);
   useEffect(() => {
     const next: Pulse[] = [];
     for (const q of market.list) {

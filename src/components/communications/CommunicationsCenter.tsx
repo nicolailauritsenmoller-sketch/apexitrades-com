@@ -44,15 +44,14 @@ export function CommunicationsCenter() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [actionError, setActionError] = useState(false);
   const [marking, setMarking] = useState(false);
-  const [seenPulses, setSeenPulses] = useState<string[]>([]);
   const hasSession = useHasSession();
   const unreadChat = useSupportUnread();
   const client = useQueryClient();
   const market = useMarketPulses();
-  const unreadAnalytics = market.pulses.filter((p) => !seenPulses.includes(p.id)).length;
+  const unreadAnalytics = market.pulses.filter((p) => !market.seen.has(p.id)).length;
   useEffect(() => {
-    if (open && tab === "analytics") setSeenPulses(market.pulses.map((p) => p.id));
-  }, [open, tab, market.pulses]);
+    if (open && tab === "analytics") market.markSeen(market.pulses.map((p) => p.id));
+  }, [open, tab, market.pulses, market.markSeen]);
 
   const identity = useQuery({
     queryKey: ["communications-identity"],
