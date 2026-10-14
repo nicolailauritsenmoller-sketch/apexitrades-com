@@ -7,7 +7,28 @@ const COMMENTARY =
 const TRUSTED_DOMAIN =
   /^(?:[a-z0-9-]+\.)*(tradingview\.com|binance\.com|kraken\.com|coingecko\.com|coinmarketcap\.com|crypto\.com|coindesk\.com|bloomberg\.com|reuters\.com)$/i;
 
+export const COMMENTARY_MIN_ITEMS = 12;
+
+/** Core-asset expert commentary first, topped up with other sourced trading commentary so the feed stays at 10+ items. */
 export function rankExpertCommentary(items: NewsItem[]): NewsItem[] {
+  const core = rankCore(items);
+  if (core.length >= COMMENTARY_MIN_ITEMS) return core;
+  const ids = new Set(core.map((i) => i.id));
+  const tier = (pred: (i: NewsItem) => boolean) =>
+    items
+      .filter((i) => !ids.has(i.id) && pred(i))
+      .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
+      .map((i) => (ids.add(i.id), i));
+  const text = (i: NewsItem) => `${i.title} ${i.excerpt}`;
+  return [
+    ...core,
+    ...tier((i) => TRUSTED_DOMAIN.test(i.domain) && COMMENTARY.test(text(i))),
+    ...tier((i) => COMMENTARY.test(text(i))),
+    ...tier((i) => TRUSTED_DOMAIN.test(i.domain)),
+  ];
+}
+
+function rankCore(items: NewsItem[]): NewsItem[] {
   return items
     .filter(
       (item) =>
@@ -27,7 +48,7 @@ export function rankExpertCommentary(items: NewsItem[]): NewsItem[] {
 }
 
 /** Balance available assets before cycling through the remaining ranked articles. */
-export function commentaryPage(items: NewsItem[], cycle: number, pageSize = 5): NewsItem[] {
+export function commentaryPage(items: NewsItem[], cycle: number, pageSize = COMMENTARY_MIN_ITEMS): NewsItem[] {
   if (!items.length) return [];
   const pool = [...items];
   const ordered: NewsItem[] = [];
