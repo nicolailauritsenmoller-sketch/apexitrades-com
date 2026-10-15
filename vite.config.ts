@@ -36,6 +36,16 @@ export default defineConfig({
         "entities/lib/encode.js": path.resolve(process.cwd(), "node_modules/entities/lib/encode.js"),
         entities: path.resolve(process.cwd(), "node_modules/entities"),
       },
+      // One copy of the router and of React, however deep the import chain.
+      dedupe: ["@tanstack/react-router", "@tanstack/router-core"],
+    },
+    optimizeDeps: {
+      // The router must be pre-bundled in the same optimizer pass as React. Served as
+      // raw source instead, it re-imports "react" at whatever hash the newest pass used,
+      // so a tab opened before a mid-session re-optimization ends up with two React
+      // copies and a null hook dispatcher: "Cannot read properties of null (reading
+      // 'use')" thrown from the router's useAwaited/AwaitInner.
+      include: ["@tanstack/react-router", "@tanstack/router-core"],
     },
   },
 });
