@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
@@ -28,6 +28,14 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MarketIntelligence, useMarketPulses } from "./MarketIntelligence";
+import {
+  AlertSettingsDialog,
+  categoryOf,
+  deliverAlert,
+  useAlertPrefs,
+  usePriceAlerts,
+  useRiskWatcher,
+} from "./comms-alerts";
 
 function stamp(at: string) {
   return new Date(at).toLocaleString([], {
@@ -48,6 +56,11 @@ export function CommunicationsCenter() {
   const unreadChat = useSupportUnread();
   const client = useQueryClient();
   const market = useMarketPulses();
+  const prefs = useAlertPrefs();
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
+  const priceAlerts = usePriceAlerts(hasSession === true);
+  useRiskWatcher(hasSession === true);
   const unreadAnalytics = market.pulses.filter((p) => !market.seen.has(p.id)).length;
   useEffect(() => {
     if (open && tab === "analytics") market.markSeen(market.pulses.map((p) => p.id));
@@ -148,7 +161,8 @@ export function CommunicationsCenter() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
-        () => {
+        (payload) => {
+          if (payload.eventType === "INSERT") deliverAlert(prefsRef.current, payload.new as any);
           void client.invalidateQueries({ queryKey: ["communications-notifications", uid] });
           void client.invalidateQueries({ queryKey: ["communications-unread", uid] });
         },
@@ -229,7 +243,10 @@ export function CommunicationsCenter() {
           <SheetDescription className="text-[10px] uppercase tracking-widest">
             Velocity Trade
           </SheetDescription>
-          <SheetTitle className="pr-6 font-display text-lg">Communications Center</SheetTitle>
+          <div className="flex items-center justify-between gap-2 pr-6">
+            <SheetTitle className="font-display text-lg">Communications Center</SheetTitle>
+            <AlertSettingsDialog />
+          </div>
           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <ShieldCheck className="size-3 text-bull" />
             Account & market communications
@@ -315,7 +332,9 @@ export function CommunicationsCenter() {
             {!notifications.isPending && !notifications.isError && !notifications.data?.length && (
               <Empty title="No account alerts" />
             )}
-            {(notifications.data ?? []).map((n) => (
+            {(notifications.data ?? [])
+              .filter((n) => prefs.enabled(categoryOf(n.kind), "inApp"))
+              .map((n) => (
               <Button
                 key={n.id}
                 variant="ghost"
@@ -408,7 +427,7 @@ export function CommunicationsCenter() {
             ))}
           </TabsContent>
           <TabsContent value="analytics" className={contentClass}>
-            <MarketIntelligence market={market} />
+            <MarketIntelligence market={market} priceAlerts={priceAlerts} />
           </TabsContent>
         </Tabs>
         <footer className="shrink-0 border-t border-border px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-[10px] text-muted-foreground">
