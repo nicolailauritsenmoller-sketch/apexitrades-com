@@ -253,6 +253,13 @@
       "when": 1791857776734,
       "tag": "0035_market_insights",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792110193367,
+      "tag": "0036_execution_risk_alerts",
+      "breakpoints": true
     }
   ]
 }

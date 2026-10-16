@@ -14,6 +14,7 @@ import {
 import type { Quote } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
 import { useMarketInsights } from "@/lib/use-market-insights";
+import { PriceAlertManager, type usePriceAlerts } from "./comms-alerts";
 
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "DOGEUSDT", "XRPUSDT", "SOLUSDT"];
 type Pulse = {
@@ -111,7 +112,13 @@ export function useMarketPulses() {
   return { ...market, pulses, seen, markSeen };
 }
 
-export function MarketIntelligence({ market }: { market: ReturnType<typeof useMarketPulses> }) {
+export function MarketIntelligence({
+  market,
+  priceAlerts,
+}: {
+  market: ReturnType<typeof useMarketPulses>;
+  priceAlerts?: ReturnType<typeof usePriceAlerts>;
+}) {
   const fetchNews = useServerFn(getExpertCommentary);
   const [cycle, setCycle] = useState(0);
   useEffect(() => {
@@ -128,6 +135,7 @@ export function MarketIntelligence({ market }: { market: ReturnType<typeof useMa
   const headlines = commentaryPage(rankExpertCommentary(news.data ?? []), cycle);
   return (
     <div className="divide-y divide-border">
+      {priceAlerts && <PriceAlertManager manager={priceAlerts} />}
       {!!insights.data?.length && (
         <section className="px-5 py-4">
           <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
