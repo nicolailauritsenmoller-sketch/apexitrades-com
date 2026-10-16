@@ -2288,6 +2288,10 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       purge_old_session_replays: { Args: never; Returns: number }
+      record_self_alert: {
+        Args: { p_body: string; p_kind: string; p_title: string }
+        Returns: boolean
+      }
       review_withdrawal_atomic: {
         Args: {
           p_id: string
