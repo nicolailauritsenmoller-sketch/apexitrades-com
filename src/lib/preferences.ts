@@ -38,6 +38,8 @@ export type Preferences = {
   lastSymbol?: string;
   orderLeverage?: number;
   dismissedOnboarding?: string[];
+  commsMatrix?: Record<string, boolean>;
+  priceAlerts?: { id: string; symbol: string; direction: "above" | "below"; price: number }[];
 };
 
 const KEY = "velocity.prefs";
