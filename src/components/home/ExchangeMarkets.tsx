@@ -1,0 +1,68 @@
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Flame, Search, Star, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AssetIcon } from "@/lib/asset-icons";
+import { INSTRUMENTS, formatPrice } from "@/lib/instruments";
+import { useQuotes } from "@/hooks/useMarket";
+import { getWatchlist, toggleWatchlist } from "@/lib/trading.functions";
+import { HOME_MARKET_TABS, homeMarketRows, type HomeMarketTab, type HomeMarketClass } from "@/lib/home-markets";
+
+const CATALOG = INSTRUMENTS.filter(i => i.assetClass !== "crypto" || i.symbol.endsWith("USDT"));
+
+export function ExchangeMarkets() {
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<HomeMarketTab>("Hot");
+  const [category, setCategory] = useState<HomeMarketClass>("Crypto");
+  const [limit, setLimit] = useState(12);
+  const fetchWatchlist = useServerFn(getWatchlist);
+  const toggle = useServerFn(toggleWatchlist);
+  const qc = useQueryClient();
+  const watchlist = useQuery({ queryKey: ["watchlist"], queryFn: () => fetchWatchlist() });
+  const favorite = useMutation({ mutationFn: (symbol: string) => toggle({ data: { symbol } }), onSuccess: () => qc.invalidateQueries({ queryKey: ["watchlist"] }) });
+  const { quotes, isLoading } = useQuotes(CATALOG.filter(i => category === "Crypto" ? i.assetClass === "crypto" : category === "Stocks" ? i.assetClass === "stock" : ["future", "energy", "agriculture", "rate"].includes(i.assetClass)).map(i => i.symbol), 5000);
+  const rows = homeMarketRows(CATALOG, quotes, watchlist.data ?? [], tab, category, search);
+  const trending = CATALOG.filter(i => i.assetClass === "crypto" && quotes[i.symbol] && !quotes[i.symbol].stale && quotes[i.symbol].changePercent > 0).sort((a, b) => quotes[b.symbol].changePercent - quotes[a.symbol].changePercent)[0];
+
+  return <>
+    <div className="exchange-search flex min-h-11 items-center gap-2 rounded-lg bg-surface-raised px-3">
+      <Search className="size-4 shrink-0 text-muted-foreground" />
+      <input aria-label="Search homepage markets" value={search} onChange={e => { setSearch(e.target.value); setLimit(12); }} placeholder={trending ? `Search markets · ${trending.symbol.replace("USDT", "")} top gainer` : "Search coins, futures and stocks"} className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground" />
+      {search && <Button variant="ghost" size="icon" aria-label="Clear market search" onClick={() => setSearch("")}><X /></Button>}
+    </div>
+    {trending && !search && <Button variant="ghost" size="sm" className="exchange-trending w-fit text-xs text-muted-foreground" onClick={() => { setSearch(trending.symbol); setCategory("Crypto"); setTab("Hot"); }}><Flame className="text-warning" />{trending.symbol.replace("USDT", "")} top gainer <span className="text-bull">+{quotes[trending.symbol].changePercent.toFixed(2)}%</span></Button>}
+
+    <section className="exchange-market-list min-w-0" aria-label="Market overview">
+      <div role="tablist" aria-label="Market categories" className="exchange-tabs flex gap-1 overflow-x-auto">
+        {HOME_MARKET_TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 px-2.5 text-sm ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => { setTab(item); setLimit(12); if (item === "TradFi" && category === "Crypto") setCategory("Futures"); }}>{item}</Button>)}
+      </div>
+      <div role="tablist" aria-label="Asset types" className="flex gap-4 px-2 pt-1">
+        {(["Crypto", "Futures", "Stocks"] as const).map(item => <Button key={item} role="tab" aria-selected={category === item} variant="ghost" className={`h-10 px-0 text-xs ${category === item ? "text-foreground" : "text-muted-foreground"}`} onClick={() => { setCategory(item); setLimit(12); }}>{item}</Button>)}
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_100px_88px] gap-2 px-2 pb-2 pt-2 text-[11px] text-muted-foreground sm:grid-cols-[minmax(0,1fr)_180px_120px]"><span>Name</span><span className="text-right">Last Price</span><span className="text-right">24h chg%</span></div>
+      <div role="tabpanel" aria-label={`${tab} ${category} markets`}>
+        {isLoading && rows.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Loading markets...</p>}
+        {!isLoading && rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">{tab === "Alpha" ? "No Alpha listings available." : tab === "New" ? "No newly announced listings." : tab === "Favorites" ? "No favorites in this category." : tab === "Gainers" ? "No live gainers in this category." : "No matching assets."}</p>}
+        {rows.slice(0, limit).map(asset => {
+          const quote = quotes[asset.symbol];
+          const live = quote && !quote.stale;
+          const up = (quote?.changePercent ?? 0) >= 0;
+          const ticker = asset.symbol.replace(/USDT$/, "");
+          const starred = watchlist.data?.includes(asset.symbol) ?? false;
+          return <div key={asset.symbol} className="grid grid-cols-[minmax(0,1fr)_100px_88px] items-center gap-2 px-2 py-3 sm:grid-cols-[minmax(0,1fr)_180px_120px]">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <AssetIcon symbol={asset.symbol} size={30} />
+              <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{ticker}</span><span className="block truncate text-[10px] text-muted-foreground">{asset.name}</span></Link>
+              <Button variant="ghost" size="icon" aria-label={`${starred ? "Remove" : "Add"} ${ticker} ${starred ? "from" : "to"} favorites`} aria-pressed={starred} disabled={favorite.isPending} className="hidden size-8 text-muted-foreground sm:inline-flex" onClick={() => favorite.mutate(asset.symbol)}><Star className={starred ? "fill-current text-warning" : ""} /></Button>
+            </div>
+            <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className="text-right"><span className="block font-mono text-sm font-medium tabular-nums">{live ? formatPrice(quote.price, asset.symbol) : "-"}</span><span className="block text-[10px] text-muted-foreground">{asset.currency}</span></Link>
+            <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className={`flex min-h-9 items-center justify-center rounded-md text-xs font-semibold tabular-nums ${live ? up ? "bg-bull text-bull-foreground" : "bg-bear text-bear-foreground" : "bg-surface-raised text-muted-foreground"}`}>{live ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "-"}</Link>
+          </div>;
+        })}
+      </div>
+      {rows.length > limit && <Button variant="ghost" className="mt-2 w-full text-muted-foreground" onClick={() => setLimit(value => value + 12)}>Show more</Button>}
+    </section>
+  </>;
+}

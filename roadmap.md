@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Match the trader homepage to the exchange reference: header, search, balance, dismissible promotion, funding/sparkline widgets and live filtered markets; verify desktop and mobile.
+
 - [x] Keep the router and React in one pre-bundled module pass so an open tab can't load two React copies and blank the screen; all trader screens verified error-free in a fresh signed-in browser.
 - [x] Rotate Analytics commentary every two minutes and prioritize sourced BTC, ETH, XRP, SOL and BNB forecasts; verified real signed-in articles change order, with admin intelligence pinned.
 
