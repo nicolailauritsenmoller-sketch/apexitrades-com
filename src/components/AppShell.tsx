@@ -9,6 +9,7 @@ import {
   Home,
   Wallet,
   ShieldCheck,
+  Files,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,7 +87,7 @@ function resolvePageTitle(pathname: string): string {
   return tail.charAt(0).toUpperCase() + tail.slice(1);
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, exchangeHome = false }: { children: ReactNode; exchangeHome?: boolean }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   usePresenceHeartbeat();
@@ -156,7 +157,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AnnouncementBanner />
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
-          <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
+          {exchangeHome && <Link to="/profile" aria-label="Profile" className="touch-manipulation md:hidden"><UserAvatar className="size-8" alt="Your profile avatar" /></Link>}
+          <Link to="/dashboard" className={`${exchangeHome ? "hidden md:flex" : "flex"} min-w-0 items-center gap-2`}>
             <BrandMark className="size-9" alt="Velocity Trade logo" />
             <span className="truncate text-sm font-semibold tracking-tight text-foreground">
               {resolvePageTitle(pathname)}
@@ -208,7 +210,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               {t("nav.liveAccount")}
             </span>
-            <Link to="/profile" aria-label="Profile" className="touch-manipulation">
+            <Link to="/profile" aria-label="Profile" className={`${exchangeHome ? "hidden md:block" : ""} touch-manipulation`}>
               <UserAvatar className="size-8" alt="Your profile avatar" />
             </Link>
           </div>
@@ -221,9 +223,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
       {/* Mobile taskbar */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         <ul className="mx-auto grid max-w-lg grid-cols-5 items-end">
-          {MOBILE_NAV.map(({ to, params, label, icon: Icon, exact, center }) =>
+          {exchangeHome ? <>
+            <li><Link to="/dashboard" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-foreground"><Home className="size-5" />{t("nav.home")}</Link></li>
+            <li><Link to="/markets" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><LineChart className="size-5" />{t("nav.markets")}</Link></li>
+            <li><Link to="/terminal/$symbol" params={{ symbol: "BTCUSDT" }} className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Compass className="size-5" />{t("nav.trade")}</Link></li>
+            <li><Link to="/terminal/$symbol" params={{ symbol: "ES=F" }} className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Files className="size-5" />Futures</Link></li>
+            <li><Link to="/assets" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Wallet className="size-5" />{t("nav.assets")}</Link></li>
+          </> : MOBILE_NAV.map(({ to, params, label, icon: Icon, exact, center }) =>
             center ? (
               <li key={to} className="relative flex justify-center pb-1">
                 <Link

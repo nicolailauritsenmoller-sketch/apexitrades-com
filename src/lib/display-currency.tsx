@@ -37,8 +37,9 @@ export function formatDisplayAmount(amount: number, code: string, opts?: { decim
  * Display-currency engine: reads the saved preference (localStorage + account
  * profile) and converts USDT-denominated values with live market rates.
  */
-export function useDisplayCurrency() {
-  const [currency, setCurrency] = usePreference("displayCurrency", DEFAULT_DISPLAY_CURRENCY);
+export function useDisplayCurrency(displayOverride?: string) {
+  const [savedCurrency, setCurrency] = usePreference("displayCurrency", DEFAULT_DISPLAY_CURRENCY);
+  const currency = displayOverride ?? savedCurrency;
   const fetchRates = useServerFn(getDisplayRates);
 
   const rates = useQuery({
