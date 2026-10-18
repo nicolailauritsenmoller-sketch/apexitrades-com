@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { homeMarketRows, sparklinePoints } from "./home-markets";
 import type { Instrument } from "./instruments";
 import type { Quote } from "./market-types";
