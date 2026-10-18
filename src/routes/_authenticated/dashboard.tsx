@@ -14,6 +14,8 @@ import { useDailyPnl } from "@/hooks/useDailyPnl";
 import { useDisplayCurrency } from "@/lib/display-currency";
 import { ExchangeMarkets } from "@/components/home/ExchangeMarkets";
 import { ExchangeWidgets } from "@/components/home/ExchangeWidgets";
+import { ExchangeSearch } from "@/components/home/ExchangeSearch";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -46,6 +48,7 @@ function Home() {
   const t = useT();
   useWalletRealtime("dashboard-wallet-live");
   const [depositOpen, setDepositOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const fetchValue = useServerFn(getPortfolioValue);
   const value = useQuery({
     queryKey: ["portfolio-value"],
@@ -56,7 +59,7 @@ function Home() {
   const { pnl: todayPnl } = useDailyPnl(value.data?.wallets ?? []);
 
   const { hidden, toggle } = useBalancePrivacy();
-  const { currency, convert, format } = useDisplayCurrency();
+  const { currency, convert, format } = useDisplayCurrency("USD");
   const total = value.data?.totalUsdt ?? 0;
   const baseline = total - todayPnl;
   const pct = baseline > 0 ? (todayPnl / baseline) * 100 : 0;
@@ -67,7 +70,7 @@ function Home() {
   const pnlDecimals = convertedPnl > 0 && convertedPnl < 0.01 ? 8 : undefined;
 
   return (
-    <AppShell>
+    <AppShell exchangeHome>
       <div className="mx-auto w-full max-w-3xl space-y-4 touch-manipulation">
       <div className="flex justify-center">
         <div role="tablist" aria-label="Account mode" className="inline-flex rounded-full bg-surface-raised p-1 text-sm">
@@ -75,19 +78,20 @@ function Home() {
           <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-5 py-1.5 text-muted-foreground">Wallet</Link>
         </div>
       </div>
+      <ExchangeSearch value={search} onChange={setSearch} />
       <section className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <span>Est. Total Value ({currency})</span>
           <ChevronDown className="size-3.5" />
           <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
         </div>
-        <div className="flex items-end justify-between gap-4">
-          <div className="num text-3xl font-bold tracking-tight sm:text-4xl">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2">
+          <div className="min-w-0 break-words text-3xl font-bold tabular-nums sm:text-4xl">
             {value.isLoading ? "-" : hidden ? "••••••" : format(total)}
           </div>
-          <button type="button" onClick={() => setDepositOpen(true)} className="min-h-10 touch-manipulation rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground active:scale-[0.97]">
+          <Button onClick={() => setDepositOpen(true)} className="min-h-10 shrink-0 touch-manipulation rounded-md px-4 text-sm font-semibold active:scale-[0.97]">
             {t("dashboard.addFunds")}
-          </button>
+          </Button>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{t("dashboard.todaysPnl")}</span>
@@ -97,7 +101,7 @@ function Home() {
         </div>
       </section>
       <ExchangeWidgets onDeposit={() => setDepositOpen(true)} />
-      <ExchangeMarkets />
+      <ExchangeMarkets key={search} search={search} />
       </div>
       <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     </AppShell>
