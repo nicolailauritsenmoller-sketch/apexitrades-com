@@ -72,7 +72,7 @@ function Home() {
       <div className="flex justify-center">
         <div role="tablist" aria-label="Account mode" className="inline-flex rounded-full bg-surface-raised p-1 text-sm">
           <span role="tab" aria-selected="true" className="rounded-full bg-surface px-5 py-1.5 font-semibold">Exchange</span>
-          <Link to="/wallet" role="tab" aria-selected="false" className="rounded-full px-5 py-1.5 text-muted-foreground">Wallet</Link>
+          <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-5 py-1.5 text-muted-foreground">Wallet</Link>
         </div>
       </div>
       <section className="space-y-1">
