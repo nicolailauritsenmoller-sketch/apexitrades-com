@@ -32,7 +32,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
       </Button>
       <Link to="/terminal/$symbol" params={{ symbol: "BNBUSDT" }} className="exchange-widget flex min-h-44 min-w-0 flex-col overflow-hidden rounded-lg bg-surface p-4 transition-colors hover:bg-surface-raised sm:min-h-48">
         <span className="flex items-center gap-2 text-xs text-muted-foreground"><AssetIcon symbol="BNBUSDT" size={27} />BNB</span>
-        <span className="mt-5 font-mono text-xl font-semibold tabular-nums">{live ? formatPrice(quote.price, "BNBUSDT") : "-"}</span>
+        <span className="mt-5 text-xl font-semibold tabular-nums">{live ? formatPrice(quote.price, "BNBUSDT") : "-"}</span>
         <span className={`text-xs ${up ? "text-bull" : "text-bear"}`}>{live ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "Price unavailable"}</span>
         <div className={`mt-auto h-16 w-full pt-2 ${up ? "text-bull" : "text-bear"}`}>
           {points ? <svg viewBox="0 0 240 80" preserveAspectRatio="none" className="h-full w-full" role="img" aria-label="BNB last 24 hourly prices"><polygon points={`0,80 ${points} 240,80`} fill="currentColor" opacity="0.08" /><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg> : <span className="text-[10px] text-muted-foreground">Chart unavailable</span>}

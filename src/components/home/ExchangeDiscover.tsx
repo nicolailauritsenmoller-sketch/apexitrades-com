@@ -1,0 +1,43 @@
+import { useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowUpRight, ChevronDown, ChevronUp, Newspaper, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getExpertCommentary } from "@/lib/news.functions";
+import { ExchangeMarkets } from "@/components/home/ExchangeMarkets";
+
+const TABS = ["Discover", "Following", "Campaign", "Smart Money"] as const;
+type DiscoveryTab = typeof TABS[number];
+
+export function ExchangeDiscover() {
+  const [tab, setTab] = useState<DiscoveryTab>("Discover");
+  const [expanded, setExpanded] = useState(false);
+  const content = useRef<HTMLElement>(null);
+  const fetchCommentary = useServerFn(getExpertCommentary);
+  const commentary = useQuery({ queryKey: ["expert-commentary"], queryFn: () => fetchCommentary(), refetchInterval: 120_000, enabled: expanded && tab === "Discover" });
+  function select(next: DiscoveryTab) {
+    setTab(next);
+    setExpanded(true);
+    window.setTimeout(() => content.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }), 50);
+  }
+  return <section ref={content} className="scroll-mt-20" aria-label="Exchange discovery">
+    <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 backdrop-blur-xl md:static md:border-b md:bg-transparent">
+      <div className="mx-auto flex max-w-3xl items-center px-3">
+        <div role="tablist" aria-label="Discovery feeds" className="flex min-w-0 flex-1 overflow-x-auto">
+          {TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 px-2 text-xs ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => select(item)}>{item}</Button>)}
+        </div>
+        <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={expanded ? "Collapse discovery" : "Expand discovery"} onClick={() => expanded ? setExpanded(false) : select(tab)}>{expanded ? <ChevronDown /> : <ChevronUp />}</Button>
+      </div>
+    </div>
+    {expanded && <div role="tabpanel" aria-label={`${tab} feed`} className="py-4">
+      {tab === "Discover" && <>
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold"><Newspaper className="size-4" />Trading commentary &amp; outlooks</h2>
+        {commentary.isPending ? <p className="py-5 text-sm text-muted-foreground">Loading commentary...</p> : commentary.data?.length ? commentary.data.slice(0, 12).map(item => <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-4"><div className="min-w-0"><p className="text-[11px] text-muted-foreground">{item.source}</p><p className="mt-1 text-sm font-semibold">{item.title}</p></div><ArrowUpRight className="size-4 shrink-0 text-muted-foreground" /></a>) : <p className="py-5 text-sm text-muted-foreground">No commentary available right now.</p>}
+      </>}
+      {tab === "Following" && <ExchangeMarkets initialTab="Favorites" />}
+      {tab === "Campaign" && <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border py-4"><div className="min-w-0"><h2 className="flex items-center gap-2 text-sm font-semibold"><Users className="size-4" />Referral program</h2><p className="mt-1 text-xs text-muted-foreground">Your referrals and referral activity</p></div><Button asChild variant="secondary"><Link to="/profile/referrals">View <ArrowUpRight /></Link></Button></div>}
+      {tab === "Smart Money" && <p className="py-5 text-sm text-muted-foreground">No verified institutional flow updates available.</p>}
+    </div>}
+  </section>;
+}

@@ -12,8 +12,8 @@ import { HOME_MARKET_TABS, homeMarketRows, type HomeMarketTab, type HomeMarketCl
 
 const CATALOG = INSTRUMENTS.filter(i => i.assetClass !== "crypto" || i.symbol.endsWith("USDT"));
 
-export function ExchangeMarkets({ search = "" }: { search?: string }) {
-  const [tab, setTab] = useState<HomeMarketTab>("Hot");
+export function ExchangeMarkets({ search = "", initialTab = "Hot" }: { search?: string; initialTab?: HomeMarketTab }) {
+  const [tab, setTab] = useState<HomeMarketTab>(initialTab);
   const [category, setCategory] = useState<HomeMarketClass>("Crypto");
   const [limit, setLimit] = useState(12);
   const fetchWatchlist = useServerFn(getWatchlist);

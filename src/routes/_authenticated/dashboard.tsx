@@ -15,6 +15,7 @@ import { useDisplayCurrency } from "@/lib/display-currency";
 import { ExchangeMarkets } from "@/components/home/ExchangeMarkets";
 import { ExchangeWidgets } from "@/components/home/ExchangeWidgets";
 import { ExchangeSearch } from "@/components/home/ExchangeSearch";
+import { ExchangeDiscover } from "@/components/home/ExchangeDiscover";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -101,7 +102,8 @@ function Home() {
         </div>
       </section>
       <ExchangeWidgets onDeposit={() => setDepositOpen(true)} />
-      <ExchangeMarkets key={search} search={search} />
+      <ExchangeMarkets search={search} />
+      <ExchangeDiscover />
       </div>
       <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     </AppShell>
