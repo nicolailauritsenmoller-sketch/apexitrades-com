@@ -72,11 +72,11 @@ function Home() {
 
   return (
     <AppShell exchangeHome>
-      <div className="mx-auto w-full max-w-3xl space-y-4 touch-manipulation">
+      <div className="exchange-home mx-auto w-full max-w-3xl space-y-3 touch-manipulation">
       <div className="flex justify-center">
         <div role="tablist" aria-label="Account mode" className="inline-flex rounded-full bg-surface-raised p-1 text-sm">
-          <span role="tab" aria-selected="true" className="rounded-full bg-surface px-5 py-1.5 font-semibold">Exchange</span>
-          <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-5 py-1.5 text-muted-foreground">Wallet</Link>
+          <span role="tab" aria-selected="true" className="rounded-full bg-surface px-4 py-1 font-semibold">Exchange</span>
+          <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-4 py-1 text-muted-foreground">Wallet</Link>
         </div>
       </div>
       <ExchangeSearch value={search} onChange={setSearch} />
@@ -87,10 +87,10 @@ function Home() {
           <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2">
-          <div className="min-w-0 break-words text-3xl font-bold tabular-nums sm:text-4xl">
+           <div className="min-w-0 break-words text-[30px] leading-tight font-bold tabular-nums sm:text-4xl">
             {value.isLoading ? "-" : hidden ? "••••••" : format(total)}
           </div>
-          <Button onClick={() => setDepositOpen(true)} className="min-h-10 shrink-0 touch-manipulation rounded-md px-4 text-sm font-semibold active:scale-[0.97]">
+           <Button onClick={() => setDepositOpen(true)} className="min-h-10 shrink-0 touch-manipulation rounded-md px-4 text-[13px] font-semibold active:scale-[0.97]">
             {t("dashboard.addFunds")}
           </Button>
         </div>
