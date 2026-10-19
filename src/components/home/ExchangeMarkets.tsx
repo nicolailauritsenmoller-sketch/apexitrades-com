@@ -29,7 +29,7 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
         {HOME_MARKET_TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 px-2.5 text-sm ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => { setTab(item); setLimit(12); if (item === "TradFi" && category === "Crypto") setCategory("Futures"); }}>{item}</Button>)}
       </div>
       <div role="tablist" aria-label="Asset types" className="flex gap-4 px-2 pt-1">
-        {(["Crypto", "Futures", "Stocks"] as const).map(item => <Button key={item} role="tab" aria-selected={category === item} variant="ghost" className={`h-10 px-0 text-xs ${category === item ? "text-foreground" : "text-muted-foreground"}`} onClick={() => { setCategory(item); setLimit(12); }}>{item}</Button>)}
+        {(["Crypto", "Futures", "Stocks"] as const).map(item => <Button key={item} role="tab" aria-selected={category === item} variant="ghost" className={`h-9 px-0 text-[13px] ${category === item ? "text-foreground" : "text-muted-foreground"}`} onClick={() => { setCategory(item); setLimit(12); }}>{item}</Button>)}
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_100px_88px] gap-2 px-2 pb-2 pt-2 text-[11px] text-muted-foreground sm:grid-cols-[minmax(0,1fr)_180px_120px]"><span>Name</span><span className="text-right">Last Price</span><span className="text-right">24h chg%</span></div>
       <div role="tabpanel" aria-label={`${tab} ${category} markets`}>
@@ -41,14 +41,14 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
           const up = (quote?.changePercent ?? 0) >= 0;
           const ticker = asset.symbol.replace(/USDT$/, "");
           const starred = watchlist.data?.includes(asset.symbol) ?? false;
-          return <div key={asset.symbol} className="grid grid-cols-[minmax(0,1fr)_100px_88px] items-center gap-2 px-2 py-3 sm:grid-cols-[minmax(0,1fr)_180px_120px]">
+          return <div key={asset.symbol} className="grid grid-cols-[minmax(0,1fr)_100px_88px] items-center gap-2 px-2 py-2.5 sm:grid-cols-[minmax(0,1fr)_180px_120px]">
             <div className="flex min-w-0 items-center gap-2.5">
               <AssetIcon symbol={asset.symbol} size={30} />
               <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className="min-w-0 flex-1"><span className="flex items-center gap-1.5 text-sm font-semibold"><span className="truncate">{ticker}</span>{trending.has(asset.symbol) && <Flame className="size-3.5 shrink-0 text-warning" aria-label="High trading volume" />}</span><span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{asset.name}</span></Link>
               <Button variant="ghost" size="icon" aria-label={`${starred ? "Remove" : "Add"} ${ticker} ${starred ? "from" : "to"} favorites`} aria-pressed={starred} disabled={favorite.isPending} className="hidden size-8 text-muted-foreground sm:inline-flex" onClick={() => favorite.mutate(asset.symbol)}><Star className={starred ? "fill-current text-warning" : ""} /></Button>
             </div>
             <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className="text-right"><span className="block font-mono text-sm font-medium tabular-nums">{live ? formatPrice(quote.price, asset.symbol) : "-"}</span><span className="block text-[10px] text-muted-foreground">{asset.currency}</span></Link>
-            <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className={`flex min-h-9 items-center justify-center rounded-md text-xs font-semibold tabular-nums ${live ? up ? "bg-bull text-bull-foreground" : "bg-bear text-bear-foreground" : "bg-surface-raised text-muted-foreground"}`}>{live ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "-"}</Link>
+            <Link to="/terminal/$symbol" params={{ symbol: asset.symbol }} className={`flex min-h-9 items-center justify-center rounded-md text-[13px] font-semibold tabular-nums ${live ? up ? "bg-bull text-bull-foreground" : "bg-bear text-bear-foreground" : "bg-surface-raised text-muted-foreground"}`}>{live ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "-"}</Link>
           </div>;
         })}
       </div>

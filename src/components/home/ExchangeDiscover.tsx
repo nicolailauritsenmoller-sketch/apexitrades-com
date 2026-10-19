@@ -25,7 +25,7 @@ export function ExchangeDiscover() {
     <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 backdrop-blur-xl md:static md:border-b md:bg-transparent">
       <div className="mx-auto flex max-w-3xl items-center px-3">
         <div role="tablist" aria-label="Discovery feeds" className="flex min-w-0 flex-1 overflow-x-auto">
-          {TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 gap-1 px-2 text-xs ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => select(item)}>{item}{item === "Stocks" && <span className="rounded-sm bg-bull/15 px-1 py-0.5 text-[8px] font-bold leading-none text-bull">NEW</span>}</Button>)}
+          {TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 gap-1 px-2 text-[13px] ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => select(item)}>{item}{item === "Stocks" && <span className="rounded-sm bg-bull/15 px-1 py-0.5 text-[8px] font-bold leading-none text-bull">NEW</span>}</Button>)}
         </div>
         <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={expanded ? "Collapse discovery" : "Expand discovery"} onClick={() => expanded ? setExpanded(false) : select(tab)}>{expanded ? <ChevronDown /> : <ChevronUp />}</Button>
       </div>
