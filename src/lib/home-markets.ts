@@ -5,6 +5,13 @@ export const HOME_MARKET_TABS = ["Favorites", "Hot", "TradFi", "Alpha", "New", "
 export type HomeMarketTab = (typeof HOME_MARKET_TABS)[number];
 export type HomeMarketClass = "Crypto" | "Futures" | "Stocks";
 
+export function highVolumeSymbols(instruments: Instrument[], quotes: Record<string, Quote>) {
+  return new Set(instruments.filter(asset => {
+    const quote = quotes[asset.symbol];
+    return quote && !quote.stale && Number.isFinite(quote.volume) && (quote.volume ?? 0) > 0 && Number.isFinite(quote.price) && quote.price > 0;
+  }).sort((a, b) => (quotes[b.symbol].volume ?? 0) * quotes[b.symbol].price - (quotes[a.symbol].volume ?? 0) * quotes[a.symbol].price).slice(0, 3).map(asset => asset.symbol));
+}
+
 export function homeMarketRows(instruments: Instrument[], quotes: Record<string, Quote>, favorites: string[], tab: HomeMarketTab, category: HomeMarketClass, search: string) {
   // There is no Alpha eligibility or listing-date source in the catalog.
   if (tab === "Alpha" || tab === "New") return [];

@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Finalize homepage promo carousel, USD quick card, volume-based flames and Stocks discovery tab; verify mobile controls. Copy-trading claims and Apple Pay activation require real offer terms and payment support.
+
 - [ ] Complete the exchange-reference homepage: avatar-left mobile header, search above USD balance, compact market panel, discovery tabs and flat Home/Markets/Trade/Futures/Assets navigation; verify signed-in desktop and mobile.
 
 - [x] Keep the router and React in one pre-bundled module pass so an open tab can't load two React copies and blank the screen; all trader screens verified error-free in a fresh signed-in browser.
