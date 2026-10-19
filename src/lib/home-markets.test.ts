@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { homeMarketRows, sparklinePoints } from "./home-markets";
+import { highVolumeSymbols, homeMarketRows, sparklinePoints } from "./home-markets";
 import type { Instrument } from "./instruments";
 import type { Quote } from "./market-types";
 
@@ -10,6 +10,11 @@ const instruments: Instrument[] = [
 ];
 const quote = (symbol: string, changePercent: number, stale = false): Quote => ({ symbol, price: 100, change: 1, changePercent, stale, high: 110, low: 90, previousClose: 99, currency: "USD" });
 describe("homepage live market filters", () => {
+  it("trending flames rank live traded volume, including declining assets", () => {
+    const quotes = { BTCUSDT: { ...quote("BTCUSDT", -2), volume: 100 }, ETHUSDT: { ...quote("ETHUSDT", 8, true), volume: 1000 } };
+    expect([...highVolumeSymbols(instruments, quotes)]).toEqual(["BTCUSDT"]);
+    expect([...highVolumeSymbols(instruments, { BTCUSDT: quote("BTCUSDT", 5) })]).toEqual([]);
+  });
   it("Favorites includes only the trader's saved symbols", () => {
     expect(homeMarketRows(instruments, {}, ["ETHUSDT"], "Favorites", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT"]);
   });
