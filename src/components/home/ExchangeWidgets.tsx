@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, ChevronRight, DollarSign, X } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, ChevronRight, DollarSign, ShieldCheck, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ApplePayMark } from "@/components/ApplePayMark";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePreference } from "@/lib/preferences";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
@@ -9,6 +12,8 @@ import { sparklinePoints } from "@/lib/home-markets";
 
 export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
+  const [slide, setSlide] = useState(0);
+  const [claimOpen, setClaimOpen] = useState(false);
   const { quotes } = useQuotes(["BNBUSDT"], 5000);
   const candles = useCandles("BNBUSDT", "1h");
   const quote = quotes.BNBUSDT;
@@ -19,16 +24,22 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const points = sparklinePoints(closes);
 
   return <div className="exchange-widgets space-y-4">
-    {!dismissed.includes("exchange-market-outlook") && <article className="relative rounded-lg bg-surface p-4">
-      <div className="flex items-center justify-between gap-2"><p className="text-xs text-muted-foreground">Market outlook - The next move</p><Button variant="ghost" size="icon" className="size-7 text-muted-foreground" aria-label="Dismiss market outlook banner" onClick={() => setDismissed([...dismissed, "exchange-market-outlook"])}><X /></Button></div>
-      <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3"><BookOpen className="size-7 text-foreground" /><p className="text-sm font-semibold">Follow the markets. Find your next opportunity.</p><Button asChild variant="secondary" size="sm"><Link to="/markets">Explore</Link></Button></div>
-      <div className="mt-4 flex justify-center gap-1" aria-hidden="true"><span className="h-1 w-3 rounded-full bg-foreground" /><span className="size-1 rounded-full bg-muted-foreground/40" /><span className="size-1 rounded-full bg-muted-foreground/40" /></div>
+    {!dismissed.includes("exchange-futures-promo") && <article className="relative rounded-lg border border-border bg-surface p-4" aria-label="Exchange promotions">
+      <div className="flex items-center justify-between gap-2"><p className="text-[11px] text-muted-foreground">{slide === 0 ? "Futures copy trading - Coming soon" : slide === 1 ? "Market outlook" : "Futures markets"}</p><Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Dismiss promotions" onClick={() => setDismissed([...dismissed, "exchange-futures-promo"])}><X /></Button></div>
+      <div className="mt-2 grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+        {slide === 0 ? <ShieldCheck className="size-8 text-warning" /> : slide === 1 ? <BookOpen className="size-8 text-foreground" /> : <TrendingUp className="size-8 text-bull" />}
+        <div className="min-w-0"><h2 className="text-sm font-semibold">{slide === 0 ? "Start Futures Copy Trading" : slide === 1 ? "Follow the markets" : "Explore Futures"}</h2><p className="mt-1 text-[11px] text-muted-foreground">{slide === 0 ? "Protect Losses Up to 10 USDT" : slide === 1 ? "Trading commentary & outlooks" : "Live prices and trading charts"}</p>{slide === 0 && <p className="mt-1 text-[10px] text-muted-foreground">Offer not active. Claims unavailable.</p>}</div>
+        {slide === 0 ? <Button size="sm" variant="secondary" className="min-h-10 px-3" onClick={() => setClaimOpen(true)}>Claim</Button> : <Button asChild variant="secondary" size="sm" className="min-h-10"><Link to={slide === 1 ? "/markets" : "/terminal/$symbol"} params={{ symbol: "ES=F" }}>Explore</Link></Button>}
+      </div>
+      <div className="mt-1 flex justify-center" role="group" aria-label="Promotion pagination">{[0, 1, 2].map(index => <Button key={index} variant="ghost" size="icon" className="size-8" aria-label={`Show promotion ${index + 1}`} aria-pressed={slide === index} onClick={() => setSlide(index)}><span className={`h-1 rounded-full ${slide === index ? "w-3 bg-foreground" : "w-1 bg-muted-foreground/40"}`} /></Button>)}</div>
     </article>}
+    <Dialog open={claimOpen} onOpenChange={setClaimOpen}><DialogContent><DialogHeader><DialogTitle>Futures Copy Trading</DialogTitle><DialogDescription>The 10 USDT loss-protection offer is not active on Velocity Trade. Copy trading and reward claims are not currently available; no reward has been credited.</DialogDescription></DialogHeader><Button variant="secondary" onClick={() => setClaimOpen(false)}>Close</Button></DialogContent></Dialog>
     <div className="grid grid-cols-2 gap-3 sm:gap-4">
       <Button variant="ghost" onClick={onDeposit} className="exchange-widget h-auto min-h-44 min-w-0 flex-col items-start justify-between whitespace-normal rounded-lg bg-surface p-4 text-left hover:bg-surface-raised sm:min-h-48">
-        <span className="flex items-center gap-2 text-muted-foreground"><span className="grid size-7 place-items-center rounded-full bg-surface-raised text-foreground"><DollarSign /></span><span className="text-xs">USD / USDT</span></span>
-        <span className="mt-6 block"><span className="block text-xs font-medium text-bull">Deposit</span><span className="mt-1 block text-base font-semibold">Quick deposit</span><span className="mt-1 block text-[11px] text-muted-foreground">Crypto transfer</span></span>
-        <span className="mt-3 flex w-full items-center justify-between text-[10px] text-muted-foreground">Add to your balance <ChevronRight /></span>
+        <span className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-full border border-border bg-surface-raised"><DollarSign className="size-5" /></span><span className="text-sm font-semibold">USD</span></span>
+        <span className="mt-4 block"><span className="text-xs font-medium text-bull">Deposit</span><span className="mt-1 block text-base font-semibold">Quick deposit</span></span>
+        <span className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground"><ApplePayMark /><span className="text-[10px]">Unavailable</span></span>
+        <span className="mt-3 flex w-full items-center justify-between text-[10px] text-muted-foreground">Crypto deposit <ChevronRight className="size-4" /></span>
       </Button>
       <Link to="/terminal/$symbol" params={{ symbol: "BNBUSDT" }} className="exchange-widget flex min-h-44 min-w-0 flex-col overflow-hidden rounded-lg bg-surface p-4 transition-colors hover:bg-surface-raised sm:min-h-48">
         <span className="flex items-center gap-2 text-xs text-muted-foreground"><AssetIcon symbol="BNBUSDT" size={27} />BNB</span>
