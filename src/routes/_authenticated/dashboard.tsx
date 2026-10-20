@@ -4,7 +4,6 @@ import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BalancePrivacyToggle, useBalancePrivacy } from "@/lib/balance-privacy";
@@ -73,12 +72,6 @@ function Home() {
   return (
     <AppShell exchangeHome>
       <div className="exchange-home mx-auto w-full max-w-3xl space-y-3 touch-manipulation">
-      <div className="flex justify-center">
-        <div role="tablist" aria-label="Account mode" className="inline-flex rounded-full bg-surface-raised p-1 text-sm">
-          <span role="tab" aria-selected="true" className="rounded-full bg-surface px-4 py-1 font-semibold">Exchange</span>
-          <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-4 py-1 text-muted-foreground">Wallet</Link>
-        </div>
-      </div>
       <section className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <span>Est. Total Value ({currency})</span>
