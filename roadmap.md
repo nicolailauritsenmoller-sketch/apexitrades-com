@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [x] Switch the homepage quick chart card from BNB to BTC with live price, 24h change and sparkline; verified signed-in on phone and desktop.
 - [x] Remove the Exchange/Wallet toggle pill from the homepage so the balance and PNL block sits directly under the header; verified signed-in on phone and desktop.
 - [ ] Match homepage font sizes and compact section proportions to the two supplied screenshots; verify signed-in mobile and desktop.
 
