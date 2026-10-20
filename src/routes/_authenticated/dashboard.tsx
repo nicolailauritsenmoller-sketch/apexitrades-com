@@ -79,7 +79,6 @@ function Home() {
           <Link to="/assets" role="tab" aria-selected="false" className="rounded-full px-4 py-1 text-muted-foreground">Wallet</Link>
         </div>
       </div>
-      <ExchangeSearch value={search} onChange={setSearch} />
       <section className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <span>Est. Total Value ({currency})</span>
@@ -101,6 +100,7 @@ function Home() {
           </span>
         </div>
       </section>
+      <ExchangeSearch value={search} onChange={setSearch} />
       <ExchangeWidgets onDeposit={() => setDepositOpen(true)} />
       <ExchangeMarkets search={search} />
       <ExchangeDiscover />
