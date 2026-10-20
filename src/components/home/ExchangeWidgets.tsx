@@ -14,9 +14,9 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
   const [slide, setSlide] = useState(0);
   const [claimOpen, setClaimOpen] = useState(false);
-  const { quotes } = useQuotes(["BNBUSDT"], 5000);
-  const candles = useCandles("BNBUSDT", "1h");
-  const quote = quotes.BNBUSDT;
+  const { quotes } = useQuotes(["BTCUSDT"], 5000);
+  const candles = useCandles("BTCUSDT", "1h");
+  const quote = quotes.BTCUSDT;
   const live = quote && !quote.stale;
   const up = (quote?.changePercent ?? 0) >= 0;
   const closes = (candles.data ?? []).slice(-24).map(candle => candle.c);
@@ -41,12 +41,12 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
         <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground"><ApplePayMark /><span className="text-[10px]">Unavailable</span></span>
         <span className="mt-1 flex w-full items-center justify-between text-[10px] text-muted-foreground">Crypto deposit <ChevronRight className="size-3" /></span>
       </Button>
-      <Link to="/terminal/$symbol" params={{ symbol: "BNBUSDT" }} className="exchange-widget flex min-h-36 min-w-0 flex-col overflow-hidden rounded-lg bg-surface p-3 transition-colors hover:bg-surface-raised sm:min-h-44">
-        <span className="flex items-center gap-2 text-xs text-muted-foreground"><AssetIcon symbol="BNBUSDT" size={24} />BNB</span>
-        <span className="mt-3 text-lg leading-6 font-semibold tabular-nums">{live ? formatPrice(quote.price, "BNBUSDT") : "-"}</span>
+      <Link to="/terminal/$symbol" params={{ symbol: "BTCUSDT" }} className="exchange-widget flex min-h-36 min-w-0 flex-col overflow-hidden rounded-lg bg-surface p-3 transition-colors hover:bg-surface-raised sm:min-h-44">
+        <span className="flex items-center gap-2 text-xs text-muted-foreground"><AssetIcon symbol="BTCUSDT" size={24} />BTC</span>
+        <span className="mt-3 text-lg leading-6 font-semibold tabular-nums">{live ? formatPrice(quote.price, "BTCUSDT") : "-"}</span>
         <span className={`text-xs ${up ? "text-bull" : "text-bear"}`}>{live ? `${up ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "Price unavailable"}</span>
         <div className={`mt-auto h-12 w-full pt-2 ${up ? "text-bull" : "text-bear"}`}>
-          {points ? <svg viewBox="0 0 240 80" preserveAspectRatio="none" className="h-full w-full" role="img" aria-label="BNB last 24 hourly prices"><polygon points={`0,80 ${points} 240,80`} fill="currentColor" opacity="0.08" /><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg> : <span className="text-[10px] text-muted-foreground">Chart unavailable</span>}
+          {points ? <svg viewBox="0 0 240 80" preserveAspectRatio="none" className="h-full w-full" role="img" aria-label="BTC last 24 hourly prices"><polygon points={`0,80 ${points} 240,80`} fill="currentColor" opacity="0.08" /><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg> : <span className="text-[10px] text-muted-foreground">Chart unavailable</span>}
         </div>
       </Link>
     </div>
