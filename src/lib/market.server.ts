@@ -367,7 +367,8 @@ function syntheticQuote(inst: Instrument): Quote {
     previousClose,
     volume: Math.round(rand() * 5_000_000),
     currency: inst.currency,
-    stale: false,
+    // Simulated anchor price, never a real quote: flag it so screens show "unavailable".
+    stale: true,
   };
 }
 
