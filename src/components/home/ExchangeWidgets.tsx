@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { BookOpen, ChevronRight, DollarSign, ShieldCheck, TrendingUp, X } from "lucide-react";
+import { BookOpen, ChevronRight, ShieldCheck, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePreference } from "@/lib/preferences";
@@ -8,6 +8,20 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
 import { formatPrice } from "@/lib/instruments";
 import { sparklinePoints } from "@/lib/home-markets";
+
+/** Circular fiat emblem sized and finished to match the crypto coin badges. */
+function FiatEmblem() {
+  return (
+    <span
+      className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-raised ring-1 ring-border"
+      aria-hidden="true"
+    >
+      <span className="grid size-[17px] place-items-center rounded-full border border-border bg-surface">
+        <span className="font-mono text-[10px] leading-none font-semibold text-foreground">$</span>
+      </span>
+    </span>
+  );
+}
 
 export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
@@ -35,7 +49,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
     <Dialog open={claimOpen} onOpenChange={setClaimOpen}><DialogContent><DialogHeader><DialogTitle>Futures Copy Trading</DialogTitle><DialogDescription>The 10 USDT loss-protection offer is not active on Velocity Trade. Copy trading and reward claims are not currently available; no reward has been credited.</DialogDescription></DialogHeader><Button variant="secondary" onClick={() => setClaimOpen(false)}>Close</Button></DialogContent></Dialog>
     <div className="grid grid-cols-2 gap-3 sm:gap-4">
       <Button variant="ghost" onClick={onDeposit} className="exchange-widget h-auto min-h-36 min-w-0 flex-col items-start justify-between gap-1 whitespace-normal rounded-lg bg-surface p-3 text-left hover:bg-surface-raised sm:min-h-44">
-        <span className="flex items-center gap-2"><span className="grid size-6 place-items-center rounded-full border border-border bg-surface-raised"><DollarSign className="size-4" /></span><span className="text-xs font-medium">USD</span></span>
+        <span className="flex items-center gap-2"><FiatEmblem /><span className="text-[11px] font-semibold tracking-[0.14em] text-foreground uppercase">USD</span></span>
         <span className="mt-2 block"><span className="text-[10px] font-medium text-bull">Deposit</span><span className="mt-0.5 block text-sm font-semibold leading-5">Deposit Crypto</span></span>
         <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">Instant on-chain settlement</span>
         <span className="mt-1 flex w-full items-center justify-between text-[10px] text-muted-foreground">Crypto deposit <ChevronRight className="size-3 shrink-0" /></span>
