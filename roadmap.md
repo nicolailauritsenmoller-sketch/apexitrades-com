@@ -4,7 +4,7 @@
 
 - [x] Switch the homepage quick chart card from BNB to BTC with live price, 24h change and sparkline; verified signed-in on phone and desktop.
 - [x] Remove the Exchange/Wallet toggle pill from the homepage so the balance and PNL block sits directly under the header; verified signed-in on phone and desktop.
-- [ ] Match homepage font sizes and compact section proportions to the two supplied screenshots; verify signed-in mobile and desktop.
+- [x] Match homepage font sizes and compact section proportions to the two supplied screenshots; verify signed-in mobile and desktop.
 
 - [x] Finalize homepage promo carousel, USD quick card, volume-based flames and Stocks discovery tab; signed-in mobile Claim availability, pagination, Stocks rows and deposit dialog verified; seven market tests pass.
 - [ ] Activate copy-trading claims and Apple Pay - blocked on an actual copy-trading service, funded offer terms and Apple Pay payment integration; current homepage labels both unavailable.
