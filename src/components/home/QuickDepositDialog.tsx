@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getDepositAddresses } from "@/lib/wallet.functions";
 import { AssetIcon } from "@/lib/asset-icons";
+import { Button } from "@/components/ui/button";
 
 const ASSETS = [
   { key: "USDT", label: "USDT", icon: "USDTUSD" },
@@ -102,20 +103,26 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
           </p>
         ) : (
           <div className="space-y-3">
-            {options.length > 1 && (
-              <div className="flex flex-wrap gap-1.5">
+            {options.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium">Deposit network</p>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Deposit network">
                 {options.map((o) => (
-                  <button
+                  <Button
                     key={o.id}
+                    variant="outline"
+                    size="sm"
                     type="button"
+                    aria-pressed={o.id === addr.id}
                     onClick={() => setNetworkId(o.id)}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                    className={`min-h-10 px-3 text-xs font-medium ${
                       o.id === addr.id ? "border-primary text-primary" : "border-border text-muted-foreground"
                     }`}
                   >
                     {o.network}
-                  </button>
+                  </Button>
                 ))}
+                </div>
               </div>
             )}
             <div className="flex justify-center">
