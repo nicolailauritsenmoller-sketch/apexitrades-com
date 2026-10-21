@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Replace the homepage Apple Pay row with external crypto transfer details and verify the configured network/address/QR deposit flow.
+- [x] Replace the homepage Apple Pay row with external crypto transfer details; verified signed-in desktop/mobile USDT and ETH address/QR flow, configured network selector and BTC unavailable state (no configured BTC receiving address).
 - [x] Switch the homepage quick chart card from BNB to BTC with live price, 24h change and sparkline; verified signed-in on phone and desktop.
 - [x] Remove the Exchange/Wallet toggle pill from the homepage so the balance and PNL block sits directly under the header; verified signed-in on phone and desktop.
 - [x] Match homepage font sizes and compact section proportions to the two supplied screenshots; verify signed-in mobile and desktop.
