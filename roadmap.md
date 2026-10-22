@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Refine homepage orange search flame, balance typography and compact quick-card/market spacing; verify requested order and deposit action on mobile and desktop.
+- [x] Refine homepage orange search flame, balance typography and compact quick-card/market spacing; signed-in mobile/desktop order, search, deposit action and light/dark rendering verified; seven market tests pass.
 
 - [x] Replace the homepage Apple Pay row with external crypto transfer details; verified signed-in desktop/mobile USDT and ETH address/QR flow, configured network selector and BTC unavailable state (no configured BTC receiving address).
 - [x] Switch the homepage quick chart card from BNB to BTC with live price, 24h change and sparkline; verified signed-in on phone and desktop.
