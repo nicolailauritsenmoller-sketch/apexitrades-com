@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; verify live navigation and recovery.
+- [x] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; exact reported error recovery, repeat-reload guard and signed-in Home/Markets navigation verified; nine tests pass.
 
 - [x] Refine homepage orange search flame, balance typography and compact quick-card/market spacing; signed-in mobile/desktop order, search, deposit action and light/dark rendering verified; seven market tests pass.
 
