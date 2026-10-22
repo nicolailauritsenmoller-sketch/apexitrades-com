@@ -9,7 +9,6 @@ import {
   Home,
   Wallet,
   ShieldCheck,
-  Files,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -225,13 +224,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
       {/* Mobile taskbar */}
       <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
         <ul className="mx-auto grid max-w-lg grid-cols-5 items-end">
-          {exchangeHome ? <>
-            <li><Link to="/dashboard" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-foreground"><Home className="size-5" />{t("nav.home")}</Link></li>
-            <li><Link to="/markets" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><LineChart className="size-5" />{t("nav.markets")}</Link></li>
-            <li><Link to="/terminal/$symbol" params={{ symbol: "BTCUSDT" }} className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Compass className="size-5" />{t("nav.trade")}</Link></li>
-            <li><Link to="/terminal/$symbol" params={{ symbol: "ES=F" }} className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Files className="size-5" />Futures</Link></li>
-            <li><Link to="/assets" className="flex min-h-14 flex-col items-center justify-center gap-1 text-[10px] text-muted-foreground"><Wallet className="size-5" />{t("nav.assets")}</Link></li>
-          </> : MOBILE_NAV.map(({ to, params, label, icon: Icon, exact, center }) =>
+          {MOBILE_NAV.map(({ to, params, label, icon: Icon, exact, center }) =>
             center ? (
               <li key={to} className="relative flex justify-center pb-1">
                 <Link
