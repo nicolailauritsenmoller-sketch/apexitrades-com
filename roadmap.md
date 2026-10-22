@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; verify live navigation and recovery.
+
 - [x] Refine homepage orange search flame, balance typography and compact quick-card/market spacing; signed-in mobile/desktop order, search, deposit action and light/dark rendering verified; seven market tests pass.
 
 - [x] Replace the homepage Apple Pay row with external crypto transfer details; verified signed-in desktop/mobile USDT and ETH address/QR flow, configured network selector and BTC unavailable state (no configured BTC receiving address).
