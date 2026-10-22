@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { hydrateQueryCache, startQueryCachePersistence } from "./lib/query-persist";
+import { installChunkRecovery } from "./lib/chunk-recovery";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
@@ -19,6 +20,7 @@ export const getRouter = () => {
   });
 
   if (typeof window !== "undefined") {
+    installChunkRecovery();
     hydrateQueryCache(queryClient);
     startQueryCachePersistence(queryClient);
   }

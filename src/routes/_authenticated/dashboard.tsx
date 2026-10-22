@@ -72,14 +72,14 @@ function Home() {
   return (
     <AppShell exchangeHome>
       <div className="exchange-home mx-auto w-full max-w-3xl space-y-3 touch-manipulation">
-      <section className="space-y-1">
+       <section aria-label="Total balance and today's PNL" className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <span>Est. Total Value ({currency})</span>
           <ChevronDown className="size-3.5" />
           <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
         </div>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2">
-           <div className="min-w-0 break-words text-[30px] leading-tight font-bold tabular-nums sm:text-4xl">
+         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-1.5">
+            <div className="num min-w-0 break-words text-[30px] leading-10 font-bold tracking-normal sm:text-4xl">
             {value.isLoading ? "-" : hidden ? "••••••" : format(total)}
           </div>
            <Button onClick={() => setDepositOpen(true)} className="min-h-10 shrink-0 touch-manipulation rounded-md px-4 text-[13px] font-semibold active:scale-[0.97]">

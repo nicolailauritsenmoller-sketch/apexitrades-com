@@ -1,6 +1,6 @@
 /* Velocity Trade service worker — minimal, install-enabling, network-first. */
-const CACHE = "vt-shell-v1";
-const SHELL = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png", "/favicon.png"];
+const CACHE = "vt-static-v2";
+const SHELL = ["/manifest.json", "/icon-192.png", "/icon-512.png", "/favicon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -26,6 +26,9 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // HTML and versioned modules must come from the current deployment. Never
+  // serve an old app shell or substitute HTML for a missing JavaScript chunk.
+  if (!SHELL.includes(url.pathname)) return;
   // Never cache API / server-function traffic.
   if (url.pathname.startsWith("/api") || url.pathname.startsWith("/_serverFn")) return;
 
@@ -38,6 +41,6 @@ self.addEventListener("fetch", (event) => {
         }
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit ?? caches.match("/"))),
+      .catch(() => caches.match(req).then((hit) => hit ?? Response.error())),
   );
 });
