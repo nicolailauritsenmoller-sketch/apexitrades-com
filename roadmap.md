@@ -14,7 +14,7 @@
 - [x] Finalize homepage promo carousel, USD quick card, volume-based flames and Stocks discovery tab; signed-in mobile Claim availability, pagination, Stocks rows and deposit dialog verified; seven market tests pass.
 - [ ] Activate copy-trading claims - blocked on an actual copy-trading service and funded offer terms; Apple Pay is no longer part of the homepage deposit card.
 
-- [x] Complete the exchange-reference homepage: avatar-left mobile header, search above USD balance, compact market panel, discovery tabs and flat Home/Markets/Trade/Futures/Assets navigation; signed-in desktop and mobile checked with no page errors or horizontal overflow.
+- [x] Complete the exchange-reference homepage: avatar-left mobile header, search above USD balance, compact market panel, discovery tabs and the shared Home/Portfolio/Trade/Markets/Assets bottom navigation; signed-in desktop and mobile checked with no page errors or horizontal overflow.
 
 - [x] Keep the router and React in one pre-bundled module pass so an open tab can't load two React copies and blank the screen; all trader screens verified error-free in a fresh signed-in browser.
 - [x] Rotate Analytics commentary every two minutes and prioritize sourced BTC, ETH, XRP, SOL and BNB forecasts; verified real signed-in articles change order, with admin intelligence pinned.
