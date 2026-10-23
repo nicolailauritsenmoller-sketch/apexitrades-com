@@ -291,6 +291,13 @@
   letter-spacing: -0.025em;
 }
 
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility panel {
   background: var(--gradient-edge);
   border: 1px solid var(--color-border);
