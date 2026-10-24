@@ -22,16 +22,16 @@ export function ExchangeDiscover() {
     window.setTimeout(() => content.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }), 50);
   }
   return <section ref={content} className="scroll-mt-20" aria-label="Exchange discovery">
-    <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 py-1.5 backdrop-blur-xl md:static md:border-b md:bg-transparent md:py-0">
+    <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 py-2 backdrop-blur-xl md:static md:border-b md:bg-transparent md:py-0">
       <div className="mx-auto flex max-w-3xl items-center gap-1 px-4 md:px-3">
-        <div role="tablist" aria-label="Discovery feeds" className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+        <div role="tablist" aria-label="Discovery feeds" className="no-scrollbar -mx-1 flex min-w-0 flex-1 snap-x snap-proximity items-center gap-1 overflow-x-auto overscroll-x-contain px-1 scroll-px-1 touch-manipulation">
           {TABS.map(item => (
             <Button
               key={item}
               role="tab"
               aria-selected={tab === item}
               variant="ghost"
-              className={`relative h-10 shrink-0 whitespace-nowrap rounded-none px-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors md:h-11 md:px-4 md:text-[12px] ${
+              className={`relative h-10 shrink-0 snap-start whitespace-nowrap rounded-none px-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors md:h-11 md:px-4 md:text-[12px] ${
                 tab === item
                   ? "font-semibold text-foreground after:absolute after:inset-x-2.5 after:bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary md:after:inset-x-3 md:after:bottom-0"
                   : "text-muted-foreground hover:text-foreground"
@@ -46,7 +46,7 @@ export function ExchangeDiscover() {
         <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={expanded ? "Collapse discovery" : "Expand discovery"} onClick={() => expanded ? setExpanded(false) : select(tab)}>{expanded ? <ChevronDown /> : <ChevronUp />}</Button>
       </div>
     </div>
-    <div aria-hidden className="h-6 md:hidden" />
+    <div aria-hidden className="h-8 md:hidden" />
     {expanded && <div role="tabpanel" aria-label={`${tab} feed`} className="py-4">
       {tab === "Discover" && <>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold"><Newspaper className="size-4" />Trading commentary &amp; outlooks</h2>
