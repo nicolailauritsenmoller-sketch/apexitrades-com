@@ -46,7 +46,7 @@ export function ExchangeDiscover() {
         <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={expanded ? "Collapse discovery" : "Expand discovery"} onClick={() => expanded ? setExpanded(false) : select(tab)}>{expanded ? <ChevronDown /> : <ChevronUp />}</Button>
       </div>
     </div>
-    <div aria-hidden className="h-6 md:hidden" />
+    <div aria-hidden className="h-8 md:hidden" />
     {expanded && <div role="tabpanel" aria-label={`${tab} feed`} className="py-4">
       {tab === "Discover" && <>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold"><Newspaper className="size-4" />Trading commentary &amp; outlooks</h2>
