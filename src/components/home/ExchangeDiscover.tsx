@@ -31,7 +31,7 @@ export function ExchangeDiscover() {
               role="tab"
               aria-selected={tab === item}
               variant="ghost"
-              className={`relative h-10 shrink-0 whitespace-nowrap rounded-none px-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors md:h-11 md:px-4 md:text-[12px] ${
+              className={`relative h-10 shrink-0 snap-start whitespace-nowrap rounded-none px-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors md:h-11 md:px-4 md:text-[12px] ${
                 tab === item
                   ? "font-semibold text-foreground after:absolute after:inset-x-2.5 after:bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary md:after:inset-x-3 md:after:bottom-0"
                   : "text-muted-foreground hover:text-foreground"
