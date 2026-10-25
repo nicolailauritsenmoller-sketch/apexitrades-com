@@ -260,6 +260,13 @@
       "when": 1792110193367,
       "tag": "0036_execution_risk_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792890282274,
+      "tag": "0037_copy_trading_enrollment_and_campaign_interest",
+      "breakpoints": true
     }
   ]
 }

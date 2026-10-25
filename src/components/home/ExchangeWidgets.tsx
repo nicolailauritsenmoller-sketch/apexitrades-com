@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { BadgePercent, ChevronRight, Coins, ShieldCheck, X } from "lucide-react";
+import { BadgePercent, ChevronRight, Landmark, ShieldCheck, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TradingProgramDialog, type TradingProgram } from "./TradingProgramDialog";
 import { usePreference } from "@/lib/preferences";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
@@ -11,11 +11,11 @@ import { sparklinePoints } from "@/lib/home-markets";
 
 const PROMOS = [
   {
-    kicker: "Futures copy trading - Coming soon",
+    kicker: "Copy trading enrollment - Execution pending",
     icon: ShieldCheck,
     iconClass: "text-warning",
     title: "Start Futures Copy Trading",
-    subtitle: "Protect Losses Up to 10 USDT",
+    subtitle: "Explore trader enrollment and copy preferences",
     action: "claim" as const,
     actionLabel: "Claim",
   },
@@ -29,13 +29,22 @@ const PROMOS = [
     actionLabel: "View VIP",
   },
   {
-    kicker: "Token staking - Coming soon",
-    icon: Coins,
+    kicker: "Proposed tournament",
+    icon: Trophy,
     iconClass: "text-bull",
-    title: "New Token Staking Rewards",
-    subtitle: "Earn rewards on supported assets",
-    action: "staking" as const,
-    actionLabel: "Details",
+    title: "Global Trading Tournament",
+    subtitle: "Proposed 50,000 USDT Prize Pool",
+    action: "tournament" as const,
+    actionLabel: "Join Now",
+  },
+  {
+    kicker: "Proposed liquidity program",
+    icon: Landmark,
+    iconClass: "text-muted-foreground",
+    title: "Institutional Liquidity Program",
+    subtitle: "Proposed zero-fee maker orders for qualified accounts",
+    action: "liquidity" as const,
+    actionLabel: "Apply",
   },
 ];
 
@@ -57,8 +66,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const [claimOpen, setClaimOpen] = useState(false);
-  const [stakingOpen, setStakingOpen] = useState(false);
+  const [program, setProgram] = useState<TradingProgram | null>(null);
   const { quotes } = useQuotes(["BTCUSDT"], 5000);
   const candles = useCandles("BTCUSDT", "1h");
   const quote = quotes.BTCUSDT;
@@ -101,7 +109,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
         <div
           ref={trackRef}
           onScroll={activeIndexFromScroll}
-          className="no-scrollbar mt-1 flex snap-x snap-mandatory gap-2 overflow-x-auto"
+          className="no-scrollbar mt-1 flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain scroll-smooth touch-pan-x motion-reduce:scroll-auto"
           role="group"
           aria-label="Promotion carousel"
         >
@@ -109,13 +117,15 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
             <div key={promo.kicker} className="grid min-h-14 w-full shrink-0 snap-start grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
               <promo.icon className={`size-6 shrink-0 ${promo.iconClass}`} />
               <div className="min-w-0">
+                {promo.action !== "vip" ? <Button variant="ghost" className="h-auto w-full flex-col items-start gap-0 whitespace-normal p-0 text-left hover:bg-transparent" onClick={() => setProgram(promo.action === "claim" ? "copy_trading" : promo.action)}>
                 <h2 className="text-[12px] leading-4 font-semibold">{promo.title}</h2>
                 <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{promo.subtitle}</p>
+                </Button> : <><h2 className="text-[12px] leading-4 font-semibold">{promo.title}</h2><p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{promo.subtitle}</p></>}
               </div>
               {promo.action === "vip" ? (
                 <Button asChild variant="secondary" size="sm" className="min-h-10 shrink-0 text-xs"><Link to="/vip-upgrade">{promo.actionLabel}</Link></Button>
               ) : (
-                <Button size="sm" variant="secondary" className="min-h-10 shrink-0 px-3 text-xs" onClick={() => (promo.action === "claim" ? setClaimOpen(true) : setStakingOpen(true))}>{promo.actionLabel}</Button>
+                <Button size="sm" variant="secondary" className="min-h-10 shrink-0 px-3 text-xs" onClick={() => setProgram(promo.action === "claim" ? "copy_trading" : promo.action)}>{promo.actionLabel}</Button>
               )}
             </div>
           ))}
@@ -129,8 +139,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
         </div>
       </article>
     )}
-    <Dialog open={claimOpen} onOpenChange={setClaimOpen}><DialogContent><DialogHeader><DialogTitle>Futures Copy Trading</DialogTitle><DialogDescription>The 10 USDT loss-protection offer is not active on Velocity Trade. Copy trading and reward claims are not currently available; no reward has been credited.</DialogDescription></DialogHeader><Button variant="secondary" onClick={() => setClaimOpen(false)}>Close</Button></DialogContent></Dialog>
-    <Dialog open={stakingOpen} onOpenChange={setStakingOpen}><DialogContent><DialogHeader><DialogTitle>Token Staking</DialogTitle><DialogDescription>Staking is not currently available on Velocity Trade. No staking rewards are offered at this time.</DialogDescription></DialogHeader><Button variant="secondary" onClick={() => setStakingOpen(false)}>Close</Button></DialogContent></Dialog>
+    <TradingProgramDialog key={program ?? "closed"} program={program} onClose={() => setProgram(null)} />
     <div className="grid grid-cols-2 gap-3 sm:gap-4">
       <Button variant="ghost" onClick={onDeposit} className="exchange-widget h-auto min-h-36 min-w-0 flex-col items-start justify-between gap-1 whitespace-normal rounded-lg bg-surface p-3 text-left hover:bg-surface-raised sm:min-h-44">
         <span className="flex items-center gap-2"><FiatEmblem /><span className="text-xs font-medium tracking-normal text-muted-foreground uppercase">USD</span></span>

@@ -765,6 +765,41 @@ export type Database = {
         }
         Relationships: []
       }
+      copy_leader_applications: {
+        Row: {
+          bio: string
+          consent_at: string
+          created_at: string
+          public_name: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string
+          consent_at?: string
+          created_at?: string
+          public_name: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          consent_at?: string
+          created_at?: string
+          public_name?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copy_leader_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposit_addresses: {
         Row: {
           active: boolean
@@ -1550,6 +1585,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_program_requests: {
+        Row: {
+          created_at: string
+          id: string
+          leader_id: string | null
+          leverage: number
+          program: string
+          requested_budget: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leader_id?: string | null
+          leverage?: number
+          program: string
+          requested_budget?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leader_id?: string | null
+          leverage?: number
+          program?: string
+          requested_budget?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trading_program_requests_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "copy_leader_applications"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "trading_program_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -2277,6 +2360,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      copy_leader_directory: {
+        Args: never
+        Returns: {
+          bio: string
+          closed_trades: number
+          leader_id: string
+          public_name: string
+          roi_pct: number
+          win_rate_pct: number
+        }[]
+      }
       generate_uid7: { Args: never; Returns: string }
       has_role:
         | {
