@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [ ] Build real Copy Trading browsing, verified performance, leverage and fund allocation - pending leader source and execution model; activate protection claims only with funded offer terms.
+- [ ] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; retain swipe and dynamic pagination, with tournament and fee eligibility confirmed before activation.
+
 - [x] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; exact reported error recovery, repeat-reload guard and signed-in Home/Markets navigation verified; nine tests pass.
 
 - [x] Refine homepage orange search flame, balance typography and compact quick-card/market spacing; signed-in mobile/desktop order, search, deposit action and light/dark rendering verified; seven market tests pass.
