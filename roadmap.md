@@ -3,7 +3,7 @@
 ## In Progress
 
 - [ ] Build real Copy Trading browsing, verified performance, leverage and fund allocation - pending leader source and execution model; activate protection claims only with funded offer terms.
-- [ ] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; retain swipe and dynamic pagination, with tournament and fee eligibility confirmed before activation.
+- [x] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; swipe, scroll-snap, dynamic pagination and per-slide dialogs verified; tournament and liquidity marked as proposed until terms are approved.
 
 - [x] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; exact reported error recovery, repeat-reload guard and signed-in Home/Markets navigation verified; nine tests pass.
 
