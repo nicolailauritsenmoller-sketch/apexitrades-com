@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Audit and finish homepage interactions: mobile favorites now save and remove, balance currency selector opens and persists after refresh, market tabs hide scrollbars; signed-in desktop/mobile search, deposits and Following verified without page errors or overflow; ten tests pass.
+
 - [ ] Build real Copy Trading browsing, verified performance, leverage and fund allocation - pending leader source and execution model; activate protection claims only with funded offer terms.
 - [x] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; swipe, scroll-snap, dynamic pagination and per-slide dialogs verified; tournament and liquidity marked as proposed until terms are approved.
 

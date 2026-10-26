@@ -9,6 +9,7 @@ import {
 import { AssetIcon } from "@/lib/asset-icons";
 import { DISPLAY_CURRENCIES, useDisplayCurrency } from "@/lib/display-currency";
 import { logActivity } from "@/lib/telemetry";
+import { Button } from "@/components/ui/button";
 
 /** Currency picker modal for the global display-currency preference. */
 export function DisplayCurrencyDialog({
@@ -45,11 +46,12 @@ export function DisplayCurrencyDialog({
           {DISPLAY_CURRENCIES.map((c) => {
             const active = c.code === currency;
             return (
-              <button
+              <Button
+                variant="ghost"
                 key={c.code}
                 type="button"
                 onClick={() => choose(c.code)}
-                className={`flex w-full touch-manipulation items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
+                className={`flex h-auto w-full touch-manipulation items-center gap-3 whitespace-normal rounded-lg border px-3 py-3 text-left transition-colors ${
                   active ? "border-primary bg-primary/10" : "border-border hover:bg-secondary"
                 }`}
               >
@@ -68,7 +70,7 @@ export function DisplayCurrencyDialog({
                     <Check className="size-4 text-primary" />
                   </span>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
