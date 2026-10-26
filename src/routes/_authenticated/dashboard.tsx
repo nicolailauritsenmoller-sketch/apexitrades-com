@@ -16,6 +16,7 @@ import { ExchangeWidgets } from "@/components/home/ExchangeWidgets";
 import { ExchangeSearch } from "@/components/home/ExchangeSearch";
 import { ExchangeDiscover } from "@/components/home/ExchangeDiscover";
 import { Button } from "@/components/ui/button";
+import { DisplayCurrencyDialog } from "@/components/DisplayCurrencyDialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -48,6 +49,7 @@ function Home() {
   const t = useT();
   useWalletRealtime("dashboard-wallet-live");
   const [depositOpen, setDepositOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
   const [search, setSearch] = useState("");
   const fetchValue = useServerFn(getPortfolioValue);
   const value = useQuery({
@@ -74,8 +76,10 @@ function Home() {
       <div className="exchange-home mx-auto w-full max-w-3xl space-y-3 touch-manipulation">
        <section aria-label="Total balance and today's PNL" className="space-y-1">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <span>Est. Total Value ({currency})</span>
-          <ChevronDown className="size-3.5" />
+           <Button variant="ghost" className="h-9 gap-1 px-0 text-xs font-medium text-muted-foreground hover:bg-transparent" aria-label="Change display currency" onClick={() => setCurrencyOpen(true)}>
+             <span>Est. Total Value ({currency})</span>
+             <ChevronDown className="size-3.5" />
+           </Button>
           <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
         </div>
          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-1.5">
@@ -99,6 +103,7 @@ function Home() {
       <ExchangeDiscover />
       </div>
       <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
+      <DisplayCurrencyDialog open={currencyOpen} onOpenChange={setCurrencyOpen} />
     </AppShell>
   );
 }
