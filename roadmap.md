@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Audit and finish homepage interactions, mobile watchlist controls, search and discovery behavior; verify signed-in desktop and mobile.
+
 - [ ] Build real Copy Trading browsing, verified performance, leverage and fund allocation - pending leader source and execution model; activate protection claims only with funded offer terms.
 - [x] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; swipe, scroll-snap, dynamic pagination and per-slide dialogs verified; tournament and liquidity marked as proposed until terms are approved.
 
