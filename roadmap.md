@@ -4,7 +4,8 @@
 
 - [x] Audit and finish homepage interactions: mobile favorites now save and remove, balance currency selector opens and persists after refresh, market tabs hide scrollbars; signed-in desktop/mobile search, deposits and Following verified without page errors or overflow; ten tests pass.
 
-- [ ] Build real Copy Trading browsing, verified performance, leverage and fund allocation - pending leader source and execution model; activate protection claims only with funded offer terms.
+- [x] Build Copy Trading leader browsing, verified historical performance, consent-based applications, leverage selection and non-binding allocation requests; signed-in modal verified, currently no approved leaders.
+- [ ] Enable real-money copy execution and fund allocation - blocked on an approved execution model/service; protection additionally requires funded offer terms.
 - [x] Expand the homepage carousel to four slides: Copy Trading, VIP fees, Global Trading Tournament, Institutional Liquidity Program; swipe, scroll-snap, dynamic pagination and per-slide dialogs verified; tournament and liquidity marked as proposed until terms are approved.
 
 - [x] Resolve stale dynamic route imports with bounded refresh recovery and prevent service-worker HTML/module caching; exact reported error recovery, repeat-reload guard and signed-in Home/Markets navigation verified; nine tests pass.
@@ -26,8 +27,7 @@
 
 - [x] Redesign the header communications drawer with Notifications, Chat and live Analytics; verified real account alerts, specific-thread launch, live quotes and dark/light/mobile layouts.
 
-- [x] Prepare admin.velocitytradex.com root console, staff-only access and updated navigation; real staff navigation verified at /admin, hostname playback awaits DNS.
-- [ ] Activate admin hostname - blocked on domain registration, DNS connection and publication; unset primary domain redirects.
+- [x] Keep the Operations Console at /admin on the primary domain with staff-only access; a separate admin hostname is no longer required by the current architecture.
 
 - [x] Standardize shared action hierarchy and Users/KYC/financial queue toolbars with selected-row controls; transaction ledger remains export-only.
 - [x] Add audited confirmations for balance overrides, freezes, liquidations, financial reviews, treasury transfers and trade corrections; improve KYC/VIP/settings submit feedback.
@@ -40,6 +40,8 @@
 - [x] Streamline the Trade Closed Summary and add dedicated order-detail exports.
 
 ## Completed
+
+- [x] Recheck remaining homepage work: signed-in copy directory and saved request readback, all campaign dialogs, configured crypto deposit instructions and desktop/mobile layout verified without page errors or overflow; twelve market, campaign-validation and chunk-recovery tests pass. Outstanding financial execution and program approvals remain blocked, not represented as active benefits.
 
 - [x] Make live-agent escalation private, idempotent, realtime, and explicitly accepted by support staff.
 
