@@ -164,6 +164,25 @@ export function CommunicationsCenter() {
     staleTime: 60_000,
   });
 
+  // Feed filtering: platform bulletins stay with System, every alert row maps to one category.
+  const visibleNotifications = (notifications.data ?? []).filter((n) =>
+    prefs.enabled(categoryOf(n.kind), "inApp"),
+  );
+  const feedNotifications =
+    filter === "all"
+      ? visibleNotifications
+      : visibleNotifications.filter((n) => notificationFilterOf(n) === filter);
+  const bulletins = filter === "all" || filter === "system" ? (announcements.data ?? []) : [];
+  const filterCounts = NOTIFICATION_FILTERS.reduce(
+    (acc, f) => {
+      acc[f.key] = visibleNotifications.filter(
+        (n) => !n.read_at && (f.key === "all" || notificationFilterOf(n) === f.key),
+      ).length;
+      return acc;
+    },
+    {} as Record<NotificationFilter, number>,
+  );
+
   useEffect(() => {
     if (!uid) return;
     const channel = supabase
