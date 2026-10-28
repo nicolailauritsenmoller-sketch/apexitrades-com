@@ -50,6 +50,7 @@ export function CommunicationsCenter() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("notifications");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [filter, setFilter] = useState<NotificationFilter>("all");
   const [actionError, setActionError] = useState(false);
   const [marking, setMarking] = useState(false);
   const hasSession = useHasSession();
@@ -243,10 +244,7 @@ export function CommunicationsCenter() {
           <SheetDescription className="text-[10px] uppercase tracking-widest">
             Velocity Trade
           </SheetDescription>
-          <div className="flex items-center justify-between gap-2 pr-6">
-            <SheetTitle className="font-display text-lg">Communications Center</SheetTitle>
-            <AlertSettingsDialog />
-          </div>
+          <SheetTitle className="pr-6 font-display text-lg">Communications Center</SheetTitle>
           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <ShieldCheck className="size-3 text-bull" />
             Account & market communications
