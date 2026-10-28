@@ -305,20 +305,56 @@ export function CommunicationsCenter() {
             ))}
           </TabsList>
           <TabsContent value="notifications" className={contentClass}>
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                Account activity
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void markRead()}
-                disabled={!unread.data || marking}
-                className="px-2 text-[11px]"
+            <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+              <div className="flex items-center justify-between gap-2 px-5 pt-3">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {filter === "all" ? "Account activity" : `${filterLabelOf(filter)} activity`}
+                </span>
+                <div className="flex items-center gap-1">
+                  <AlertSettingsDialog />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void markRead()}
+                    disabled={!unread.data || marking}
+                    className="h-8 touch-manipulation px-2 text-[11px]"
+                  >
+                    <CheckCheck />
+                    {marking ? "Updating..." : "Mark all read"}
+                  </Button>
+                </div>
+              </div>
+              <div
+                role="group"
+                aria-label="Filter notifications by category"
+                className="no-scrollbar flex gap-1.5 overflow-x-auto px-5 pb-3 pt-2"
               >
-                <CheckCheck />
-                {marking ? "Updating..." : "Mark all read"}
-              </Button>
+                {NOTIFICATION_FILTERS.map(({ key, label }) => {
+                  const active = filter === key;
+                  const pending = filterCounts[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilter(key)}
+                      aria-pressed={active}
+                      className={cn(
+                        "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                        active
+                          ? "border-ops-blue/40 bg-ops-blue/10 text-ops-blue"
+                          : "border-border text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                      )}
+                    >
+                      {label}
+                      {pending > 0 && (
+                        <span className="font-mono text-[10px] font-bold text-alert">
+                          {pending}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             {actionError && (
               <p role="alert" className="px-5 py-2 text-xs text-alert">
