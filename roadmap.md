@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Add Notifications category filter chips (All, Trades, Financial, Security, System) with per-category unread counts, gear and Mark all read aligned above the chip bar, and coloured status tags; signed-in desktop/mobile, light/dark verified (All 5 = Trades 1 + Financial 4; Security/System empty states); seven filter tests pass.
+
 - [x] Audit and finish homepage interactions: mobile favorites now save and remove, balance currency selector opens and persists after refresh, market tabs hide scrollbars; signed-in desktop/mobile search, deposits and Following verified without page errors or overflow; ten tests pass.
 
 - [x] Build Copy Trading leader browsing, verified historical performance, consent-based applications, leverage selection and non-binding allocation requests; signed-in modal verified, currently no approved leaders.

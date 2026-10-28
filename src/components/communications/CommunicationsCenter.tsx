@@ -36,6 +36,15 @@ import {
   usePriceAlerts,
   useRiskWatcher,
 } from "./comms-alerts";
+import {
+  NOTIFICATION_FILTERS,
+  filterLabelOf,
+  notificationFilterOf,
+  statusLabelOf,
+  statusToneOf,
+  type NotificationFilter,
+} from "./notification-filters";
+import { cn } from "@/lib/utils";
 
 function stamp(at: string) {
   return new Date(at).toLocaleString([], {
@@ -50,6 +59,7 @@ export function CommunicationsCenter() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("notifications");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [filter, setFilter] = useState<NotificationFilter>("all");
   const [actionError, setActionError] = useState(false);
   const [marking, setMarking] = useState(false);
   const hasSession = useHasSession();
@@ -154,6 +164,25 @@ export function CommunicationsCenter() {
     staleTime: 60_000,
   });
 
+  // Feed filtering: platform bulletins stay with System, every alert row maps to one category.
+  const visibleNotifications = (notifications.data ?? []).filter((n) =>
+    prefs.enabled(categoryOf(n.kind), "inApp"),
+  );
+  const feedNotifications =
+    filter === "all"
+      ? visibleNotifications
+      : visibleNotifications.filter((n) => notificationFilterOf(n) === filter);
+  const bulletins = filter === "all" || filter === "system" ? (announcements.data ?? []) : [];
+  const filterCounts = NOTIFICATION_FILTERS.reduce(
+    (acc, f) => {
+      acc[f.key] = visibleNotifications.filter(
+        (n) => !n.read_at && (f.key === "all" || notificationFilterOf(n) === f.key),
+      ).length;
+      return acc;
+    },
+    {} as Record<NotificationFilter, number>,
+  );
+
   useEffect(() => {
     if (!uid) return;
     const channel = supabase
@@ -243,10 +272,7 @@ export function CommunicationsCenter() {
           <SheetDescription className="text-[10px] uppercase tracking-widest">
             Velocity Trade
           </SheetDescription>
-          <div className="flex items-center justify-between gap-2 pr-6">
-            <SheetTitle className="font-display text-lg">Communications Center</SheetTitle>
-            <AlertSettingsDialog />
-          </div>
+          <SheetTitle className="pr-6 font-display text-lg">Communications Center</SheetTitle>
           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <ShieldCheck className="size-3 text-bull" />
             Account & market communications
@@ -279,20 +305,62 @@ export function CommunicationsCenter() {
             ))}
           </TabsList>
           <TabsContent value="notifications" className={contentClass}>
-            <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                Account activity
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => void markRead()}
-                disabled={!unread.data || marking}
-                className="px-2 text-[11px]"
-              >
-                <CheckCheck />
-                {marking ? "Updating..." : "Mark all read"}
-              </Button>
+            <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+              <div className="flex items-center justify-between gap-2 px-5 pt-3">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {filter === "all" ? "Account activity" : `${filterLabelOf(filter)} activity`}
+                </span>
+                <div className="flex items-center gap-1">
+                  <AlertSettingsDialog />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void markRead()}
+                    disabled={!unread.data || marking}
+                    className="h-8 touch-manipulation px-2 text-[11px]"
+                  >
+                    <CheckCheck />
+                    {marking ? "Updating..." : "Mark all read"}
+                  </Button>
+                </div>
+              </div>
+              <div className="relative">
+                <div
+                  role="group"
+                  aria-label="Filter notifications by category"
+                  className="no-scrollbar flex snap-x gap-1 overflow-x-auto px-5 pb-3 pt-2"
+                >
+                {NOTIFICATION_FILTERS.map(({ key, label }) => {
+                  const active = filter === key;
+                  const pending = filterCounts[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilter(key)}
+                      aria-pressed={active}
+                      className={cn(
+                        "flex shrink-0 snap-start touch-manipulation items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                        active
+                          ? "border-ops-blue/40 bg-ops-blue/10 text-ops-blue"
+                          : "border-input text-foreground/70 hover:border-foreground/30 hover:text-foreground",
+                      )}
+                    >
+                      {label}
+                      {pending > 0 && (
+                        <span className="font-mono text-[10px] font-bold text-alert">
+                          {pending}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+                </div>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background via-background/60 to-transparent"
+                />
+              </div>
             </div>
             {actionError && (
               <p role="alert" className="px-5 py-2 text-xs text-alert">
@@ -318,7 +386,7 @@ export function CommunicationsCenter() {
             {notifications.isPending && (
               <p className="p-5 text-xs text-muted-foreground">Loading account alerts...</p>
             )}
-            {(announcements.data ?? []).map((a) => (
+            {bulletins.map((a) => (
               <article key={a.id} className="border-b border-border bg-secondary/30 px-5 py-4">
                 <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
                   Platform bulletin
@@ -329,12 +397,16 @@ export function CommunicationsCenter() {
                 </p>
               </article>
             ))}
-            {!notifications.isPending && !notifications.isError && !notifications.data?.length && (
-              <Empty title="No account alerts" />
+            {!notifications.isPending && !notifications.isError && !feedNotifications.length && (
+              <Empty
+                title={
+                  filter === "all"
+                    ? "No account alerts"
+                    : `No ${filterLabelOf(filter).toLowerCase()} alerts`
+                }
+              />
             )}
-            {(notifications.data ?? [])
-              .filter((n) => prefs.enabled(categoryOf(n.kind), "inApp"))
-              .map((n) => (
+            {feedNotifications.map((n) => (
               <Button
                 key={n.id}
                 variant="ghost"
@@ -349,9 +421,14 @@ export function CommunicationsCenter() {
                   className={`mt-1.5 size-1.5 shrink-0 rounded-full ${n.read_at ? "bg-muted" : "bg-alert"}`}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="mb-1 flex flex-wrap justify-between gap-1 text-[10px] font-normal text-muted-foreground">
-                    <span className="uppercase tracking-wider">
-                      {n.kind?.replace(/_/g, " ") || "Account"}
+                  <span className="mb-1.5 flex flex-wrap items-center justify-between gap-1 text-[10px] font-normal text-muted-foreground">
+                    <span
+                      className={cn(
+                        "rounded-sm border px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider",
+                        statusToneOf(n.kind),
+                      )}
+                    >
+                      {statusLabelOf(n.kind)}
                     </span>
                     <time>{stamp(n.created_at)}</time>
                   </span>
@@ -359,7 +436,7 @@ export function CommunicationsCenter() {
                     {institutionalizeCopy(n.title)}
                   </span>
                   <span
-                    className={`mt-1 block text-xs font-normal leading-relaxed text-muted-foreground ${expanded === n.id ? "" : "line-clamp-2"}`}
+                    className={`mt-1 block text-xs font-normal leading-relaxed text-foreground/75 ${expanded === n.id ? "" : "line-clamp-2"}`}
                   >
                     {institutionalizeCopy(n.body)}
                   </span>
