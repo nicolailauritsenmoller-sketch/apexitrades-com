@@ -324,11 +324,12 @@ export function CommunicationsCenter() {
                   </Button>
                 </div>
               </div>
-              <div
-                role="group"
-                aria-label="Filter notifications by category"
-                className="no-scrollbar flex gap-1.5 overflow-x-auto px-5 pb-3 pt-2"
-              >
+              <div className="relative">
+                <div
+                  role="group"
+                  aria-label="Filter notifications by category"
+                  className="no-scrollbar flex snap-x gap-1 overflow-x-auto px-5 pb-3 pt-2"
+                >
                 {NOTIFICATION_FILTERS.map(({ key, label }) => {
                   const active = filter === key;
                   const pending = filterCounts[key];
@@ -339,10 +340,10 @@ export function CommunicationsCenter() {
                       onClick={() => setFilter(key)}
                       aria-pressed={active}
                       className={cn(
-                        "flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+                        "flex shrink-0 snap-start touch-manipulation items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors",
                         active
                           ? "border-ops-blue/40 bg-ops-blue/10 text-ops-blue"
-                          : "border-border text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+                          : "border-input text-foreground/70 hover:border-foreground/30 hover:text-foreground",
                       )}
                     >
                       {label}
@@ -354,6 +355,11 @@ export function CommunicationsCenter() {
                     </button>
                   );
                 })}
+                </div>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background via-background/60 to-transparent"
+                />
               </div>
             </div>
             {actionError && (
