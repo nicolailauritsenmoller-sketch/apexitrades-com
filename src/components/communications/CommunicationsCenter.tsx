@@ -380,7 +380,7 @@ export function CommunicationsCenter() {
             {notifications.isPending && (
               <p className="p-5 text-xs text-muted-foreground">Loading account alerts...</p>
             )}
-            {(announcements.data ?? []).map((a) => (
+            {bulletins.map((a) => (
               <article key={a.id} className="border-b border-border bg-secondary/30 px-5 py-4">
                 <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
                   Platform bulletin
@@ -391,12 +391,16 @@ export function CommunicationsCenter() {
                 </p>
               </article>
             ))}
-            {!notifications.isPending && !notifications.isError && !notifications.data?.length && (
-              <Empty title="No account alerts" />
+            {!notifications.isPending && !notifications.isError && !feedNotifications.length && (
+              <Empty
+                title={
+                  filter === "all"
+                    ? "No account alerts"
+                    : `No ${filterLabelOf(filter).toLowerCase()} alerts`
+                }
+              />
             )}
-            {(notifications.data ?? [])
-              .filter((n) => prefs.enabled(categoryOf(n.kind), "inApp"))
-              .map((n) => (
+            {feedNotifications.map((n) => (
               <Button
                 key={n.id}
                 variant="ghost"
@@ -411,9 +415,14 @@ export function CommunicationsCenter() {
                   className={`mt-1.5 size-1.5 shrink-0 rounded-full ${n.read_at ? "bg-muted" : "bg-alert"}`}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="mb-1 flex flex-wrap justify-between gap-1 text-[10px] font-normal text-muted-foreground">
-                    <span className="uppercase tracking-wider">
-                      {n.kind?.replace(/_/g, " ") || "Account"}
+                  <span className="mb-1.5 flex flex-wrap items-center justify-between gap-1 text-[10px] font-normal text-muted-foreground">
+                    <span
+                      className={cn(
+                        "rounded-sm border px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider",
+                        statusToneOf(n.kind),
+                      )}
+                    >
+                      {statusLabelOf(n.kind)}
                     </span>
                     <time>{stamp(n.created_at)}</time>
                   </span>
