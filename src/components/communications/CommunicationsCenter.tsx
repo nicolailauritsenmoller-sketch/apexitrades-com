@@ -436,7 +436,7 @@ export function CommunicationsCenter() {
                     {institutionalizeCopy(n.title)}
                   </span>
                   <span
-                    className={`mt-1 block text-xs font-normal leading-relaxed text-muted-foreground ${expanded === n.id ? "" : "line-clamp-2"}`}
+                    className={`mt-1 block text-xs font-normal leading-relaxed text-foreground/75 ${expanded === n.id ? "" : "line-clamp-2"}`}
                   >
                     {institutionalizeCopy(n.body)}
                   </span>
