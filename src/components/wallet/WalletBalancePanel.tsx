@@ -199,6 +199,8 @@ export function WalletBalancePanel({
           )}
         </div>
       </section>
+        </div>
+      </div>
     </div>
   );
 }
