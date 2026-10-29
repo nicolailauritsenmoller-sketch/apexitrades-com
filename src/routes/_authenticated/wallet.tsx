@@ -50,6 +50,7 @@ import algoNetworkIcon from "@/assets/crypto/algo.svg";
 import dotNetworkIcon from "@/assets/crypto/dot.svg";
 import { AssetPicker } from "@/components/AssetPicker";
 import { WalletBalancePanel } from "@/components/wallet/WalletBalancePanel";
+import { STANDARD_WALLET_ASSETS } from "@/components/wallet/asset-inventory";
 import { useWalletRealtime } from "@/lib/use-wallet-realtime";
 import { TransactionStatusDialog } from "@/components/TransactionStatusDialog";
 import {
@@ -131,6 +132,7 @@ function WalletPage() {
   const setTab = (id: TabId) => navigate({ to: "/wallet", search: { tab: id } });
   const [activeTx, setActiveTx] = useState<TransactionRecord | null>(null);
   const [txQuery, setTxQuery] = useState("");
+  const [selectedAsset, setSelectedAsset] = useState("USDT");
 
   const fetchAddresses = useServerFn(getDepositAddresses);
   const fetchValue = useServerFn(getPortfolioValue);
@@ -318,12 +320,16 @@ function WalletPage() {
           onSelect={setTab}
           hidden={balancesHidden}
           onTogglePrivacy={toggleBalances}
+          selectedAsset={selectedAsset}
+          onSelectAsset={setSelectedAsset}
         />
       </div>
 
 
       {tab === "deposit" && (
         <DepositTab
+          selectedAsset={selectedAsset}
+          onSelectAsset={setSelectedAsset}
           addresses={addresses.data ?? []}
           initialAmount={presetAmount}
           onDone={refresh}
@@ -333,6 +339,8 @@ function WalletPage() {
       {tab === "withdraw" && (
         <RestrictionBlock kind="withdrawals">
           <WithdrawTab
+            coin={selectedAsset}
+            onSelectAsset={setSelectedAsset}
             balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
             balancesHidden={balancesHidden}
             onDone={refresh}
@@ -342,6 +350,8 @@ function WalletPage() {
       )}
       {tab === "swap" && (
         <SwapTab
+          from={selectedAsset}
+          onSelectAsset={setSelectedAsset}
           balances={wallets.map((w) => ({ currency: w.currency, balance: w.available ?? w.balance }))}
           balancesHidden={balancesHidden}
           onDone={refresh}
@@ -631,11 +641,15 @@ function CoinSelect({
 }
 
 function DepositTab({
+  selectedAsset,
+  onSelectAsset,
   addresses,
   initialAmount,
   onDone,
   onSubmitted,
 }: {
+  selectedAsset: string;
+  onSelectAsset: (coin: string) => void;
   addresses: Address[];
   initialAmount?: number | undefined;
   onDone: () => void;
@@ -652,10 +666,10 @@ function DepositTab({
   const [copied, setCopied] = useState(false);
   const submit = useServerFn(requestDeposit);
 
-  const addr = addresses.find((item) => item.id === selectedId) ?? addresses[0];
-  const coins = [...new Set(addresses.map((item) => item.coin))];
-  const selectedCoin = addr?.coin ?? coins[0] ?? "";
+  const coins = [...new Set([...STANDARD_WALLET_ASSETS, ...addresses.map((item) => item.coin)])];
+  const selectedCoin = selectedAsset;
   const coinAddresses = addresses.filter((item) => item.coin === selectedCoin);
+  const addr = coinAddresses.find((item) => item.id === selectedId) ?? coinAddresses[0];
   const networkDetails = addr ? depositNetworkDetails(addr.network, addr.coin) : null;
 
   useEffect(() => {
@@ -754,6 +768,7 @@ function DepositTab({
   }
 
   function selectCoin(coin: string) {
+    onSelectAsset(coin);
     const first = addresses.find((item) => item.coin === coin);
     if (first) setSelectedId(first.id);
   }
@@ -862,6 +877,11 @@ function DepositTab({
               <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="size-4 text-bull" /> Verified deposit address</p>
               <p className="mt-1 text-[11px] text-muted-foreground">Tap the code to enlarge for scanning</p>
             </div>
+          </div>
+        )}
+        {!addr && (
+          <div className="p-6 text-sm text-muted-foreground">
+            No deposit network is configured for {selectedCoin}. Contact support before transferring this asset.
           </div>
         )}
       </section>
@@ -994,17 +1014,20 @@ function trimAmount(value: number, decimals = 8) {
 }
 
 function WithdrawTab({
+  coin,
+  onSelectAsset,
   balances,
   balancesHidden,
   onDone,
   onSubmitted,
 }: {
+  coin: string;
+  onSelectAsset: (coin: string) => void;
   balances: { currency: string; balance: number }[];
   balancesHidden: boolean;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
-  const [coin, setCoin] = useState("USDT");
   const [network, setNetwork] = useState("TRC20");
   const [amount, setAmount] = useState("");
   const [address, setAddress] = useState("");
@@ -1089,9 +1112,9 @@ function WithdrawTab({
       <div className="grid grid-cols-2 gap-3">
         <AssetPicker
           value={coin}
-          onChange={setCoin}
+          onChange={onSelectAsset}
           label="Asset"
-          options={balances.map((b) => ({ code: b.currency, group: "Your wallets" }))}
+          options={[...new Set([...STANDARD_WALLET_ASSETS, ...balances.map((b) => b.currency)])].map((code) => ({ code, group: "Your wallets" }))}
         />
         <label className="block">
           <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
@@ -1209,7 +1232,7 @@ function WithdrawTab({
 }
 
 const SWAP_GROUPS: { label: string; codes: string[] }[] = [
-  { label: "Cash & wallets", codes: [...CURRENCIES] },
+  { label: "Cash & wallets", codes: [...new Set([...CURRENCIES, ...STANDARD_WALLET_ASSETS])] },
   ...(["crypto", "stock", "future", "forex", "metal"] as const).map((cls) => ({
     label: ASSET_CLASS_LABEL[cls],
     codes: INSTRUMENTS.filter((i) => i.assetClass === cls).map((i) => i.symbol),
@@ -1219,17 +1242,20 @@ const SWAP_GROUPS: { label: string; codes: string[] }[] = [
 const SWAP_OPTIONS = SWAP_GROUPS.flatMap((g) => g.codes.map((code) => ({ code, group: g.label })));
 
 function SwapTab({
+  from,
+  onSelectAsset,
   balances,
   balancesHidden,
   onDone,
   onSubmitted,
 }: {
+  from: string;
+  onSelectAsset: (coin: string) => void;
   balances: { currency: string; balance: number }[];
   balancesHidden: boolean;
   onDone: () => void;
   onSubmitted: (tx: TransactionRecord) => void;
 }) {
-  const [from, setFrom] = useState("USDT");
   const [to, setTo] = useState("BTCUSDT");
   const [amount, setAmount] = useState("");
   const submit = useServerFn(swapAssets);
@@ -1282,7 +1308,7 @@ function SwapTab({
   return (
     <div className="panel max-w-xl space-y-3 p-5">
       <div className="grid grid-cols-2 gap-3">
-        <AssetPicker value={from} onChange={setFrom} label="From" options={SWAP_OPTIONS} />
+        <AssetPicker value={from} onChange={onSelectAsset} label="From" options={SWAP_OPTIONS} />
         <AssetPicker value={to} onChange={setTo} label="To" options={SWAP_OPTIONS} />
       </div>
 
