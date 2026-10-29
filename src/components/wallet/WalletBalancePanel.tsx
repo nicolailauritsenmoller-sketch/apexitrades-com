@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownToLine, ArrowUpFromLine, Repeat, Search } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ChevronDown, Repeat, Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
 import { BalancePrivacyToggle } from "@/lib/balance-privacy";
@@ -73,6 +73,8 @@ export function WalletBalancePanel({
   const [search, setSearch] = useState("");
   const [hideZero, setHideZero] = useState(false);
   const [sample, setSample] = useState(false);
+  // The asset table starts expanded; the "Account balances" header folds it away.
+  const [balancesOpen, setBalancesOpen] = useState(true);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
