@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownToLine, ArrowUpFromLine, Repeat, Search } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ChevronDown, Repeat, Search } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
 import { BalancePrivacyToggle } from "@/lib/balance-privacy";
@@ -73,6 +73,8 @@ export function WalletBalancePanel({
   const [search, setSearch] = useState("");
   const [hideZero, setHideZero] = useState(false);
   const [sample, setSample] = useState(false);
+  // The asset table starts expanded; the "Account balances" header folds it away.
+  const [balancesOpen, setBalancesOpen] = useState(true);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -136,14 +138,37 @@ export function WalletBalancePanel({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>{sample ? "Illustrative balances - not available to withdraw or swap" : "Account balances"}</span>
+        <button
+          type="button"
+          onClick={() => setBalancesOpen((v) => !v)}
+          aria-expanded={balancesOpen}
+          aria-controls="account-balances-table"
+          className="-ml-1 flex min-h-11 touch-manipulation items-center gap-1.5 rounded-md px-1 text-left text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {sample
+            ? "Illustrative balances - not available to withdraw or swap"
+            : "Account balances"}
+          <ChevronDown
+            aria-hidden
+            className={`size-4 shrink-0 transition-transform duration-300 ease-out ${balancesOpen ? "rotate-180" : ""}`}
+          />
+        </button>
         <label className="flex min-h-11 items-center gap-2">
           <Switch checked={sample} onCheckedChange={setSample} aria-label="Sample balances" />
           Sample balances
         </label>
       </div>
 
-      <section className="panel overflow-hidden">
+      <div
+        id="account-balances-table"
+        aria-hidden={!balancesOpen}
+        inert={!balancesOpen}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+          balancesOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <section className="panel overflow-hidden">
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           <span>Asset</span>
           <span className="w-20 text-right sm:w-24">Balance</span>
@@ -174,6 +199,8 @@ export function WalletBalancePanel({
           )}
         </div>
       </section>
+        </div>
+      </div>
     </div>
   );
 }
