@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Expand Assets inventory with BTC, ETH, SOL, XRP and BNB, opt-in illustrative balances separate from spendable funds, shared asset selection across deposit/withdraw/swap and dynamic zero-balance filtering; three tests and signed-in desktop/mobile selection/filtering passed, with no overflow or page errors. Unconfigured deposits show unavailable rather than another asset's address.
+
 - [x] Add Notifications category filter chips (All, Trades, Financial, Security, System) with per-category unread counts, gear and Mark all read aligned above the chip bar, and coloured status tags; signed-in desktop/mobile, light/dark verified (All 5 = Trades 1 + Financial 4; Security/System empty states); seven filter tests pass.
 
 - [x] Audit and finish homepage interactions: mobile favorites now save and remove, balance currency selector opens and persists after refresh, market tabs hide scrollbars; signed-in desktop/mobile search, deposits and Following verified without page errors or overflow; ten tests pass.

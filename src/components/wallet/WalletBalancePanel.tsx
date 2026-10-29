@@ -4,6 +4,9 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
 import { BalancePrivacyToggle } from "@/lib/balance-privacy";
 import type { AssetHolding } from "@/components/AssetsOverview";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { assetInventory, filterInventory } from "./asset-inventory";
 
 function fmt(value: number, digits = 2) {
   return value.toLocaleString("en-US", {
@@ -22,21 +25,21 @@ const ACTIONS = [
     label: "Add funds",
     icon: ArrowDownToLine,
     className:
-      "bg-yellow-400 text-black font-semibold hover:bg-yellow-300 active:scale-[0.97]",
+      "bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-[0.97]",
   },
   {
     id: "withdraw",
     label: "Withdraw",
     icon: ArrowUpFromLine,
     className:
-      "border border-red-500/30 bg-red-500/20 text-red-400 hover:bg-red-500/30 active:scale-[0.97]",
+      "border border-bear/30 bg-bear/10 text-bear hover:bg-bear/20 active:scale-[0.97]",
   },
   {
     id: "swap",
     label: "Swap",
     icon: Repeat,
     className:
-      "border border-zinc-700 bg-zinc-800/80 text-white hover:bg-zinc-700/80 active:scale-[0.97]",
+      "border border-border bg-secondary text-foreground hover:bg-secondary/80 active:scale-[0.97]",
   },
 ] as const;
 
@@ -54,6 +57,8 @@ export function WalletBalancePanel({
   onSelect,
   hidden,
   onTogglePrivacy,
+  selectedAsset,
+  onSelectAsset,
 }: {
   holdings: AssetHolding[];
   totalUsdt: number;
@@ -62,22 +67,23 @@ export function WalletBalancePanel({
   onSelect: (id: WalletAction) => void;
   hidden: boolean;
   onTogglePrivacy: () => void;
+  selectedAsset: string;
+  onSelectAsset: (currency: string) => void;
 }) {
   const [search, setSearch] = useState("");
-  const [hideZero, setHideZero] = useState(true);
+  const [hideZero, setHideZero] = useState(false);
+  const [sample, setSample] = useState(false);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return holdings
-      .filter((h) => (hideZero ? h.balance > 0 : true))
+    return filterInventory(assetInventory(holdings, sample), hideZero)
       .filter(
         (h) =>
           !term ||
           h.currency.toLowerCase().includes(term) ||
           assetName(h.currency).toLowerCase().includes(term),
-      )
-      .sort((a, b) => b.valueUsdt - a.valueUsdt);
-  }, [holdings, hideZero, search]);
+      );
+  }, [holdings, hideZero, search, sample]);
 
   return (
     <div className="space-y-4">
@@ -99,20 +105,20 @@ export function WalletBalancePanel({
 
         <div className="mt-4 grid grid-cols-3 gap-2.5">
           {ACTIONS.map(({ id, label, icon: Icon, className }) => (
-            <button
+            <Button variant="ghost"
               key={id}
               type="button"
               onClick={() => onSelect(id)}
-              className={`flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-xl px-3 py-0 text-sm transition-transform ${className}`}
+              className={`flex min-h-12 touch-manipulation items-center justify-center gap-2 rounded-md px-3 py-0 text-sm transition-transform ${className}`}
             >
               <Icon className="size-4" strokeWidth={2.6} />
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </section>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -123,36 +129,29 @@ export function WalletBalancePanel({
             className="h-11 w-full rounded-full border border-border bg-secondary/50 pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => setHideZero((v) => !v)}
-          aria-pressed={hideZero}
-          className="flex shrink-0 touch-manipulation items-center gap-2 text-xs text-zinc-400"
-        >
-          <span
-            className={`relative h-5 w-9 rounded-full transition-colors ${
-              hideZero ? "bg-primary" : "bg-zinc-800"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 size-4 rounded-full bg-background transition-all ${
-                hideZero ? "left-[18px]" : "left-0.5"
-              }`}
-            />
-          </span>
+        <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          <Switch checked={hideZero} onCheckedChange={setHideZero} aria-label="Hide zero balances" />
           Hide zero balances
-        </button>
+        </label>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span>{sample ? "Illustrative balances - not available to withdraw or swap" : "Account balances"}</span>
+        <label className="flex min-h-11 items-center gap-2">
+          <Switch checked={sample} onCheckedChange={setSample} aria-label="Sample balances" />
+          Sample balances
+        </label>
       </div>
 
       <section className="panel overflow-hidden">
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           <span>Asset</span>
-          <span className="w-24 text-right">Balance</span>
-          <span className="w-24 text-right">Value (USDT)</span>
+          <span className="w-20 text-right sm:w-24">Balance</span>
+          <span className="w-20 text-right sm:w-24">Value (USDT)</span>
         </div>
         <div className="divide-y divide-border">
           {rows.map((h) => (
-            <div key={h.currency} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-3">
+            <Button variant="ghost" type="button" key={h.currency} aria-label={`Select ${h.currency}`} aria-pressed={selectedAsset === h.currency} onClick={() => onSelectAsset(h.currency)} className={`grid h-auto w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-none px-4 py-3 text-left ${selectedAsset === h.currency ? "bg-secondary/60 ring-1 ring-inset ring-border" : ""}`}>
               <div className="flex min-w-0 items-center gap-3">
                 <AssetIcon currency={h.currency} size={30} />
                 <div className="min-w-0">
@@ -162,13 +161,13 @@ export function WalletBalancePanel({
                   </p>
                 </div>
               </div>
-              <span className="num w-24 text-right text-sm">
+              <span className="num w-20 text-right text-xs sm:w-24 sm:text-sm">
                 {hidden ? "••••" : qty(h.balance, h.currency)}
               </span>
-              <span className="num w-24 text-right text-sm font-semibold">
+              <span className="num w-20 text-right text-xs font-semibold sm:w-24 sm:text-sm">
                 {hidden ? "••••" : fmt(h.valueUsdt)}
               </span>
-            </div>
+            </Button>
           ))}
           {!isLoading && rows.length === 0 && (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">No assets found.</p>
