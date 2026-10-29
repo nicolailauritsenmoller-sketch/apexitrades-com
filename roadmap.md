@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Expand Assets inventory with BTC, ETH, SOL, XRP and BNB, separated sample balances, asset-to-operation selection and dynamic zero-balance filtering; verify real signed-in flows.
+- [x] Expand Assets inventory with BTC, ETH, SOL, XRP and BNB, opt-in illustrative balances separate from spendable funds, shared asset selection across deposit/withdraw/swap and dynamic zero-balance filtering; three tests and signed-in desktop/mobile selection/filtering passed, with no overflow or page errors. Unconfigured deposits show unavailable rather than another asset's address.
 
 - [x] Add Notifications category filter chips (All, Trades, Financial, Security, System) with per-category unread counts, gear and Mark all read aligned above the chip bar, and coloured status tags; signed-in desktop/mobile, light/dark verified (All 5 = Trades 1 + Financial 4; Security/System empty states); seven filter tests pass.
 
