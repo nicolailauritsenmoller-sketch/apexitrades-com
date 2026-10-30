@@ -111,12 +111,19 @@ type PastSession = {
   msgs: Message[];
 };
 
+const SUPPORT_GREETING = "You've reached VelocityTrades Support. What can I help you with?";
+
 function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
   const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
   if (!Array.isArray(list)) return [];
   return list
     .filter((m) => typeof m?.text === "string")
-    .map((m, i) => ({ id: `saved-${i}`, role: m.role === "user" ? "user" : "bot", text: m.text! }));
+    .map((m, i) => ({
+      id: `saved-${i}`,
+      role: m.role === "user" ? ("user" as const) : ("bot" as const),
+      /* Refresh legacy personalized greetings in restored transcripts. */
+      text: /^Hello .+Velocity Support assist you today\?$/.test(m.text!) ? SUPPORT_GREETING : m.text!,
+    }));
 }
 
 function Divider({ label }: { label: string }) {
@@ -500,7 +507,7 @@ export function LiveChatDialog({
       {
         id: "greet",
         role: "bot",
-        text: "You've reached VelocityTrades Support. What can I help you with?",
+        text: SUPPORT_GREETING,
         topics: true,
       },
     ]);
