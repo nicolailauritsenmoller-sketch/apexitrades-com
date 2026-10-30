@@ -111,12 +111,19 @@ type PastSession = {
   msgs: Message[];
 };
 
+const SUPPORT_GREETING = "You've reached VelocityTrades Support. What can I help you with?";
+
 function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
   const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
   if (!Array.isArray(list)) return [];
   return list
     .filter((m) => typeof m?.text === "string")
-    .map((m, i) => ({ id: `saved-${i}`, role: m.role === "user" ? "user" : "bot", text: m.text! }));
+    .map((m, i) => ({
+      id: `saved-${i}`,
+      role: m.role === "user" ? ("user" as const) : ("bot" as const),
+      /* Refresh legacy personalized greetings in restored transcripts. */
+      text: /^Hello .+Velocity Support assist you today\?$/.test(m.text!) ? SUPPORT_GREETING : m.text!,
+    }));
 }
 
 function Divider({ label }: { label: string }) {
@@ -236,7 +243,6 @@ export function LiveChatDialog({
   const [botLog, setBotLog] = useState<BotMsg[]>([]);
   const [queuedAt, setQueuedAt] = useState<string | null>(null);
   const [connectedAt, setConnectedAt] = useState<string | null>(null);
-  const [identity, setIdentity] = useState<{ name: string; uid: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const escalatingRef = useRef(false);
@@ -495,36 +501,17 @@ export function LiveChatDialog({
     return () => clearTimeout(t);
   }, [botLog, sessionId, mode]);
 
-  /* Account identity for the dynamic greeting. */
   useEffect(() => {
-    if (!open || identity) return;
-    (async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.user.id)
-        .maybeSingle();
-      const p = data as { display_name?: string | null; uid?: string | null } | null;
-      setIdentity({
-        name: p?.display_name?.split(" ")[0] || user.user.email?.split("@")[0] || "there",
-        uid: p?.uid ?? user.user.id.slice(0, 7).toUpperCase(),
-      });
-    })();
-  }, [open, identity]);
-
-  useEffect(() => {
-    if (!open || mode !== "bot" || !identity || botLog.length) return;
+    if (!open || mode !== "bot" || botLog.length) return;
     setBotLog([
       {
         id: "greet",
         role: "bot",
-        text: `Hello User ${identity.uid}, how can Velocity Support assist you today?`,
+        text: SUPPORT_GREETING,
         topics: true,
       },
     ]);
-  }, [open, mode, identity, botLog.length]);
+  }, [open, mode, botLog.length]);
 
   /* Message thread with a resilient realtime subscription. */
   useEffect(() => {
