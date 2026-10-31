@@ -319,3 +319,61 @@ function SettingRow({ icon: Icon, title, description, children }: { icon: Lucide
     </div>
   );
 }
+
+/** Fixed-color mini window mockups: they depict each target theme, independent of the active theme. */
+const GOLD = "#FCD535";
+
+function ModePreview({ mode }: { mode: Theme }) {
+  const light = (
+    <div className="flex h-full w-full flex-col gap-1 bg-white p-1.5">
+      <div className="flex items-center gap-1">
+        <span className="size-1.5 rounded-full" style={{ backgroundColor: GOLD }} />
+        <span className="h-1 w-6 rounded-full bg-slate-200" />
+      </div>
+      <span className="h-1 w-9 rounded-full bg-slate-300" />
+      <span className="h-1 w-7 rounded-full bg-slate-200" />
+      <span className="mt-auto h-2.5 w-8 rounded-sm" style={{ backgroundColor: GOLD }} />
+    </div>
+  );
+  const dark = (
+    <div className="flex h-full w-full flex-col gap-1 p-1.5" style={{ backgroundColor: "#0B0E11" }}>
+      <div className="flex items-center gap-1">
+        <span className="size-1.5 rounded-full" style={{ backgroundColor: GOLD }} />
+        <span className="h-1 w-6 rounded-full bg-slate-600/70" />
+      </div>
+      <span className="h-1 w-9 rounded-full bg-slate-500/70" />
+      <span className="h-1 w-7 rounded-full bg-slate-600/60" />
+      <span className="mt-auto h-2.5 w-8 rounded-sm" style={{ backgroundColor: GOLD }} />
+    </div>
+  );
+
+  return (
+    <div className="h-14 w-full overflow-hidden rounded-md border border-border/60">
+      {mode === "light" ? light : mode === "dark" ? dark : (
+        <div className="flex h-full w-full">
+          <div className="h-full w-1/2 overflow-hidden">{light}</div>
+          <div className="h-full w-1/2 overflow-hidden">{dark}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ThemeSwatch({ variant }: { variant: ThemeVariant }) {
+  const palette = variant === "midnight"
+    ? { bg: "#07090D", card: "#12151B", text: "#3A414B" }
+    : { bg: "#0B0E11", card: "#181A20", text: "#2B2F36" };
+
+  return (
+    <div className="h-14 w-full overflow-hidden rounded-md border border-border/60 p-1.5" style={{ backgroundColor: palette.bg }}>
+      <div className="flex h-full w-full flex-col gap-1 rounded-sm p-1.5" style={{ backgroundColor: palette.card }}>
+        <div className="flex items-center gap-1">
+          <span className="size-1.5 rounded-full" style={{ backgroundColor: GOLD }} />
+          <span className="h-1 w-6 rounded-full" style={{ backgroundColor: palette.text }} />
+        </div>
+        <span className="h-1 w-9 rounded-full" style={{ backgroundColor: palette.text }} />
+        <span className="mt-auto h-2 w-8 rounded-sm" style={{ backgroundColor: GOLD }} />
+      </div>
+    </div>
+  );
+}
