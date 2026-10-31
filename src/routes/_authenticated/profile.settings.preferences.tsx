@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   BellRing,
   Check,
+  ChevronDown,
   ChevronRight,
   Clock3,
   Coins,
@@ -78,6 +79,7 @@ function PreferenceSettings() {
   const [securityPush, setSecurityPush] = usePreference("notifySecurityPush", true);
   const { lang, setLang, t } = useI18n();
   const { theme, setTheme, variant, setVariant } = useTheme();
+  const [appearanceOpen, setAppearanceOpen] = useState(true);
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
 
   const sections = [
