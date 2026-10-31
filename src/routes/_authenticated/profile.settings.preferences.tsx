@@ -247,6 +247,7 @@ function PreferenceSettings() {
                     <span className="-mt-1 text-[11px] text-muted-foreground">{hint}</span>
                   </button>
                 ))}
+                </div>
               </div>
             </div>
           </SettingsSection>
