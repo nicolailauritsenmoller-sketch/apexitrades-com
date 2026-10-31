@@ -166,19 +166,73 @@ function PreferenceSettings() {
                 </Select>
               </div>
             </SettingRow>
-            <SettingRow icon={Palette} title="Interface Theme" description="Choose a high-contrast appearance or follow your device.">
-              <div className="grid w-full grid-cols-3 rounded-md border border-border bg-background p-1 sm:w-auto">
+            <div className="px-4 py-5 sm:px-5">
+              <div className="flex min-w-0 items-start gap-3">
+                <Palette className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-semibold">Appearance</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Pick your interface mode and color theme. Midnight Black deepens dark surfaces for low-light trading rooms.</p>
+                </div>
+              </div>
+
+              <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mode</p>
+              <div className="mt-2 grid max-w-lg grid-cols-3 gap-3">
                 {([
-                  { id: "dark", label: "Dark", Icon: Moon },
                   { id: "light", label: "Light", Icon: Sun },
-                  { id: "system", label: "System Auto", Icon: Monitor },
-                ] as { id: Theme; label: string; Icon: ComponentType<{ className?: string }> }[]).map(({ id, label, Icon }) => (
-                  <Button key={id} type="button" size="sm" variant={theme === id ? "default" : "ghost"} onClick={() => setTheme(id)} className="px-2 text-[11px]">
-                    <Icon className="size-3.5" /> {label}
-                  </Button>
+                  { id: "dark", label: "Dark", Icon: Moon },
+                  { id: "system", label: "System", Icon: Monitor },
+                ] as const).map(({ id, label, Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setTheme(id);
+                      void logActivity("settings", `Changed theme mode to ${id}`, { setting: "theme", value: id });
+                    }}
+                    aria-pressed={theme === id}
+                    className={`group relative flex touch-manipulation flex-col gap-2 rounded-lg border p-2 text-left transition-colors ${
+                      theme === id ? "border-primary ring-1 ring-primary" : "border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className={`absolute right-1.5 top-1.5 grid size-4 place-items-center rounded-full ${theme === id ? "bg-primary text-primary-foreground" : "hidden"}`}>
+                      <Check className="size-3" strokeWidth={3} />
+                    </span>
+                    <ModePreview mode={id} />
+                    <span className="flex items-center gap-1.5 text-xs font-semibold">
+                      <Icon className="size-3.5 text-muted-foreground" /> {label}
+                    </span>
+                  </button>
                 ))}
               </div>
-            </SettingRow>
+
+              <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Theme</p>
+              <div className="mt-2 grid max-w-lg grid-cols-2 gap-3">
+                {([
+                  { id: "classic", label: "Classic", hint: "Standard slate dark" },
+                  { id: "midnight", label: "Midnight Black", hint: "Deep true black" },
+                ] as const).map(({ id, label, hint }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setVariant(id);
+                      void logActivity("settings", `Changed theme to ${id}`, { setting: "theme-variant", value: id });
+                    }}
+                    aria-pressed={variant === id}
+                    className={`group relative flex touch-manipulation flex-col gap-2 rounded-lg border p-2 text-left transition-colors ${
+                      variant === id ? "border-primary ring-1 ring-primary" : "border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className={`absolute right-1.5 top-1.5 grid size-4 place-items-center rounded-full ${variant === id ? "bg-primary text-primary-foreground" : "hidden"}`}>
+                      <Check className="size-3" strokeWidth={3} />
+                    </span>
+                    <ThemeSwatch variant={id} />
+                    <span className="text-xs font-semibold">{label}</span>
+                    <span className="-mt-1 text-[11px] text-muted-foreground">{hint}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </SettingsSection>
 
           <SettingsSection id="trading" icon={SlidersHorizontal} title="Trading & Terminal Defaults" description="Define the standard controls applied when opening an order ticket.">
