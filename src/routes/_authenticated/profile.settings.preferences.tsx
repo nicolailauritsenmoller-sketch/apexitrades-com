@@ -249,6 +249,7 @@ function PreferenceSettings() {
                 ))}
                 </div>
               </div>
+              </div>
             </div>
           </SettingsSection>
 
