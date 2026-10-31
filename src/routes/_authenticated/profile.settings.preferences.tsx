@@ -169,13 +169,27 @@ function PreferenceSettings() {
               </div>
             </SettingRow>
             <div className="px-4 py-5 sm:px-5">
-              <div className="flex min-w-0 items-start gap-3">
+              <button
+                type="button"
+                onClick={() => setAppearanceOpen((open) => !open)}
+                aria-expanded={appearanceOpen}
+                aria-controls="appearance-panel"
+                className="flex w-full items-start gap-3 text-left"
+              >
                 <Palette className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold">Appearance</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Pick your interface mode and color theme. Midnight Black deepens dark surfaces for low-light trading rooms.</p>
                 </div>
-              </div>
+                <ChevronDown className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-300 ${appearanceOpen ? "" : "-rotate-90"}`} />
+              </button>
+              <div
+                id="appearance-panel"
+                aria-hidden={!appearanceOpen}
+                className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                style={{ gridTemplateRows: appearanceOpen ? "1fr" : "0fr" }}
+              >
+                <div className="overflow-hidden">
 
               <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mode</p>
               <div className="mt-2 grid max-w-lg grid-cols-3 gap-3">
