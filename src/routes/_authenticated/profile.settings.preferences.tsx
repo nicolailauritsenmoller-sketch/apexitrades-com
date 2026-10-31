@@ -1,4 +1,4 @@
-import { useState, type ComponentType } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   BellRing,
@@ -22,7 +22,7 @@ import { SubPageHeader } from "@/components/profile/ui";
 import { usePreference } from "@/lib/preferences";
 import { useDisplayCurrency, DISPLAY_CURRENCIES } from "@/lib/display-currency";
 import { DisplayCurrencyDialog } from "@/components/DisplayCurrencyDialog";
-import { useTheme, type Theme } from "@/lib/theme";
+import { useTheme, type Theme, type ThemeVariant } from "@/lib/theme";
 import { useBalancePrivacy } from "@/lib/balance-privacy";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -77,7 +77,7 @@ function PreferenceSettings() {
   const [securityEmail, setSecurityEmail] = usePreference("notifySecurityEmail", true);
   const [securityPush, setSecurityPush] = usePreference("notifySecurityPush", true);
   const { lang, setLang, t } = useI18n();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, variant, setVariant } = useTheme();
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
 
   const sections = [
