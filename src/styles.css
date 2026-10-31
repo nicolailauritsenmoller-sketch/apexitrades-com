@@ -214,6 +214,38 @@
   --gradient-edge: linear-gradient(180deg, oklch(0.2 0.012 264) 0%, oklch(0.17 0.011 264) 100%);
 }
 
+/* Midnight Black variant: deeper true-black slate surfaces selected in Profile > Preferences > Appearance. */
+.dark[data-variant="midnight"] {
+  --background: oklch(0.125 0.006 258);
+  --foreground: oklch(0.975 0.003 258);
+
+  --surface: oklch(0.165 0.007 258);
+  --surface-raised: oklch(0.22 0.008 258);
+
+  --card: oklch(0.165 0.007 258);
+  --card-foreground: oklch(0.975 0.003 258);
+  --popover: oklch(0.165 0.007 258);
+  --popover-foreground: oklch(0.975 0.003 258);
+
+  --secondary: oklch(0.22 0.008 258);
+  --secondary-foreground: oklch(0.96 0.003 258);
+
+  --muted: oklch(0.22 0.008 258);
+  --muted-foreground: oklch(0.64 0.015 258);
+
+  --accent: oklch(0.22 0.008 258);
+
+  --input: oklch(0.22 0.008 258);
+  --border: oklch(1 0 0 / 6%);
+  --grid: oklch(1 0 0 / 4%);
+
+  --gradient-edge: linear-gradient(180deg, oklch(0.165 0.007 258) 0%, oklch(0.13 0.006 258) 100%);
+}
+
+.dark[data-variant="midnight"] body {
+  background-color: var(--color-background);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
