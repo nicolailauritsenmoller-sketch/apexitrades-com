@@ -1,18 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
 
 export type Theme = "light" | "dark" | "system";
+export type ThemeVariant = "classic" | "midnight";
 export const THEME_KEY = "velocity.theme";
+export const THEME_VARIANT_KEY = "velocity.theme-variant";
 export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME_VARIANT: ThemeVariant = "classic";
 
-/** Inline script injected before hydration so the theme class is applied without flash. */
-export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"${DEFAULT_THEME}";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}})();`;
+/** Inline script injected before hydration so theme class and variant apply without flash. */
+export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"${DEFAULT_THEME}";var v=localStorage.getItem("${THEME_VARIANT_KEY}")||"${DEFAULT_THEME_VARIANT}";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";if(v==="midnight"){document.documentElement.setAttribute("data-variant","midnight");}else{document.documentElement.removeAttribute("data-variant");}}catch(e){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}})();`;
 
 function readTheme(): Theme {
   if (typeof window === "undefined") return DEFAULT_THEME;
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === "light" || stored === "dark" || stored === "system") return stored;
   return DEFAULT_THEME;
+}
+
+function readVariant(): ThemeVariant {
+  if (typeof window === "undefined") return DEFAULT_THEME_VARIANT;
+  return localStorage.getItem(THEME_VARIANT_KEY) === "midnight" ? "midnight" : DEFAULT_THEME_VARIANT;
 }
 
 function applyTheme(theme: Theme) {
@@ -23,13 +30,26 @@ function applyTheme(theme: Theme) {
   window.dispatchEvent(new CustomEvent<Theme>("velocity:theme", { detail: theme }));
 }
 
+function applyVariant(variant: ThemeVariant) {
+  const root = document.documentElement;
+  if (variant === "midnight") {
+    root.setAttribute("data-variant", "midnight");
+  } else {
+    root.removeAttribute("data-variant");
+  }
+}
+
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
+  const [variant, setVariantState] = useState<ThemeVariant>(DEFAULT_THEME_VARIANT);
 
   useEffect(() => {
     const next = readTheme();
     setThemeState(next);
     applyTheme(next);
+    const nextVariant = readVariant();
+    setVariantState(nextVariant);
+    applyVariant(nextVariant);
     const onChange = (e: Event) => setThemeState((e as CustomEvent<Theme>).detail);
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const onSystemChange = () => {
@@ -53,42 +73,15 @@ export function useTheme() {
     }
   }, []);
 
-  return { theme, setTheme };
-}
+  const setVariant = useCallback((next: ThemeVariant) => {
+    setVariantState(next);
+    applyVariant(next);
+    try {
+      localStorage.setItem(THEME_VARIANT_KEY, next);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
 
-/** The only platform theme control, presented inside Profile preferences. */
-export function ThemeSetting() {
-  const { theme, setTheme } = useTheme();
-
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="text-sm font-semibold">Appearance</p>
-        <p className="text-xs text-muted-foreground">Choose light, dark, or follow your device.</p>
-      </div>
-      <div className="grid grid-cols-3 rounded-lg border border-border p-0.5">
-        {(
-          [
-            { id: "light" as const, label: "Light", Icon: Sun },
-            { id: "dark" as const, label: "Dark", Icon: Moon },
-            { id: "system" as const, label: "System Auto", Icon: Monitor },
-          ]
-        ).map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTheme(id)}
-            className={`flex min-h-9 touch-manipulation items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-              theme === id
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Icon className="size-3.5" />
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  return { theme, setTheme, variant, setVariant };
 }
