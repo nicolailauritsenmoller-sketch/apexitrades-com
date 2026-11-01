@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
   Bot,
+  Globe,
   Check,
   CheckCheck,
   Lock,
@@ -24,6 +25,10 @@ import {
   wantsAgent,
   type BotTopicId,
 } from "@/lib/support-bot";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
+import { supportAnswer, supportQuestion, supportLink } from "./support-knowledge-translations";
+import { SUPPORT_LANGUAGES, supportText, supportPrompt, supportTopicLabel, type SupportLanguage, type SupportKey } from "./support-translations";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,18 +116,20 @@ type PastSession = {
   msgs: Message[];
 };
 
-const SUPPORT_GREETING = "You've reached VelocityTrades Support. What can I help you with?";
+const SUPPORT_GREETING = "👋 You've reached VelocityTrades Support. What can I help you with?";
+const LANGUAGE_KEY = "velocity:support-language";
 
-function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
-  const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
+function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string; answerId?: string }[] {
+  const list = (ctx as { messages?: { role?: string; text?: string; answerId?: string }[] } | null)?.messages;
   if (!Array.isArray(list)) return [];
   return list
     .filter((m) => typeof m?.text === "string")
     .map((m, i) => ({
       id: `saved-${i}`,
       role: m.role === "user" ? ("user" as const) : ("bot" as const),
+      answerId: typeof m.answerId === "string" ? m.answerId : undefined,
       /* Refresh legacy personalized greetings in restored transcripts. */
-      text: /^Hello .+Velocity Support assist you today\?$/.test(m.text!) ? SUPPORT_GREETING : m.text!,
+      text: typeof m.text === "string" ? supportPrompt("en", m.text) : "",
     }));
 }
 
@@ -144,6 +151,7 @@ type BotMsg = {
   chips?: BotChip[];
   topics?: boolean;
   links?: BotLink[];
+  answerId?: string;
 };
 
 const feedbackChips: BotChip[] = [
@@ -173,31 +181,32 @@ function AgentAvatar({ src, className = "size-8" }: { src?: string | null; class
 }
 
 /** Structured 2-column grid of topic cards shown by the support bot. */
-function TopicGrid({ onPick }: { onPick: (topicId: BotTopicId) => void }) {
+function TopicGrid({ onPick, language }: { onPick: (topicId: BotTopicId) => void; language: SupportLanguage }) {
   return (
     <div className="mt-2.5 w-full">
       <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        Popular help topics
+        {supportText(language, "topics")}
       </p>
       <div className="grid grid-cols-2 gap-2">
-        {BOT_TOPICS.map((t) => {
+        {BOT_TOPICS.map((t, index) => {
           const Icon = TOPIC_META[t.id].icon;
           return (
-            <button
+            <Button
+              variant="ghost"
               key={t.id}
               onClick={() => onPick(t.id)}
-              className="group flex min-h-20 touch-manipulation items-start gap-2.5 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/50"
+              className="group flex h-auto min-h-20 whitespace-normal touch-manipulation items-start gap-2.5 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/50"
             >
               <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-secondary text-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
                 <Icon className="size-4" />
               </span>
               <span className="min-w-0">
-                <span className="block text-xs font-bold leading-4 text-foreground">{t.label}</span>
+                <span className="block text-xs font-bold leading-4 text-foreground">{supportTopicLabel(language, index)}</span>
                 <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
-                  {TOPIC_META[t.id].subtitle}
+                  {supportTopicLabel(language, index)}
                 </span>
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -221,6 +230,21 @@ export function LiveChatDialog({
   /** Fired once when the widget opens: "agent" pre-selects Talk to Human Agent, "vip-desk" routes to the VIP Priority Operations Desk. */
   initialAction?: "agent" | "vip-desk";
 }) {
+  const [language, setLanguage] = useState<SupportLanguage>("en");
+  const t = (key: SupportKey, values?: Record<string, string>) => supportText(language, key, values);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LANGUAGE_KEY);
+      const selected = SUPPORT_LANGUAGES.find((item) => item.id === saved);
+      if (selected) setLanguage(selected.id);
+    } catch { /* Language switching still works without browser storage. */ }
+  }, []);
+  function selectLanguage(value: string) {
+    const selected = SUPPORT_LANGUAGES.find((item) => item.id === value);
+    if (!selected) return;
+    setLanguage(selected.id);
+    try { localStorage.setItem(LANGUAGE_KEY, selected.id); } catch { /* Optional persistence. */ }
+  }
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = useCallback(
@@ -494,7 +518,7 @@ export function LiveChatDialog({
       void supabase
         .from("chat_sessions")
         .update({
-          bot_context: { messages: botLog.map(({ role, text }) => ({ role, text })).slice(-60) },
+          bot_context: { messages: botLog.map(({ role, text, answerId }) => ({ role, text, ...(answerId ? { answerId } : {}) })).slice(-60) },
         })
         .eq("id", sessionId);
     }, 600);
@@ -640,7 +664,7 @@ export function LiveChatDialog({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, botLog]);
 
-  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean; links?: BotLink[] }) =>
+  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean; links?: BotLink[]; answerId?: string }) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, ...opts }]);
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
@@ -715,7 +739,7 @@ export function LiveChatDialog({
   function handleTopic(topicId: BotTopicId) {
     const t = findTopic(topicId);
     if (!t) return;
-    userSay(t.label);
+    userSay(supportTopicLabel(language, BOT_TOPICS.findIndex((item) => item.id === topicId)));
     botSay(`Here are common ${t.label} questions:`, {
       chips: t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
     });
@@ -728,8 +752,8 @@ export function LiveChatDialog({
       return;
     }
     const qa = QUICK_ANSWERS[id];
-    userSay(QUICK_ACTIONS.find((a) => a.id === id)!.label);
-    botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links });
+    userSay(t(id));
+    botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links, answerId: id });
   }
 
   /* Fire a pre-selected desk action once when the widget opens. */
@@ -757,10 +781,10 @@ export function LiveChatDialog({
       void escalate();
       return;
     }
-    userSay(chip.label);
+    userSay(kind === "qa" ? supportQuestion(language, id, chip.label) : supportPrompt(language, chip.label));
     if (kind === "qa") {
       const qa = findQA(id);
-      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
+      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips, answerId: qa.id });
     } else if (kind === "yes") {
       botSay("Glad we could help! Anything else?", { topics: true });
     }
@@ -768,9 +792,9 @@ export function LiveChatDialog({
 
   function botReply(text: string) {
     userSay(text);
-    if (wantsAgent(text)) return void escalate(text);
+    if (wantsAgent(text) || text.toLocaleLowerCase() === t("agent").toLocaleLowerCase()) return void escalate(text);
     const qa = matchQuestion(text);
-    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
+    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips, answerId: qa.id });
     else
       botSay("I couldn't find an exact answer for that - pick a topic below.", { topics: true });
   }
@@ -901,56 +925,75 @@ export function LiveChatDialog({
           else close();
         }}
       >
-        <DialogContent className="flex h-[78vh] max-w-lg flex-col gap-0 overflow-hidden p-0">
-          <DialogTitle className="sr-only">Live chat with customer support</DialogTitle>
+        <DialogContent lang={language} dir={language === "ar" ? "rtl" : "ltr"} className="flex h-[78vh] max-w-lg flex-col gap-0 overflow-hidden p-0 [&>button:last-child]:hidden">
+          <DialogTitle className="sr-only">{t("support")}</DialogTitle>
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <AgentAvatar src={agent?.avatarUrl} />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">
-                {mode === "bot" ? "Velocity Support Assistant" : (agent?.name ?? "Customer support")}
+                {mode === "bot" ? t("assistant") : (agent?.name ?? t("support"))}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
                 {mode === "bot"
-                  ? "Automated · 24/7 Live Assistance"
+                  ? t("automated")
                   : ended
-                    ? "Session Closed"
+                    ? t("ended")
                     : agentJoined
                       ? agent?.name
-                        ? `Assigned Specialist: ${agent.name}`
-                        : "Connected with Agent"
-                      : "Queued for Support Agent · ~2 mins"}
+                        ? `${t("assigned")}: ${agent.name}`
+                        : t("connected")
+                      : t("queued")}
               </p>
             </div>
             {mode === "agent" && agentJoined && !ended && (
               <Popover open={endConfirm} onOpenChange={setEndConfirm}>
                 <PopoverTrigger asChild>
-                  <button className="ml-auto mr-8 touch-manipulation rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-bear/50 hover:text-bear">
-                    End Chat
+                  <button className="shrink-0 touch-manipulation rounded-md border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-bear/50 hover:text-bear">
+                    {t("endChat")}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-64 p-3">
                   <p className="text-xs leading-5 text-foreground">
-                    Are you sure you want to end this support session?
+                    {t("endConfirm")}
                   </p>
                   <div className="mt-3 flex justify-end gap-2">
                     <button
                       onClick={() => setEndConfirm(false)}
                       className="touch-manipulation rounded-md border border-border px-3 py-1.5 text-xs"
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       onClick={() => void endChat()}
                       disabled={ending}
                       className="touch-manipulation rounded-md bg-bear px-3 py-1.5 text-xs font-semibold text-bear-foreground disabled:opacity-50"
                     >
-                      {ending ? "Ending…" : "End Session"}
+                      {ending ? t("ending") : t("endSession")}
                     </button>
                   </div>
                 </PopoverContent>
               </Popover>
             )}
+            <div className="flex shrink-0 items-center gap-1">
+              <DropdownMenu dir="ltr">
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" aria-label={t("language")} title={t("language")} className="touch-manipulation text-muted-foreground">
+                    <Globe />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-[80] w-44">
+                  <DropdownMenuRadioGroup value={language} onValueChange={selectLanguage}>
+                    {SUPPORT_LANGUAGES.map((item) => (
+                      <DropdownMenuRadioItem key={item.id} value={item.id} className="min-h-9 touch-manipulation">
+                        {item.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button type="button" variant="ghost" size="icon" onClick={close} aria-label={t("close")} title={t("close")} className="touch-manipulation text-muted-foreground"><X /></Button>
+            </div>
           </div>
 
           {/* Thread */}
@@ -964,7 +1007,7 @@ export function LiveChatDialog({
                         b.role === "user" ? "bg-primary/80 text-primary-foreground" : "bg-secondary text-foreground"
                       }`}
                     >
-                      {b.text}
+                      {b.role === "bot" ? supportPrompt(language, b.text) : b.text}
                     </div>
                   </div>
                 ))}
@@ -983,14 +1026,14 @@ export function LiveChatDialog({
                   </div>
                 ))}
                 <Divider
-                  label={`Session Ended (${new Date(s.endedAt).toLocaleString([], {
+                  label={`${t("sessionEnded")} (${new Date(s.endedAt).toLocaleString([], {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })})`}
                 />
               </div>
             ))}
-            {history.length > 0 && <Divider label="New Inquiry Started" />}
+            {history.length > 0 && <Divider label={t("newStarted")} />}
             {botLog.map((b) => (
               <div key={b.id} className={`flex items-end gap-2 ${b.role === "user" ? "justify-end" : ""}`}>
                 {b.role === "bot" && (
@@ -1004,7 +1047,7 @@ export function LiveChatDialog({
                       b.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                     }`}
                   >
-                    {b.text}
+                    {b.role === "bot" ? b.answerId ? supportAnswer(language, b.answerId, b.text.replace(/\n\nDid this answer your question\?$/, "")) + "\n\n" + t("feedback") : supportPrompt(language, b.text) : b.text}
                   </div>
                   {b.links && b.links.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1015,7 +1058,7 @@ export function LiveChatDialog({
                           onClick={() => setOpen(false)}
                           className="inline-flex min-h-8 touch-manipulation items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                         >
-                          {l.label} <ArrowUpRight className="size-3" />
+                          {supportLink(language, l.to, l.label)} <ArrowUpRight className="size-3" />
                         </Link>
                       ))}
                     </div>
@@ -1033,12 +1076,12 @@ export function LiveChatDialog({
                               : "border-border bg-card text-foreground hover:border-primary/60 hover:text-primary"
                           }`}
                         >
-                          <Icon className="size-3.5" /> {label}
+                          <Icon className="size-3.5" /> {t(id)}
                         </button>
                       ))}
                     </div>
                   )}
-                  {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} />}
+                  {b.topics && mode === "bot" && <TopicGrid onPick={handleTopic} language={language} />}
                   {b.chips && mode === "bot" && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {b.chips.map((c) => (
@@ -1052,7 +1095,7 @@ export function LiveChatDialog({
                               : "border-border bg-card hover:border-primary/60 hover:text-primary"
                           }`}
                         >
-                          {c.label}
+                          {c.action.startsWith("qa:") ? supportQuestion(language, c.action.slice(3), c.label) : supportPrompt(language, c.label)}
                         </button>
                       ))}
                     </div>
@@ -1071,14 +1114,14 @@ export function LiveChatDialog({
                 <span>
                   <strong>
                     {agentJoined
-                      ? "Connected to Operations Desk - Agent Assigned"
-                      : "Connected to Operations Desk - Assigning Agent"}
+                      ? t("deskAssigned")
+                      : t("deskAssigning")}
                   </strong>
                   <br />
                   <span className="text-muted-foreground">
                     {agentJoined
-                      ? "Your conversation is saved and follows you across every page."
-                      : "You are in the queue. Send a message and the next available agent will join shortly."}
+                      ? t("savedInfo")
+                      : t("queueInfo")}
                   </span>
                 </span>
               </div>
@@ -1088,7 +1131,7 @@ export function LiveChatDialog({
                 <BadgeCheck className="mt-0.5 size-3.5 shrink-0 text-bull" />
                 <span>
                   <strong>{agent?.name ?? "A support agent"}</strong> ({agent?.role ?? "Support Agent"})
-                  has joined the chat.
+                  {t("joined")}
                 </span>
               </div>
             ) : (
@@ -1126,11 +1169,11 @@ export function LiveChatDialog({
                     })}
                     {m.sender_role === "user" &&
                       (m.pending ? (
-                        <span className="inline-flex items-center gap-0.5"><Check className="size-3" /> Sent</span>
+                        <span className="inline-flex items-center gap-0.5"><Check className="size-3" /> {t("sent")}</span>
                       ) : m.read_at ? (
-                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> Read</span>
+                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> {t("read")}</span>
                       ) : (
-                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> Delivered</span>
+                        <span className="inline-flex items-center gap-0.5"><CheckCheck className="size-3" /> {t("delivered")}</span>
                       ))}
                   </span>
                 </div>
@@ -1138,18 +1181,18 @@ export function LiveChatDialog({
               </div>
             ))}
             {mode === "agent" && !ended && agentJoined && typing.peerTyping && (
-              <p className="px-1 text-xs italic text-muted-foreground">{agent?.name ?? "Agent"} is typing…</p>
+              <p className="px-1 text-xs italic text-muted-foreground">{agent?.name ?? "Agent"} {t("typing")}</p>
             )}
             {mode === "agent" && ended && (
               <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/60 px-3 py-3 text-xs leading-5 text-foreground">
                 <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                 {endedByAgent ? (
                   <span>
-                    <strong>Agent has ended chat</strong> • Support session closed.
+                    <strong>{t("agentEnded")}</strong> • {t("ended")}
                   </span>
                 ) : (
                   <span>
-                    <strong>Chat Session Ended</strong> • This support ticket has been closed.
+                    <strong>{t("sessionEnded")}</strong> • {t("ticketClosed")}
                   </span>
                 )}
               </div>
@@ -1157,6 +1200,7 @@ export function LiveChatDialog({
             {mode === "agent" && ended && (agentJoined || endedByAgent) && !csatDone && sessionId && (
               <CsatCard
                 sessionId={sessionId}
+                language={language}
                 agentName={agent?.name ?? "our support team"}
                 onDone={() => {
                   setCsatDone(true);
@@ -1170,13 +1214,13 @@ export function LiveChatDialog({
           {/* Escalation action bar */}
           {mode === "bot" && (
             <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-border bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground">
-              <span>Need urgent manual help?</span>
+              <span>{t("urgent")}</span>
               <button
                 type="button"
                 onClick={() => void escalate()}
                 className="touch-manipulation font-semibold text-primary hover:underline"
               >
-                Connect to Live Agent
+                {t("connect")}
               </button>
             </div>
           )}
@@ -1188,7 +1232,7 @@ export function LiveChatDialog({
                 onClick={() => void startNewInquiry()}
                 className="w-full touch-manipulation rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
               >
-                Start New Inquiry
+                {t("new")}
               </button>
             </div>
           ) : (
@@ -1203,7 +1247,7 @@ export function LiveChatDialog({
                 <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
                   <Paperclip className="size-3" />
                   <span className="truncate">{file.name}</span>
-                  <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
+                  <button type="button" onClick={() => setFile(null)} aria-label={t("removeAttachment")}>
                     <X className="size-3" />
                   </button>
                 </span>
@@ -1219,7 +1263,7 @@ export function LiveChatDialog({
                 <span className="flex w-full items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px]">
                   <History className="size-3" />
                   <span className="truncate">{attached.kind} · {attached.amount} · {attached.status}</span>
-                  <button type="button" onClick={() => setAttached(null)} aria-label="Remove activity">
+                  <button type="button" onClick={() => setAttached(null)} aria-label={t("removeActivity")}>
                     <X className="size-3" />
                   </button>
                 </span>
@@ -1229,8 +1273,8 @@ export function LiveChatDialog({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      aria-label="Select recent activity"
-                      title="Select Recent Activity"
+                      aria-label={t("activity")}
+                      title={t("activity")}
                       className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
                     >
                       <History className="size-4" />
@@ -1238,10 +1282,10 @@ export function LiveChatDialog({
                   </PopoverTrigger>
                   <PopoverContent align="start" className="max-h-72 w-80 overflow-y-auto p-1">
                     <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Select Recent Activity
+                      {t("activity")}
                     </p>
-                    {activity === null && <p className="px-2 py-2 text-xs text-muted-foreground">Loading…</p>}
-                    {activity?.length === 0 && <p className="px-2 py-2 text-xs text-muted-foreground">No recent activity.</p>}
+                    {activity === null && <p className="px-2 py-2 text-xs text-muted-foreground">{t("loading")}</p>}
+                    {activity?.length === 0 && <p className="px-2 py-2 text-xs text-muted-foreground">{t("emptyActivity")}</p>}
                     {activity?.map((a) => (
                       <button
                         key={`${a.kind}-${a.ref}`}
@@ -1265,7 +1309,7 @@ export function LiveChatDialog({
                 type="button"
                 hidden={mode === "bot"}
                 onClick={() => fileRef.current?.click()}
-                aria-label="Attach a photo or document"
+                aria-label={t("attach")}
                 className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 <Paperclip className="size-4" />
@@ -1277,13 +1321,13 @@ export function LiveChatDialog({
                   if (mode === "agent" && !ended) typing.notifyTyping();
                 }}
                 onSubmit={send}
-                placeholder={mode === "bot" ? "Ask a question or type 'agent'…" : "Type a message…"}
+                placeholder={mode === "bot" ? t("ask") : t("message")}
                 maxLength={4000}
                 className="rounded-md bg-secondary px-3 py-2 text-sm placeholder:text-muted-foreground"
               />
               <button
                 type="submit"
-                aria-label="Send message"
+                aria-label={t("send")}
                 className="grid size-9 shrink-0 touch-manipulation place-items-center rounded-md bg-primary text-primary-foreground disabled:opacity-50"
                 disabled={sending || (!draft.trim() && !file)}
               >
@@ -1296,6 +1340,7 @@ export function LiveChatDialog({
 
       {rating && sessionId && (
         <RatingModal
+          language={language}
           sessionId={sessionId}
           onClose={() => {
             localStorage.setItem(RATED_KEY, sessionId);
@@ -1308,7 +1353,8 @@ export function LiveChatDialog({
 }
 
 /** Post-session 5-star rating and feedback prompt. */
-function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () => void }) {
+function RatingModal({ sessionId, onClose, language }: { sessionId: string; onClose: () => void; language: SupportLanguage }) {
+  const t = (key: SupportKey, values?: Record<string, string>) => supportText(language, key, values);
   const [stars, setStars] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
@@ -1330,9 +1376,9 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
-        <h3 className="font-display text-base font-bold tracking-tight">How did we do?</h3>
+        <h3 className="font-display text-base font-bold tracking-tight">{t("rate")}</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Rate your support experience - it helps us improve.
+          {t("rateHelp")}
         </p>
         <div className="mt-4 flex justify-center gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -1353,7 +1399,7 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
           onChange={(e) => setFeedback(e.target.value)}
           rows={3}
           maxLength={1000}
-          placeholder="Anything else you'd like to tell us? (optional)"
+          placeholder={t("optional")}
           className="mt-4 w-full resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
         />
         <div className="mt-4 flex gap-2">
@@ -1361,14 +1407,14 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
             onClick={onClose}
             className="flex-1 touch-manipulation rounded-md border border-border py-2 text-sm"
           >
-            Not now
+            {t("notNow")}
           </button>
           <button
             onClick={submit}
             disabled={!stars || busy}
             className="flex-1 touch-manipulation rounded-md bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
-            Submit
+            {t("submit")}
           </button>
         </div>
       </div>
@@ -1380,12 +1426,15 @@ function RatingModal({ sessionId, onClose }: { sessionId: string; onClose: () =>
 function CsatCard({
   sessionId,
   agentName,
+  language,
   onDone,
 }: {
   sessionId: string;
   agentName: string;
+  language: SupportLanguage;
   onDone: () => void;
 }) {
+  const t = (key: SupportKey, values?: Record<string, string>) => supportText(language, key, values);
   const [stars, setStars] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
@@ -1407,7 +1456,7 @@ function CsatCard({
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <p className="text-sm font-semibold text-foreground">
-        How was your support experience with {agentName}?
+        {t("experience", { name: agentName })}
       </p>
       <div className="mt-3 flex justify-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
@@ -1428,7 +1477,7 @@ function CsatCard({
         onChange={(e) => setFeedback(e.target.value)}
         rows={2}
         maxLength={1000}
-        placeholder="Additional feedback (optional)"
+        placeholder={t("optional")}
         className="mt-3 w-full resize-none rounded-md bg-secondary px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
       />
       <div className="mt-3 flex gap-2">
@@ -1436,14 +1485,14 @@ function CsatCard({
           onClick={onDone}
           className="flex-1 touch-manipulation rounded-md border border-border py-2 text-xs"
         >
-          Skip
+          {t("skip")}
         </button>
         <button
           onClick={submit}
           disabled={!stars || busy}
           className="flex-1 touch-manipulation rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {busy ? "Submitting…" : "Submit Feedback"}
+          {busy ? t("submitting") : t("submitFeedback")}
         </button>
       </div>
     </div>

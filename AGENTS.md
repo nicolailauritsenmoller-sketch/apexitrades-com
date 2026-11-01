@@ -33,3 +33,5 @@
 - `@tanstack/react-router` and `@tanstack/router-core` stay in `optimizeDeps.include` and `resolve.dedupe` in vite.config.ts - why: served as raw source the router re-imports React at whatever hash the newest optimizer pass used, so a tab opened before a mid-session re-optimization loads two React copies and dies on a null hook dispatcher.
 - Service workers cache only install metadata/icons, never HTML or route modules; shared chunk recovery refreshes the current URL once per minute on stale imports - why: old deployment hashes must not blank the app or cause reload loops.
 - Wallet inventory merges standard asset placeholders with real holdings; illustrative balances stay in a separate opt-in view and never feed transaction forms, while selected assets are shared across wallet actions - why: inventory previews must not fabricate spendable funds or silently select another deposit asset.
+
+- Support language selection is presentation-only: render canonical assistant prompts through support translations and preserve genuine transcript messages unchanged - why: instant switching must not rewrite customer/agent history or private handoff context.
