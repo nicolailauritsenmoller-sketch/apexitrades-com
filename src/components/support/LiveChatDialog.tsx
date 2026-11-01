@@ -27,6 +27,7 @@ import {
 } from "@/lib/support-bot";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
+import { supportAnswer, supportQuestion, supportLink } from "./support-knowledge-translations";
 import { SUPPORT_LANGUAGES, supportText, supportPrompt, supportTopicLabel, type SupportLanguage, type SupportKey } from "./support-translations";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -118,14 +119,15 @@ type PastSession = {
 const SUPPORT_GREETING = "👋 You've reached VelocityTrades Support. What can I help you with?";
 const LANGUAGE_KEY = "velocity:support-language";
 
-function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string }[] {
-  const list = (ctx as { messages?: { role?: string; text?: string }[] } | null)?.messages;
+function readBotLog(ctx: unknown): { id: string; role: "bot" | "user"; text: string; answerId?: string }[] {
+  const list = (ctx as { messages?: { role?: string; text?: string; answerId?: string }[] } | null)?.messages;
   if (!Array.isArray(list)) return [];
   return list
     .filter((m) => typeof m?.text === "string")
     .map((m, i) => ({
       id: `saved-${i}`,
       role: m.role === "user" ? ("user" as const) : ("bot" as const),
+      answerId: typeof m.answerId === "string" ? m.answerId : undefined,
       /* Refresh legacy personalized greetings in restored transcripts. */
       text: typeof m.text === "string" ? supportPrompt("en", m.text) : "",
     }));
@@ -149,6 +151,7 @@ type BotMsg = {
   chips?: BotChip[];
   topics?: boolean;
   links?: BotLink[];
+  answerId?: string;
 };
 
 const feedbackChips: BotChip[] = [
@@ -515,7 +518,7 @@ export function LiveChatDialog({
       void supabase
         .from("chat_sessions")
         .update({
-          bot_context: { messages: botLog.map(({ role, text }) => ({ role, text })).slice(-60) },
+          bot_context: { messages: botLog.map(({ role, text, answerId }) => ({ role, text, ...(answerId ? { answerId } : {}) })).slice(-60) },
         })
         .eq("id", sessionId);
     }, 600);
@@ -661,7 +664,7 @@ export function LiveChatDialog({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open, botLog]);
 
-  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean; links?: BotLink[] }) =>
+  const botSay = (text: string, opts?: { chips?: BotChip[]; topics?: boolean; links?: BotLink[]; answerId?: string }) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "bot", text, ...opts }]);
   const userSay = (text: string) =>
     setBotLog((l) => [...l, { id: crypto.randomUUID(), role: "user", text }]);
@@ -736,7 +739,7 @@ export function LiveChatDialog({
   function handleTopic(topicId: BotTopicId) {
     const t = findTopic(topicId);
     if (!t) return;
-    userSay(t.label);
+    userSay(supportTopicLabel(language, BOT_TOPICS.findIndex((item) => item.id === topicId)));
     botSay(`Here are common ${t.label} questions:`, {
       chips: t.items.map((i) => ({ label: i.q, action: `qa:${i.id}` })),
     });
@@ -749,8 +752,8 @@ export function LiveChatDialog({
       return;
     }
     const qa = QUICK_ANSWERS[id];
-    userSay(QUICK_ACTIONS.find((a) => a.id === id)!.label);
-    botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links });
+    userSay(t(id));
+    botSay(`${qa.text}\n\nDid this answer your question?`, { chips: feedbackChips, links: qa.links, answerId: id });
   }
 
   /* Fire a pre-selected desk action once when the widget opens. */
@@ -778,10 +781,10 @@ export function LiveChatDialog({
       void escalate();
       return;
     }
-    userSay(chip.label);
+    userSay(kind === "qa" ? supportQuestion(language, id, chip.label) : supportPrompt(language, chip.label));
     if (kind === "qa") {
       const qa = findQA(id);
-      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
+      if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips, answerId: qa.id });
     } else if (kind === "yes") {
       botSay("Glad we could help! Anything else?", { topics: true });
     }
@@ -789,9 +792,9 @@ export function LiveChatDialog({
 
   function botReply(text: string) {
     userSay(text);
-    if (wantsAgent(text)) return void escalate(text);
+    if (wantsAgent(text) || text.toLocaleLowerCase() === t("agent").toLocaleLowerCase()) return void escalate(text);
     const qa = matchQuestion(text);
-    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips });
+    if (qa) botSay(`${qa.a}\n\nDid this answer your question?`, { chips: feedbackChips, answerId: qa.id });
     else
       botSay("I couldn't find an exact answer for that - pick a topic below.", { topics: true });
   }
@@ -1044,7 +1047,7 @@ export function LiveChatDialog({
                       b.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                     }`}
                   >
-                    {b.role === "bot" ? supportPrompt(language, b.text) : b.text}
+                    {b.role === "bot" ? b.answerId ? supportAnswer(language, b.answerId, b.text.replace(/\n\nDid this answer your question\?$/, "")) + "\n\n" + t("feedback") : supportPrompt(language, b.text) : b.text}
                   </div>
                   {b.links && b.links.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1055,7 +1058,7 @@ export function LiveChatDialog({
                           onClick={() => setOpen(false)}
                           className="inline-flex min-h-8 touch-manipulation items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                         >
-                          {supportPrompt(language, l.label)} <ArrowUpRight className="size-3" />
+                          {supportLink(language, l.to, l.label)} <ArrowUpRight className="size-3" />
                         </Link>
                       ))}
                     </div>
@@ -1092,7 +1095,7 @@ export function LiveChatDialog({
                               : "border-border bg-card hover:border-primary/60 hover:text-primary"
                           }`}
                         >
-                          {supportPrompt(language, c.label)}
+                          {c.action.startsWith("qa:") ? supportQuestion(language, c.action.slice(3), c.label) : supportPrompt(language, c.label)}
                         </button>
                       ))}
                     </div>
