@@ -973,13 +973,13 @@ export function LiveChatDialog({
               </Popover>
             )}
             <div className="flex shrink-0 items-center gap-1">
-              <DropdownMenu>
+              <DropdownMenu dir="ltr">
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="ghost" size="icon" aria-label={t("language")} title={t("language")} className="touch-manipulation text-muted-foreground">
                     <Globe />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-[80] w-44" dir="ltr">
+                <DropdownMenuContent align="end" className="z-[80] w-44">
                   <DropdownMenuRadioGroup value={language} onValueChange={selectLanguage}>
                     {SUPPORT_LANGUAGES.map((item) => (
                       <DropdownMenuRadioItem key={item.id} value={item.id} className="min-h-9 touch-manipulation">
