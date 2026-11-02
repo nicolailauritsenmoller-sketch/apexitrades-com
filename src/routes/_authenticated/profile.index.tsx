@@ -296,7 +296,7 @@ function ProfileHome() {
 
           <div className="space-y-2 border-t border-border px-5 py-4 text-xs">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">Account ID</span>
+              <span className="text-muted-foreground">Account ID (UID)</span>
               <button
                 onClick={() => profile?.uid && copy(profile.uid, "UID")}
                 className="inline-flex touch-manipulation items-center gap-1.5 font-semibold tabular-nums transition-colors hover:text-primary"
@@ -306,7 +306,7 @@ function ProfileHome() {
               </button>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">Registered email</span>
+              <span className="text-muted-foreground">Account Email</span>
               <span className="max-w-[60%] truncate font-semibold">
                 {profile?.email ?? "-"}
               </span>
