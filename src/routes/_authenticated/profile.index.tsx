@@ -567,13 +567,6 @@ function ProfileHome() {
           <ListRow to="/profile/support" icon={MessageSquare} label="Contact Support" last />
         </div>
       </section>
-
-      <button
-        onClick={handleSignOut}
-        className="mt-2 flex w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-destructive px-4 py-3.5 text-sm font-semibold text-destructive-foreground transition-opacity hover:opacity-90"
-      >
-        <LogOut className="size-4" /> Log Out
-      </button>
     </>
   );
 }
