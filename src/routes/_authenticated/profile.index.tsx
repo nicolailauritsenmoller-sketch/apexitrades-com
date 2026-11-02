@@ -246,6 +246,7 @@ function ProfileHome() {
               ) : (
                 <Link
                   to="/vip-upgrade"
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-flex touch-manipulation items-center gap-1 rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:border-amber-400/50 hover:text-amber-500"
                 >
                   Regular <ChevronRight className="size-3" />
@@ -253,8 +254,130 @@ function ProfileHome() {
               )}
             </div>
           </div>
+          <ChevronRight className="mt-1 size-5 shrink-0 text-muted-foreground" />
         </div>
       </section>
+
+      <Dialog open={accountInfoOpen} onOpenChange={setAccountInfoOpen}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="border-b border-border px-5 py-4 text-left">
+            <DialogTitle className="text-base">Account Info</DialogTitle>
+            <DialogDescription className="sr-only">
+              Your synced account details, verification and security shortcuts.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-2 px-5 pb-4 pt-5 text-center">
+            <div className="relative">
+              <UserAvatar className="size-20" alt="Account avatar" />
+              <span className="absolute -bottom-0.5 -right-0.5 grid size-6 place-items-center rounded-full border border-border bg-secondary">
+                <User className="size-3.5 text-muted-foreground" />
+              </span>
+            </div>
+            <p className="font-display text-lg font-bold tracking-tight">
+              {profile?.displayName ?? "Trader"}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {isVip(vipTier) ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-300/25 to-amber-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                  <Crown className="size-3" /> {VIP_TIER_LABEL[vipTier] ?? "VIP"}
+                </span>
+              ) : isVipPending(vipTier) ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                  <Hourglass className="size-3" /> VIP (Pending)
+                </span>
+              ) : (
+                <span className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Regular
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2 border-t border-border px-5 py-4 text-xs">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Account ID</span>
+              <button
+                onClick={() => profile?.uid && copy(profile.uid, "UID")}
+                className="inline-flex touch-manipulation items-center gap-1.5 font-semibold tabular-nums transition-colors hover:text-primary"
+              >
+                {profile?.uid ?? "-"}
+                <Copy className="size-3 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Registered email</span>
+              <span className="max-w-[60%] truncate font-semibold">
+                {profile?.email ?? "-"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-muted-foreground">Member since</span>
+              <span className="font-semibold">
+                {profile?.createdAt
+                  ? new Date(profile.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "-"}
+              </span>
+            </div>
+          </div>
+
+          <nav className="border-t border-border">
+            <Link
+              to="/profile/verification"
+              onClick={() => setAccountInfoOpen(false)}
+              className="flex touch-manipulation items-center gap-3 border-b border-border px-5 py-3.5 transition-colors hover:bg-secondary"
+            >
+              <BadgeCheck className="size-[18px] shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 text-sm font-medium">Verification Center</span>
+              {status === "approved" ? (
+                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-500">
+                  Verified
+                </span>
+              ) : (
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${KYC_TONE[status]}`}>
+                  {KYC_LABEL[status] ?? status}
+                </span>
+              )}
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </Link>
+            <Link
+              to="/profile/security"
+              onClick={() => setAccountInfoOpen(false)}
+              className="flex touch-manipulation items-center gap-3 border-b border-border px-5 py-3.5 transition-colors hover:bg-secondary"
+            >
+              <ShieldCheck className="size-[18px] shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 text-sm font-medium">Security</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </Link>
+            <Link
+              to="/profile/settings/security"
+              onClick={() => setAccountInfoOpen(false)}
+              className="flex touch-manipulation items-center gap-3 px-5 py-3.5 transition-colors hover:bg-secondary"
+            >
+              <Users className="size-[18px] shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 text-sm font-medium">Link Social Account</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </Link>
+          </nav>
+
+          <div className="border-t border-border p-4">
+            <Button
+              variant="destructive"
+              className="w-full touch-manipulation"
+              onClick={() => {
+                setAccountInfoOpen(false);
+                void handleSignOut();
+              }}
+            >
+              <LogOut className="size-4" /> Log Out
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
 
 
