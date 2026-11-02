@@ -193,8 +193,20 @@ function ProfileHome() {
 
   return (
     <>
-      {/* Identity card */}
-      <section className="rounded-2xl border border-border bg-card p-5">
+      {/* Identity card - tap to open Account Info */}
+      <section
+        role="button"
+        tabIndex={0}
+        aria-label="Open account info"
+        onClick={() => setAccountInfoOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setAccountInfoOpen(true);
+          }
+        }}
+        className="cursor-pointer touch-manipulation rounded-2xl border border-border bg-card p-5 transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
         <div className="flex items-start gap-4">
           <UserAvatar className="size-16" alt="Account avatar" />
           <div className="min-w-0 flex-1">
@@ -202,7 +214,10 @@ function ProfileHome() {
               {profile?.displayName ?? "Trader"}
             </h1>
             <button
-              onClick={() => profile?.uid && copy(profile.uid, "UID")}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (profile?.uid) copy(profile.uid, "UID");
+              }}
               className="mt-0.5 inline-flex touch-manipulation items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               ID: {profile?.uid ?? "-"}
