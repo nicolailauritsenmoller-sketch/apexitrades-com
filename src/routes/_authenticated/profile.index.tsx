@@ -144,6 +144,7 @@ function ProfileHome() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const supportUnread = useSupportUnread();
+  const [accountInfoOpen, setAccountInfoOpen] = useState(false);
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
