@@ -347,7 +347,7 @@ function ProfileHome() {
             <Link
               to="/profile/security"
               onClick={() => setAccountInfoOpen(false)}
-              className="flex touch-manipulation items-center gap-3 border-b border-border px-5 py-3.5 transition-colors hover:bg-secondary"
+              className="flex touch-manipulation items-center gap-3 px-5 py-3.5 transition-colors hover:bg-secondary"
             >
               <ShieldCheck className="size-[18px] shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 text-sm font-medium">Security</span>
