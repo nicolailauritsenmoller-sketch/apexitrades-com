@@ -353,15 +353,17 @@ function ProfileHome() {
               <span className="min-w-0 flex-1 text-sm font-medium">Security</span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
-            <Link
-              to="/profile/settings/security"
-              onClick={() => setAccountInfoOpen(false)}
-              className="flex touch-manipulation items-center gap-3 px-5 py-3.5 transition-colors hover:bg-secondary"
+            <div
+              className="flex items-center gap-3 px-5 py-3.5 opacity-60"
+              aria-disabled="true"
+              title="Social account linking is not available yet"
             >
               <Users className="size-[18px] shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 text-sm font-medium">Link Social Account</span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-            </Link>
+              <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+                Not available
+              </span>
+            </div>
           </nav>
 
           <div className="border-t border-border p-4">
