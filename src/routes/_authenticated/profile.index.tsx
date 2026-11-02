@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Hourglass,
   Info,
+  KeyRound,
   LogOut,
   MessageSquare,
   ShieldCheck,
@@ -29,8 +30,9 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { KYC_LABEL, KYC_TONE, copy } from "@/components/profile/ui";
 import { getProfileOverview } from "@/lib/profile.functions";
 import { getMyKyc } from "@/lib/kyc.functions";
+import { getTwoFactorState } from "@/lib/two-factor.functions";
 import { VIP_TIER_LABEL, isVip, isVipPending } from "@/lib/vip-tiers";
-import { registerCurrentDevice } from "@/lib/sessions";
+import { listSessions, registerCurrentDevice } from "@/lib/sessions";
 import { supabase } from "@/integrations/supabase/client";
 import { clearQueryCachePersistence } from "@/lib/query-persist";
 import { useRouter } from "@tanstack/react-router";
@@ -77,6 +79,25 @@ const RISK_TONE: Record<string, string> = {
 
 function usd(value: number) {
   return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
+function formatLastLogin(iso: string) {
+  const date = new Date(iso);
+  const time = date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  });
+  const day = date.toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const dayLabel =
+    day === today
+      ? "Today"
+      : day === yesterday
+        ? "Yesterday"
+        : date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return `${dayLabel}, ${time} UTC`;
 }
 
 function QuickTile({
