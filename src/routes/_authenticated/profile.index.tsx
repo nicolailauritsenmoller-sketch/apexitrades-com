@@ -1,5 +1,6 @@
 import { useAccountOverview } from "@/components/home/AccountMetrics";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSupportUnread } from "@/lib/use-support-unread";
 import { Button } from "@/components/ui/button";
 import { RelationshipManagerCard } from "@/components/profile/RelationshipManagerCard";
