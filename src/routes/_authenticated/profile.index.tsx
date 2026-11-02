@@ -296,7 +296,7 @@ function ProfileHome() {
 
           <div className="space-y-2 border-t border-border px-5 py-4 text-xs">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">Account ID</span>
+              <span className="text-muted-foreground">Account ID (UID)</span>
               <button
                 onClick={() => profile?.uid && copy(profile.uid, "UID")}
                 className="inline-flex touch-manipulation items-center gap-1.5 font-semibold tabular-nums transition-colors hover:text-primary"
@@ -306,7 +306,7 @@ function ProfileHome() {
               </button>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-muted-foreground">Registered email</span>
+              <span className="text-muted-foreground">Account Email</span>
               <span className="max-w-[60%] truncate font-semibold">
                 {profile?.email ?? "-"}
               </span>
@@ -347,23 +347,12 @@ function ProfileHome() {
             <Link
               to="/profile/security"
               onClick={() => setAccountInfoOpen(false)}
-              className="flex touch-manipulation items-center gap-3 border-b border-border px-5 py-3.5 transition-colors hover:bg-secondary"
+              className="flex touch-manipulation items-center gap-3 px-5 py-3.5 transition-colors hover:bg-secondary"
             >
               <ShieldCheck className="size-[18px] shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 text-sm font-medium">Security</span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
-            <div
-              className="flex items-center gap-3 px-5 py-3.5 opacity-60"
-              aria-disabled="true"
-              title="Social account linking is not available yet"
-            >
-              <Users className="size-[18px] shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 text-sm font-medium">Link Social Account</span>
-              <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                Not available
-              </span>
-            </div>
           </nav>
 
           <div className="border-t border-border p-4">
