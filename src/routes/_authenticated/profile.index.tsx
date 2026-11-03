@@ -83,6 +83,7 @@ function usd(value: number) {
 
 function formatLastLogin(iso: string) {
   const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Unavailable";
   const time = date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -177,12 +178,36 @@ function ProfileHome() {
 
   const fetchOverview = useServerFn(getProfileOverview);
   const fetchKyc = useServerFn(getMyKyc);
+  const fetchTwoFactor = useServerFn(getTwoFactorState);
 
   void fetchOverview;
   const overview = useAccountOverview();
   const kyc = useQuery({ queryKey: ["my-kyc"], queryFn: () => fetchKyc() });
 
   const profile = overview.data?.profile;
+  const twoFactor = useQuery({
+    queryKey: ["two-factor-state"],
+    queryFn: () => fetchTwoFactor(),
+    enabled: accountInfoOpen && Boolean(profile?.id),
+    staleTime: 0,
+  });
+  const loginMetadata = useQuery({
+    queryKey: ["account-login-metadata", profile?.id],
+    queryFn: async () => {
+      const [{ data, error }, sessions] = await Promise.all([
+        supabase.auth.getUser(),
+        listSessions(),
+      ]);
+      if (error) throw error;
+      const recentSession = sessions.find((session) => session.isCurrent) ?? sessions[0];
+      return {
+        lastSignInAt: data.user?.last_sign_in_at ?? null,
+        hasRecordedIp: Boolean(recentSession?.ip),
+      };
+    },
+    enabled: accountInfoOpen && Boolean(profile?.id),
+    staleTime: 0,
+  });
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -375,6 +400,40 @@ function ProfileHome() {
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
           </nav>
+
+          <section aria-label="Account security audit" aria-live="polite" className="space-y-2 border-t border-border bg-secondary/30 px-5 py-3.5 text-xs">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <ShieldCheck className="size-3.5 shrink-0" />
+              <h2 className="font-semibold">Security audit</h2>
+            </div>
+            <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+              <span className="text-muted-foreground">2FA:</span>
+              <span className={`font-medium ${twoFactor.data?.enabled ? "text-bull" : "text-muted-foreground"}`}>
+                {twoFactor.isError
+                  ? "Status unavailable"
+                  : !twoFactor.data
+                    ? "Checking..."
+                    : twoFactor.data.enabled
+                      ? "Enabled (Authenticator App)"
+                      : "Not enabled"}
+              </span>
+            </p>
+            <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+              <span className="text-muted-foreground">Last login:</span>
+              <span className="font-medium tabular-nums">
+                {loginMetadata.isError
+                  ? "Unavailable"
+                  : !loginMetadata.data
+                    ? "Checking..."
+                    : loginMetadata.data.lastSignInAt
+                      ? formatLastLogin(loginMetadata.data.lastSignInAt)
+                      : "Not recorded"}
+              </span>
+            </p>
+            <p className="text-muted-foreground">
+              IP {loginMetadata.isError ? "unavailable" : !loginMetadata.data ? "checking..." : loginMetadata.data.hasRecordedIp ? "[Protected]" : "not recorded"}
+            </p>
+          </section>
 
           <div className="border-t border-border p-4">
             <Button

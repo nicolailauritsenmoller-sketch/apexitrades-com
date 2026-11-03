@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Finish Account Info security audit with live 2FA status, actual sign-in time in UTC and protected IP metadata; verify signed-in modal.
+
 - [ ] Update support greeting and add thirteen-language header selector with localized prompts and controls; verify signed-in switching and persistence.
 
 - [x] Expand Assets inventory with BTC, ETH, SOL, XRP and BNB, opt-in illustrative balances separate from spendable funds, shared asset selection across deposit/withdraw/swap and dynamic zero-balance filtering; three tests and signed-in desktop/mobile selection/filtering passed, with no overflow or page errors. Unconfigured deposits show unavailable rather than another asset's address.
