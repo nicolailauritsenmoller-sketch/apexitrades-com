@@ -35,3 +35,4 @@
 - Wallet inventory merges standard asset placeholders with real holdings; illustrative balances stay in a separate opt-in view and never feed transaction forms, while selected assets are shared across wallet actions - why: inventory previews must not fabricate spendable funds or silently select another deposit asset.
 
 - Support language selection is presentation-only: render canonical assistant prompts through support translations and preserve genuine transcript messages unchanged - why: instant switching must not rewrite customer/agent history or private handoff context.
+- Account Info reads the existing 2FA state and the authenticated user's last sign-in time on open; device activity timestamps are not login timestamps and IP values remain masked - why: security metadata must be real without exposing network identifiers.
