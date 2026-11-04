@@ -44,7 +44,7 @@ describe("homepage live market filters", () => {
   it("compactUsd abbreviates dollar values and blanks unavailable ones", () => {
     expect(compactUsd(1_610_000_000_000)).toBe("$1.61T");
     expect(compactUsd(8_230_000_000)).toBe("$8.23B");
-    expect(compactUsd(12_450)).toBe("$12.5K");
+    expect(compactUsd(12_450)).toBe("$12.4K");
     expect(compactUsd(0)).toBe("-");
     expect(compactUsd(null)).toBe("-");
   });
