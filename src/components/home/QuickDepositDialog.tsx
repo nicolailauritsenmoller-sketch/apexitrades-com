@@ -73,7 +73,6 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
             >
               <AssetIcon currency={a.currency} size={24} />
               <span className="leading-none">{a.label}</span>
-              {a.label}
             </button>
           ))}
         </div>
