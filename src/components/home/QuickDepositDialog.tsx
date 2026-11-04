@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import QRCode from "qrcode";
-import { Check, Copy, Landmark } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getDepositAddresses } from "@/lib/wallet.functions";
@@ -11,10 +11,10 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { Button } from "@/components/ui/button";
 
 const ASSETS = [
-  { key: "USDT", label: "USDT", icon: "USDTUSD" },
-  { key: "BTC", label: "BTC", icon: "BTCUSDT" },
-  { key: "ETH", label: "ETH", icon: "ETHUSDT" },
-  { key: "WIRE", label: "USD Wire", icon: null },
+  { key: "USDT", label: "USDT", currency: "USDT" },
+  { key: "BTC", label: "BTC", currency: "BTC" },
+  { key: "ETH", label: "ETH", currency: "ETH" },
+  { key: "WIRE", label: "USD Wire", currency: "USD" },
 ] as const;
 
 export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
@@ -67,12 +67,12 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
               key={a.key}
               type="button"
               onClick={() => setAsset(a.key)}
-              className={`flex min-h-16 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl border text-xs font-semibold transition-colors ${
+              className={`flex min-h-16 touch-manipulation flex-col items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition-colors ${
                 asset === a.key ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-raised"
               }`}
             >
-              {a.icon ? <AssetIcon symbol={a.icon} size={22} /> : <Landmark className="size-5" />}
-              {a.label}
+              <AssetIcon currency={a.currency} size={24} />
+              <span className="leading-none">{a.label}</span>
             </button>
           ))}
         </div>
