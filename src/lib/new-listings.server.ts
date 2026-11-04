@@ -3,6 +3,8 @@ import { applyListingQuotes, parseRecentListings, type ListingAnnouncement, type
 const CMS = "https://www.binance.com/bapi/composite/v1/public/cms/article/list/query";
 let announcementsCache: { at: number; rows: ListingAnnouncement[] } | null = null;
 let capsCache: { at: number; caps: Record<string, number> } | null = null;
+type SpotProduct = { s: string; st: string; q: string; c: string; o: string; qv: string };
+let productsCache: { at: number; rows: SpotProduct[] } | null = null;
 
 async function json<T>(url: string): Promise<T> {
   const response = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000) });
@@ -10,11 +12,12 @@ async function json<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function exchange<T>(path: string): Promise<T> {
-  for (const host of ["https://data-api.binance.vision", "https://api.binance.com"]) {
-    try { return await json<T>(`${host}${path}`); } catch { /* Try the public mirror. */ }
-  }
-  throw new Error("Exchange data unavailable");
+async function spotProducts(): Promise<{ at: number; rows: SpotProduct[] }> {
+  if (productsCache && Date.now() - productsCache.at < 20_000) return productsCache;
+  const response = await json<{ data?: SpotProduct[] }>("https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=false");
+  if (!Array.isArray(response.data) || !response.data.length) throw new Error("Spot products unavailable");
+  productsCache = { at: Date.now(), rows: response.data };
+  return productsCache;
 }
 
 async function announcements(): Promise<ListingAnnouncement[]> {
@@ -58,14 +61,13 @@ export async function fetchNewListings(): Promise<{ rows: RecentListing[]; unava
   try {
     const articles = await announcements();
     const rows = parseRecentListings(articles, Date.now()).slice(0, 20);
-    const [tickers, info, caps] = await Promise.all([
-      exchange<ListingTicker[]>("/api/v3/ticker/24hr").catch(() => []),
-      exchange<{ symbols: { symbol: string; status: string; isSpotTradingAllowed: boolean }[] }>("/api/v3/exchangeInfo").catch(() => ({ symbols: [] })),
+    const [products, caps] = await Promise.all([
+      spotProducts(),
       marketCaps(rows),
     ]);
-    // Do not label markets upcoming just because exchange status could not be fetched.
-    if (!info.symbols.length) return { rows: [], unavailable: true, asOf: Date.now() };
-    const active = new Set(info.symbols.filter(s => s.status === "TRADING" && s.isSpotTradingAllowed).map(s => s.symbol));
-    return { rows: applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null })), unavailable: !tickers.length, asOf: Date.now() };
+    // Official web spot feed avoids repeated heavyweight exchangeInfo calls and supplies 24h quote volume.
+    const active = new Set(products.rows.filter(s => s.st === "TRADING" && s.q === "USDT").map(s => s.s));
+    const tickers: ListingTicker[] = products.rows.map(s => ({ symbol: s.s, lastPrice: s.c, quoteVolume: s.qv, closeTime: products.at, priceChangePercent: Number(s.o) > 0 ? String((Number(s.c) / Number(s.o) - 1) * 100) : "NaN" }));
+    return { rows: applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null })), unavailable: false, asOf: products.at };
   } catch { return { rows: [], unavailable: true, asOf: Date.now() }; }
 }
