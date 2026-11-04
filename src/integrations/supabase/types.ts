@@ -917,6 +917,120 @@ export type Database = {
         }
         Relationships: []
       }
+      desk_performance_snapshots: {
+        Row: {
+          bucket_at: string
+          captured_at: string
+          id: string
+          leader_id: string
+          margin_30d: number
+          max_drawdown_pct: number | null
+          pnl_30d: number
+          public_name: string
+          sharpe: number | null
+          sortino: number | null
+          trades_30d: number
+          volume_30d: number
+        }
+        Insert: {
+          bucket_at: string
+          captured_at?: string
+          id?: string
+          leader_id: string
+          margin_30d: number
+          max_drawdown_pct?: number | null
+          pnl_30d: number
+          public_name: string
+          sharpe?: number | null
+          sortino?: number | null
+          trades_30d: number
+          volume_30d: number
+        }
+        Update: {
+          bucket_at?: string
+          captured_at?: string
+          id?: string
+          leader_id?: string
+          margin_30d?: number
+          max_drawdown_pct?: number | null
+          pnl_30d?: number
+          public_name?: string
+          sharpe?: number | null
+          sortino?: number | null
+          trades_30d?: number
+          volume_30d?: number
+        }
+        Relationships: []
+      }
+      discovery_articles: {
+        Row: {
+          category: string
+          created_by: string
+          excerpt: string
+          id: string
+          published_at: string | null
+          status: string
+          tickers: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_by: string
+          excerpt: string
+          id?: string
+          published_at?: string | null
+          status?: string
+          tickers?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_by?: string
+          excerpt?: string
+          id?: string
+          published_at?: string | null
+          status?: string
+          tickers?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discovery_moderation: {
+        Row: {
+          content_id: string
+          content_kind: string
+          id: string
+          priority: number
+          reason: string
+          reviewed_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          content_id: string
+          content_kind: string
+          id?: string
+          priority?: number
+          reason?: string
+          reviewed_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          content_id?: string
+          content_kind?: string
+          id?: string
+          priority?: number
+          reason?: string
+          reviewed_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kyc_submissions: {
         Row: {
           address: string | null
@@ -2429,6 +2543,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      capture_desk_performance: { Args: never; Returns: number }
       copy_leader_directory: {
         Args: never
         Returns: {

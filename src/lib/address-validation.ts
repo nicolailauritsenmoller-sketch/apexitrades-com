@@ -3,7 +3,7 @@ export const ADDRESS_ASSETS: Record<string, string[]> = {
   BTC: ["Bitcoin"],
   ETH: ["ERC20"],
   USDT: ["TRC20", "ERC20", "BEP20", "SOL"],
-  USDC: ["ERC20", "BEP20", "SOL"],
+  USDC: ["ERC20", "SOL", "Base", "BEP20"],
   BNB: ["BEP20"],
   SOL: ["SOL"],
   XRP: ["XRP"],
@@ -21,7 +21,7 @@ export function validateAddress(network: string, address: string, memo?: string 
   const a = address.trim();
   const ok =
     n.includes("TRC") ? /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a)
-    : n.includes("ERC") || n.includes("BEP") || n.includes("BSC") ? /^0x[0-9a-fA-F]{40}$/.test(a)
+    : n.includes("ERC") || n.includes("BEP") || n.includes("BSC") || n === "BASE" ? /^0x[0-9a-fA-F]{40}$/.test(a)
     : n.includes("BITCOIN") || n === "BTC" ? /^(bc1[02-9ac-hj-np-z]{11,71}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/.test(a)
     : n === "SOL" ? /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)
     : n === "XRP" ? /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(a)

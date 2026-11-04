@@ -1,4 +1,5 @@
 import { NAV } from "@/lib/operations-routing";
+import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
 import { ReadOnlyBadge } from "@/components/admin/ReadOnlyBadge";
@@ -176,6 +177,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "discovery",
   "restrictions",
   "telemetry",
   "roles",
@@ -584,6 +586,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
 
 
           {tab === "corrections" && <TradeCorrections />}
+          {tab === "discovery" && isAdmin && <DiscoveryDesk />}
           {tab === "risk" && <RiskMonitor readOnly={!canFinance} />}
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
