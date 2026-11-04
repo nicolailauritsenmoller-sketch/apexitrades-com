@@ -57,7 +57,6 @@ export function SmartMoneyPanel() {
         <span className="min-w-0 flex-1"><span className="font-semibold">{usd(p.usd)} {p.asset}</span><span className="text-muted-foreground"> at ${price(p.price)}</span></span>
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{time(p.time)}</span>
       </li>)}</ul> : <p className="py-4 text-xs text-muted-foreground">No whale-size prints in the latest sample.</p>}
-      <p className="mt-2 text-[10px] text-muted-foreground">Source: Binance spot taker flow and aggregated trades (latest 1,000 per asset; whale size = top 2% of prints, $5K-$100K), refreshed every 15 seconds. On-chain wallet transfers are not included.</p>
     </div>
   </div>;
 }
