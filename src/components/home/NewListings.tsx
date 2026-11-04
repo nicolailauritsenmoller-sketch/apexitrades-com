@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { ChartNoAxesCombined, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AssetIcon } from "@/lib/asset-icons";
+import { ListingLogo } from "./ListingLogo";
 import { INSTRUMENT_MAP } from "@/lib/instruments";
 import { compactUsd } from "@/lib/home-markets";
 import { getNewListings } from "@/lib/new-listings.functions";
@@ -33,7 +33,7 @@ export function NewListings({ search }: { search: string }) {
         </> : <Button variant="outline" size="sm" className="h-10 px-2" asChild><a href={row.announcementUrl} target="_blank" rel="noopener noreferrer">Details<ExternalLink className="size-3" /></a></Button>}
       </>;
       return <div key={row.symbol} className={`${columns} border-t border-border/50 px-2 py-3`}>
-        <div className="flex min-w-0 items-center gap-2"><AssetIcon symbol={row.symbol} size={28} /><div className="min-w-0"><span className="block truncate text-[13px] font-semibold">{row.ticker}</span><span className="block truncate text-[11px] text-muted-foreground">{row.name}</span><span className="block text-[10px] text-muted-foreground">{row.status === "listed" ? "Live · Announced" : "Announced"} {new Date(row.announcedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}</span></div></div>
+        <div className="flex min-w-0 items-center gap-2"><ListingLogo ticker={row.ticker} name={row.name} logoUrl={row.logoUrl} /><div className="min-w-0"><span className="block truncate text-[13px] font-semibold">{row.ticker}</span><span className="block truncate text-[11px] text-muted-foreground">{row.name}</span><span className="block text-[10px] text-muted-foreground">{row.status === "listed" ? "Live · Announced" : "Announced"} {new Date(row.announcedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}</span></div></div>
         <span className="num text-right text-[13px]">{row.price !== null ? priceLabel(row.price) : "-"}<span className="block text-[10px] text-muted-foreground">USDT</span></span>
         <span className={`num text-right text-xs font-semibold ${row.changePercent === null ? "text-muted-foreground" : row.changePercent >= 0 ? "text-bull" : "text-bear"}`}>{row.changePercent !== null ? `${row.changePercent >= 0 ? "+" : ""}${row.changePercent.toFixed(2)}%` : "-"}</span>
         <span className="num hidden text-right text-xs sm:block" title="24-hour quote volume in USDT">{compactUsd(row.volume)}</span>
