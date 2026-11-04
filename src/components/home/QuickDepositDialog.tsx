@@ -9,13 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { getDepositAddresses } from "@/lib/wallet.functions";
 import { AssetIcon } from "@/lib/asset-icons";
 import { Button } from "@/components/ui/button";
-
-const ASSETS = [
-  { key: "USDT", label: "USDT", currency: "USDT" },
-  { key: "BTC", label: "BTC", currency: "BTC" },
-  { key: "ETH", label: "ETH", currency: "ETH" },
-  { key: "WIRE", label: "USD Wire", currency: "USD" },
-] as const;
+import { depositOptions, QUICK_DEPOSIT_ASSETS, type QuickDepositAsset } from "@/lib/quick-deposit";
 
 export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const fetchAddresses = useServerFn(getDepositAddresses);
@@ -24,15 +18,15 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
     queryFn: () => fetchAddresses(),
     enabled: open,
   });
-  const [asset, setAsset] = useState<(typeof ASSETS)[number]["key"]>("USDT");
+  const [asset, setAsset] = useState<QuickDepositAsset>("USDT");
   const [networkId, setNetworkId] = useState<string | null>(null);
   const [qr, setQr] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const options = useMemo(() => addresses.filter((a) => a.coin.toUpperCase() === asset), [addresses, asset]);
+  const options = useMemo(() => depositOptions(addresses, asset), [addresses, asset]);
   const addr = options.find((a) => a.id === networkId) ?? options[0];
 
-  useEffect(() => setNetworkId(null), [asset]);
+  useEffect(() => { setNetworkId(null); setCopied(false); }, [asset]);
   useEffect(() => {
     setQr("");
     if (!addr?.address) return;
@@ -62,40 +56,26 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
         </DialogHeader>
 
         <div className="grid grid-cols-4 gap-2">
-          {ASSETS.map((a) => (
-            <button
-              key={a.key}
+          {QUICK_DEPOSIT_ASSETS.map((a) => (
+            <Button
+              key={a}
+              variant="outline"
               type="button"
-              onClick={() => setAsset(a.key)}
-              className={`flex min-h-16 touch-manipulation flex-col items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition-colors ${
-                asset === a.key ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-raised"
+              aria-pressed={asset === a}
+              onClick={() => setAsset(a)}
+              className={`flex h-auto min-h-20 touch-manipulation flex-col items-center justify-center gap-1.5 rounded-lg border px-1 py-2 text-xs font-semibold transition-colors ${
+                asset === a ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-raised"
               }`}
             >
-              <AssetIcon currency={a.currency} size={24} />
-              <span className="leading-none">{a.label}</span>
-            </button>
+              <span className={a === "USDC" ? "grid size-9 place-items-center rounded-full bg-bull/15 ring-1 ring-bull/60" : "grid size-9 place-items-center"}>
+                <AssetIcon currency={a} size={24} />
+              </span>
+              <span className="leading-none">{a}</span>
+            </Button>
           ))}
         </div>
 
-        {asset === "WIRE" ? (
-          <div className="rounded-xl border border-border bg-surface p-4 text-sm">
-            <p className="font-semibold">USD bank wire</p>
-            <p className="mt-1 text-muted-foreground">
-              Wire instructions are issued individually by our funding desk after verification. Contact support to
-              receive your beneficiary details.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                onOpenChange(false);
-                window.dispatchEvent(new CustomEvent("velocity:open-chat"));
-              }}
-              className="mt-3 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
-            >
-              Request Wire Instructions
-            </button>
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="h-56 animate-pulse rounded-xl bg-surface" />
         ) : !addr ? (
           <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted-foreground">
@@ -138,14 +118,16 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
               </p>
               <div className="mt-1 flex items-center gap-2">
                 <code className="min-w-0 flex-1 break-all text-xs">{addr.address}</code>
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   type="button"
                   onClick={copy}
                   aria-label="Copy address"
                   className="grid size-9 shrink-0 place-items-center rounded-lg border border-border"
                 >
                   {copied ? <Check className="size-4 text-bull" /> : <Copy className="size-4" />}
-                </button>
+                </Button>
               </div>
               {addr.memo && <p className="mt-2 text-xs">Memo: {addr.memo}</p>}
             </div>
