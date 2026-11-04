@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Add News beside Leaderboard with cached real financial articles, publisher-domain badges, article images/live market context, asset links, category filters and personal likes/sharing; signed-in desktop/mobile cards and filters verified without errors or overflow. Publisher social totals are unavailable and shown as unreported, not invented.
+
 - [x] Replace all New listing letter badges with official token logos; all four CDN-hosted icons load in signed-in desktop/mobile checks, future listings use verified exchange logo metadata; no page errors or overflow.
 
 - [x] Populate New from official recent spot-token announcements and the official spot product feed; live price/change/USDT volume, verified market caps where reported, announcement details and external chart/trade actions; 15 tests pass and signed-in desktop/mobile rows verified without page errors or overflow.
