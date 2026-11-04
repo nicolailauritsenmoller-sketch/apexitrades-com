@@ -2450,6 +2450,38 @@ export type Database = {
             Returns: boolean
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      leaderboard_desks: {
+        Args: { p_asset?: string }
+        Returns: {
+          asset_class: string
+          avatar_url: string
+          bio: string
+          closed_at: string
+          copy_traders: number
+          display_symbol: string
+          entry_price: number
+          exit_price: number
+          kyc_verified: boolean
+          leader_id: string
+          leverage: number
+          margin_30d: number
+          max_drawdown_pct: number
+          pnl_30d: number
+          pnl_pct: number
+          position_id: string
+          public_name: string
+          realized_pnl: number
+          shares: number
+          sharpe: number
+          side: string
+          sortino: number
+          symbol: string
+          trades_30d: number
+          views: number
+          vip_level: number
+          volume_30d: number
+        }[]
+      }
       leaderboard_feed: {
         Args: { p_asset?: string }
         Returns: {

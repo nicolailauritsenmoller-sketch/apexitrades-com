@@ -281,6 +281,13 @@
       "when": 1793831061485,
       "tag": "0039_leaderboard",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793831256758,
+      "tag": "0040_leaderboard_desk_metrics",
+      "breakpoints": true
     }
   ]
 }
