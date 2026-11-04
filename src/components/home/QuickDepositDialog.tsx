@@ -11,10 +11,10 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { Button } from "@/components/ui/button";
 
 const ASSETS = [
-  { key: "USDT", label: "USDT", icon: "USDTUSD" },
-  { key: "BTC", label: "BTC", icon: "BTCUSDT" },
-  { key: "ETH", label: "ETH", icon: "ETHUSDT" },
-  { key: "WIRE", label: "USD Wire", icon: null },
+  { key: "USDT", label: "USDT", currency: "USDT" },
+  { key: "BTC", label: "BTC", currency: "BTC" },
+  { key: "ETH", label: "ETH", currency: "ETH" },
+  { key: "WIRE", label: "USD Wire", currency: "USD" },
 ] as const;
 
 export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
