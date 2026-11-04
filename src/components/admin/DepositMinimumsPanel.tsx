@@ -14,14 +14,12 @@ export function DepositMinimumsPanel({ userId }: { userId: string | null }) {
   const q = useQuery({ queryKey: key, queryFn: () => list({ data: { userId } }) });
   const [coin, setCoin] = useState("USDT");
   const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
   const m = useMutation({
     mutationFn: (v: { coin: string; minAmount: number | null }) =>
-      save({ data: { userId, coin: v.coin, minAmount: v.minAmount, note } }),
+      save({ data: { userId, coin: v.coin, minAmount: v.minAmount } }),
     onSuccess: () => {
       toast.success("Deposit minimum updated");
       setAmount("");
-      setNote("");
       void qc.invalidateQueries({ queryKey: key });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -49,10 +47,9 @@ export function DepositMinimumsPanel({ userId }: { userId: string | null }) {
         ))}
         {q.data?.length === 0 && <p className="p-2.5 text-xs text-muted-foreground">No rules set.</p>}
       </div>
-      <div className="grid gap-2 sm:grid-cols-[90px_1fr_1fr_auto]">
+      <div className="grid gap-2 sm:grid-cols-[90px_1fr_auto]">
         <input value={coin} onChange={(e) => setCoin(e.target.value.toUpperCase())} placeholder="Coin" className="rounded-md bg-secondary px-2 py-2 text-sm outline-none" />
         <input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="Minimum amount" className="rounded-md bg-secondary px-2 py-2 text-sm outline-none" />
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reason (audited)" className="rounded-md bg-secondary px-2 py-2 text-sm outline-none" />
         <Button
           size="sm"
           disabled={m.isPending || !coin || !(Number(amount) >= 0) || amount === ""}

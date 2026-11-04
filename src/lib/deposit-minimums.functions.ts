@@ -4,11 +4,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolveMinimum } from "@/lib/deposit-minimums";
 
 async function isStaff(supabase: any, userId: string) {
-  const [{ data: a }, { data: f }] = await Promise.all([
-    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-    supabase.rpc("has_role", { _user_id: userId, _role: "finance" }),
-  ]);
-  return Boolean(a || f);
+  // Read the caller's own role rows (RLS allows users to read their roles).
+  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).in("role", ["admin", "finance"]);
+  if (error) console.error("deposit minimums role check", error.message);
+  return (data ?? []).length > 0;
 }
 
 /** The signed-in trader's effective minimum for a coin. */
