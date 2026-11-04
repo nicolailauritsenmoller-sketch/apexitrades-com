@@ -10,6 +10,7 @@ import { INSTRUMENTS, formatPrice } from "@/lib/instruments";
 import { useQuotes } from "@/hooks/useMarket";
 import { getWatchlist, toggleWatchlist } from "@/lib/trading.functions";
 import { getMarketCaps } from "@/lib/market-cap.functions";
+import { NewListings } from "./NewListings";
 import { HOME_MARKET_TABS, compactUsd, highVolumeSymbols, homeMarketRows, type HomeMarketTab, type HomeMarketClass } from "@/lib/home-markets";
 
 const CATALOG = INSTRUMENTS.filter(i => i.assetClass !== "crypto" || i.symbol.endsWith("USDT"));
@@ -31,11 +32,12 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
   const caps = useQuery({ queryKey: ["market-caps"], queryFn: () => fetchCaps(), refetchInterval: 120_000, staleTime: 120_000 });
   return <section className="exchange-market-list min-w-0 rounded-lg bg-surface px-2 pb-2 pt-1" aria-label="Market overview">
       <div role="tablist" aria-label="Market categories" className="exchange-tabs no-scrollbar flex gap-1 overflow-x-auto overscroll-x-contain touch-pan-x">
-        {HOME_MARKET_TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 px-2.5 text-sm ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => { setTab(item); setLimit(12); if (item === "TradFi" && category === "Crypto") setCategory("Futures"); }}>{item}</Button>)}
+        {HOME_MARKET_TABS.map(item => <Button key={item} role="tab" aria-selected={tab === item} variant="ghost" className={`h-11 shrink-0 px-2.5 text-sm ${tab === item ? "font-semibold text-foreground" : "text-muted-foreground"}`} onClick={() => { setTab(item); setLimit(12); if (item === "New") setCategory("Crypto"); if (item === "TradFi" && category === "Crypto") setCategory("Futures"); }}>{item}</Button>)}
       </div>
       <div role="tablist" aria-label="Asset types" className="flex gap-4 px-2 pt-1">
-        {(["Crypto", "Futures", "Stocks"] as const).map(item => <Button key={item} role="tab" aria-selected={category === item} variant="ghost" className={`h-9 px-0 text-[13px] ${category === item ? "text-foreground" : "text-muted-foreground"}`} onClick={() => { setCategory(item); setLimit(12); }}>{item}</Button>)}
+        {(["Crypto", "Futures", "Stocks"] as const).map(item => <Button key={item} role="tab" aria-selected={category === item} variant="ghost" className={`h-9 px-0 text-[13px] ${category === item ? "text-foreground" : "text-muted-foreground"}`} onClick={() => { setCategory(item); setLimit(12); if (tab === "New" && item !== "Crypto") setTab("Hot"); }}>{item}</Button>)}
       </div>
+      {tab === "New" ? <NewListings search={search} /> : <>
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(72px,100px)_68px] gap-2 px-2 pb-2 pt-2 text-[11px] text-muted-foreground sm:grid-cols-[minmax(0,1fr)_140px_90px_110px_110px]"><span>Name</span><span className="text-right">Last Price</span><span className="text-right">24h chg%</span><span className="hidden text-right sm:block" title="24-hour trading volume in USDT">24h Vol</span><span className="hidden text-right sm:block">Market Cap</span></div>
       <div role="tabpanel" aria-label={`${tab} ${category} markets`}>
         {isLoading && rows.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Loading markets...</p>}
@@ -62,5 +64,6 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
         })}
       </div>
       {rows.length > limit && <Button variant="ghost" className="mt-2 w-full text-muted-foreground" onClick={() => setLimit(value => value + 12)}>Show more</Button>}
+      </>}
     </section>;
 }

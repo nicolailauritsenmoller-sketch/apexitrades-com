@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyListingQuotes, parseRecentListings } from "./new-listings";
 
 const now = Date.UTC(2026, 10, 4);
-const article = { code: "a259777ee4104befa3daba5c1eadc7b5c", title: "Binance Will List Predict (PREDICT) with Seed Tag Applied", releaseDate: now - 86_400_000 };
+const article = { code: "a259777ee4104befa3daba5c1eadc7b5", title: "Binance Will List Predict (PREDICT) with Seed Tag Applied", releaseDate: now - 86_400_000 };
 describe("verified new listings", () => {
   it("selects recent new spot tokens, excluding old tokens and futures announcements", () => {
     const rows = parseRecentListings([article, { ...article, title: "Binance Futures Will List Predict (PREDICT)" }, { ...article, title: "Binance Will List Old (OLD) with Seed Tag Applied", releaseDate: now - 91 * 86_400_000 }], now);
