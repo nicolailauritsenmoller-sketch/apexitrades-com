@@ -154,12 +154,7 @@ const FUND_DOMAIN: Record<string, string> = {
 };
 
 const ENERGY_ICON: Record<string, string> = {
-  "CL=F": oilIcon,
-  "MCL=F": oilIcon,
-  "HO=F": oilIcon,
-  "RB=F": oilIcon,
-  "BZ=F": brentIcon,
-  "NG=F": gasIcon,
+  ...FUTURE_LOGOS,
 };
 
 function displayLabel(symbol: string): string {
@@ -331,7 +326,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
     case "agriculture":
-      return { sources: [agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
+      return { sources: [FUTURE_LOGOS[inst.symbol] ?? agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
     case "bond":
     case "rate":
       return { sources: [bondIcon], label: displayLabel(inst.symbol) };
