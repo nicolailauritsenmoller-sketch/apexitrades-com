@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { highVolumeSymbols, homeMarketRows, sparklinePoints } from "./home-markets";
+import { compactUsd, highVolumeSymbols, homeMarketRows, sparklinePoints } from "./home-markets";
 import type { Instrument } from "./instruments";
 import type { Quote } from "./market-types";
 
@@ -24,6 +24,13 @@ describe("homepage live market filters", () => {
     quotes.ETHUSDT.stale = false;
     expect(homeMarketRows(instruments, quotes, [], "Gainers", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT"]);
   });
+  it("Losers lists live decliners, most negative first", () => {
+    const quotes = { BTCUSDT: quote("BTCUSDT", -2), ETHUSDT: quote("ETHUSDT", -5), AAPL: quote("AAPL", 1) };
+    expect(homeMarketRows(instruments, quotes, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT", "BTCUSDT"]);
+    quotes.BTCUSDT.stale = true;
+    expect(homeMarketRows(instruments, quotes, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT"]);
+    expect(homeMarketRows(instruments, { ETHUSDT: quote("ETHUSDT", 3) }, [], "Losers", "Crypto", "")).toEqual([]);
+  });
   it("TradFi excludes crypto and follows the Stocks filter", () => {
     expect(homeMarketRows(instruments, {}, [], "TradFi", "Stocks", "").map(i => i.symbol)).toEqual(["AAPL"]);
   });
@@ -33,6 +40,13 @@ describe("homepage live market filters", () => {
   it("does not invent Alpha eligibility or new listing dates", () => {
     expect(homeMarketRows(instruments, {}, [], "Alpha", "Crypto", "")).toEqual([]);
     expect(homeMarketRows(instruments, {}, [], "New", "Crypto", "")).toEqual([]);
+  });
+  it("compactUsd abbreviates dollar values and blanks unavailable ones", () => {
+    expect(compactUsd(1_610_000_000_000)).toBe("$1.61T");
+    expect(compactUsd(8_230_000_000)).toBe("$8.23B");
+    expect(compactUsd(12_450)).toBe("$12.4K");
+    expect(compactUsd(0)).toBe("-");
+    expect(compactUsd(null)).toBe("-");
   });
   it("renders a flat real price series without division by zero", () => {
     expect(sparklinePoints([100, 100, 100])).toBe("0,40 120,40 240,40");
