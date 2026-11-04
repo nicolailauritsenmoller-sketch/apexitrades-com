@@ -22,7 +22,7 @@ export function NewListings({ search }: { search: string }) {
   const term = search.trim().toLowerCase();
   const rows = (feed.data?.rows ?? []).filter(row => `${row.name} ${row.symbol}`.toLowerCase().includes(term));
   return <div role="tabpanel" aria-label="New Crypto markets">
-    <div className="flex items-center justify-between gap-2 px-2 py-2 text-[10px] text-muted-foreground"><span>Binance spot listings · Announced in the past 90 days</span><span className="shrink-0">{feed.isFetching ? "Updating..." : feed.data ? `Updated ${new Date(feed.data.asOf).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}</span></div>
+    <div className="flex items-center justify-between gap-2 px-2 py-2 text-[10px] text-muted-foreground"><span>Recently Listed Assets · Live Market Feeds</span><span className="shrink-0">{feed.isFetching ? "Updating..." : feed.data ? `Updated ${new Date(feed.data.asOf).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}</span></div>
     <div className={`${columns} px-2 py-2 text-[11px] text-muted-foreground`}><span>Name</span><span className="text-right">Last Price</span><span className="text-right">24h chg%</span><span className="hidden text-right sm:block">24h Vol</span><span className="hidden text-right sm:block">Market Cap</span><span className="hidden text-right sm:block">Actions</span></div>
     {feed.isPending && <p className="py-10 text-center text-sm text-muted-foreground">Loading recent listings...</p>}
     {(feed.isError || feed.data?.unavailable) && <p role="status" className="px-2 py-3 text-xs text-muted-foreground">Live listing data temporarily unavailable. Retrying automatically.</p>}

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { currentNews, NEWS_REFRESH_MS } from "./news-freshness";
 
 export type NewsCategory =
   "stocks" | "crypto" | "defi" | "commodities" | "forex" | "macro" | "regulation";
@@ -426,6 +427,8 @@ function parseRss(xml: string, feed: Feed): NewsItem[] {
       block.match(/<content:encoded[^>]*>([\s\S]*?)<\/content:encoded>/)?.[1] ??
       "";
     if (!title) continue;
+    const published = date ? Date.parse(strip(date)) : Number.NaN;
+    if (!Number.isFinite(published) || published > Date.now()) continue;
     let cleanTitle = strip(title);
     if (!cleanTitle) continue;
     // Google News suffixes the publisher: "Headline - Reuters"
@@ -434,14 +437,14 @@ function parseRss(xml: string, feed: Feed): NewsItem[] {
     const publisherUrl = publisherTag?.[1]?.match(/url=["']([^"']+)["']/i)?.[1];
     const publisher = feed.google && publisherTag?.[2] ? strip(publisherTag[2]) : feed.source;
     const cleanUrl = link ? strip(link) : "";
-    const excerpt = feed.google ? "" : strip(desc).slice(0, 180);
+    const excerpt = feed.google ? "" : strip(desc).slice(0, 360);
     const blob = `${cleanTitle} ${excerpt}`;
     items.push({
       id: `${feed.source}-${cleanTitle.slice(0, 70)}`,
       title: cleanTitle,
       source: publisher,
       url: cleanUrl,
-      publishedAt: date ? new Date(strip(date)).toISOString() : new Date().toISOString(),
+      publishedAt: new Date(published).toISOString(),
       category: classify(blob, feed.category),
       region: feed.region,
       image: extractImage(block),
@@ -524,15 +527,15 @@ export const getMarketNews = createServerFn({ method: "GET" }).handler(() => fet
 let squareNewsCache: { at: number; rows: NewsItem[] } | null = null;
 /** Six publisher feeds keep the discovery news refresh inside the outbound connection budget. */
 export const getDiscoveryNews = createServerFn({ method: "GET" }).handler(async () => {
-  if (squareNewsCache && Date.now() - squareNewsCache.at < 120_000) return squareNewsCache.rows;
+  if (squareNewsCache && Date.now() - squareNewsCache.at < NEWS_REFRESH_MS) return currentNews(squareNewsCache.rows, Date.now());
   const sources = ["CoinDesk", "Cointelegraph", "CNBC", "Federal Reserve", "Binance Square", "Investing.com"];
   const feeds = sources.flatMap(source => {
     const feed = FEEDS.find(f => f.source === source);
     return feed ? [feed] : [];
   });
-  const rows = await fetchNewsFeeds(feeds);
+  const rows = currentNews(await fetchNewsFeeds(feeds), Date.now());
   if (rows.length) squareNewsCache = { at: Date.now(), rows };
-  return rows.length ? rows : squareNewsCache?.rows ?? [];
+  return rows.length ? rows : squareNewsCache && Date.now() - squareNewsCache.at < 5 * NEWS_REFRESH_MS ? currentNews(squareNewsCache.rows, Date.now()) : [];
 });
 
 /** A separate, narrow feed keeps two-minute commentary refreshes off the broad news request. */
