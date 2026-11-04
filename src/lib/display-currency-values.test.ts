@@ -7,7 +7,7 @@ describe("CAD display conversion", () => {
   });
   it("converts a USDT balance to CAD using USDT per CAD", () => {
     expect(convertDisplayAmount(100, 1 / 1.4)).toBeCloseTo(140);
-    expect(formatDisplayAmount(convertDisplayAmount(100, 1 / 1.4), "CAD")).toBe("CA$140.00");
+    expect(formatDisplayAmount(convertDisplayAmount(100, 1 / 1.4), "CAD")).toBe("$140.00");
   });
   it("uses real USD/CAD fallback in the correct direction", () => {
     expect(parseDisplayFx({ result: "success", base_code: "USD", time_last_update_unix: 1000, rates: { CAD: 1.4 } }, 1000_000).CAD).toBeCloseTo(1 / 1.4);

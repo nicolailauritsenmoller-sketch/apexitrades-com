@@ -7,7 +7,7 @@ export const DISPLAY_CURRENCIES = [
   { code: "BTC", name: "Bitcoin", kind: "crypto" as const },
 ];
 
-const SYMBOL: Record<string, string> = { USD: "$", EUR: "€", GBP: "£", CAD: "CA$" };
+const SYMBOL: Record<string, string> = { USD: "$", EUR: "€", GBP: "£", CAD: "$" };
 export const decimalsFor = (code: string) => code === "BTC" ? 6 : 2;
 
 /** Rates are USDT per unit: divide, never multiply, to convert a USDT balance. */
