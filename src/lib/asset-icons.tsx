@@ -106,7 +106,7 @@ function flagFor(code: string): string {
   const upper = code.toUpperCase();
   if (FLAG_ICON[upper]) return FLAG_ICON[upper];
   const cc = CURRENCY_COUNTRY[upper];
-  return cc ? `https://flagcdn.com/w80/${cc}.png` : usFlag;
+  return cc ? `https://flagcdn.com/w80/${cc}.png` : companyIcon;
 }
 
 const FUTURE_ICON: Record<string, string> = {
@@ -359,7 +359,6 @@ function instrumentIcon(inst: Instrument): IconInfo {
     case "stock":
 
     default: {
-      const domain = STOCK_DOMAIN[inst.symbol];
       return {
         sources: EQUITY_LOGOS[inst.symbol] ? [EQUITY_LOGOS[inst.symbol]] : [companyIcon],
         label: inst.symbol.replace(/[^A-Z0-9]/g, "").slice(0, 4),

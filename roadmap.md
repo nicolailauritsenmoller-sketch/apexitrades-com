@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Audit asset logos across all screens, publish missing official catalog marks, replace ticker-letter fallbacks with a shared non-text symbol, and verify funding/trading/market views on desktop and mobile.
+- [x] Audit project-wide asset icons; publish 87 missing crypto marks and 83 company/fund marks, add logos to leaderboard/admin/alerts, remove asset/network letter fallbacks, and share listing fallback. Twelve tests pass; signed-in Home, Markets, Portfolio, AAPL terminal, Wallet, Add Funds and 12 leaderboard cards verified, mobile has no overflow; 104 simulated image failures render non-text glyphs without page errors.
 
 - [x] Refresh Leaderboard rankings, summaries, charts and engagement every five minutes; rotate stable-key cards retaining source ranks and focused controls, preserve filters/follows and stale data on refresh failure. Five tests pass; signed-in accelerated-clock check confirms ETH rotation and filter retention without page errors. Sample metrics remain illustrative, not market-driven returns.
 
