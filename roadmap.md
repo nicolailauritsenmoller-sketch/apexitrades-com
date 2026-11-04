@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [ ] Finish logo/CAD/independent-branding audit and verify Add Funds USDC; live receiving networks require operator-provided Ethereum, Solana and Base addresses.
+- [ ] Add persistent listings/Alpha moderation, institutional news publishing and real desk-performance snapshots with audited admin controls; preserve existing deposit ledger and five-minute rotation.
+
 - [x] Match News to the supplied publisher feed with article images above bordered headline/excerpt panels, compact live asset tags and action rows; one-minute refresh rejects future, undated and older-than-48-hour articles. Three freshness tests pass; signed-in desktop/mobile cards and filters verified without errors or overflow.
 - [x] Replace New and Alpha provider-branded subheaders with the requested independent platform labels.
 
