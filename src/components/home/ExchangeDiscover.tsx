@@ -6,6 +6,7 @@ import { ArrowUpRight, ChevronDown, ChevronUp, Newspaper, Users } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { getExpertCommentary } from "@/lib/news.functions";
 import { ExchangeMarkets } from "@/components/home/ExchangeMarkets";
+import { SmartMoneyPanel } from "@/components/home/SmartMoneyPanel";
 
 const TABS = ["Discover", "Following", "Stocks", "Campaign", "Smart Money"] as const;
 type DiscoveryTab = typeof TABS[number];
@@ -55,7 +56,7 @@ export function ExchangeDiscover() {
       {tab === "Following" && <ExchangeMarkets initialTab="Favorites" />}
       {tab === "Stocks" && <ExchangeMarkets initialTab="Hot" initialCategory="Stocks" />}
       {tab === "Campaign" && <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border py-4"><div className="min-w-0"><h2 className="flex items-center gap-2 text-sm font-semibold"><Users className="size-4" />Referral program</h2><p className="mt-1 text-xs text-muted-foreground">Your referrals and referral activity</p></div><Button asChild variant="secondary"><Link to="/profile/referrals">View <ArrowUpRight /></Link></Button></div>}
-      {tab === "Smart Money" && <p className="py-5 text-sm text-muted-foreground">No verified institutional flow updates available.</p>}
+      {tab === "Smart Money" && <SmartMoneyPanel />}
     </div>}
   </section>;
 }
