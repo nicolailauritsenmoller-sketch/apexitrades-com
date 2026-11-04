@@ -1127,8 +1127,7 @@ function qrUrl(text: string) {
 function AddressesTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
   return (
     <div className="space-y-4">
-      <Card className="p-4">
-        <h3 className="mb-2 text-sm font-bold">Global minimum deposit</h3>
+      <Card title="Global minimum deposit">
         <DepositMinimumsPanel userId={null} />
       </Card>
       <ReceivingAddressesDesk rows={rows} onDone={onDone} />
