@@ -329,7 +329,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
       return { sources: [FUTURE_LOGOS[inst.symbol] ?? agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
     case "bond":
     case "rate":
-      return { sources: [bondIcon], label: displayLabel(inst.symbol) };
+      return { sources: [FUTURE_LOGOS[inst.symbol] ?? bondIcon], label: displayLabel(inst.symbol) };
     case "option": {
       const base = inst.symbol.replace(".OPT", "");
       const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];
