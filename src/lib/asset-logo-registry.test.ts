@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EQUITY_LOGOS, TOKEN_LOGOS } from "./asset-logo-registry";
+import { FUTURE_LOGOS } from "./futures-logo-registry";
 import { INSTRUMENTS } from "./instruments";
 
 describe("published asset identity coverage", () => {

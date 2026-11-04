@@ -41,8 +41,6 @@ import platinumIcon from "@/assets/commodities/platinum.svg";
 import palladiumIcon from "@/assets/commodities/palladium.svg";
 import copperIcon from "@/assets/commodities/copper.svg";
 import oilIcon from "@/assets/commodities/oil.svg";
-import brentIcon from "@/assets/commodities/brent.svg";
-import gasIcon from "@/assets/commodities/gas.svg";
 import indexIcon from "@/assets/commodities/index.svg";
 import agriIcon from "@/assets/commodities/agri.svg";
 import bondIcon from "@/assets/commodities/bond.svg";
