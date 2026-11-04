@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Populate New with official recent spot-listing announcements, live metrics and safe chart/trade actions; verify signed-in desktop/mobile.
+- [x] Populate New from official recent spot-token announcements and the official spot product feed; live price/change/USDT volume, verified market caps where reported, announcement details and external chart/trade actions; 15 tests pass and signed-in desktop/mobile rows verified without page errors or overflow.
 
 - [x] Restore full live Losers coverage without invalid catalog symbols blocking valid quotes; 13 tests pass, signed-in desktop/mobile show current negative assets worst-first and refresh automatically without page errors.
 

@@ -8,7 +8,7 @@ import { INSTRUMENT_MAP } from "@/lib/instruments";
 import { compactUsd } from "@/lib/home-markets";
 import { getNewListings } from "@/lib/new-listings.functions";
 
-const columns = "grid grid-cols-[minmax(0,1fr)_85px_70px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_100px_80px_90px_90px_85px]";
+const columns = "grid grid-cols-[minmax(0,1fr)_85px_70px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_90px_70px_80px_85px_120px]";
 const priceLabel = (value: number) => value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: value < 1 ? 8 : 4 });
 
 export function NewListings({ search }: { search: string }) {
@@ -33,7 +33,7 @@ export function NewListings({ search }: { search: string }) {
         </> : <Button variant="outline" size="sm" className="h-10 px-2" asChild><a href={row.announcementUrl} target="_blank" rel="noopener noreferrer">Details<ExternalLink className="size-3" /></a></Button>}
       </>;
       return <div key={row.symbol} className={`${columns} border-t border-border/50 px-2 py-3`}>
-        <div className="flex min-w-0 items-center gap-2"><AssetIcon symbol={row.symbol} size={28} /><div className="min-w-0"><span className="block truncate text-[13px] font-semibold">{row.ticker}</span><span className="block truncate text-[11px] text-muted-foreground">{row.name}</span><span className="block text-[10px] text-muted-foreground">{row.status === "listed" ? "Listed" : "Announced"} · {new Date(row.announcedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}</span></div></div>
+        <div className="flex min-w-0 items-center gap-2"><AssetIcon symbol={row.symbol} size={28} /><div className="min-w-0"><span className="block truncate text-[13px] font-semibold">{row.ticker}</span><span className="block truncate text-[11px] text-muted-foreground">{row.name}</span><span className="block text-[10px] text-muted-foreground">{row.status === "listed" ? "Live · Announced" : "Announced"} {new Date(row.announcedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}</span></div></div>
         <span className="num text-right text-[13px]">{row.price !== null ? priceLabel(row.price) : "-"}<span className="block text-[10px] text-muted-foreground">USDT</span></span>
         <span className={`num text-right text-xs font-semibold ${row.changePercent === null ? "text-muted-foreground" : row.changePercent >= 0 ? "text-bull" : "text-bear"}`}>{row.changePercent !== null ? `${row.changePercent >= 0 ? "+" : ""}${row.changePercent.toFixed(2)}%` : "-"}</span>
         <span className="num hidden text-right text-xs sm:block" title="24-hour quote volume in USDT">{compactUsd(row.volume)}</span>
