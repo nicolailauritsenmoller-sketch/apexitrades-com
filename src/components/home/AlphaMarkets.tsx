@@ -10,6 +10,7 @@ import { getAlpha, getAlphaChart } from "@/lib/alpha.functions";
 import { ALPHA_REFRESH_MS, alphaRows, type AlphaToken, type AlphaFilter } from "@/lib/alpha";
 import { compactUsd } from "@/lib/home-markets";
 import { ListingLogo } from "./ListingLogo";
+import { ALPHA_LOGOS } from "@/lib/alpha-logo-registry";
 
 const columns = "grid grid-cols-[minmax(0,1fr)_85px_66px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_90px_70px_80px_85px_108px]";
 const price = (value: number) => `$${value.toLocaleString("en-US", { maximumFractionDigits: value < 1 ? 8 : 4 })}`;
@@ -19,7 +20,7 @@ function AlphaPreview({ token }: { token: AlphaToken }) {
   const fetchChart = useServerFn(getAlphaChart);
   const chart = useQuery({ queryKey: ["alpha-chart", token.tokenId, interval], queryFn: () => fetchChart({ data: { tokenId: token.tokenId, interval } }), staleTime: 20_000, refetchInterval: ALPHA_REFRESH_MS });
   return <>
-    <DialogHeader><div className="flex items-center gap-3 pr-6"><ListingLogo ticker={token.ticker} name={token.name} logoUrl={token.logoUrl} /><DialogTitle>{token.name}</DialogTitle></div><DialogDescription>{token.ticker} · {token.chain} · Alpha market intelligence</DialogDescription></DialogHeader>
+    <DialogHeader><div className="flex items-center gap-3 pr-6"><ListingLogo ticker={token.ticker} name={token.name} logoUrl={ALPHA_LOGOS[token.tokenId] ?? token.logoUrl} /><DialogTitle>{token.name}</DialogTitle></div><DialogDescription>{token.ticker} · {token.chain} · Alpha market intelligence</DialogDescription></DialogHeader>
     <dl className="grid grid-cols-2 gap-3 border-y border-border py-3 sm:grid-cols-4">
       <div><dt className="text-xs text-muted-foreground">Last Price (USD)</dt><dd className="num text-sm">{price(token.price)}</dd></div>
       <div><dt className="text-xs text-muted-foreground">24h Change</dt><dd className={`num text-sm ${token.changePercent >= 0 ? "text-bull" : "text-bear"}`}>{token.changePercent >= 0 ? "+" : ""}{token.changePercent.toFixed(2)}%</dd></div>
@@ -27,7 +28,7 @@ function AlphaPreview({ token }: { token: AlphaToken }) {
       <div><dt className="text-xs text-muted-foreground">Market Cap</dt><dd className="num text-sm">{compactUsd(token.marketCap)}</dd></div>
     </dl>
     <div className="flex items-center justify-between gap-3"><div className="flex gap-2" aria-label="Alpha chart interval">{(["15m", "1h"] as const).map(i => <Button key={i} variant={interval === i ? "secondary" : "ghost"} size="sm" aria-pressed={interval === i} onClick={() => setInterval(i)}>{i}</Button>)}</div><span className="text-xs text-muted-foreground">Liquidity {compactUsd(token.liquidity)}</span></div>
-    {chart.isPending ? <div className="grid h-72 place-items-center text-sm text-muted-foreground">Loading live chart...</div> : chart.isError || !chart.data?.candles.length ? <div role="status" className="grid h-72 place-items-center text-sm text-muted-foreground">Live Alpha chart temporarily unavailable.</div> : <div><p className="mb-2 text-xs text-muted-foreground">Price in {chart.data.quote}</p><CandleChart candles={chart.data.candles} symbol={token.ticker} height={288} /></div>}
+    {chart.isPending ? <div className="grid h-72 place-items-center text-sm text-muted-foreground">Loading live chart...</div> : chart.isError || !chart.data?.candles.length ? <div role="status" className="grid h-72 place-items-center text-sm text-muted-foreground">Live Alpha chart temporarily unavailable.</div> : <div className="min-w-0"><p className="mb-2 text-xs text-muted-foreground">Price in {chart.data.quote}</p><CandleChart candles={chart.data.candles} symbol={token.ticker} height={288} priceFormatter={value => value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: value < 1 ? 8 : 4 })} /></div>}
     <div className="space-y-2 border-t border-border pt-3"><p className="break-all text-[11px] text-muted-foreground">{token.chain} · {token.address}</p><p className="text-xs text-muted-foreground">Early-stage tokens carry elevated volatility and liquidity risk.</p>{token.terminalSymbol ? <Button asChild><Link to="/terminal/$symbol" params={{ symbol: token.terminalSymbol }}>Open Trading Terminal</Link></Button> : <p role="status" className="text-xs text-muted-foreground">Read-only market. Not available for order execution on Velocity Trade.</p>}</div>
   </>;
 }
@@ -50,7 +51,7 @@ export function AlphaMarkets({ search }: { search: string }) {
     {rows.slice(0, limit).map(token => {
       const actions = <><Button variant="ghost" size="icon" className="size-10 text-muted-foreground" aria-label={`View ${token.ticker} Alpha chart`} title={`View ${token.ticker} chart`} onClick={() => setSelected(token)}><ChartNoAxesCombined /></Button>{token.terminalSymbol ? <Button size="sm" className="h-10 px-2" asChild><Link to="/terminal/$symbol" params={{ symbol: token.terminalSymbol }}>Trade</Link></Button> : <Button variant="outline" size="sm" className="h-10 px-2" onClick={() => setSelected(token)}>Details</Button>}</>;
       return <div key={token.tokenId} className={`${columns} border-t border-border/50 px-2 py-3`}>
-        <div className="flex min-w-0 items-center gap-2"><ListingLogo ticker={token.ticker} name={token.name} logoUrl={token.logoUrl} /><div className="min-w-0"><Button variant="link" className="block h-auto max-w-full truncate p-0 text-left text-[13px] font-semibold text-foreground" onClick={() => setSelected(token)}>{token.ticker}</Button><span className="block truncate text-[11px] text-muted-foreground">{token.name}</span><span className="block truncate text-[10px] text-muted-foreground">{token.chain} · Liquidity {compactUsd(token.liquidity)}</span></div></div>
+        <div className="flex min-w-0 items-center gap-2"><ListingLogo ticker={token.ticker} name={token.name} logoUrl={ALPHA_LOGOS[token.tokenId] ?? token.logoUrl} /><div className="min-w-0"><Button variant="link" className="block h-auto max-w-full truncate p-0 text-left text-[13px] font-semibold text-foreground" onClick={() => setSelected(token)}>{token.ticker}</Button><span className="block truncate text-[11px] text-muted-foreground">{token.name}</span><span className="block truncate text-[10px] text-muted-foreground">{token.chain} · Liquidity {compactUsd(token.liquidity)}</span></div></div>
         <span className="num text-right text-[13px]">{price(token.price)}<span className="block text-[10px] text-muted-foreground">USD</span></span>
         <span className={`num text-right text-xs font-semibold ${token.changePercent >= 0 ? "text-bull" : "text-bear"}`}>{token.changePercent >= 0 ? "+" : ""}{token.changePercent.toFixed(2)}%</span>
         <span className="num hidden text-right text-xs sm:block">{compactUsd(token.volume)}</span><span className="num hidden text-right text-xs text-muted-foreground sm:block" title={token.marketCap === null ? "Market capitalization not reported" : "Market capitalization in USD"}>{compactUsd(token.marketCap)}</span>

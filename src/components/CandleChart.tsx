@@ -12,10 +12,12 @@ export function CandleChart({
   candles,
   symbol,
   height = 380,
+  priceFormatter,
 }: {
   candles: Candle[];
   symbol: string;
   height?: number;
+  priceFormatter?: (value: number) => string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
@@ -30,7 +32,8 @@ export function CandleChart({
     return () => ro.disconnect();
   }, []);
 
-  const padRight = 74;
+  const label = (value: number) => priceFormatter ? priceFormatter(value) : formatPrice(value, symbol);
+  const padRight = priceFormatter ? 96 : 74;
   const padBottom = 22;
   const padTop = 10;
   const plotW = Math.max(50, width - padRight);
@@ -71,18 +74,21 @@ export function CandleChart({
     const rect = e.currentTarget.getBoundingClientRect();
     const px = e.clientX - rect.left;
     if (px > plotW) return setHover(null);
-    const index = Math.min(candles.length - 1, Math.max(0, Math.floor(px / view!.slot)));
-    setHover({ index, x: view!.x(index), y: e.clientY - rect.top });
+    if (!view) return;
+    const index = Math.min(candles.length - 1, Math.max(0, Math.floor(px / view.slot)));
+    setHover({ index, x: view.x(index), y: e.clientY - rect.top });
   }
 
   return (
-    <div ref={wrapRef} className="relative w-full" style={{ height }}>
+    <div ref={wrapRef} className="relative w-full min-w-0 overflow-hidden" style={{ height }}>
       <svg
         width={width}
         height={height}
         onMouseMove={onMove}
         onMouseLeave={() => setHover(null)}
         className="touch-none select-none"
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: "100%", maxWidth: "100%" }}
       >
         {view.ticks.map((t) => (
           <g key={t}>
@@ -102,7 +108,7 @@ export function CandleChart({
               fontFamily="var(--font-mono)"
               fill="var(--color-muted-foreground)"
             >
-              {formatPrice(t, symbol)}
+              {label(t)}
             </text>
           </g>
         ))}
@@ -155,7 +161,7 @@ export function CandleChart({
           fontFamily="var(--font-mono)"
           fill="var(--color-background)"
         >
-          {formatPrice(last.c, symbol)}
+          {label(last.c)}
         </text>
 
         {/* time axis */}
@@ -197,14 +203,14 @@ export function CandleChart({
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
             <span className="text-muted-foreground">O</span>
-            <span>{formatPrice(hovered.o, symbol)}</span>
+            <span>{label(hovered.o)}</span>
             <span className="text-muted-foreground">H</span>
-            <span>{formatPrice(hovered.h, symbol)}</span>
+            <span>{label(hovered.h)}</span>
             <span className="text-muted-foreground">L</span>
-            <span>{formatPrice(hovered.l, symbol)}</span>
+            <span>{label(hovered.l)}</span>
             <span className="text-muted-foreground">C</span>
             <span className={hovered.c >= hovered.o ? "text-bull" : "text-bear"}>
-              {formatPrice(hovered.c, symbol)}
+              {label(hovered.c)}
             </span>
           </div>
         </div>
