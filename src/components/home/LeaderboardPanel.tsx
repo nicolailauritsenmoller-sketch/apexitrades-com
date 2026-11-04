@@ -195,7 +195,7 @@ export function LeaderboardPanel() {
     </div>
     {(() => {
       const rows = feed.data ?? [];
-      const samples = !feed.isPending && !feed.isError && rows.length === 0;
+      const samples = feed.data !== undefined && rows.length === 0;
       const summary = summarizeDesks(samples ? SAMPLE_DESKS.filter(c => asset === "All" || c.pair === `${asset}USDT`) : rows.map(r => ({ volume_30d: Number(r.volume_30d), pnl_30d: Number(r.pnl_30d), sharpe: r.sharpe === null ? null : Number(r.sharpe) })));
       const items = [
         { label: "Total Tracked Volume", value: rows.length || samples ? usdK(summary.volume) : "-" },
