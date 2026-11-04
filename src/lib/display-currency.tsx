@@ -3,35 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { usePreference } from "@/lib/preferences";
 import { getDisplayRates } from "@/lib/rates.functions";
-
-/** Currencies offered in the display-currency picker. */
-export const DISPLAY_CURRENCIES = [
-  { code: "USDT", name: "Tether", kind: "crypto" as const },
-  { code: "USD", name: "US Dollar", kind: "fiat" as const },
-  { code: "EUR", name: "Euro", kind: "fiat" as const },
-  { code: "GBP", name: "British Pound", kind: "fiat" as const },
-  { code: "BTC", name: "Bitcoin", kind: "crypto" as const },
-];
+import { convertDisplayAmount, decimalsFor, formatDisplayAmount } from "./display-currency-values";
+export { DISPLAY_CURRENCIES, formatDisplayAmount } from "./display-currency-values";
 
 export const DEFAULT_DISPLAY_CURRENCY = "USDT";
-
-const SYMBOL: Record<string, string> = { USD: "$", EUR: "€", GBP: "£" };
-
-function decimalsFor(code: string) {
-  return code === "BTC" ? 6 : 2;
-}
-
-/** Formats an amount already expressed in `code`. */
-export function formatDisplayAmount(amount: number, code: string, opts?: { decimals?: number }) {
-  const digits = opts?.decimals ?? decimalsFor(code);
-  const text = Math.abs(amount).toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-  const sign = amount < 0 ? "-" : "";
-  const symbol = SYMBOL[code];
-  return symbol ? `${sign}${symbol}${text}` : `${sign}${text} ${code}`;
-}
 
 /**
  * Display-currency engine: reads the saved preference (localStorage + account
@@ -56,7 +31,7 @@ export function useDisplayCurrency(displayOverride?: string) {
   }, [rates.data, currency]);
 
   /** USDT amount -> amount in the selected display currency. */
-  const convert = useCallback((usdt: number) => (rate > 0 ? usdt / rate : usdt), [rate]);
+  const convert = useCallback((usdt: number) => convertDisplayAmount(usdt, rate), [rate]);
 
   /** USDT amount -> formatted string in the selected display currency. */
   const format = useCallback(
@@ -69,6 +44,7 @@ export function useDisplayCurrency(displayOverride?: string) {
   const formatSigned = useCallback(
     (usdt: number, opts?: { decimals?: number }) => {
       const value = convert(usdt);
+      if (!Number.isFinite(value)) return "-";
       return `${value >= 0 ? "+" : "-"}${formatDisplayAmount(Math.abs(value), currency, opts)}`;
     },
     [convert, currency],
@@ -78,7 +54,7 @@ export function useDisplayCurrency(displayOverride?: string) {
     currency,
     setCurrency,
     rate,
-    ready: rates.isSuccess || currency === "USDT" || currency === "USD",
+    ready: rate > 0,
     convert,
     format,
     formatSigned,

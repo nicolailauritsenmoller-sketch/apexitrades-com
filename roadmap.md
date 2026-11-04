@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [x] Populate Alpha from official live token feed with Trending/Early-stage/Liquidity/Momentum filters, real metrics, 376 published official logos and token-ID charts; 30-second refresh, catalog identity safeguards, signed-in desktop/mobile charts and filters verified without overflow or page errors.
+- [x] Add CAD with Canadian flag to Display Currency and separate live display FX adapter; signed-in Home/Portfolio balances and P&L conversion, selection persistence after reload and mobile picker verified. Twenty-four tests pass; build OK. Saved preference follows existing functional-consent rules.
+
 - [x] Audit project-wide asset icons; publish 87 missing crypto marks and 83 company/fund marks, add logos to leaderboard/admin/alerts, remove asset/network letter fallbacks, and share listing fallback. Twelve tests pass; signed-in Home, Markets, Portfolio, AAPL terminal, Wallet, Add Funds and 12 leaderboard cards verified, mobile has no overflow; 104 simulated image failures render non-text glyphs without page errors.
 
 - [x] Refresh Leaderboard rankings, summaries, charts and engagement every five minutes; rotate stable-key cards retaining source ranks and focused controls, preserve filters/follows and stale data on refresh failure. Five tests pass; signed-in accelerated-clock check confirms ETH rotation and filter retention without page errors. Sample metrics remain illustrative, not market-driven returns.

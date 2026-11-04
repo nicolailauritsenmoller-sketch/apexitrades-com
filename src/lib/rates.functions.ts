@@ -5,6 +5,6 @@ import { createServerFn } from "@tanstack/react-start";
  * Used by the client-side display-currency conversion engine.
  */
 export const getDisplayRates = createServerFn({ method: "GET" }).handler(async () => {
-  const { usdtRates } = await import("./rates.server");
-  return await usdtRates();
+  const { fetchDisplayRates } = await import("./display-rates.server");
+  return await fetchDisplayRates();
 });
