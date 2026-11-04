@@ -5,6 +5,24 @@ let announcementsCache: { at: number; rows: ListingAnnouncement[] } | null = nul
 let capsCache: { at: number; caps: Record<string, number> } | null = null;
 type SpotProduct = { s: string; st: string; q: string; c: string; o: string; qv: string };
 let productsCache: { at: number; rows: SpotProduct[] } | null = null;
+let logosCache: { at: number; logos: Record<string, string> } | null = null;
+
+async function officialLogos(): Promise<Record<string, string>> {
+  if (logosCache && Date.now() - logosCache.at < 300_000) return logosCache.logos;
+  try {
+    const response = await json<{ data?: { assetCode: string; logoUrl?: string }[] }>("https://www.binance.com/bapi/asset/v2/public/asset/asset/get-all-asset");
+    const logos: Record<string, string> = {};
+    for (const asset of response.data ?? []) {
+      if (!asset.logoUrl) continue;
+      try {
+        const url = new URL(asset.logoUrl);
+        if (url.protocol === "https:" && url.hostname === "bin.bnbstatic.com") logos[asset.assetCode] = url.href;
+      } catch { /* Ignore invalid publisher URLs. */ }
+    }
+    if (Object.keys(logos).length) logosCache = { at: Date.now(), logos };
+    return logosCache?.logos ?? {};
+  } catch { return logosCache?.logos ?? {}; }
+}
 
 async function json<T>(url: string): Promise<T> {
   const response = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000) });
@@ -61,13 +79,14 @@ export async function fetchNewListings(): Promise<{ rows: RecentListing[]; unava
   try {
     const articles = await announcements();
     const rows = parseRecentListings(articles, Date.now()).slice(0, 20);
-    const [products, caps] = await Promise.all([
+    const [products, caps, logos] = await Promise.all([
       spotProducts(),
       marketCaps(rows),
+      officialLogos(),
     ]);
     // Official web spot feed avoids repeated heavyweight exchangeInfo calls and supplies 24h quote volume.
     const active = new Set(products.rows.filter(s => s.st === "TRADING" && s.q === "USDT").map(s => s.s));
     const tickers: ListingTicker[] = products.rows.map(s => ({ symbol: s.s, lastPrice: s.c, quoteVolume: s.qv, closeTime: products.at, priceChangePercent: Number(s.o) > 0 ? String((Number(s.c) / Number(s.o) - 1) * 100) : "NaN" }));
-    return { rows: applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null })), unavailable: false, asOf: products.at };
+    return { rows: applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null, logoUrl: logos[row.ticker] ?? null })), unavailable: false, asOf: products.at };
   } catch { return { rows: [], unavailable: true, asOf: Date.now() }; }
 }

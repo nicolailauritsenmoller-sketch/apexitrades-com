@@ -2,7 +2,7 @@ export type ListingAnnouncement = { code: string; title: string; releaseDate: nu
 export type RecentListing = {
   symbol: string; ticker: string; name: string; announcedAt: number; announcementUrl: string;
   status: "listed" | "announced"; price: number | null; changePercent: number | null;
-  volume: number | null; marketCap: number | null;
+  volume: number | null; marketCap: number | null; logoUrl?: string | null;
 };
 
 /** Only official new spot-token announcements, not futures launches or extra pairs for old tokens. */
