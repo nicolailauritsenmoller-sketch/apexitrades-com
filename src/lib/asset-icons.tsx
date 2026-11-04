@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Coins } from "lucide-react";
 import { TOKEN_LOGOS, EQUITY_LOGOS } from "@/lib/asset-logo-registry";
+import { FUTURE_LOGOS } from "@/lib/futures-logo-registry";
 import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
@@ -110,22 +111,8 @@ function flagFor(code: string): string {
 }
 
 const FUTURE_ICON: Record<string, string> = {
-  "ES=F": indexIcon,
-  "NQ=F": indexIcon,
-  "YM=F": indexIcon,
-  "RTY=F": indexIcon,
-  "MES=F": indexIcon,
-  "MNQ=F": indexIcon,
-  "VX=F": indexIcon,
+  ...FUTURE_LOGOS,
   "BTC=F": btcIcon,
-  "CL=F": oilIcon,
-  "BZ=F": brentIcon,
-  "NG=F": gasIcon,
-  "HO=F": oilIcon,
-  "RB=F": oilIcon,
-  "ZB=F": bondIcon,
-  "ZN=F": bondIcon,
-  "ZF=F": bondIcon,
 };
 
 const METAL_ICON: Record<string, string> = {
