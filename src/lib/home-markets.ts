@@ -1,7 +1,7 @@
 import type { Instrument } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
 
-export const HOME_MARKET_TABS = ["Favorites", "Hot", "TradFi", "Alpha", "New", "Gainers"] as const;
+export const HOME_MARKET_TABS = ["Favorites", "Hot", "TradFi", "Alpha", "New", "Gainers", "Losers"] as const;
 export type HomeMarketTab = (typeof HOME_MARKET_TABS)[number];
 export type HomeMarketClass = "Crypto" | "Futures" | "Stocks";
 
@@ -21,9 +21,11 @@ export function homeMarketRows(instruments: Instrument[], quotes: Record<string,
     if (!matchesClass || (tab === "TradFi" && asset.assetClass === "crypto")) return false;
     if (tab === "Favorites" && !favorites.includes(asset.symbol)) return false;
     if (tab === "Gainers" && (!quotes[asset.symbol] || quotes[asset.symbol].stale || quotes[asset.symbol].changePercent <= 0)) return false;
+    if (tab === "Losers" && (!quotes[asset.symbol] || quotes[asset.symbol].stale || quotes[asset.symbol].changePercent >= 0)) return false;
     return !term || `${asset.symbol} ${asset.name}`.toLowerCase().includes(term);
   });
   if (tab === "Gainers") rows.sort((a, b) => quotes[b.symbol].changePercent - quotes[a.symbol].changePercent);
+  if (tab === "Losers") rows.sort((a, b) => quotes[a.symbol].changePercent - quotes[b.symbol].changePercent);
   // Hot ranks only comparable assets in the selected class by real traded volume.
   if (tab === "Hot") rows.sort((a, b) => {
     const aq = quotes[a.symbol];
@@ -33,6 +35,14 @@ export function homeMarketRows(instruments: Instrument[], quotes: Record<string,
     return bv - av;
   });
   return rows;
+}
+
+/** Compact USD formatting for table columns; "-" when the value is unavailable. */
+export function compactUsd(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value) || value <= 0) return "-";
+  const abs = Math.abs(value);
+  const unit = abs >= 1e12 ? `${(value / 1e12).toFixed(2)}T` : abs >= 1e9 ? `${(value / 1e9).toFixed(2)}B` : abs >= 1e6 ? `${(value / 1e6).toFixed(2)}M` : abs >= 1e3 ? `${(value / 1e3).toFixed(1)}K` : value.toFixed(0);
+  return `$${unit}`;
 }
 
 export function sparklinePoints(values: number[]) {
