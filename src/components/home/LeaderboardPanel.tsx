@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, MessageCircle, Repeat2, Plus, Share2, Check, ShieldCheck, Crown, Zap, Users } from "lucide-react";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeDesks } from "@/lib/leaderboard-summary";
+import { LEADERBOARD_REFRESH_MS, rotateRankedCards } from "@/lib/leaderboard-refresh";
 
 const ASSETS = ["All", "BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "AVAX", "ADA", "LINK"] as const;
 type Entry = {
@@ -30,10 +31,11 @@ const rankClass = (r: number) => r === 1 ? "bg-primary text-primary-foreground" 
 function Spark({ symbol, up, markers = false }: { symbol: string; up: boolean; markers?: boolean }) {
   const q = useQuery({
     queryKey: ["lb-spark", symbol],
-    staleTime: 60_000,
+    staleTime: LEADERBOARD_REFRESH_MS,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const r = await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=1h&limit=24`);
-      if (!r.ok) return null;
+      if (!r.ok) throw new Error("Live chart temporarily unavailable");
       return ((await r.json()) as string[][]).map(k => Number(k[4]));
     },
   });
@@ -71,12 +73,12 @@ const SAMPLE_DESKS = SAMPLES.map((sample, index) => {
   return { ...sample, volume_30d: capital * sample.lev * (1 + close / entry), pnl_30d: sample.pnl, sharpe: SAMPLE_SHARPES[index] };
 });
 
-function SampleCards({ asset }: { asset: string }) {
+function SampleCards({ asset, cycle }: { asset: string; cycle: number }) {
   return <div className="space-y-3">
     <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">Sample preview - illustrative cards, not real traders or results. Live rankings replace these once approved leaders close positions.</p>
-    {SAMPLES.filter(c => asset === "All" || c.pair === `${asset}USDT`).map((c, i) => <article key={c.name} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation">
+    {rotateRankedCards(SAMPLES.filter(c => asset === "All" || c.pair === `${asset}USDT`), cycle).map(({ entry: c, rank }) => <article key={c.name} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation transition-colors duration-300 motion-reduce:transition-none">
       <header className="flex items-center gap-2.5">
-        <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(i + 1)}`}>{i + 1}</span>
+        <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(rank)}`}>{rank}</span>
         <span className="grid size-9 place-items-center rounded-full bg-secondary text-sm font-semibold">{c.avatar}</span>
         <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{c.name}</p><p className="text-[11px] text-muted-foreground">{c.time}</p></div>
         <Button size="sm" variant="outline" className="h-8 rounded-full px-3 text-xs" onClick={() => toast.info("Sample card - follow is available on live leaders")}><Plus className="size-3.5" />Follow</Button>
@@ -113,19 +115,36 @@ function SampleCards({ asset }: { asset: string }) {
 
 export function LeaderboardPanel() {
   const qc = useQueryClient();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [cycle, setCycle] = useState(0);
   const [asset, setAsset] = useState<(typeof ASSETS)[number]>("All");
   const [me, setMe] = useState<string | null>(null);
   useEffect(() => { void supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null)); }, []);
 
   const feed = useQuery({
     queryKey: ["leaderboard", asset],
-    refetchInterval: 60_000,
+    staleTime: LEADERBOARD_REFRESH_MS,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("leaderboard_desks", { p_asset: asset === "All" ? undefined : asset });
       if (error) throw error;
       return (data ?? []) as unknown as Entry[];
     },
   });
+  const refetchLeaderboard = feed.refetch;
+  useEffect(() => {
+    let mounted = true;
+    const timer = window.setInterval(() => {
+      void refetchLeaderboard().then(result => {
+        // Keep prior rows on failure and never move a focused trading/follow control.
+        if (!mounted || result.isError) return;
+        if (!panelRef.current?.contains(document.activeElement)) setCycle(value => value + 1);
+        void qc.invalidateQueries({ queryKey: ["lb-spark"] });
+        void qc.invalidateQueries({ queryKey: ["leaderboard-mine"] });
+      });
+    }, LEADERBOARD_REFRESH_MS);
+    return () => { mounted = false; window.clearInterval(timer); };
+  }, [refetchLeaderboard, qc]);
   const mine = useQuery({
     queryKey: ["leaderboard-mine", me],
     enabled: !!me,
@@ -164,7 +183,7 @@ export function LeaderboardPanel() {
     } catch { /* dismissed */ }
   }
 
-  return <div className="space-y-3">
+  return <div ref={panelRef} className="space-y-3">
     <div className="flex items-start justify-between gap-3">
       <div>
         <h2 className="text-base font-semibold">Velocity Institutional Desk Leaderboard</h2>
@@ -187,9 +206,9 @@ export function LeaderboardPanel() {
     })()}
 
     {feed.isPending ? <p className="py-5 text-sm text-muted-foreground">Loading leaderboard...</p>
-      : feed.isError ? <p className="py-5 text-sm text-muted-foreground">Leaderboard is unavailable right now.</p>
-      : !feed.data?.length ? <SampleCards asset={asset} />
-      : feed.data.map((e, i) => {
+      : feed.isError && !feed.data ? <p className="py-5 text-sm text-muted-foreground">Leaderboard is unavailable right now.</p>
+      : !feed.data?.length ? <SampleCards asset={asset} cycle={cycle} />
+      : rotateRankedCards(feed.data, cycle).map(({ entry: e, rank }) => {
         const up = e.realized_pnl >= 0;
         const following = mine.data?.follows.has(e.leader_id) ?? false;
         const badges = [
@@ -198,9 +217,9 @@ export function LeaderboardPanel() {
           Number(e.trades_30d) >= 50 && { icon: Zap, label: "High-Frequency Desk" },
         ].filter(Boolean) as { icon: typeof Crown; label: string }[];
         const isMe = e.leader_id === me;
-        return <article key={e.position_id} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation">
+        return <article key={e.position_id} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation transition-colors duration-300 motion-reduce:transition-none">
           <header className="flex items-center gap-2.5">
-            <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(i + 1)}`}>{i + 1}</span>
+            <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(rank)}`}>{rank}</span>
             {e.avatar_url ? <img src={e.avatar_url} alt="" className="size-9 rounded-full object-cover" /> : <span className="grid size-9 place-items-center rounded-full bg-secondary text-sm font-semibold">{e.public_name.slice(0, 1).toUpperCase()}</span>}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{e.public_name}</p>
