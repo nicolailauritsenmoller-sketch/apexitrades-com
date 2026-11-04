@@ -2,8 +2,8 @@
 
 ## In Progress
 
-- [ ] Match News in the shared discovery navigation to the supplied publisher/article-image/text/asset-tag feed references, with automatically refreshed current articles and live quotes; preserve other discovery views.
-- [ ] Replace New and Alpha provider-branded subheaders with the requested independent platform labels.
+- [x] Match News to the supplied publisher feed with article images above bordered headline/excerpt panels, compact live asset tags and action rows; one-minute refresh rejects future, undated and older-than-48-hour articles. Three freshness tests pass; signed-in desktop/mobile cards and filters verified without errors or overflow.
+- [x] Replace New and Alpha provider-branded subheaders with the requested independent platform labels.
 
 - [x] Populate Alpha from official live token feed with Trending/Early-stage/Liquidity/Momentum filters, real metrics, 376 published official logos and token-ID charts; 30-second refresh, catalog identity safeguards, signed-in desktop/mobile charts and filters verified without overflow or page errors.
 - [x] Add CAD with Canadian flag to Display Currency and separate live display FX adapter; signed-in Home/Portfolio balances and P&L conversion, selection persistence after reload and mobile picker verified. Twenty-four tests pass; build OK. Saved preference follows existing functional-consent rules.
