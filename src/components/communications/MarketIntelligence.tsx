@@ -13,6 +13,7 @@ import {
 } from "@/lib/market-commentary";
 import type { Quote } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
+import { AssetIcon } from "@/lib/asset-icons";
 import { useMarketInsights } from "@/lib/use-market-insights";
 import { PriceAlertManager, type usePriceAlerts } from "./comms-alerts";
 
@@ -175,7 +176,7 @@ export function MarketIntelligence({
               params={{ symbol: p.symbol }}
               className="flex gap-3 border-b border-border py-3 last:border-0 hover:bg-secondary/50"
             >
-              <Icon
+              <AssetIcon symbol={p.symbol} size={24} /><Icon
                 className={`mt-0.5 size-4 shrink-0 ${p.tone === "up" ? "text-bull" : p.tone === "down" ? "text-bear" : "text-muted-foreground"}`}
               />
               <div className="min-w-0">

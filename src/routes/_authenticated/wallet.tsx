@@ -16,6 +16,7 @@ import {
   Download,
   Loader2,
   MessageCircle,
+  Network,
   Repeat,
   Search,
   ShieldCheck,
@@ -511,15 +512,15 @@ const NETWORK_ICON: Array<{ match: RegExp; src: string }> = [
 ];
 
 function NetworkIcon({ network, size = 20 }: { network: string; size?: number }) {
-  const [failed, setFailed] = useState(false);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
   const src = NETWORK_ICON.find((item) => item.match.test(network))?.src;
-  if (!src || failed) {
+  if (!src || failedSource === src) {
     return (
       <span
         className="grid shrink-0 place-items-center rounded-full bg-secondary text-[9px] font-bold text-muted-foreground"
         style={{ width: size, height: size }}
       >
-        {network.slice(0, 2).toUpperCase()}
+        <Network className="size-3/5" aria-hidden="true" />
       </span>
     );
   }
@@ -527,7 +528,7 @@ function NetworkIcon({ network, size = 20 }: { network: string; size?: number })
     <img
       src={src}
       alt=""
-      onError={() => setFailed(true)}
+      onError={() => setFailedSource(src)}
       className="shrink-0 rounded-full"
       style={{ width: size, height: size }}
     />

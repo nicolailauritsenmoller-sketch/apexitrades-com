@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ImageOff } from "lucide-react";
+import { AssetIcon } from "@/lib/asset-icons";
 import hype from "@/assets/crypto/hype.png.asset.json";
 import predict from "@/assets/crypto/predict.png.asset.json";
 import niulai from "@/assets/crypto/niulai.png.asset.json";
@@ -12,6 +12,6 @@ export function ListingLogo({ ticker, name, logoUrl }: { ticker: string; name: s
   const [failed, setFailed] = useState<string[]>([]);
   const source = sources.find(url => !failed.includes(url));
   return <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-raised">
-    {source ? <img src={source} alt={`${name} logo`} className="size-7 object-contain" onError={() => setFailed(current => [...current, source])} /> : <ImageOff className="size-4 text-muted-foreground" aria-label={`${name} logo unavailable`} />}
+    {source ? <img src={source} alt={`${name} logo`} className="size-7 object-contain" onError={() => setFailed(current => [...current, source])} /> : <AssetIcon currency={ticker} size={28} />}
   </span>;
 }

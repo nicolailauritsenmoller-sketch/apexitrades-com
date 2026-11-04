@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import QRCode from "qrcode";
 import { Copy, QrCode, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AssetIcon } from "@/lib/asset-icons";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { upsertDepositAddress, deleteDepositAddress } from "@/lib/admin.functions";
 import { ADDRESS_ASSETS, ADDRESS_STATUS, ALLOCATION_MODES, memoRequired, validateAddress } from "@/lib/address-validation";
@@ -93,7 +94,7 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
   return (
     <li className="space-y-2 rounded-md border border-border p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold">{row.coin} - {row.network}</span>
+        <AssetIcon currency={row.coin} size={24} /><span className="text-sm font-semibold">{row.coin} - {row.network}</span>
         <span className={`text-[11px] font-bold uppercase ${STATUS_TONE[f.status] ?? ""}`}>{ADDRESS_STATUS.find((s) => s.id === f.status)?.label}</span>
         <div className="ml-auto flex flex-wrap gap-1.5">
           <Button size="sm" variant="outline" onClick={() => setQr(true)}><QrCode />QR</Button>
@@ -118,7 +119,7 @@ function AddressRow({ row, onDone }: { row: any; onDone: () => void }) {
       </div>
       <Dialog open={qr} onOpenChange={setQr}>
         <DialogContent className="max-w-sm">
-          <DialogTitle>{row.coin} - {row.network}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><AssetIcon currency={row.coin} size={24} />{row.coin} - {row.network}</DialogTitle>
           <DialogDescription className="break-all font-mono text-xs">{row.address}{row.memo ? ` - Tag ${row.memo}` : ""}</DialogDescription>
           <QrPreview value={row.address} />
         </DialogContent>

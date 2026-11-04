@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Coins } from "lucide-react";
+import { TOKEN_LOGOS, EQUITY_LOGOS } from "@/lib/asset-logo-registry";
 import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
@@ -46,6 +48,7 @@ import bondIcon from "@/assets/commodities/bond.svg";
 import companyIcon from "@/assets/commodities/company.svg";
 
 const CRYPTO_ICON: Record<string, string> = {
+  ...TOKEN_LOGOS,
   BTC: btcIcon,
   ETH: ethIcon,
   SOL: solIcon,
@@ -69,12 +72,7 @@ const CRYPTO_ICON: Record<string, string> = {
 
 /** Remote fallback chain for tokens without a bundled mark. */
 const cryptoCdns = (base: string): string[] => {
-  const b = base.toLowerCase();
-  return [
-    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/${b}.png`,
-    `https://assets.coincap.io/assets/icons/${b}@2x.png`,
-    `https://cryptoicon-api.pages.dev/api/icon/${b}`,
-  ];
+  return CRYPTO_ICON[base.toUpperCase()] ? [CRYPTO_ICON[base.toUpperCase()]] : [];
 };
 
 const FLAG_ICON: Record<string, string> = {
@@ -108,7 +106,7 @@ function flagFor(code: string): string {
   const upper = code.toUpperCase();
   if (FLAG_ICON[upper]) return FLAG_ICON[upper];
   const cc = CURRENCY_COUNTRY[upper];
-  return cc ? `https://flagcdn.com/w80/${cc}.png` : usFlag;
+  return cc ? `https://flagcdn.com/w80/${cc}.png` : companyIcon;
 }
 
 const FUTURE_ICON: Record<string, string> = {
@@ -182,11 +180,8 @@ function displayLabel(symbol: string): string {
 }
 
 function domainSources(domain: string): string[] {
-  return [
-    `https://logo.clearbit.com/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  ];
+  const ticker = Object.keys(FUND_DOMAIN).find(key => FUND_DOMAIN[key] === domain);
+  return ticker && EQUITY_LOGOS[ticker] ? [EQUITY_LOGOS[ticker]] : [companyIcon];
 }
 
 
@@ -276,7 +271,7 @@ export function currencyIcon(currency: string): { src: string; label: string; ti
   const src =
     CRYPTO_ICON[upper] ??
     METAL_ICON[upper] ??
-    (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper] ? flagFor(upper) : cryptoCdns(upper)[0]);
+    (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper] ? flagFor(upper) : EQUITY_LOGOS[upper] ?? companyIcon);
   return { src, label: upper.slice(0, 3), tint: "" };
 }
 
@@ -284,6 +279,7 @@ function currencySources(code: string): string[] {
   const upper = code.toUpperCase();
   if (CRYPTO_ICON[upper]) return [CRYPTO_ICON[upper]];
   if (METAL_ICON[upper]) return [METAL_ICON[upper]];
+  if (EQUITY_LOGOS[upper]) return [EQUITY_LOGOS[upper]];
   if (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper]) return [flagFor(upper)];
   return cryptoCdns(upper);
 }
@@ -336,7 +332,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
     case "fund": {
       const domain = FUND_DOMAIN[inst.symbol];
       return {
-        sources: domain ? domainSources(domain) : [companyIcon],
+        sources: EQUITY_LOGOS[inst.symbol] ? [EQUITY_LOGOS[inst.symbol]] : domain ? domainSources(domain) : [companyIcon],
         label: inst.symbol.slice(0, 4),
       };
     }
@@ -356,52 +352,19 @@ function instrumentIcon(inst: Instrument): IconInfo {
       const base = inst.symbol.replace(".OPT", "");
       const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];
       return {
-        sources: domain ? domainSources(domain) : [indexIcon],
+        sources: EQUITY_LOGOS[base] ? [EQUITY_LOGOS[base]] : domain ? domainSources(domain) : [indexIcon],
         label: base.slice(0, 4),
       };
     }
     case "stock":
 
     default: {
-      const domain = STOCK_DOMAIN[inst.symbol];
       return {
-        sources: domain
-          ? [
-              `https://logo.clearbit.com/${domain}`,
-              `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-              `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-            ]
-          : [companyIcon],
+        sources: EQUITY_LOGOS[inst.symbol] ? [EQUITY_LOGOS[inst.symbol]] : [companyIcon],
         label: inst.symbol.replace(/[^A-Z0-9]/g, "").slice(0, 4),
       };
     }
   }
-}
-
-/** Deterministic tint so each ticker badge keeps a stable brand-ish colour. */
-function badgeHue(label: string): number {
-  let hash = 0;
-  for (let i = 0; i < label.length; i += 1) hash = (hash * 31 + label.charCodeAt(i)) % 360;
-  return hash;
-}
-
-/** Clean stylized ticker badge shown when every image source fails. */
-function TickerBadge({ label, size }: { label: string; size: number }) {
-  const text = (label || "?").toUpperCase().slice(0, 4);
-  const hue = badgeHue(text);
-  return (
-    <span
-      className="grid size-full place-items-center rounded-full font-semibold leading-none"
-      style={{
-        background: `linear-gradient(140deg, hsl(${hue} 62% 46%), hsl(${(hue + 38) % 360} 64% 34%))`,
-        color: "#fff",
-        fontSize: Math.max(7, Math.round(size / (text.length > 3 ? 3.4 : 2.6))),
-        letterSpacing: "0.02em",
-      }}
-    >
-      {text}
-    </span>
-  );
 }
 
 function Mark({ sources, size, label }: { sources: string[]; size: number; label: string }) {
@@ -414,7 +377,7 @@ function Mark({ sources, size, label }: { sources: string[]; size: number; label
   }
 
   const src = sources[index];
-  if (!src) return <TickerBadge label={label} size={size} />;
+  if (!src) return <Coins className="size-3/5 text-muted-foreground" aria-hidden="true" />;
 
   return (
     <img
@@ -432,7 +395,7 @@ function Mark({ sources, size, label }: { sources: string[]; size: number; label
 /**
  * Official token / company / currency mark for an instrument symbol. FX pairs
  * render dual country flags (base overlapping quote). Every chain ends in a
- * stylized ticker badge so a failed image never renders as a broken icon.
+ * non-text asset symbol so a failed image never renders initials or a broken icon.
  */
 export function AssetIcon({
   symbol,
@@ -445,8 +408,9 @@ export function AssetIcon({
   size?: number;
   className?: string;
 }) {
-  const inst = symbol ? INSTRUMENT_MAP[symbol] : undefined;
-  const fallbackCode = (currency ?? symbol ?? "USD").toUpperCase();
+  const normalizedSymbol = symbol?.trim().toUpperCase().replace(/[\s/]/g, "");
+  const inst = normalizedSymbol ? INSTRUMENT_MAP[normalizedSymbol] : undefined;
+  const fallbackCode = (currency ?? normalizedSymbol ?? "USD").toUpperCase().replace(/[-/\s]/g, "");
   const info: IconInfo = inst
     ? instrumentIcon(inst)
     : { sources: currencySources(fallbackCode), label: fallbackCode.slice(0, 4) };
