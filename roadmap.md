@@ -2,8 +2,8 @@
 
 ## In Progress
 
-- [ ] Keep all New asset actions internal; verify chart/details previews and preserve catalog-only execution.
-- [ ] Populate Leaderboard summary metrics from live rankings or clearly labeled sample data, matching the displayed cards.
+- [x] Keep all New asset actions internal; signed-in New Trade opens an internal preview without external links or new tabs, catalog-only execution preserved. Live chart provider currently rate-limited, with an explicit unavailable state.
+- [x] Populate Leaderboard summary metrics from live rankings or clearly labeled sample data matching displayed cards; verified All and ETH totals on desktop/mobile, nine tests pass, no page errors or horizontal overflow.
 
 - [x] Add News beside Leaderboard with cached real financial articles, publisher-domain badges, article images/live market context, asset links, category filters and personal likes/sharing; signed-in desktop/mobile cards and filters verified without errors or overflow. Publisher social totals are unavailable and shown as unreported, not invented.
 
