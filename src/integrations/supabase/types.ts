@@ -1016,6 +1016,45 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_engagement: {
+        Row: {
+          created_at: string
+          kind: string
+          position_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          position_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          position_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leaderboard_follows: {
+        Row: {
+          created_at: string
+          leader_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          leader_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          leader_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       market_insights: {
         Row: {
           active: boolean
@@ -2411,6 +2450,30 @@ export type Database = {
             Returns: boolean
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      leaderboard_feed: {
+        Args: { p_asset?: string }
+        Returns: {
+          asset_class: string
+          avatar_url: string
+          bio: string
+          closed_at: string
+          display_symbol: string
+          entry_price: number
+          exit_price: number
+          followers: number
+          leader_id: string
+          leverage: number
+          likes: number
+          pnl_pct: number
+          position_id: string
+          public_name: string
+          realized_pnl: number
+          reposts: number
+          side: string
+          symbol: string
+          views: number
+        }[]
+      }
       purge_old_session_replays: { Args: never; Returns: number }
       record_self_alert: {
         Args: { p_body: string; p_kind: string; p_title: string }
