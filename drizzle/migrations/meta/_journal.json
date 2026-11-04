@@ -267,6 +267,13 @@
       "when": 1792890282274,
       "tag": "0037_copy_trading_enrollment_and_campaign_interest",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793830117875,
+      "tag": "0038_deposit_minimums",
+      "breakpoints": true
     }
   ]
 }

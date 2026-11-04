@@ -839,6 +839,36 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_minimums: {
+        Row: {
+          coin: string
+          id: string
+          min_amount: number
+          note: string | null
+          updated_at: string
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coin: string
+          id?: string
+          min_amount: number
+          note?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coin?: string
+          id?: string
+          min_amount?: number
+          note?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           admin_note: string | null

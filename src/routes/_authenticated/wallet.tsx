@@ -23,6 +23,7 @@ import {
 import QRCode from "qrcode";
 
 import { getAccountSecurityState, setAddressWhitelisting } from "@/lib/account-security.functions";
+import { getMyDepositMinimum } from "@/lib/deposit-minimums.functions";
 
 const MEMO_REQUIRED_COINS = new Set(["XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "BNB-BEP2"]);
 import {
@@ -673,6 +674,11 @@ function DepositTab({
   const qc = useQueryClient();
   const fetchSecurity = useServerFn(getAccountSecurityState);
   const saveWhitelist = useServerFn(setAddressWhitelisting);
+  const fetchMinimum = useServerFn(getMyDepositMinimum);
+  const minimumQuery = useQuery({
+    queryKey: ["my-deposit-minimum", selectedAsset, selectedId],
+    queryFn: () => fetchMinimum({ data: { coin: selectedAsset } }),
+  });
   const securityQuery = useQuery({ queryKey: ["account-security-state"], queryFn: () => fetchSecurity() });
   const whitelistMutation = useMutation({
     mutationFn: (enabled: boolean) => saveWhitelist({ data: { enabled } }),
@@ -910,7 +916,12 @@ function DepositTab({
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border">
                 <div className="bg-background p-3">
                   <dt className="text-[11px] text-muted-foreground">Minimum deposit</dt>
-                  <dd className="num mt-1 text-sm font-semibold">{networkDetails.minimum}</dd>
+                  <dd className="num mt-1 text-sm font-semibold">
+                    {minimumQuery.data ? `${minimumQuery.data.amount} ${addr.coin}` : networkDetails.minimum}
+                  </dd>
+                  {minimumQuery.data?.source === "user" && (
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Account-specific minimum</p>
+                  )}
                 </div>
                 <div className="bg-background p-3">
                   <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Clock3 className="size-3.5" /> Expected arrival</dt>
