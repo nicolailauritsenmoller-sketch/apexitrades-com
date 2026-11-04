@@ -67,11 +67,12 @@ export function QuickDepositDialog({ open, onOpenChange }: { open: boolean; onOp
               key={a.key}
               type="button"
               onClick={() => setAsset(a.key)}
-              className={`flex min-h-16 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl border text-xs font-semibold transition-colors ${
+              className={`flex min-h-16 touch-manipulation flex-col items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-semibold transition-colors ${
                 asset === a.key ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-raised"
               }`}
             >
-              {a.icon ? <AssetIcon symbol={a.icon} size={22} /> : <Landmark className="size-5" />}
+              <AssetIcon currency={a.currency} size={24} />
+              <span className="leading-none">{a.label}</span>
               {a.label}
             </button>
           ))}
