@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Refresh Leaderboard rankings, summaries, charts and engagement every five minutes; rotate stable-key cards retaining source ranks and focused controls, preserve filters/follows and stale data on refresh failure. Five tests pass; signed-in accelerated-clock check confirms ETH rotation and filter retention without page errors. Sample metrics remain illustrative, not market-driven returns.
+
 - [x] Keep all New asset actions internal; signed-in New Trade opens an internal preview without external links or new tabs, catalog-only execution preserved. Live chart provider currently rate-limited, with an explicit unavailable state.
 - [x] Populate Leaderboard summary metrics from live rankings or clearly labeled sample data matching displayed cards; verified All and ETH totals on desktop/mobile, nine tests pass, no page errors or horizontal overflow.
 
