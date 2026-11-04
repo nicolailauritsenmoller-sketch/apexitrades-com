@@ -527,7 +527,11 @@ export const getMarketNews = createServerFn({ method: "GET" }).handler(() => fet
 let squareNewsCache: { at: number; rows: NewsItem[] } | null = null;
 /** Six publisher feeds keep the discovery news refresh inside the outbound connection budget. */
 export const getDiscoveryNews = createServerFn({ method: "GET" }).handler(async () => {
-  if (squareNewsCache && Date.now() - squareNewsCache.at < NEWS_REFRESH_MS) return currentNews(squareNewsCache.rows, Date.now());
+  const { readModeration, publishedArticles } = await import("./discovery-editorial.server");
+  const { moderateRows } = await import("./discovery-policy");
+  const [rules, articles] = await Promise.all([readModeration(), publishedArticles()]);
+  const curated = (rows: NewsItem[]) => moderateRows(currentNews([...articles, ...rows], Date.now()), "news", rules, row => row.id);
+  if (squareNewsCache && Date.now() - squareNewsCache.at < NEWS_REFRESH_MS) return curated(squareNewsCache.rows);
   const sources = ["CoinDesk", "Cointelegraph", "CNBC", "Federal Reserve", "Binance Square", "Investing.com"];
   const feeds = sources.flatMap(source => {
     const feed = FEEDS.find(f => f.source === source);
@@ -535,7 +539,7 @@ export const getDiscoveryNews = createServerFn({ method: "GET" }).handler(async 
   });
   const rows = currentNews(await fetchNewsFeeds(feeds), Date.now());
   if (rows.length) squareNewsCache = { at: Date.now(), rows };
-  return rows.length ? rows : squareNewsCache && Date.now() - squareNewsCache.at < 5 * NEWS_REFRESH_MS ? currentNews(squareNewsCache.rows, Date.now()) : [];
+  return curated(rows.length ? rows : squareNewsCache && Date.now() - squareNewsCache.at < 5 * NEWS_REFRESH_MS ? squareNewsCache.rows : []);
 });
 
 /** A separate, narrow feed keeps two-minute commentary refreshes off the broad news request. */
