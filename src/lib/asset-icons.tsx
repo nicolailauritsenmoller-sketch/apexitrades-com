@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Coins } from "lucide-react";
 import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
@@ -378,32 +379,6 @@ function instrumentIcon(inst: Instrument): IconInfo {
   }
 }
 
-/** Deterministic tint so each ticker badge keeps a stable brand-ish colour. */
-function badgeHue(label: string): number {
-  let hash = 0;
-  for (let i = 0; i < label.length; i += 1) hash = (hash * 31 + label.charCodeAt(i)) % 360;
-  return hash;
-}
-
-/** Clean stylized ticker badge shown when every image source fails. */
-function TickerBadge({ label, size }: { label: string; size: number }) {
-  const text = (label || "?").toUpperCase().slice(0, 4);
-  const hue = badgeHue(text);
-  return (
-    <span
-      className="grid size-full place-items-center rounded-full font-semibold leading-none"
-      style={{
-        background: `linear-gradient(140deg, hsl(${hue} 62% 46%), hsl(${(hue + 38) % 360} 64% 34%))`,
-        color: "#fff",
-        fontSize: Math.max(7, Math.round(size / (text.length > 3 ? 3.4 : 2.6))),
-        letterSpacing: "0.02em",
-      }}
-    >
-      {text}
-    </span>
-  );
-}
-
 function Mark({ sources, size, label }: { sources: string[]; size: number; label: string }) {
   const [index, setIndex] = useState(0);
   const key = sources[0] ?? label;
@@ -414,7 +389,7 @@ function Mark({ sources, size, label }: { sources: string[]; size: number; label
   }
 
   const src = sources[index];
-  if (!src) return <TickerBadge label={label} size={size} />;
+  if (!src) return <Coins className="size-3/5 text-muted-foreground" aria-hidden="true" />;
 
   return (
     <img
@@ -432,7 +407,7 @@ function Mark({ sources, size, label }: { sources: string[]; size: number; label
 /**
  * Official token / company / currency mark for an instrument symbol. FX pairs
  * render dual country flags (base overlapping quote). Every chain ends in a
- * stylized ticker badge so a failed image never renders as a broken icon.
+ * non-text asset symbol so a failed image never renders initials or a broken icon.
  */
 export function AssetIcon({
   symbol,

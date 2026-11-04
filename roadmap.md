@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Audit asset logos across all screens, publish missing official catalog marks, replace ticker-letter fallbacks with a shared non-text symbol, and verify funding/trading/market views on desktop and mobile.
+
 - [x] Refresh Leaderboard rankings, summaries, charts and engagement every five minutes; rotate stable-key cards retaining source ranks and focused controls, preserve filters/follows and stale data on refresh failure. Five tests pass; signed-in accelerated-clock check confirms ETH rotation and filter retention without page errors. Sample metrics remain illustrative, not market-driven returns.
 
 - [x] Keep all New asset actions internal; signed-in New Trade opens an internal preview without external links or new tabs, catalog-only execution preserved. Live chart provider currently rate-limited, with an explicit unavailable state.
