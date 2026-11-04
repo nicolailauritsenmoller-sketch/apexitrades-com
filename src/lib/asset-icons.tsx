@@ -332,7 +332,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
     case "fund": {
       const domain = FUND_DOMAIN[inst.symbol];
       return {
-        sources: domain ? domainSources(domain) : [companyIcon],
+        sources: EQUITY_LOGOS[inst.symbol] ? [EQUITY_LOGOS[inst.symbol]] : domain ? domainSources(domain) : [companyIcon],
         label: inst.symbol.slice(0, 4),
       };
     }
