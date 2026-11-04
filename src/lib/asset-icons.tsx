@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Coins } from "lucide-react";
+import { TOKEN_LOGOS, EQUITY_LOGOS } from "@/lib/asset-logo-registry";
 import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
@@ -47,6 +48,7 @@ import bondIcon from "@/assets/commodities/bond.svg";
 import companyIcon from "@/assets/commodities/company.svg";
 
 const CRYPTO_ICON: Record<string, string> = {
+  ...TOKEN_LOGOS,
   BTC: btcIcon,
   ETH: ethIcon,
   SOL: solIcon,
@@ -70,12 +72,7 @@ const CRYPTO_ICON: Record<string, string> = {
 
 /** Remote fallback chain for tokens without a bundled mark. */
 const cryptoCdns = (base: string): string[] => {
-  const b = base.toLowerCase();
-  return [
-    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@1.0.0/128/color/${b}.png`,
-    `https://assets.coincap.io/assets/icons/${b}@2x.png`,
-    `https://cryptoicon-api.pages.dev/api/icon/${b}`,
-  ];
+  return CRYPTO_ICON[base.toUpperCase()] ? [CRYPTO_ICON[base.toUpperCase()]] : [];
 };
 
 const FLAG_ICON: Record<string, string> = {
@@ -183,11 +180,8 @@ function displayLabel(symbol: string): string {
 }
 
 function domainSources(domain: string): string[] {
-  return [
-    `https://logo.clearbit.com/${domain}`,
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  ];
+  const ticker = Object.keys(FUND_DOMAIN).find(key => FUND_DOMAIN[key] === domain);
+  return ticker && EQUITY_LOGOS[ticker] ? [EQUITY_LOGOS[ticker]] : [companyIcon];
 }
 
 
@@ -277,7 +271,7 @@ export function currencyIcon(currency: string): { src: string; label: string; ti
   const src =
     CRYPTO_ICON[upper] ??
     METAL_ICON[upper] ??
-    (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper] ? flagFor(upper) : cryptoCdns(upper)[0]);
+    (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper] ? flagFor(upper) : EQUITY_LOGOS[upper] ?? companyIcon);
   return { src, label: upper.slice(0, 3), tint: "" };
 }
 
@@ -285,6 +279,7 @@ function currencySources(code: string): string[] {
   const upper = code.toUpperCase();
   if (CRYPTO_ICON[upper]) return [CRYPTO_ICON[upper]];
   if (METAL_ICON[upper]) return [METAL_ICON[upper]];
+  if (EQUITY_LOGOS[upper]) return [EQUITY_LOGOS[upper]];
   if (FLAG_ICON[upper] || CURRENCY_COUNTRY[upper]) return [flagFor(upper)];
   return cryptoCdns(upper);
 }
@@ -357,7 +352,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
       const base = inst.symbol.replace(".OPT", "");
       const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];
       return {
-        sources: domain ? domainSources(domain) : [indexIcon],
+        sources: EQUITY_LOGOS[base] ? [EQUITY_LOGOS[base]] : domain ? domainSources(domain) : [indexIcon],
         label: base.slice(0, 4),
       };
     }
@@ -366,13 +361,7 @@ function instrumentIcon(inst: Instrument): IconInfo {
     default: {
       const domain = STOCK_DOMAIN[inst.symbol];
       return {
-        sources: domain
-          ? [
-              `https://logo.clearbit.com/${domain}`,
-              `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-              `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-            ]
-          : [companyIcon],
+        sources: EQUITY_LOGOS[inst.symbol] ? [EQUITY_LOGOS[inst.symbol]] : [companyIcon],
         label: inst.symbol.replace(/[^A-Z0-9]/g, "").slice(0, 4),
       };
     }
@@ -420,8 +409,9 @@ export function AssetIcon({
   size?: number;
   className?: string;
 }) {
-  const inst = symbol ? INSTRUMENT_MAP[symbol] : undefined;
-  const fallbackCode = (currency ?? symbol ?? "USD").toUpperCase();
+  const normalizedSymbol = symbol?.trim().toUpperCase().replace(/[\s/]/g, "");
+  const inst = normalizedSymbol ? INSTRUMENT_MAP[normalizedSymbol] : undefined;
+  const fallbackCode = (currency ?? normalizedSymbol ?? "USD").toUpperCase().replace(/[-/\s]/g, "");
   const info: IconInfo = inst
     ? instrumentIcon(inst)
     : { sources: currencySources(fallbackCode), label: fallbackCode.slice(0, 4) };

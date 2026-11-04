@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Banknote, Plus, QrCode, Trash2 } from "lucide-react";
+import { AssetIcon } from "@/lib/asset-icons";
 import {
   deleteDepositAddress,
   getPlatformSettings,
@@ -166,7 +167,7 @@ export function PaymentGatewaysPanel({
               key={a.id}
               className="flex flex-wrap items-center gap-2 rounded-xl border border-border/70 p-3"
             >
-              <div className="min-w-0 flex-1">
+              <AssetIcon currency={a.coin} size={24} /><div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">
                   {a.coin} · {a.network}{" "}
                   {!a.active && <span className="text-[10px] text-ops-red">INACTIVE</span>}

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, MessageCircle, Repeat2, Plus, Share2, Check, ShieldCheck, Crown, Zap, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { AssetIcon } from "@/lib/asset-icons";
 import { supabase } from "@/integrations/supabase/client";
 import { summarizeDesks } from "@/lib/leaderboard-summary";
 import { LEADERBOARD_REFRESH_MS, rotateRankedCards } from "@/lib/leaderboard-refresh";
@@ -86,7 +87,7 @@ function SampleCards({ asset, cycle }: { asset: string; cycle: number }) {
       <p className="mt-2.5 text-sm leading-relaxed">{c.quote}</p>
       <div className="mt-3 rounded-xl bg-secondary/60 p-3">
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="font-semibold">{c.pair}</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Perp</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{c.lev}X</span>
+          <AssetIcon symbol={c.pair} size={22} /><span className="font-semibold">{c.pair}</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Perp</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{c.lev}X</span>
           <span className="text-muted-foreground">Closed</span><span className={`font-semibold ${c.side === "Long" ? "text-bull" : "text-bear"}`}>{c.side}</span>
         </div>
         <div className="mt-2 flex items-end justify-between gap-3">
@@ -238,7 +239,7 @@ export function LeaderboardPanel() {
           {e.bio && <p className="mt-2.5 text-sm leading-relaxed">{e.bio}</p>}
           <div className="mt-3 rounded-xl bg-secondary/60 p-3">
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="font-semibold">{e.display_symbol}</span>
+              <AssetIcon symbol={e.symbol} size={22} /><span className="font-semibold">{e.display_symbol}</span>
               {e.asset_class === "future" && <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Perp</span>}
               <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{num(Number(e.leverage), 0)}X</span>
               <span className="text-muted-foreground">Closed</span>

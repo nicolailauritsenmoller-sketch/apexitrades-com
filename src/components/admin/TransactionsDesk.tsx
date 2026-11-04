@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Copy, Download, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AssetIcon } from "@/lib/asset-icons";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { getLedgerDesk } from "@/lib/ledger-desk.functions";
 import { downloadCsv } from "@/lib/csv";
@@ -139,7 +140,7 @@ export function TransactionsDesk() {
                   <td className="num p-2">{new Date(r.created_at).toLocaleString()}</td>
                   <td className="p-2">{TYPE_LABEL[typeOf(r)]}</td>
                   <td className="p-2">{r.name ?? "-"} <span className="font-mono text-muted-foreground">{r.uid}</span></td>
-                  <td className="p-2">{r.currency}</td>
+                  <td className="p-2"><span className="flex items-center gap-2"><AssetIcon currency={r.currency} size={20} />{r.currency}</span></td>
                   <td className={`num p-2 text-right ${r.amount < 0 ? "text-bear" : "text-bull"}`}>{fmt(r.amount)}</td>
                   <td className="num p-2 text-right">{r.fee ? fmt(r.fee) : "-"}</td>
                   <td className="p-2">{r.status}</td>
