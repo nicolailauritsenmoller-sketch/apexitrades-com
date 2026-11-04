@@ -2,8 +2,9 @@
 
 ## In Progress
 
-- [ ] Finish logo/CAD/independent-branding audit and verify Add Funds USDC; live receiving networks require operator-provided Ethereum, Solana and Base addresses.
-- [ ] Add persistent listings/Alpha moderation, institutional news publishing and real desk-performance snapshots with audited admin controls; preserve existing deposit ledger and five-minute rotation.
+- [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
+- [ ] Activate USDC receiving networks - blocked on operator-provided Ethereum ERC-20, Solana and Base receiving addresses; admin network selection and validation are ready, no addresses fabricated.
+- [x] Add persistent listings/Alpha/news moderation, institutional news publishing and real desk-performance snapshots with audited admin controls; signed-in draft save/reload/update and mobile checked, test drafts withdrawn. Preserve the existing deposit ledger and five-minute client rotation; snapshots update on real trade changes rather than idle polling. Nineteen focused tests pass.
 
 - [x] Match News to the supplied publisher feed with article images above bordered headline/excerpt panels, compact live asset tags and action rows; one-minute refresh rejects future, undated and older-than-48-hour articles. Three freshness tests pass; signed-in desktop/mobile cards and filters verified without errors or overflow.
 - [x] Replace New and Alpha provider-branded subheaders with the requested independent platform labels.
