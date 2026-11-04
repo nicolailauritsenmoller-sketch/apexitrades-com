@@ -242,6 +242,15 @@ export const requestDeposit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => depositInput.parse(input))
   .handler(async ({ data, context }) => {
+    const { data: minRows } = await (context.supabase as any)
+      .from("deposit_minimums")
+      .select("user_id,coin,min_amount")
+      .ilike("coin", data.coin);
+    const { resolveMinimum } = await import("@/lib/deposit-minimums");
+    const min = resolveMinimum(minRows ?? [], context.userId, data.coin);
+    if (min && data.amount < min.amount) {
+      throw new Error(`Minimum deposit for ${data.coin} is ${min.amount} ${data.coin}.`);
+    }
     const { data: row, error } = await context.supabase
       .from("deposits")
       .insert({
