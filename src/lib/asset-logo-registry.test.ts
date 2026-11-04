@@ -21,7 +21,7 @@ describe("published asset identity coverage", () => {
   });
 
   it("covers catalog futures with official exchange or index marks", () => {
-    const branded = ["future", "energy", "rate"];
+    const branded = ["future", "energy", "rate", "agriculture"];
     for (const asset of INSTRUMENTS.filter(asset => branded.includes(asset.assetClass))) {
       if (asset.symbol === "BTC=F") continue; // CME Bitcoin keeps the Bitcoin mark
       expect(FUTURE_LOGOS[asset.symbol], asset.symbol).toMatch(/^\/__l5e\/assets-v1\//);

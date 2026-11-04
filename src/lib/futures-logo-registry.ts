@@ -34,4 +34,14 @@ export const FUTURE_LOGOS: Record<string, string> = {
   "ZF=F": cme.url,
   "ZN=F": cme.url,
   "ZB=F": cme.url,
+  // CBOT grains (CME Group)
+  "ZC=F": cme.url,
+  "ZS=F": cme.url,
+  "ZW=F": cme.url,
+  "ZL=F": cme.url,
+  // ICE Futures US softs
+  "KC=F": ice.url,
+  "SB=F": ice.url,
+  "CC=F": ice.url,
+  "CT=F": ice.url,
 };
