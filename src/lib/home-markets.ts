@@ -21,7 +21,7 @@ export function homeMarketRows(instruments: Instrument[], quotes: Record<string,
     if (!matchesClass || (tab === "TradFi" && asset.assetClass === "crypto")) return false;
     if (tab === "Favorites" && !favorites.includes(asset.symbol)) return false;
     if (tab === "Gainers" && (!quotes[asset.symbol] || quotes[asset.symbol].stale || quotes[asset.symbol].changePercent <= 0)) return false;
-    if (tab === "Losers" && (!quotes[asset.symbol] || quotes[asset.symbol].stale || quotes[asset.symbol].changePercent >= 0)) return false;
+    if (tab === "Losers" && (!quotes[asset.symbol] || quotes[asset.symbol].stale || !Number.isFinite(quotes[asset.symbol].changePercent) || quotes[asset.symbol].price <= 0 || quotes[asset.symbol].changePercent >= 0)) return false;
     return !term || `${asset.symbol} ${asset.name}`.toLowerCase().includes(term);
   });
   if (tab === "Gainers") rows.sort((a, b) => quotes[b.symbol].changePercent - quotes[a.symbol].changePercent);

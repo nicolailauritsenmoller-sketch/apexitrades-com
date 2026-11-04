@@ -19,7 +19,7 @@ export function useQuotes(input: string[], intervalMs = 5000) {
 
   const map: Record<string, Quote> = {};
   for (const q of query.data ?? []) map[q.symbol] = q;
-  return { quotes: map, list: query.data ?? [], isLoading: query.isLoading };
+  return { quotes: map, list: query.data ?? [], isLoading: query.isLoading, isError: query.isError };
 }
 
 export function useCandles(symbol: string, timeframe: Timeframe) {

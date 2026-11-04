@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Restore full live Losers coverage without invalid catalog symbols blocking valid quotes; test negative-only worst-first refresh and verify signed-in preview.
+
 - [ ] Finish Account Info security audit with live 2FA status, actual sign-in time in UTC and protected IP metadata; verify signed-in modal.
 
 - [ ] Update support greeting and add thirteen-language header selector with localized prompts and controls; verify signed-in switching and persistence.

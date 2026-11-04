@@ -425,11 +425,14 @@ async function binanceQuotes(instruments: Instrument[]): Promise<Quote[]> {
   // Native USD pairs are not listed on Binance; they resolve via Coinbase USD books.
   instruments = instruments.filter((i) => i.symbol.endsWith("USDT"));
   if (instruments.length === 0) return [];
-  const list = encodeURIComponent(JSON.stringify(instruments.map((i) => i.symbol)));
+  // A delisted/unsupported catalog pair makes Binance reject an entire symbols
+  // batch. Read the market snapshot and select locally so one pair cannot hide
+  // every live decliner (or push every supported asset onto the fallback feed).
+  const requested = new Set(instruments.map((i) => i.symbol));
   return firstOk(
-    BINANCE_HOSTS.map((h) => `${h}/api/v3/ticker/24hr?symbols=${list}`),
+    BINANCE_HOSTS.map((h) => `${h}/api/v3/ticker/24hr`),
     (rows: any[]) =>
-      rows.map((r) => ({
+      rows.filter((r) => requested.has(r.symbol) && Number(r.lastPrice) > 0 && Number.isFinite(Number(r.priceChangePercent)) && Number(r.volume) > 0 && Number(r.closeTime) >= Date.now() - 120_000).map((r) => ({
         symbol: r.symbol as string,
         price: Number(r.lastPrice),
         change: Number(r.priceChange),
