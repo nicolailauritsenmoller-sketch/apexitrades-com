@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Plus, Share2, Check, ShieldCheck, Crown, Zap, Users } from "lucide-react";
+import { Eye, MessageCircle, Repeat2, Plus, Share2, Check, ShieldCheck, Crown, Zap, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ const ago = (iso: string) => {
 };
 const rankClass = (r: number) => r === 1 ? "bg-primary text-primary-foreground" : r <= 3 ? "bg-secondary text-foreground ring-1 ring-primary/40" : "bg-secondary text-muted-foreground";
 
-function Spark({ symbol, up }: { symbol: string; up: boolean }) {
+function Spark({ symbol, up, markers = false }: { symbol: string; up: boolean; markers?: boolean }) {
   const q = useQuery({
     queryKey: ["lb-spark", symbol],
     staleTime: 60_000,
@@ -40,7 +40,56 @@ function Spark({ symbol, up }: { symbol: string; up: boolean }) {
   if (!d?.length) return <div className="h-12 w-24" />;
   const min = Math.min(...d), max = Math.max(...d), span = max - min || 1;
   const pts = d.map((v, i) => `${(i / (d.length - 1)) * 96},${46 - ((v - min) / span) * 42}`).join(" ");
-  return <svg viewBox="0 0 96 48" className="h-12 w-24" aria-label={`${symbol} 24h price`}><polyline points={pts} fill="none" strokeWidth="1.5" className={up ? "stroke-bull" : "stroke-bear"} /></svg>;
+  return <svg viewBox="0 0 96 48" className="h-12 w-24" aria-label={`${symbol} 24h price`}><polyline points={pts} fill="none" strokeWidth="1.5" className={up ? "stroke-bull" : "stroke-bear"} />
+    {markers && [[3, "B", "fill-bull"], [d.length - 4, "S", "fill-bear"]].map(([i, l, c]) => { const x = (Number(i) / (d.length - 1)) * 96, y = 46 - ((d[Number(i)] - min) / span) * 42; return <g key={String(l)}><circle cx={x} cy={y} r="5" className={String(c)} /><text x={x} y={y + 2.5} textAnchor="middle" fontSize="7" fontWeight="700" className="fill-background">{l}</text></g>; })}
+  </svg>;
+}
+
+// Illustrative cards shown only while no real ranked trades exist; clearly labelled as samples.
+const SAMPLES = [
+  { name: "币圈老王", avatar: "W", time: "2h ago", quote: "Held through the retest. Patience paid on this breakout.", pair: "BTCUSDT", lev: 2, side: "Long", pnl: 1100943.19, pct: 24.27, entry: "64,812.40", close: "80,541.10", closeTime: "2026-11-04 19:42", comments: 128, shares: 342, likes: 2104, views: "48.2K" },
+  { name: "AlphaKai", avatar: "A", time: "5h ago", quote: "Funding flipped negative and the squeeze did the rest.", pair: "ETHUSDT", lev: 5, side: "Long", pnl: 482310.55, pct: 61.08, entry: "2,931.20", close: "3,289.75", closeTime: "2026-11-04 16:05", comments: 76, shares: 190, likes: 1311, views: "27.9K" },
+  { name: "月光交易员", avatar: "月", time: "9h ago", quote: "Faded the range high, covered into support.", pair: "SOLUSDT", lev: 3, side: "Short", pnl: 156022.08, pct: 18.92, entry: "212.44", close: "199.03", closeTime: "2026-11-04 12:18", comments: 41, shares: 88, likes: 640, views: "12.4K" },
+];
+
+function SampleCards() {
+  return <div className="space-y-3">
+    <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">Sample preview - illustrative cards, not real traders or results. Live rankings replace these once approved leaders close positions.</p>
+    {SAMPLES.map((c, i) => <article key={c.name} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation">
+      <header className="flex items-center gap-2.5">
+        <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(i + 1)}`}>{i + 1}</span>
+        <span className="grid size-9 place-items-center rounded-full bg-secondary text-sm font-semibold">{c.avatar}</span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{c.name}</p><p className="text-[11px] text-muted-foreground">{c.time}</p></div>
+        <Button size="sm" variant="outline" className="h-8 rounded-full px-3 text-xs" onClick={() => toast.info("Sample card - follow is available on live leaders")}><Plus className="size-3.5" />Follow</Button>
+      </header>
+      <p className="mt-2.5 text-sm leading-relaxed">{c.quote}</p>
+      <div className="mt-3 rounded-xl bg-secondary/60 p-3">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="font-semibold">{c.pair}</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Perp</span><span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{c.lev}X</span>
+          <span className="text-muted-foreground">Closed</span><span className={`font-semibold ${c.side === "Long" ? "text-bull" : "text-bear"}`}>{c.side}</span>
+        </div>
+        <div className="mt-2 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] text-muted-foreground">Realized PNL (USDT)</p>
+            <p className="font-mono text-lg font-semibold text-bull">+{num(c.pnl)} <span className="text-sm">+{num(c.pct)}%</span></p>
+          </div>
+          <Spark symbol={c.pair} up={c.side === "Long"} markers />
+        </div>
+        <dl className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+          <div><dt className="text-muted-foreground">Entry Price</dt><dd className="font-mono">{c.entry}</dd></div>
+          <div><dt className="text-muted-foreground">Avg. Close Price</dt><dd className="font-mono">{c.close}</dd></div>
+          <div><dt className="text-muted-foreground">Close Time</dt><dd className="font-mono">{c.closeTime}</dd></div>
+        </dl>
+        <Button asChild size="sm" className="mt-3 h-9 w-full rounded-full"><Link to="/trade" search={{ symbol: c.pair }}>Trade</Link></Button>
+      </div>
+      <footer className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+        <span className="flex min-h-10 items-center gap-1"><MessageCircle className="size-4" />{c.comments}</span>
+        <span className="flex min-h-10 items-center gap-1"><Share2 className="size-4" />{c.shares}</span>
+        <span className="flex min-h-10 items-center gap-1"><Repeat2 className="size-4" />{c.likes}</span>
+        <span className="flex min-h-10 items-center gap-1"><Eye className="size-4" />{c.views}</span>
+      </footer>
+    </article>)}
+  </div>;
 }
 
 export function LeaderboardPanel() {
@@ -117,7 +166,7 @@ export function LeaderboardPanel() {
 
     {feed.isPending ? <p className="py-5 text-sm text-muted-foreground">Loading leaderboard...</p>
       : feed.isError ? <p className="py-5 text-sm text-muted-foreground">Leaderboard is unavailable right now.</p>
-      : !feed.data?.length ? <p className="py-5 text-sm text-muted-foreground">No ranked trades in the last 30 days{asset !== "All" ? ` for ${asset}` : ""}. Approved copy leaders appear here once they close a position.</p>
+      : !feed.data?.length ? <SampleCards />
       : feed.data.map((e, i) => {
         const up = e.realized_pnl >= 0;
         const following = mine.data?.follows.has(e.leader_id) ?? false;
