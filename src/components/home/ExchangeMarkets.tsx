@@ -23,7 +23,8 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
   const qc = useQueryClient();
   const watchlist = useQuery({ queryKey: ["watchlist"], queryFn: () => fetchWatchlist() });
   const favorite = useMutation({ mutationFn: (symbol: string) => toggle({ data: { symbol } }), onSuccess: () => qc.invalidateQueries({ queryKey: ["watchlist"] }), onError: () => toast.error("Could not update favorites. Please try again.") });
-  const { quotes, isLoading } = useQuotes(CATALOG.filter(i => category === "Crypto" ? i.assetClass === "crypto" : category === "Stocks" ? i.assetClass === "stock" : ["future", "energy", "agriculture", "rate"].includes(i.assetClass)).map(i => i.symbol), 5000);
+  const { quotes, isLoading, isError } = useQuotes(CATALOG.filter(i => category === "Crypto" ? i.assetClass === "crypto" : category === "Stocks" ? i.assetClass === "stock" : ["future", "energy", "agriculture", "rate"].includes(i.assetClass)).map(i => i.symbol), 5000);
+  const liveFeedUnavailable = isError || !Object.values(quotes).some(quote => !quote.stale && quote.price > 0);
   const rows = homeMarketRows(CATALOG, quotes, watchlist.data ?? [], tab, category, search);
   const trending = highVolumeSymbols(CATALOG.filter(asset => Boolean(quotes[asset.symbol])), quotes);
   const fetchCaps = useServerFn(getMarketCaps);
@@ -38,7 +39,7 @@ export function ExchangeMarkets({ search = "", initialTab = "Hot", initialCatego
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(72px,100px)_68px] gap-2 px-2 pb-2 pt-2 text-[11px] text-muted-foreground sm:grid-cols-[minmax(0,1fr)_140px_90px_110px_110px]"><span>Name</span><span className="text-right">Last Price</span><span className="text-right">24h chg%</span><span className="hidden text-right sm:block" title="24-hour trading volume in USDT">24h Vol</span><span className="hidden text-right sm:block">Market Cap</span></div>
       <div role="tabpanel" aria-label={`${tab} ${category} markets`}>
         {isLoading && rows.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Loading markets...</p>}
-        {!isLoading && rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">{tab === "Alpha" ? "No Alpha listings available." : tab === "New" ? "No newly announced listings." : tab === "Favorites" ? "No favorites in this category." : tab === "Gainers" ? "No live gainers in this category." : tab === "Losers" ? "No live losers in this category." : "No matching assets."}</p>}
+        {!isLoading && rows.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">{tab === "Alpha" ? "No Alpha listings available." : tab === "New" ? "No newly announced listings." : tab === "Favorites" ? "No favorites in this category." : (tab === "Gainers" || tab === "Losers") && liveFeedUnavailable ? "Live market data temporarily unavailable. Reconnecting..." : search.trim() ? "No matching assets." : tab === "Gainers" ? "No assets are up over the past 24 hours." : tab === "Losers" ? "No assets are down over the past 24 hours." : "No matching assets."}</p>}
         {rows.slice(0, limit).map(asset => {
           const quote = quotes[asset.symbol];
           const live = quote && !quote.stale;

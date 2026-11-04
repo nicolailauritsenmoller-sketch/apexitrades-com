@@ -34,6 +34,17 @@ describe("homepage live market filters", () => {
   it("TradFi excludes crypto and follows the Stocks filter", () => {
     expect(homeMarketRows(instruments, {}, [], "TradFi", "Stocks", "").map(i => i.symbol)).toEqual(["AAPL"]);
   });
+  it("Losers refreshes membership and order when live 24h changes update", () => {
+    const quotes = { BTCUSDT: quote("BTCUSDT", 1), ETHUSDT: quote("ETHUSDT", -2) };
+    expect(homeMarketRows(instruments, quotes, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT"]);
+    quotes.BTCUSDT = quote("BTCUSDT", -7);
+    expect(homeMarketRows(instruments, quotes, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["BTCUSDT", "ETHUSDT"]);
+    quotes.ETHUSDT = quote("ETHUSDT", 0);
+    expect(homeMarketRows(instruments, quotes, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["BTCUSDT"]);
+  });
+  it("Losers excludes malformed live changes", () => {
+    expect(homeMarketRows(instruments, { BTCUSDT: quote("BTCUSDT", NaN), ETHUSDT: quote("ETHUSDT", -1) }, [], "Losers", "Crypto", "").map(i => i.symbol)).toEqual(["ETHUSDT"]);
+  });
   it("search matches names as well as symbols", () => {
     expect(homeMarketRows(instruments, {}, [], "Hot", "Crypto", "bitcoin").map(i => i.symbol)).toEqual(["BTCUSDT"]);
   });

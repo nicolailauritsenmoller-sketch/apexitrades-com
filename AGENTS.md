@@ -36,3 +36,4 @@
 
 - Support language selection is presentation-only: render canonical assistant prompts through support translations and preserve genuine transcript messages unchanged - why: instant switching must not rewrite customer/agent history or private handoff context.
 - Account Info reads the existing 2FA state and the authenticated user's last sign-in time on open; device activity timestamps are not login timestamps and IP values remain masked - why: security metadata must be real without exposing network identifiers.
+- Binance quote reads select requested catalog pairs from the full live 24-hour snapshot and reject outdated tickers - why: unsupported pairs must not reject the whole market batch or make inactive listings look live.
