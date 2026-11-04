@@ -39,3 +39,4 @@
 - Binance quote reads select requested catalog pairs from the full live 24-hour snapshot and reject outdated tickers - why: unsupported pairs must not reject the whole market batch or make inactive listings look live.
 - New listings use official recent spot-token announcements and active exchange status; non-catalog markets link to the source exchange, never bypass the internal trading catalog - why: listing discovery must not authorize unsupported execution or fabricate launch dates or metrics.
 - New-listing logos use CDN asset pointers for known tokens and allowlisted official exchange metadata for future tokens - why: evolving listings retain authentic marks without ticker collisions or invented branding.
+- Discovery News uses a cached six-publisher feed; article media and live-market context stay distinct, personal likes persist locally and unavailable publisher engagement stays unreported - why: editorial attribution and social counts must not be fabricated.

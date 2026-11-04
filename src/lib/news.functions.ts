@@ -521,6 +521,20 @@ async function fetchNewsFeeds(feeds: Feed[]): Promise<NewsItem[]> {
 
 export const getMarketNews = createServerFn({ method: "GET" }).handler(() => fetchNewsFeeds(FEEDS));
 
+let squareNewsCache: { at: number; rows: NewsItem[] } | null = null;
+/** Six publisher feeds keep the discovery news refresh inside the outbound connection budget. */
+export const getDiscoveryNews = createServerFn({ method: "GET" }).handler(async () => {
+  if (squareNewsCache && Date.now() - squareNewsCache.at < 120_000) return squareNewsCache.rows;
+  const sources = ["CoinDesk", "Cointelegraph", "CNBC", "Federal Reserve", "Binance Square", "Investing.com"];
+  const feeds = sources.flatMap(source => {
+    const feed = FEEDS.find(f => f.source === source);
+    return feed ? [feed] : [];
+  });
+  const rows = await fetchNewsFeeds(feeds);
+  if (rows.length) squareNewsCache = { at: Date.now(), rows };
+  return rows.length ? rows : squareNewsCache?.rows ?? [];
+});
+
 /** A separate, narrow feed keeps two-minute commentary refreshes off the broad news request. */
 export const getExpertCommentary = createServerFn({ method: "GET" }).handler(async () => {
   const trustedSites =
