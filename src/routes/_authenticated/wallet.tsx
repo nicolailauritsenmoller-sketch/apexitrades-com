@@ -21,6 +21,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import QRCode from "qrcode";
+import { Link } from "@tanstack/react-router";
+import { getAccountSecurityState, setAddressWhitelisting } from "@/lib/account-security.functions";
+
+const MEMO_REQUIRED_COINS = new Set(["XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "BNB-BEP2"]);
 import {
   Dialog,
   DialogContent,
@@ -664,7 +668,20 @@ function DepositTab({
   const [qrLargeDataUrl, setQrLargeDataUrl] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [memoCopied, setMemoCopied] = useState(false);
   const submit = useServerFn(requestDeposit);
+  const qc = useQueryClient();
+  const fetchSecurity = useServerFn(getAccountSecurityState);
+  const saveWhitelist = useServerFn(setAddressWhitelisting);
+  const securityQuery = useQuery({ queryKey: ["account-security-state"], queryFn: () => fetchSecurity() });
+  const whitelistMutation = useMutation({
+    mutationFn: (enabled: boolean) => saveWhitelist({ data: { enabled } }),
+    onSuccess: (_r, enabled) => {
+      void qc.invalidateQueries({ queryKey: ["account-security-state"] });
+      toast.success(enabled ? "Address whitelisting enabled" : "Address whitelisting disabled");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const coins = [...new Set([...STANDARD_WALLET_ASSETS, ...addresses.map((item) => item.coin)])];
   const selectedCoin = selectedAsset;
@@ -792,6 +809,20 @@ function DepositTab({
     window.setTimeout(() => setCopied(false), 1800);
   }
 
+  async function copyMemo() {
+    if (!addr?.memo) return;
+    try {
+      await navigator.clipboard.writeText(addr.memo);
+    } catch {
+      /* clipboard unavailable */
+    }
+    setMemoCopied(true);
+    toast.success("Memo / tag copied");
+    window.setTimeout(() => setMemoCopied(false), 1800);
+  }
+
+  const memoRequired = !!addr && (MEMO_REQUIRED_COINS.has(addr.coin.toUpperCase()) || !!addr.memo);
+
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <section className="panel overflow-hidden">
@@ -837,7 +868,6 @@ function DepositTab({
                   className="w-full cursor-copy rounded-md border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/50 hover:bg-secondary/60"
                 >
                   <p className="num break-all text-sm font-medium leading-6">{addr.address}</p>
-                  {addr.memo && <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">Memo / tag: <span className="num text-foreground">{addr.memo}</span></p>}
                   <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
                     {copied ? <Check className="size-3 text-bull" /> : <Copy className="size-3" />}
                     {copied ? "Copied" : "Click to copy"}
@@ -849,6 +879,34 @@ function DepositTab({
                 </Button>
               </div>
 
+              {memoRequired && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    {addr.coin === "XRP" ? "Destination tag" : "Memo / tag"} (required)
+                  </p>
+                  {addr.memo ? (
+                    <div className="flex items-stretch gap-2">
+                      <p className="num flex-1 break-all rounded-md border border-border bg-secondary/40 p-3 text-sm font-semibold">{addr.memo}</p>
+                      <Button type="button" variant="outline" className="h-auto min-w-24" onClick={() => void copyMemo()}>
+                        {memoCopied ? <Check /> : <Copy />}
+                        {memoCopied ? "Copied" : "Copy"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="rounded-md border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+                      No memo has been assigned for this address yet. Do not send {addr.coin} until support confirms your memo.
+                    </p>
+                  )}
+                  <div className="flex gap-3 rounded-md border border-bear/40 bg-bear/10 p-3.5 text-sm">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-bear" />
+                    <p className="text-xs">
+                      <span className="font-semibold">Both the address and the {addr.coin === "XRP" ? "destination tag" : "memo"} are required.</span>{" "}
+                      Deposits sent without the correct value cannot be credited automatically and may be permanently lost.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border">
                 <div className="bg-background p-3">
                   <dt className="text-[11px] text-muted-foreground">Minimum deposit</dt>
@@ -859,6 +917,21 @@ function DepositTab({
                   <dd className="num mt-1 text-sm font-semibold">{networkDetails.arrival}</dd>
                 </div>
               </dl>
+              <div className="flex flex-col gap-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+                <Link to="/vip-upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
+                  View Daily Deposit Limits & Tier Quotas
+                </Link>
+                <label className="flex cursor-pointer items-center gap-2 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={securityQuery.data?.addressWhitelistingEnabled ?? false}
+                    disabled={securityQuery.isLoading || whitelistMutation.isPending}
+                    onChange={(e) => whitelistMutation.mutate(e.target.checked)}
+                  />
+                  Save to address book / whitelist (withdrawals only to approved addresses)
+                </label>
+              </div>
             </div>
 
             <div className="flex flex-col items-center justify-center border-t border-border bg-secondary/25 p-6 lg:border-l lg:border-t-0">
