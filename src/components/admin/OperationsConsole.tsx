@@ -92,6 +92,7 @@ import { AccountingPanel } from "@/components/admin/AccountingPanel";
 import { TradesDesk } from "@/components/admin/TradesDesk";
 import { TransactionsDesk } from "@/components/admin/TransactionsDesk";
 import { ReceivingAddressesDesk } from "@/components/admin/ReceivingAddressesDesk";
+import { DepositMinimumsPanel } from "@/components/admin/DepositMinimumsPanel";
 import { ForceMatchTool, AssetNetworkFilters, WithdrawalRiskFlags, TreasuryLiquidity, useWithdrawalRisk } from "@/components/admin/DeskWorkflowTools";
 import { KycReviewDrawer, TierBadge, REJECTION_CODES } from "@/components/admin/KycReviewDrawer";
 import { PendingVipPanel } from "@/components/admin/PendingVipPanel";
@@ -1124,7 +1125,15 @@ function qrUrl(text: string) {
 }
 
 function AddressesTab({ rows, onDone }: { rows: any[]; onDone: () => void }) {
-  return <ReceivingAddressesDesk rows={rows} onDone={onDone} />;
+  return (
+    <div className="space-y-4">
+      <Card className="p-4">
+        <h3 className="mb-2 text-sm font-bold">Global minimum deposit</h3>
+        <DepositMinimumsPanel userId={null} />
+      </Card>
+      <ReceivingAddressesDesk rows={rows} onDone={onDone} />
+    </div>
+  );
 }
 
 function OutcomesTab({
