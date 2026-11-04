@@ -9,6 +9,8 @@ import { getDiscoveryNews, type NewsItem } from "@/lib/news.functions";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
 import { INSTRUMENT_MAP } from "@/lib/instruments";
 import { sparklinePoints } from "@/lib/home-markets";
+import { currentNews, NEWS_REFRESH_MS } from "@/lib/news-freshness";
+import { AssetIcon } from "@/lib/asset-icons";
 
 const filters = ["All", "Crypto", "TradFi", "Macro"] as const;
 const relativeTime = (date: string) => {
@@ -41,21 +43,23 @@ function NewsCard({ item }: { item: NewsItem }) {
       else { await navigator.clipboard.writeText(item.url); toast.success("Article link copied"); }
     } catch { /* User cancelled sharing. */ }
   }
-  return <article className="rounded-lg border border-border bg-card p-4 touch-manipulation">
+  return <article className="border-b border-border py-5 touch-manipulation">
     <header className="flex items-start gap-2.5">
       <span className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary"><Newspaper className="size-4 text-muted-foreground" /></span>
       <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-1.5"><a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold">{item.source}</a>{sourceVerified && <BadgeCheck className="size-3.5 text-ops-blue" aria-label="Publisher domain verified" />}<span className="text-[11px] text-muted-foreground">· {relativeTime(item.publishedAt)}</span></div><span className="text-[10px] text-muted-foreground">{item.domain || "Publisher article"}</span></div>
       <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">Article</span>
     </header>
-    <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-3 block"><h3 className="text-base font-semibold leading-6"><span className="text-muted-foreground">{["crypto", "defi"].includes(item.category) ? "Crypto News" : item.category === "macro" ? "Macro News" : "TradFi News"} | </span>{item.title}</h3></a>
-    {item.excerpt && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.excerpt}</p>}
-    {item.image && !imageFailed ? <img src={item.image} alt={item.title} loading="lazy" referrerPolicy="no-referrer" className="mt-3 aspect-video w-full rounded-md object-contain bg-secondary" onError={() => setImageFailed(true)} /> : tickers[0] ? <NewsChart symbol={tickers[0]} /> : null}
+    <div className="mt-3 min-w-0 overflow-hidden rounded-lg border border-border bg-card sm:ml-[46px]">
+      {item.image && !imageFailed && <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative block"><img src={item.image} alt={item.title} loading="lazy" referrerPolicy="no-referrer" className="aspect-[16/7] w-full object-cover bg-secondary" onError={() => setImageFailed(true)} /><span className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-background/90 px-2 py-1 text-[10px]"><Newspaper className="size-3" />Article</span></a>}
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="block px-3 py-3 sm:px-4"><h3 className="line-clamp-3 text-[15px] font-semibold leading-6 sm:text-base"><span className="text-muted-foreground">{["crypto", "defi"].includes(item.category) ? "Crypto News" : item.category === "macro" ? "Macro News" : "TradFi News"} | </span>{item.title}</h3>{item.excerpt && <p className="mt-1.5 line-clamp-3 text-sm leading-6 text-muted-foreground">{item.excerpt}</p>}</a>
+    </div>
+    {(!item.image || imageFailed) && tickers[0] ? <div className="sm:ml-[46px]"><NewsChart symbol={tickers[0]} /></div> : null}
     <div className="mt-3 flex flex-wrap gap-2">{tickers.map(symbol => {
       const quote = quotes[symbol];
       const live = quote && !quote.stale && Number.isFinite(quote.changePercent);
-      return <Button key={symbol} asChild variant="secondary" size="sm" className="h-9 gap-2 px-2.5 text-[11px]"><Link to="/terminal/$symbol" params={{ symbol }}><span>{symbol.replace(/USDT$/, "")}</span><span className={live ? quote.changePercent >= 0 ? "text-bull" : "text-bear" : "text-muted-foreground"}>{live ? `${quote.changePercent >= 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "-"}</span></Link></Button>;
+      return <Button key={symbol} asChild variant="secondary" size="sm" className="h-9 gap-1.5 px-2 text-[11px]"><Link to="/terminal/$symbol" params={{ symbol }}><AssetIcon symbol={symbol} size={16} /><span>{symbol.replace(/USDT$/, "")}</span><span className={live ? quote.changePercent >= 0 ? "text-bull" : "text-bear" : "text-muted-foreground"}>{live ? `${quote.changePercent >= 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "-"}</span></Link></Button>;
     })}</div>
-    <footer className="mt-3 flex items-center justify-between border-t border-border pt-2 text-muted-foreground">
+    <footer className="mt-2 flex items-center justify-between text-muted-foreground">
       <Button asChild variant="ghost" size="sm" className="h-10 gap-1 px-2" title="Read comments at the publisher; count unavailable"><a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`Read comments on ${item.source}`}><MessageCircle className="size-4" /><span className="text-[11px]">-</span></a></Button>
       <Button variant="ghost" size="sm" className="h-10 gap-1 px-2" aria-label="Share or repost article" title="Share or repost article; publisher count unavailable" onClick={() => void share()}><Repeat2 className="size-4" /><span className="text-[11px]">-</span></Button>
       <Button variant="ghost" size="sm" className={`h-10 gap-1 px-2 ${liked ? "text-bear" : ""}`} aria-label={liked ? "Unlike article" : "Like article"} aria-pressed={liked} title="Save your like; publisher count unavailable" onClick={() => { const next = !liked; setLiked(next); try { localStorage.setItem(`news-like:${item.id}`, next ? "1" : "0"); } catch { /* Local feedback still works. */ } }}><Heart className={`size-4 ${liked ? "fill-current" : ""}`} /><span className="text-[11px]">-</span></Button>
@@ -69,10 +73,10 @@ export function NewsPanel() {
   const [filter, setFilter] = useState<typeof filters[number]>("All");
   const [limit, setLimit] = useState(12);
   const fetchNews = useServerFn(getDiscoveryNews);
-  const feed = useQuery({ queryKey: ["discovery-news"], queryFn: () => fetchNews(), refetchInterval: 120_000, staleTime: 120_000 });
-  const rows = (feed.data ?? []).filter(item => filter === "All" || (filter === "Crypto" ? ["crypto", "defi"].includes(item.category) : filter === "Macro" ? item.category === "macro" : !["crypto", "defi", "macro"].includes(item.category)));
+  const feed = useQuery({ queryKey: ["discovery-news"], queryFn: () => fetchNews(), refetchInterval: NEWS_REFRESH_MS, staleTime: NEWS_REFRESH_MS, refetchOnWindowFocus: "always" });
+  const rows = currentNews(feed.data ?? [], Date.now()).filter(item => filter === "All" || (filter === "Crypto" ? ["crypto", "defi"].includes(item.category) : filter === "Macro" ? item.category === "macro" : !["crypto", "defi", "macro"].includes(item.category)));
   return <div className="space-y-3">
-    <header className="flex items-center justify-between"><h2 className="text-lg font-semibold">Velocity News</h2><Button variant="ghost" size="icon" aria-label="Refresh news" title="Refresh news" disabled={feed.isFetching} onClick={() => void feed.refetch()}><RefreshCw className={feed.isFetching ? "animate-spin" : ""} /></Button></header>
+    <header className="flex items-center justify-between gap-2"><h2 className="text-lg font-semibold">Velocity News</h2><div className="flex items-center gap-2"><span role="status" className="text-[10px] text-muted-foreground">{feed.isFetching ? "Updating..." : feed.isError ? "Feed interrupted" : feed.dataUpdatedAt ? `Updated ${new Date(feed.dataUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}</span><Button variant="ghost" size="icon" aria-label="Refresh news" title="Refresh news" disabled={feed.isFetching} onClick={() => void feed.refetch()}><RefreshCw className={feed.isFetching ? "animate-spin motion-reduce:animate-none" : ""} /></Button></div></header>
     <div role="tablist" aria-label="News categories" className="flex gap-1 border-b border-border">{filters.map(value => <Button key={value} variant="ghost" role="tab" aria-selected={filter === value} className={`h-10 px-3 text-xs ${filter === value ? "border-b-2 border-foreground rounded-none font-semibold" : "text-muted-foreground"}`} onClick={() => { setFilter(value); setLimit(12); }}>{value}</Button>)}</div>
     {feed.isPending && <p className="py-10 text-center text-sm text-muted-foreground">Loading financial news...</p>}
     {!feed.isPending && !rows.length && <div className="py-10 text-center"><p className="text-sm text-muted-foreground">No fresh articles available in this category.</p><Button variant="ghost" className="mt-2" onClick={() => void feed.refetch()}><RefreshCw />Retry</Button></div>}
