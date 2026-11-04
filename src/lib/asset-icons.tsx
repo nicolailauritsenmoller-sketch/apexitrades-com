@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Coins } from "lucide-react";
 import { TOKEN_LOGOS, EQUITY_LOGOS } from "@/lib/asset-logo-registry";
+import { FUTURE_LOGOS } from "@/lib/futures-logo-registry";
 import { INSTRUMENT_MAP, displaySymbol, type Instrument } from "@/lib/instruments";
 
 // ---- Crypto marks (authentic brand SVG/PNG, bundled locally) ----
@@ -40,8 +41,6 @@ import platinumIcon from "@/assets/commodities/platinum.svg";
 import palladiumIcon from "@/assets/commodities/palladium.svg";
 import copperIcon from "@/assets/commodities/copper.svg";
 import oilIcon from "@/assets/commodities/oil.svg";
-import brentIcon from "@/assets/commodities/brent.svg";
-import gasIcon from "@/assets/commodities/gas.svg";
 import indexIcon from "@/assets/commodities/index.svg";
 import agriIcon from "@/assets/commodities/agri.svg";
 import bondIcon from "@/assets/commodities/bond.svg";
@@ -110,22 +109,8 @@ function flagFor(code: string): string {
 }
 
 const FUTURE_ICON: Record<string, string> = {
-  "ES=F": indexIcon,
-  "NQ=F": indexIcon,
-  "YM=F": indexIcon,
-  "RTY=F": indexIcon,
-  "MES=F": indexIcon,
-  "MNQ=F": indexIcon,
-  "VX=F": indexIcon,
+  ...FUTURE_LOGOS,
   "BTC=F": btcIcon,
-  "CL=F": oilIcon,
-  "BZ=F": brentIcon,
-  "NG=F": gasIcon,
-  "HO=F": oilIcon,
-  "RB=F": oilIcon,
-  "ZB=F": bondIcon,
-  "ZN=F": bondIcon,
-  "ZF=F": bondIcon,
 };
 
 const METAL_ICON: Record<string, string> = {
@@ -167,12 +152,7 @@ const FUND_DOMAIN: Record<string, string> = {
 };
 
 const ENERGY_ICON: Record<string, string> = {
-  "CL=F": oilIcon,
-  "MCL=F": oilIcon,
-  "HO=F": oilIcon,
-  "RB=F": oilIcon,
-  "BZ=F": brentIcon,
-  "NG=F": gasIcon,
+  ...FUTURE_LOGOS,
 };
 
 function displayLabel(symbol: string): string {
@@ -344,10 +324,10 @@ function instrumentIcon(inst: Instrument): IconInfo {
         label: inst.symbol.replace("=F", "").slice(0, 3),
       };
     case "agriculture":
-      return { sources: [agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
+      return { sources: [FUTURE_LOGOS[inst.symbol] ?? agriIcon], label: inst.symbol.replace("=F", "").slice(0, 3) };
     case "bond":
     case "rate":
-      return { sources: [bondIcon], label: displayLabel(inst.symbol) };
+      return { sources: [FUTURE_LOGOS[inst.symbol] ?? bondIcon], label: displayLabel(inst.symbol) };
     case "option": {
       const base = inst.symbol.replace(".OPT", "");
       const domain = STOCK_DOMAIN[base] ?? FUND_DOMAIN[base];

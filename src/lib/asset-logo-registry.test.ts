@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EQUITY_LOGOS, TOKEN_LOGOS } from "./asset-logo-registry";
+import { FUTURE_LOGOS } from "./futures-logo-registry";
 import { INSTRUMENTS } from "./instruments";
 
 describe("published asset identity coverage", () => {
@@ -17,5 +18,15 @@ describe("published asset identity coverage", () => {
       expect(EQUITY_LOGOS[asset.symbol], asset.symbol).toMatch(/^\/__l5e\/assets-v1\//);
     }
     expect(EQUITY_LOGOS.AAPL).not.toBe(EQUITY_LOGOS.MSFT);
+  });
+
+  it("covers catalog futures with official exchange or index marks", () => {
+    const branded = ["future", "energy", "rate"];
+    for (const asset of INSTRUMENTS.filter(asset => branded.includes(asset.assetClass))) {
+      if (asset.symbol === "BTC=F") continue; // CME Bitcoin keeps the Bitcoin mark
+      expect(FUTURE_LOGOS[asset.symbol], asset.symbol).toMatch(/^\/__l5e\/assets-v1\//);
+    }
+    expect(FUTURE_LOGOS["ES=F"]).toBe(FUTURE_LOGOS["MES=F"]);
+    expect(FUTURE_LOGOS["BZ=F"]).not.toBe(FUTURE_LOGOS["CL=F"]);
   });
 });
