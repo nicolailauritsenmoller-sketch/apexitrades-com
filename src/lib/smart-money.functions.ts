@@ -7,12 +7,13 @@ const HOSTS = ["https://data-api.binance.vision", "https://api.binance.com", "ht
 export const SMART_MONEY_ASSETS = ["BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "AVAX", "ADA", "LINK"] as const;
 const LARGE_PRINT_USD = 100_000;
 const BLOCK_USD = 1_000_000;
-const FEED_USD = 250_000;
+const MIN_WHALE_USD = 5_000;
+const FEED_PER_ASSET = 4;
 
 export type FlowTrend = "Strong Accumulation" | "Accumulation" | "Neutral" | "Distribution" | "Strong Distribution";
 export type SmartMoneyRow = {
   asset: string; netFlowUsd: number; quoteVolumeUsd: number; trend: FlowTrend;
-  largeVolumeUsd: number; largeCount: number; whaleEntry: number | null; lastActivity: number | null; price: number;
+  largeVolumeUsd: number; largeCount: number; thresholdUsd: number; whaleEntry: number | null; lastActivity: number | null; price: number;
 };
 export type WhalePrint = { id: string; asset: string; side: "buy" | "sell"; usd: number; price: number; time: number };
 export type SmartMoneySnapshot = {
@@ -54,22 +55,28 @@ async function loadAsset(asset: string) {
   let qv = 0, tb = 0;
   for (const k of klines) { qv += Number(k[7]); tb += Number(k[10]); }
   const netFlowUsd = 2 * tb - qv;
+  // Dynamic whale threshold: top 2% of prints in this asset's sample, floored at MIN_WHALE_USD,
+  // so thinner books (ADA, AVAX, LINK) still surface their genuinely largest trades.
+  const sized = trades.map(t => ({ t, price: Number(t.p), qty: Number(t.q), usd: Number(t.p) * Number(t.q) }));
+  const sorted = sized.map(x => x.usd).sort((a, b) => a - b);
+  const p98 = sorted.length ? sorted[Math.floor(sorted.length * 0.98)] : 0;
+  const threshold = Math.max(MIN_WHALE_USD, Math.min(LARGE_PRINT_USD, p98));
   let sampleUsd = 0, largeUsd = 0, largeQty = 0, blockUsd = 0, largeCount = 0, lastActivity: number | null = null;
   const prints: WhalePrint[] = [];
-  for (const t of trades) {
-    const price = Number(t.p), qty = Number(t.q), usd = price * qty;
+  for (const { t, price, qty, usd } of sized) {
     sampleUsd += usd;
-    if (usd >= LARGE_PRINT_USD) {
+    if (usd >= BLOCK_USD) blockUsd += usd;
+    if (usd >= threshold) {
       largeUsd += usd; largeQty += qty; largeCount++;
       lastActivity = Math.max(lastActivity ?? 0, t.T);
-      if (usd >= BLOCK_USD) blockUsd += usd;
-      if (usd >= FEED_USD) prints.push({ id: `${asset}-${t.a}`, asset, side: t.m ? "sell" : "buy", usd, price, time: t.T });
+      prints.push({ id: `${asset}-${t.a}`, asset, side: t.m ? "sell" : "buy", usd, price, time: t.T });
     }
   }
+  prints.sort((a, b) => b.usd - a.usd).splice(FEED_PER_ASSET);
   const price = trades.length ? Number(trades[trades.length - 1].p) : Number(klines.at(-1)?.[4] ?? 0);
   const row: SmartMoneyRow = {
     asset, netFlowUsd, quoteVolumeUsd: qv, trend: classifyTrend(qv ? netFlowUsd / qv : 0),
-    largeVolumeUsd: largeUsd, largeCount, whaleEntry: largeQty ? largeUsd / largeQty : null, lastActivity, price,
+    largeVolumeUsd: largeUsd, largeCount, thresholdUsd: threshold, whaleEntry: largeQty ? largeUsd / largeQty : null, lastActivity, price,
   };
   return { row, prints, sampleUsd, blockUsd };
 }

@@ -23,7 +23,7 @@ export function SmartMoneyPanel() {
     { label: "24h Net Institutional Inflow", value: usd(t.netFlowUsd, true), tone: t.netFlowUsd >= 0 ? "text-bull" : "text-bear", note: "Taker buy minus sell volume" },
     { label: "Whale Accumulation Index", value: `${t.accumulationIndex}/100`, tone: t.accumulationIndex >= 55 ? "text-bull" : t.accumulationIndex <= 45 ? "text-bear" : "", note: "50 = balanced flow" },
     { label: "Large Block Volume (>$1M)", value: usd(t.blockVolumeUsd), tone: "", note: "Latest trade sample" },
-    { label: "Smart Money Dominance %", value: `${t.dominancePct.toFixed(1)}%`, tone: "", note: "Prints of $100K+ vs sample" },
+    { label: "Smart Money Dominance %", value: `${t.dominancePct.toFixed(1)}%`, tone: "", note: "Whale-size prints vs sample" },
   ];
   return <div className="space-y-5">
     <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
@@ -44,7 +44,7 @@ export function SmartMoneyPanel() {
           <td className="px-3 py-2.5"><span className="font-semibold">{r.asset}</span><span className="ml-1.5 font-mono text-muted-foreground">${price(r.price)}</span></td>
           <td className={`px-3 py-2.5 text-right font-mono ${r.netFlowUsd >= 0 ? "text-bull" : "text-bear"}`}>{usd(r.netFlowUsd, true)}</td>
           <td className="px-3 py-2.5"><span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${trendClass(r.trend)}`}>{r.trend}</span></td>
-          <td className="px-3 py-2.5 text-right font-mono">{r.largeCount ? `${usd(r.largeVolumeUsd)} (${r.largeCount})` : "-"}</td>
+          <td className="px-3 py-2.5 text-right font-mono">{r.largeCount ? <>{usd(r.largeVolumeUsd)} ({r.largeCount})<span className="block text-[10px] text-muted-foreground">{usd(r.thresholdUsd)}+ prints</span></> : "-"}</td>
           <td className="px-3 py-2.5 text-right font-mono">{r.whaleEntry ? `$${price(r.whaleEntry)}` : "-"}</td>
           <td className="px-3 py-2.5 text-right font-mono text-muted-foreground">{r.lastActivity ? time(r.lastActivity) : "-"}</td>
         </tr>)}</tbody>
@@ -56,8 +56,8 @@ export function SmartMoneyPanel() {
         <span className={`w-20 shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-semibold ${p.side === "buy" ? "bg-bull/10 text-bull" : "bg-bear/10 text-bear"}`}>{p.side === "buy" ? "Block buy" : "Block sell"}</span>
         <span className="min-w-0 flex-1"><span className="font-semibold">{usd(p.usd)} {p.asset}</span><span className="text-muted-foreground"> at ${price(p.price)}</span></span>
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{time(p.time)}</span>
-      </li>)}</ul> : <p className="py-4 text-xs text-muted-foreground">No block prints of $250K+ in the latest sample.</p>}
-      <p className="mt-2 text-[10px] text-muted-foreground">Source: Binance spot taker flow and aggregated trades, refreshed every 15 seconds. On-chain wallet transfers are not included.</p>
+      </li>)}</ul> : <p className="py-4 text-xs text-muted-foreground">No whale-size prints in the latest sample.</p>}
+      <p className="mt-2 text-[10px] text-muted-foreground">Source: Binance spot taker flow and aggregated trades (latest 1,000 per asset; whale size = top 2% of prints, $5K-$100K), refreshed every 15 seconds. On-chain wallet transfers are not included.</p>
     </div>
   </div>;
 }
