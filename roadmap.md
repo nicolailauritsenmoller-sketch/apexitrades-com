@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Restore full live Losers coverage without invalid catalog symbols blocking valid quotes; test negative-only worst-first refresh and verify signed-in preview.
+- [x] Restore full live Losers coverage without invalid catalog symbols blocking valid quotes; 13 tests pass, signed-in desktop/mobile show current negative assets worst-first and refresh automatically without page errors.
 
 - [ ] Finish Account Info security audit with live 2FA status, actual sign-in time in UTC and protected IP metadata; verify signed-in modal.
 
