@@ -5,6 +5,7 @@ import { Eye, MessageCircle, Repeat2, Plus, Share2, Check, ShieldCheck, Crown, Z
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { summarizeDesks } from "@/lib/leaderboard-summary";
 
 const ASSETS = ["All", "BTC", "ETH", "SOL", "XRP", "BNB", "DOGE", "AVAX", "ADA", "LINK"] as const;
 type Entry = {
@@ -61,10 +62,19 @@ const SAMPLES = [
   { name: "ApexQuant", avatar: "P", time: "3d ago", quote: "Oracle rotation trade. Sized for the weekly setup.", pair: "LINKUSDT", lev: 2, side: "Long", pnl: 21884.30, pct: 11.62, entry: "14.0240", close: "15.3980", closeTime: "2026-11-01 18:24", comments: 17, shares: 33, likes: 246, views: "5.2K" },
 ];
 
-function SampleCards() {
+// Illustrative risk ratios, never presented as measured live performance.
+const SAMPLE_SHARPES = [2.84, 2.61, 2.32, 2.45, 2.73, 1.98, 1.76, 2.12, 1.89, 2.24, 1.91, 2.06];
+const SAMPLE_DESKS = SAMPLES.map((sample, index) => {
+  const entry = Number(sample.entry.replaceAll(",", ""));
+  const close = Number(sample.close.replaceAll(",", ""));
+  const capital = sample.pnl / (sample.pct / 100);
+  return { ...sample, volume_30d: capital * sample.lev * (1 + close / entry), pnl_30d: sample.pnl, sharpe: SAMPLE_SHARPES[index] };
+});
+
+function SampleCards({ asset }: { asset: string }) {
   return <div className="space-y-3">
     <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">Sample preview - illustrative cards, not real traders or results. Live rankings replace these once approved leaders close positions.</p>
-    {SAMPLES.map((c, i) => <article key={c.name} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation">
+    {SAMPLES.filter(c => asset === "All" || c.pair === `${asset}USDT`).map((c, i) => <article key={c.name} className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation">
       <header className="flex items-center gap-2.5">
         <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(i + 1)}`}>{i + 1}</span>
         <span className="grid size-9 place-items-center rounded-full bg-secondary text-sm font-semibold">{c.avatar}</span>
@@ -131,14 +141,16 @@ export function LeaderboardPanel() {
   // Record one view per viewer per shared position.
   useEffect(() => {
     if (!me || !feed.data?.length || !mine.data) return;
-    const rows = feed.data.filter(e => !mine.data!.eng.has(`${e.position_id}:view`)).map(e => ({ user_id: me, position_id: e.position_id, kind: "view" }));
+    const engagement = mine.data.eng;
+    const rows = feed.data.filter(e => !engagement.has(`${e.position_id}:view`)).map(e => ({ user_id: me, position_id: e.position_id, kind: "view" }));
     if (rows.length) void supabase.from("leaderboard_engagement").upsert(rows, { ignoreDuplicates: true });
   }, [me, feed.data, mine.data]);
 
   const refresh = () => { void qc.invalidateQueries({ queryKey: ["leaderboard"] }); void qc.invalidateQueries({ queryKey: ["leaderboard-mine"] }); };
   const follow = useMutation({
     mutationFn: async ({ id, on }: { id: string; on: boolean }) => {
-      const r = on ? await supabase.from("leaderboard_follows").delete().eq("leader_id", id) : await supabase.from("leaderboard_follows").insert({ user_id: me!, leader_id: id });
+      if (!me) throw new Error("Sign in to follow a desk");
+      const r = on ? await supabase.from("leaderboard_follows").delete().eq("leader_id", id) : await supabase.from("leaderboard_follows").insert({ user_id: me, leader_id: id });
       if (r.error) throw r.error;
     },
     onSuccess: refresh, onError: () => toast.error("Could not update follow"),
@@ -164,18 +176,19 @@ export function LeaderboardPanel() {
     </div>
     {(() => {
       const rows = feed.data ?? [];
-      const sh = rows.map(r => r.sharpe).filter((v): v is number => v != null).map(Number);
+      const samples = !feed.isPending && !feed.isError && rows.length === 0;
+      const summary = summarizeDesks(samples ? SAMPLE_DESKS.filter(c => asset === "All" || c.pair === `${asset}USDT`) : rows.map(r => ({ volume_30d: Number(r.volume_30d), pnl_30d: Number(r.pnl_30d), sharpe: r.sharpe === null ? null : Number(r.sharpe) })));
       const items = [
-        { label: "Total Tracked Volume", value: rows.length ? usdK(rows.reduce((t, r) => t + Number(r.volume_30d), 0)) : "-" },
-        { label: "Avg. Institutional Sharpe Ratio", value: sh.length ? num(sh.reduce((t, v) => t + v, 0) / sh.length) : "-" },
-        { label: "Top Desk 30-Day PnL", value: rows.length ? usdK(Math.max(...rows.map(r => Number(r.pnl_30d)))) : "-" },
+        { label: "Total Tracked Volume", value: rows.length || samples ? usdK(summary.volume) : "-" },
+        { label: "Avg. Institutional Sharpe Ratio", value: summary.sharpe !== null ? num(summary.sharpe) : "-" },
+        { label: "Top Desk 30-Day PnL", value: summary.topPnl !== null ? usdK(summary.topPnl) : "-" },
       ];
-      return <div className="grid grid-cols-3 gap-2">{items.map(m => <div key={m.label} className="rounded-xl border border-border bg-card p-2.5"><p className="text-[10px] leading-tight text-muted-foreground">{m.label}</p><p className="mt-1 font-mono text-sm font-semibold">{m.value}</p></div>)}</div>;
+      return <div className="grid grid-cols-3 gap-2">{items.map(m => <div key={m.label} className="rounded-xl border border-border bg-card p-2.5"><p className="text-[10px] leading-tight text-muted-foreground">{m.label}</p><p className="mt-1 font-mono text-sm font-semibold">{m.value}</p>{samples && <p className="mt-1 text-[9px] text-muted-foreground">Sample data</p>}</div>)}</div>;
     })()}
 
     {feed.isPending ? <p className="py-5 text-sm text-muted-foreground">Loading leaderboard...</p>
       : feed.isError ? <p className="py-5 text-sm text-muted-foreground">Leaderboard is unavailable right now.</p>
-      : !feed.data?.length ? <SampleCards />
+      : !feed.data?.length ? <SampleCards asset={asset} />
       : feed.data.map((e, i) => {
         const up = e.realized_pnl >= 0;
         const following = mine.data?.follows.has(e.leader_id) ?? false;
