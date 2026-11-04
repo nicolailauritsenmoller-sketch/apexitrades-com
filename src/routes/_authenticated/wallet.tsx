@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { RestrictionBlock } from "@/components/security/TraderLiveSync";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { TrustStrip } from "@/components/TrustBadges";
@@ -21,7 +21,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import QRCode from "qrcode";
-import { Link } from "@tanstack/react-router";
+
 import { getAccountSecurityState, setAddressWhitelisting } from "@/lib/account-security.functions";
 
 const MEMO_REQUIRED_COINS = new Set(["XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "BNB-BEP2"]);
