@@ -23,7 +23,7 @@ export async function fetchMarketCaps(): Promise<Record<string, number>> {
     for (const row of pages.flat() as Array<{ symbol?: string; market_cap?: number | null }>) {
       const symbol = row.symbol?.toUpperCase();
       const cap = row.market_cap;
-      if (symbol && Number.isFinite(cap) && cap > 0 && caps[symbol] === undefined) caps[symbol] = cap;
+      if (symbol && typeof cap === "number" && Number.isFinite(cap) && cap > 0 && caps[symbol] === undefined) caps[symbol] = cap;
     }
     if (Object.keys(caps).length > 0) cache = { at: Date.now(), caps };
     return cache?.caps ?? {};
