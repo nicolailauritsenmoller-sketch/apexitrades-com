@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { ChartNoAxesCombined, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { ChartNoAxesCombined } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ListingLogo } from "./ListingLogo";
 import { INSTRUMENT_MAP } from "@/lib/instruments";
 import { compactUsd } from "@/lib/home-markets";
 import { getNewListings } from "@/lib/new-listings.functions";
+import { listingAction } from "@/lib/listing-actions";
+import type { RecentListing } from "@/lib/new-listings";
+import { ListingPreview } from "./ListingPreview";
 
 const columns = "grid grid-cols-[minmax(0,1fr)_85px_70px] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_90px_70px_80px_85px_120px]";
 const priceLabel = (value: number) => value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: value < 1 ? 8 : 4 });
 
 export function NewListings({ search }: { search: string }) {
+  const [selected, setSelected] = useState<RecentListing | null>(null);
   const fetchListings = useServerFn(getNewListings);
   const feed = useQuery({ queryKey: ["recent-spot-listings"], queryFn: () => fetchListings(), refetchInterval: 30_000, staleTime: 20_000 });
   const term = search.trim().toLowerCase();
@@ -24,13 +29,11 @@ export function NewListings({ search }: { search: string }) {
     {!feed.isPending && !feed.isError && !feed.data?.unavailable && !rows.length && <p className="py-10 text-center text-sm text-muted-foreground">{term ? "No matching recent listings." : "No new spot-token announcements in the past 90 days."}</p>}
     {rows.map(row => {
       const supported = Boolean(INSTRUMENT_MAP[row.symbol]);
-      const exchangeUrl = `https://www.binance.com/en/trade/${encodeURIComponent(row.ticker)}_USDT?type=spot`;
-      const chartUrl = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(`BINANCE:${row.symbol}`)}`;
       const actions = <>
         {row.status === "listed" ? <>
-          <Button variant="ghost" size="icon" className="size-10 text-muted-foreground" asChild><a href={chartUrl} target="_blank" rel="noopener noreferrer" aria-label={`View ${row.ticker} chart`} title={`View ${row.ticker} chart on TradingView`}><ChartNoAxesCombined /></a></Button>
-          <Button size="sm" className="h-10 px-2" asChild>{supported ? <Link to="/terminal/$symbol" params={{ symbol: row.symbol }}>Trade</Link> : <a href={exchangeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Trade ${row.ticker} on Binance`} title="Trade on Binance">Trade<ExternalLink className="size-3" /></a>}</Button>
-        </> : <Button variant="outline" size="sm" className="h-10 px-2" asChild><a href={row.announcementUrl} target="_blank" rel="noopener noreferrer">Details<ExternalLink className="size-3" /></a></Button>}
+          <Button variant="ghost" size="icon" className="size-10 text-muted-foreground" onClick={() => setSelected(row)} aria-label={`View ${row.ticker} chart`} title={`View ${row.ticker} chart`}><ChartNoAxesCombined /></Button>
+          {listingAction(row.status, supported) === "terminal" ? <Button size="sm" className="h-10 px-2" asChild><Link to="/terminal/$symbol" params={{ symbol: row.symbol }}>Trade</Link></Button> : <Button size="sm" className="h-10 px-2" onClick={() => setSelected(row)}>Trade</Button>}
+        </> : <Button variant="outline" size="sm" className="h-10 px-2" onClick={() => setSelected(row)}>Details</Button>}
       </>;
       return <div key={row.symbol} className={`${columns} border-t border-border/50 px-2 py-3`}>
         <div className="flex min-w-0 items-center gap-2"><ListingLogo ticker={row.ticker} name={row.name} logoUrl={row.logoUrl} /><div className="min-w-0"><span className="block truncate text-[13px] font-semibold">{row.ticker}</span><span className="block truncate text-[11px] text-muted-foreground">{row.name}</span><span className="block text-[10px] text-muted-foreground">{row.status === "listed" ? "Live · Announced" : "Announced"} {new Date(row.announcedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}</span></div></div>
@@ -42,5 +45,6 @@ export function NewListings({ search }: { search: string }) {
         <div className="col-span-3 flex items-center justify-between gap-2 sm:hidden"><div className="text-[10px] text-muted-foreground">Vol {compactUsd(row.volume)} USDT · Cap {compactUsd(row.marketCap)}</div><div className="flex shrink-0 items-center">{actions}</div></div>
       </div>;
     })}
+    <ListingPreview listing={selected ? feed.data?.rows.find(row => row.symbol === selected.symbol) ?? selected : null} onClose={() => setSelected(null)} />
   </div>;
 }
