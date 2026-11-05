@@ -272,6 +272,51 @@ export type Database = {
         }
         Relationships: []
       }
+      balance_correction_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          mode: string
+          reason: string
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          kind: string
+          mode: string
+          reason: string
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          mode?: string
+          reason?: string
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       broadcast_logs: {
         Row: {
           actor_id: string
@@ -1345,6 +1390,21 @@ export type Database = {
           read_at?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      operations_check_locks: {
+        Row: {
+          claimed_at: string
+          name: string
+        }
+        Insert: {
+          claimed_at?: string
+          name: string
+        }
+        Update: {
+          claimed_at?: string
+          name?: string
         }
         Relationships: []
       }
@@ -2764,7 +2824,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_balance_correction: {
+        Args: {
+          p_actor: string
+          p_amount: number
+          p_currency: string
+          p_kind: string
+          p_mode: string
+          p_reason: string
+          p_request?: string
+          p_user: string
+        }
+        Returns: number
+      }
       capture_desk_performance: { Args: never; Returns: number }
+      claim_operations_feed_check: { Args: never; Returns: boolean }
       copy_leader_directory: {
         Args: never
         Returns: {
@@ -2851,6 +2925,10 @@ export type Database = {
       restore_platform_setting: {
         Args: { p_actor: string; p_reason: string; p_revision: string }
         Returns: undefined
+      }
+      review_balance_correction: {
+        Args: { p_action: string; p_actor: string; p_id: string }
+        Returns: number
       }
       review_withdrawal_atomic: {
         Args: {
