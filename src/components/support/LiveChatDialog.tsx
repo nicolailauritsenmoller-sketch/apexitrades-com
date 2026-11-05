@@ -63,7 +63,7 @@ const QUICK_ACTIONS: { id: QuickActionId; label: string; icon: LucideIcon }[] = 
 const QUICK_ANSWERS: Record<Exclude<QuickActionId, "agent">, { text: string; links: BotLink[] }> = {
   kyc: {
     text:
-      "Identity verification has two independent levels:\n\n• Level 1 - personal details and government ID\n• Level 2 - proof of address and enhanced review\n\nYou can see the live status of each level, any rejection reason, and re-submit documents from your Verification page.",
+      "Identity verification has two independent levels:\n\n• Lv.1 - identity attestation: personal details and government ID\n• Lv.2 - enhanced due diligence: proof of address and enhanced review\n\nYou can see the live status of each level, any rejection reason, and re-submit documents from your Verification page.",
     links: [{ label: "Open Verification", to: "/profile/verification" }],
   },
   funds: {
