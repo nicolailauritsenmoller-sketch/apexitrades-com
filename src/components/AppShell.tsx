@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SupportNavButton } from "@/components/support/SupportUnreadBadge";
 import { useSupportUnreadSync } from "@/lib/use-support-unread";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -181,7 +180,6 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
-            {!exchangeHome && <SupportNavButton />}
             <div className="hidden items-center gap-2 md:flex">
               <GlobalSearch />
             </div>
