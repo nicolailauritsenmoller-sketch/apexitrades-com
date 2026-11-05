@@ -412,8 +412,16 @@ function ContractCard({
   now: number;
   mark?: number;
 }) {
-  const left = new Date(contract.expiresAt).getTime() - now;
   const total = contract.durationSeconds * 1000;
+  // Anchor the countdown to this device's clock when the contract is first seen,
+  // clamped to the contract's own duration, so device/server clock skew can never
+  // make a 60s contract start at 02:00.
+  const [localExpiry] = useState(() => {
+    const t = Date.now();
+    const remaining = new Date(contract.expiresAt).getTime() - t;
+    return t + Math.min(total, Math.max(0, remaining));
+  });
+  const left = Math.min(total, localExpiry - now);
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
   const lev = contract.leverage ?? 1;
   const profit = (contract.stake * contract.payoutPct * lev) / 100;
