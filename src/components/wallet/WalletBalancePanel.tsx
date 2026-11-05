@@ -144,7 +144,7 @@ export function WalletBalancePanel({
           aria-controls="account-balances-table"
           className="-ml-1 flex min-h-11 touch-manipulation items-center gap-1.5 rounded-md px-1 text-left text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {balancesOpen ? "Hide account balances" : "Account balances"}
+          Account balances
           <ChevronDown
             aria-hidden
             className={`size-4 shrink-0 transition-transform duration-300 ease-out ${balancesOpen ? "rotate-180" : ""}`}
