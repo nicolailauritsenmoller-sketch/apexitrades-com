@@ -34,5 +34,9 @@ export const applyAsCopyLeader = createServerFn({ method: "POST" })
       user_id: context.userId, public_name: data.publicName, bio: data.bio,
     });
     if (error) throw new Error(error.message);
-    return { status: "pending" as const };
+    // The explicit sign-up consent is the only approval step; activate the listing immediately.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const approved = await supabaseAdmin.from("copy_leader_applications").update({ status: "approved", consent_at: new Date().toISOString() }).eq("user_id", context.userId);
+    if (approved.error) throw new Error(approved.error.message);
+    return { status: "approved" as const };
   });
