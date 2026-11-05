@@ -50,3 +50,4 @@
 - Add Funds uses the shared quick-deposit asset policy and only active configured receiving addresses for network selection, QR codes and copying - why: no fabricated or cross-asset deposit destinations.
 - Discovery moderation and institutional articles persist in protected editorial tables with database-triggered audit entries; public feed reads project safe moderation columns - why: operator decisions survive refreshes without exposing internal notes.
 - Desk snapshots use the existing closed-position metrics RPC on trade changes and explicit admin capture, bucketed to five minutes; client rotation remains separate - why: durable measured history without idle polling or fabricated results.
+- Scalping uses live DB tiers and version-checked inserts; saved contract terms persist - why: stale orders cannot change returns.
