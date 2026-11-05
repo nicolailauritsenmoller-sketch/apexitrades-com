@@ -379,6 +379,13 @@
       "when": 1793856442846,
       "tag": "0053_scalping_tier_risk_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793856754718,
+      "tag": "0054_scalping_risk_field_read_grants",
+      "breakpoints": true
     }
   ]
 }
