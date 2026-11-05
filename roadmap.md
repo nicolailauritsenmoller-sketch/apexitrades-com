@@ -2,6 +2,12 @@
 
 ## In Progress
 
+- [ ] Add a protected operations health center with durable feed checks, reconciliation, notification visibility, risk exposure and compliance/support queue ages.
+- [ ] Strengthen receiving-address validation and preserve atomic financial settlement safeguards.
+- [ ] Add audited configuration history and controlled restoration; verify role boundaries and operational flows.
+- [ ] Evaluate dual approval and stronger sensitive-action authentication without disrupting existing financial execution.
+- [ ] Document recovery limitations and any external credentials or operator decisions still needed.
+
 - [x] Make movement alerts open pair-specific live chart dialogs styled like the reference: filled price line, neutral moving-average overlay, compact 15m/1h/4h/1d selectors and volume histogram. Signed-in SOL alert, all four timeframe selections, changing live price and mobile no-overflow verified; no page errors. Closing keeps the original URL.
 
 - [x] Restore live New and Alpha feeds by separating public moderation access from signed-in administrator checks and enforcing safe-column reads; both signed-in tabs show current provider rows and change automatically after 30 seconds. Nineteen regression tests pass; provider outages remain honestly reported rather than fabricated.
