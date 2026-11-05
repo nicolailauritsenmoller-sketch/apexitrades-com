@@ -11,7 +11,7 @@ export const getOperationsHealth = createServerFn({ method: "POST" }).middleware
     db.from("operations_feed_checks").select("*").order("feed"),
     db.from("deposit_addresses").select("id,coin,network,address,memo,active,status"),
     db.from("platform_setting_revisions").select("id,key,created_at,before_value").order("created_at", { ascending: false }).limit(20),
-    db.from("broadcast_logs").select("id,status,delivered,failed,created_at").order("created_at", { ascending: false }).limit(10),
+    db.from("broadcast_logs").select("id,status,delivered,failed,skipped_channels,created_at").order("created_at", { ascending: false }).limit(10),
     db.from("scalping_tier_rules").select("id,label,duration_seconds,min_trade_amount,max_trade_amount,daily_payout_cap,commission_pct,active,deleted_at").eq("active", true).is("deleted_at", null),
     db.from("platform_settings").select("value").eq("key", "risk_controls").maybeSingle(),
     db.from("financial_review_approvals").select("request_id,approver_id").eq("request_kind", "withdrawal").limit(500),

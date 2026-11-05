@@ -73,10 +73,6 @@ export const forceMatchDeposit = createServerFn({ method: "POST" })
       p_id: dep.id, p_status: "approved", p_note: `Force-matched on-chain: ${data.reason}`, p_reviewer: context.userId,
     });
     if (error || !r?.settled) throw new Error(error?.message ?? "Deposit was settled by another operator.");
-    await db.from("notifications").insert({
-      user_id: dep.user_id, title: "Deposit credited",
-      body: `${Number(dep.amount)} ${dep.coin} (${dep.network}) has been credited to your balance.`, kind: "success",
-    });
     await logAudit(db, context.userId, "deposit.force_match", dep.user_id, { deposit_id: dep.id, tx_hash: data.txHash, amount: Number(dep.amount), coin: dep.coin, reason: data.reason });
     return { ok: true, amount: Number(dep.amount), coin: dep.coin };
   });
