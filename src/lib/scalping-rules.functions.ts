@@ -26,7 +26,7 @@ export const saveScalpingRule = createServerFn({ method: "POST" }).middleware([r
   .handler(async ({ context, data }) => {
     await requireAdmin(context);
     const { id, reason, ...values } = data;
-    const row = { ...values, audit_reason: reason };
+    const row = { ...values, audit_reason: reason ?? "" };
     const result = id
       ? await context.supabase.from("scalping_tier_rules").update(row).eq("id", id).is("deleted_at", null).select("id").single()
       : await context.supabase.from("scalping_tier_rules").insert(row).select("id").single();
@@ -35,11 +35,11 @@ export const saveScalpingRule = createServerFn({ method: "POST" }).middleware([r
   });
 
 export const removeScalpingRule = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), reason: z.string().trim().min(5).max(400) }).parse(input))
-  .handler(async ({ context, data }) => {
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), reason: z.string().trim().max(400).optional() }).parse(input))
+    .handler(async ({ context, data }) => {
     await requireAdmin(context);
     const result = await context.supabase.from("scalping_tier_rules")
-      .update({ active: false, deleted_at: new Date().toISOString(), audit_reason: data.reason })
+      .update({ active: false, deleted_at: new Date().toISOString(), audit_reason: data.reason ?? "" })
       .eq("id", data.id).is("deleted_at", null).select("id").single();
     if (result.error) throw new Error(result.error.message);
     return { id: result.data.id };
