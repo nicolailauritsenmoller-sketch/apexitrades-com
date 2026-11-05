@@ -23,6 +23,7 @@ export type PositionRow = {
   currency: string;
   status: string;
   realizedPnl: number | null;
+  feesPaid?: number | null;
   openedAt: string;
   closedAt: string | null;
 };
