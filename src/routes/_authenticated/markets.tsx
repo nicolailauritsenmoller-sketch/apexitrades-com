@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { ChevronRight, Loader2, Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useQuotes } from "@/hooks/useMarket";
@@ -428,9 +428,11 @@ function Markets() {
                     <Link
                       to="/terminal/$symbol"
                       params={{ symbol: i.symbol }}
-                      className="rounded border border-border px-2.5 py-1 text-xs transition-colors hover:bg-secondary"
+                      aria-label={`Open ${i.symbol} terminal`}
+                      title="Open terminal"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     >
-                      Trade
+                      <ChevronRight className="h-4 w-4" />
                     </Link>
                   </td>
                 </tr>
