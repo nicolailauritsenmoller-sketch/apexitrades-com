@@ -567,7 +567,8 @@ function TradingViewChartInner({
 
     const ensureIndicator = (key: IndicatorKey) => {
       if (indicatorRefs.current.find((i) => i.key === key)) return;
-      const def = INDICATORS.find((d) => d.key === key)!;
+      const def = INDICATORS.find((d) => d.key === key);
+      if (!def) return;
       if (key === "volume") {
         indicatorRefs.current.push({ key, series: [volumeSeries], pane: volumePaneRef.current });
         volumePaneRef.current.setHeight(Math.round((wrapRef.current?.clientHeight ?? 420) * 0.2));
@@ -608,7 +609,7 @@ function TradingViewChartInner({
         indicatorRefs.current.push({ key, series: [upper, middle, lower] });
       } else {
         const s = chart.addSeries(lib.LineSeries, {
-          color: def.color || colors.primary,
+          color: movementPreview && key === "sma50" ? colors.foreground : def.color || colors.primary,
           lineWidth: 2,
           lastValueVisible: false,
         });
@@ -786,7 +787,7 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="hidden h-4 w-px bg-border sm:block" />
+        <div className={cn("hidden h-4 w-px bg-border sm:block", movementPreview && "sm:hidden")} />
 
         <div className="flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto">
           {(movementPreview ? ["15m", "1h", "4h", "1d"] as Timeframe[] : VISIBLE_TIMEFRAMES).map((tf) => [tf, TIMEFRAME_LABELS[tf]] as const).map(([tf, label]) => (
@@ -805,7 +806,7 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="hidden h-4 w-px bg-border sm:block" />
+        <div className={cn("hidden h-4 w-px bg-border sm:block", movementPreview && "sm:hidden")} />
         <div className={cn("flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto sm:overflow-visible", movementPreview && "hidden")}>
           {inspected && (
             <span className="shrink-0 pr-1 font-mono text-[10px] tabular-nums sm:hidden">
