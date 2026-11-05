@@ -21,19 +21,20 @@ describe("Lv.2 compliance alerts", () => {
     expect(validateOperationsSearch({ tab: "overview", review: "invalid" })).toEqual({ tab: "overview" });
   });
   it("denies non-admins before reading compliance evidence", async () => {
-    const from = vi.fn();
-    const rpc = vi.fn(async () => ({ data: false, error: null }));
+    const from = vi.fn(() => ({ select: () => ({ eq: async () => ({ data: [{ role: "user" }], error: null }) }) }));
     const handler = getComplianceSubmission as unknown as (args: unknown) => Promise<unknown>;
-    await expect(handler({ data: { id }, context: { userId: "officer", supabase: { rpc, from } } })).rejects.toThrow("Forbidden");
-    expect(from).not.toHaveBeenCalled();
+    await expect(handler({ data: { id }, context: { userId: "officer", supabase: { from } } })).rejects.toThrow("Forbidden");
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith("user_roles");
   });
   it("reads the selected submission for an authorized administrator", async () => {
     const row = { id, level2_status: "pending" };
     const eq = vi.fn(() => ({ maybeSingle: async () => ({ data: row, error: null }) }));
-    const rpc = vi.fn(async () => ({ data: true, error: null }));
-    const from = vi.fn(() => ({ select: () => ({ eq }) }));
+    const from = vi.fn((table: string) => table === "user_roles"
+      ? { select: () => ({ eq: async () => ({ data: [{ role: "admin" }], error: null }) }) }
+      : { select: () => ({ eq }) });
     const handler = getComplianceSubmission as unknown as (args: unknown) => Promise<unknown>;
-    expect(await handler({ data: { id }, context: { userId: "officer", supabase: { rpc, from } } })).toEqual(row);
+    expect(await handler({ data: { id }, context: { userId: "officer", supabase: { from } } })).toEqual(row);
     expect(eq).toHaveBeenCalledWith("id", id);
   });
 });
