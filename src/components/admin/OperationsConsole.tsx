@@ -3,6 +3,7 @@ import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCente
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
 import { LeaderboardManager } from "@/components/admin/LeaderboardManager";
+import { LeaderApplicationWatcher } from "@/components/admin/LeaderApplicationWatcher";
 import { ScalpingManagement } from "@/components/admin/ScalpingManagement";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
@@ -597,6 +598,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 
           {tab === "corrections" && <TradeCorrections />}
           {tab === "discovery" && isAdmin && <DiscoveryDesk />}
+          {isAdmin && <LeaderApplicationWatcher onReview={() => setTab("leaderboard" as TabId)} />}
           {tab === "leaderboard" && isAdmin && <LeaderboardManager />}
           {tab === "scalping" && isAdmin && <ScalpingManagement />}
           {tab === "health" && isAdmin && <OperationsHealthCenter onOpen={go} />}
