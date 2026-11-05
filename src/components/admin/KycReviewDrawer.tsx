@@ -179,7 +179,6 @@ export function KycReviewDrawer({
                     </div>
                   )}
                 </div>
-                {false && <p className="text-xs text-muted-foreground">No files uploaded.</p>}
               </section>
               {row.admin_note && <p className="text-xs text-muted-foreground">Previous Level 1 note: {row.admin_note}</p>}
             </>

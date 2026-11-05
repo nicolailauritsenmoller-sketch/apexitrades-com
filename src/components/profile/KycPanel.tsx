@@ -10,7 +10,6 @@ import {
 
   type UploadStage,
 } from "@/components/profile/FileUploadField";
-import { LiveSelfieCapture, type SelfieCaptureMeta } from "@/components/profile/LiveSelfieCapture";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
@@ -31,9 +30,8 @@ export function KycPanel({
     documentType: "passport" | "id_card" | "drivers_license";
     documentNumber: string;
     documentPath: string;
-    selfiePath: string;
-    selfieCapture: SelfieCaptureMeta;
-    documentExpiresAt?: string;
+    documentBackPath: string;
+    documentExpiresAt: string;
   }) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -48,7 +46,7 @@ export function KycPanel({
     documentExpiresAt: "",
   });
   const [docFile, setDocFile] = useState<File | null>(null);
-  const [selfie, setSelfie] = useState<{ file: File; meta: SelfieCaptureMeta } | null>(null);
+  const [backFile, setBackFile] = useState<File | null>(null);
   const [stage, setStage] = useState<UploadStage>("idle");
 
   const isPending = kyc?.status === "pending";
@@ -66,28 +64,26 @@ export function KycPanel({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!userId) return;
-    if (!docFile || !selfie) {
-      toast.error("Upload both your document and a selfie.");
+    if (!docFile || !backFile) {
+      toast.error("Upload both the front and back of your document.");
       return;
     }
     setBusy(true);
     setStage("uploading");
     try {
-      const [documentPath, selfiePath] = await Promise.all([
-        upload(docFile, "document"),
-        upload(selfie.file, "selfie"),
+      const [documentPath, documentBackPath] = await Promise.all([
+        upload(docFile, "document-front"),
+        upload(backFile, "document-back"),
       ]);
       setStage("done");
       await onSubmit({
         ...form,
         documentPath,
-        selfiePath,
-        selfieCapture: selfie.meta,
-        documentExpiresAt: form.documentExpiresAt || undefined,
+        documentBackPath,
       });
       setOpen(false);
       setDocFile(null);
-      setSelfie(null);
+      setBackFile(null);
       setStage("idle");
     } catch (err) {
       setStage("idle");
@@ -133,7 +129,12 @@ export function KycPanel({
                 rel="noreferrer"
                 className="text-primary underline"
               >
-                View document
+                View document front
+              </a>
+            )}
+            {kyc.documentBackUrl && (
+              <a href={kyc.documentBackUrl} target="_blank" rel="noreferrer" className="text-primary underline">
+                View document back
               </a>
             )}
             {kyc.selfieUrl && (
@@ -177,16 +178,19 @@ export function KycPanel({
             onChange={(e) => setForm({ ...form, fullName: e.target.value })}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
           />
+          <label className="text-xs text-muted-foreground">
+            Date of birth
           <input
             required
             type="date"
             value={form.dateOfBirth}
             onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           />
+          </label>
           <input
             required
-            placeholder="Country"
+            placeholder="Country of residence"
             value={form.country}
             onChange={(e) => setForm({ ...form, country: e.target.value })}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
@@ -206,8 +210,8 @@ export function KycPanel({
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
           >
             <option value="passport">Passport</option>
-            <option value="id_card">Government ID card</option>
-            <option value="drivers_license">Driver's license</option>
+            <option value="id_card">National ID</option>
+            <option value="drivers_license">Driver's License</option>
           </select>
           <input
             required
@@ -219,6 +223,7 @@ export function KycPanel({
           <label className="text-xs text-muted-foreground">
             Document expiry date
             <input
+              required
               type="date"
               value={form.documentExpiresAt}
               onChange={(e) => setForm({ ...form, documentExpiresAt: e.target.value })}
@@ -227,14 +232,21 @@ export function KycPanel({
           </label>
           <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
             <FileUploadField
-              label="Government ID / passport / licence"
+              label="Document front image"
               accept="image/*,application/pdf"
               allowed={DOC_TYPES}
               file={docFile}
               onChange={setDocFile}
               stage={stage}
             />
-            <LiveSelfieCapture label="Live selfie photo" value={selfie} onChange={setSelfie} />
+            <FileUploadField
+              label="Document back image"
+              accept="image/*,application/pdf"
+              allowed={DOC_TYPES}
+              file={backFile}
+              onChange={setBackFile}
+              stage={stage}
+            />
           </div>
           <button
             type="submit"

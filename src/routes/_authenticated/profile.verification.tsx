@@ -83,9 +83,9 @@ function VerificationPage() {
           title="KYC Identity Verification"
           status={level1Status}
           requirements={[
-            "Full name, date of birth and address",
-            "Government ID, passport or driver's licence",
-            "Selfie photo",
+            "Full legal name, date of birth, country and residential address",
+            "Document type, number and expiry date",
+            "Document front and back images",
           ]}
         >
           <KycPanel
