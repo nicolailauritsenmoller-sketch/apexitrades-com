@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AssetIcon } from "@/lib/asset-icons";
+import usFlag from "@/assets/flags/us.svg";
 import { DISPLAY_CURRENCIES, useDisplayCurrency } from "@/lib/display-currency";
 import { logActivity } from "@/lib/telemetry";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,13 @@ export function DisplayCurrencyDialog({
                   active ? "border-primary bg-primary/10" : "border-border hover:bg-secondary"
                 }`}
               >
-                <AssetIcon currency={c.code} size={28} />
+                {c.code === "USD" ? (
+                  <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-raised" aria-hidden="true">
+                    <img src={usFlag} alt="" className="size-full object-cover" />
+                  </span>
+                ) : (
+                  <AssetIcon currency={c.code} size={28} />
+                )}
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">{c.code}</span>
                   <span className="block text-[11px] text-muted-foreground">{c.name}</span>
