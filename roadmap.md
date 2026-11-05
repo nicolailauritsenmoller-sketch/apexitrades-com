@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Restore live New and Alpha feeds by separating public moderation access from signed-in administrator checks; verify both signed-in tabs with current provider rows.
+- [x] Restore live New and Alpha feeds by separating public moderation access from signed-in administrator checks and enforcing safe-column reads; both signed-in tabs show current provider rows and change automatically after 30 seconds. Nineteen regression tests pass; provider outages remain honestly reported rather than fabricated.
 
 - [x] Add scalping maximum stake, eligible pair selection, additive protocol commission and UTC expiry-day aggregate payout budget; database tier lock and atomic debit protect entry, accepted terms remain unchanged. Signed-in create/reload/edit/pair presets/remove verified; 37 unit/PostgreSQL tests pass. Test tiers removed; no customer funds used.
 
