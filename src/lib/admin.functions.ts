@@ -147,14 +147,6 @@ export const reviewDeposit = createServerFn({ method: "POST" })
       note: data.note ?? null,
     });
 
-    await notify(
-      supabase,
-      dep.user_id,
-      data.action === "approve" ? "Deposit settled" : "Deposit compliance check failed",
-      `${Number(dep.amount)} ${dep.coin} (${dep.network}) - ${data.action === "approve" ? "clearing complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
-      data.action === "approve" ? "success" : "warning",
-    );
-
     return { ok: true };
   });
 
@@ -177,11 +169,21 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
     // Approval simply finalises it; rejection refunds the held amount.
     // Settle the status first so a failed update can never double-credit.
     const status = data.action === "approve" ? "approved" : "rejected";
+    const { loadRiskControls } = await import("./risk-controls.server");
+    const { isHighValue } = await import("./operations-health");
+    if (data.action === "approve" && isHighValue(wd.coin, Number(wd.amount), await loadRiskControls())) {
+      const { assertSensitiveOperator } = await import("./operator-security.server");
+      await assertSensitiveOperator(context);
+    }
     const db = await privileged();
     const { data: r, error } = await db.rpc("review_withdrawal_atomic", {
       p_id: wd.id, p_status: status, p_note: data.note ?? null, p_reviewer: userId,
     });
     if (error) throw new Error(error.message);
+    if (r?.awaiting_second_approval) {
+      await writeAudit(context, "withdrawal.first_approval", wd.user_id, { request_id: wd.id, amount: Number(wd.amount), coin: wd.coin });
+      return { ok: true, awaitingSecondApproval: true };
+    }
     if (!r?.settled) throw new Error("Withdrawal already reviewed.");
 
     await writeAudit(context, `withdrawal.${data.action}`, wd.user_id, {
@@ -190,14 +192,6 @@ export const reviewWithdrawal = createServerFn({ method: "POST" })
       destination: wd.destination_address,
       note: data.note ?? null,
     });
-
-    await notify(
-      supabase,
-      wd.user_id,
-      data.action === "approve" ? "Withdrawal settled" : "Withdrawal compliance check failed",
-      `${Number(wd.amount)} ${wd.coin} to ${wd.destination_address} - ${data.action === "approve" ? "settlement complete" : "security review unsuccessful"}.${data.note ? ` Review note: ${data.note}` : ""}`,
-      data.action === "approve" ? "success" : "warning",
-    );
 
     return { ok: true };
   });
@@ -382,8 +376,8 @@ export const upsertDepositAddress = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => addressInput.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { validateAddress } = await import("./address-validation");
-    const invalid = validateAddress(data.network, data.address, data.memo);
+    const { validateAssetAddress } = await import("./address-validation");
+    const invalid = validateAssetAddress(data.coin, data.network, data.address, data.memo);
     if (invalid) throw new Error(invalid);
     if (data.id && (data.reason ?? "").length < 5) throw new Error("An audit note is required to change an address.");
     const status = data.status ?? (data.active ? "active" : "paused");
@@ -574,55 +568,22 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     await assertFinance(context);
     const currency = data.currency.toUpperCase();
     const db = await privileged();
-    const { data: wallet } = await db
-      .from("wallets")
-      .select("*")
-      .eq("user_id", data.userId)
-      .eq("currency", currency)
-      .maybeSingle();
-
-    const next =
-      data.mode === "set" ? data.amount : Number(wallet?.balance ?? 0) + data.amount;
-    if (next < 0) throw new Error("Resulting balance cannot be negative.");
-
-    const { walletAdjust } = await import("./wallet-atomic.server");
-    const delta = data.mode === "set" ? next - Number(wallet?.balance ?? 0) : data.amount;
-    const applied = await walletAdjust(db, data.userId, currency, delta);
-    if (applied !== null) (data as any)._resulting = applied;
-    if (delta !== 0) {
-      await db.from("transactions").insert({
-        user_id: data.userId,
-        kind: `admin_${data.kind}`,
-        currency,
-        amount: delta,
-        status: "COMPLETED",
-        ref_table: "admin_adjustment",
-        ref_id: crypto.randomUUID(),
-        note: data.reason ?? "Account Operations adjustment",
-      } as any);
+    if ((data.reason ?? "").trim().length < 5) throw new Error("An audit reason is required for a balance correction.");
+    const { loadRiskControls } = await import("./risk-controls.server");
+    const { isHighValue } = await import("./operations-health");
+    const { data: wallet, error: walletError } = await db.from("wallets").select("balance").eq("user_id", data.userId).eq("currency", currency).maybeSingle();
+    if (walletError) throw new Error(walletError.message);
+    const delta = data.mode === "set" ? data.amount - Number(wallet?.balance ?? 0) : data.amount;
+    if (isHighValue(currency, delta, await loadRiskControls())) {
+      const { assertSensitiveOperator } = await import("./operator-security.server");
+      await assertSensitiveOperator(context);
+      const { error } = await db.from("balance_correction_requests").insert({ user_id: data.userId, currency, amount: data.amount, mode: data.mode, kind: data.kind, reason: data.reason, requested_by: context.userId });
+      if (error) throw new Error(error.message);
+      await writeAudit(context, "balance.request", data.userId, { currency, amount: data.amount, mode: data.mode, reason: data.reason });
+      return { ok: true, awaitingSecondApproval: true, balance: null };
     }
-
-
-
-    await writeAudit(context, `balance.${data.kind}`, data.userId, {
-      currency,
-      amount: data.amount,
-      mode: data.mode,
-      kind: data.kind,
-      reason: data.reason ?? null,
-      previous_balance: Number(wallet?.balance ?? 0),
-      resulting_balance: next,
-    });
-
-    const label =
-      data.kind === "bonus" ? "Bonus credited" : data.kind === "debit" ? "Balance debited" : "Balance updated";
-    await notify(
-      context.supabase,
-      data.userId,
-      label,
-      `Your ${currency} balance was updated by Account Operations to ${next}.${data.reason ? ` Reason: ${data.reason}` : ""}`,
-      data.kind === "debit" ? "warning" : "success",
-    );
+    const { data: applied, error } = await db.rpc("apply_balance_correction", { p_user: data.userId, p_currency: currency, p_amount: data.amount, p_mode: data.mode, p_kind: data.kind, p_reason: data.reason, p_actor: context.userId });
+    if (error) throw new Error(error.message);
     return { balance: next };
   });
 
