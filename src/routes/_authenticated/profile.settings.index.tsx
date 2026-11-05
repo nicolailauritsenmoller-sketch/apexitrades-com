@@ -177,7 +177,7 @@ function PersonalInformation() {
                   <h2 className="truncate text-xl font-bold">{profile?.displayName ?? "Trader"}</h2>
                   {verified ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-bull/20 bg-bull/10 px-2.5 py-1 text-[10px] font-bold uppercase text-bull">
-                      <BadgeCheck className="size-3.5" /> {enhancedVerified ? "Identity & Address Verified" : "KYC Verified"}
+                      <BadgeCheck className="size-3.5" /> {enhancedVerified ? "KYC Lv.1 & Lv.2 Verified" : "KYC Lv.1 Verified"}
                     </span>
                   ) : (
                     <Link to="/profile/verification" className="rounded-full border border-border bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase text-muted-foreground">

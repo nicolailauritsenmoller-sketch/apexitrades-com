@@ -219,7 +219,7 @@ export const reviewKyc = createServerFn({ method: "POST" })
       const missing = current
         ? Object.entries(current).filter(([, v]) => v == null || String(v).trim() === "").map(([k]) => k)
         : ["submission"];
-      if (missing.length) throw new Error(`Level 1 submission is incomplete: ${missing.join(", ")}`);
+      if (missing.length) throw new Error(`Lv.1 submission is incomplete: ${missing.join(", ")}`);
     }
     const { data: row, error } = await supabase
       .from("kyc_submissions")
@@ -244,8 +244,8 @@ export const reviewKyc = createServerFn({ method: "POST" })
       await notify(
         supabase,
         row.user_id,
-        data.action === "approve" ? "Verification complete" : "Identity compliance check failed",
-        data.note ?? (data.action === "approve" ? "Your identity verification is complete." : "Your identity submission did not pass the compliance review."),
+        data.action === "approve" ? "Lv.1 verification complete" : "Lv.1 compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your Lv.1 identity attestation is complete." : "Your Lv.1 submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
       if (data.action === "approve") {
@@ -289,9 +289,9 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
         supabase,
         row.user_id,
         data.action === "approve"
-          ? "Level 2 verification complete"
-          : "Level 2 compliance check failed",
-        data.note ?? (data.action === "approve" ? "Your Level 2 verification is complete." : "Your Level 2 submission did not pass the compliance review."),
+          ? "Lv.2 verification complete"
+          : "Lv.2 compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your Lv.2 verification is complete." : "Your Lv.2 submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
     }

@@ -233,8 +233,8 @@ function ProfileHome() {
   const complianceLabel =
     status === "approved"
       ? enhancedStatus === "approved"
-        ? "Identity & Address Verified"
-        : "KYC Verified"
+        ? "KYC Lv.1 & Lv.2 Verified"
+        : "KYC Lv.1 Verified"
       : KYC_LABEL[status] ?? "KYC Not Verified";
 
   return (

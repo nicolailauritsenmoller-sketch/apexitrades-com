@@ -61,7 +61,7 @@ export const getComplianceProfile = createServerFn({ method: "POST" })
     else if (HIGH_RISK_COUNTRIES.has(country)) factors.push({ label: `High-risk jurisdiction (${country})`, points: 3 });
     if (!twoFa) factors.push({ label: "2FA not enabled", points: 1 });
     if (tier === 0) factors.push({ label: "Identity not verified", points: 2 });
-    else if (tier === 1) factors.push({ label: "Level 2 not completed", points: 1 });
+    else if (tier === 1) factors.push({ label: "Lv.2 not completed", points: 1 });
     if (velocity >= 10) factors.push({ label: `High transaction velocity (${velocity} in 24h)`, points: 2 });
     else if (velocity >= 5) factors.push({ label: `Elevated transaction velocity (${velocity} in 24h)`, points: 1 });
 

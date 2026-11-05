@@ -77,7 +77,7 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
       ? `${kyc.dailyLimitUsdt.toLocaleString("en-US")} USDT per day`
       : level1 === "approved"
         ? "Standard desk limit - no custom cap set"
-        : "Withdrawals locked until Level 1 is approved";
+        : "Withdrawals locked until Lv.1 is approved";
 
   return (
     <section className="touch-manipulation overflow-hidden rounded-lg border border-border bg-card">
@@ -97,8 +97,8 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
                 <ShieldCheck className="size-4" />
               </span>
               <div>
-                <h3 className="text-sm font-bold">KYC Level 1</h3>
-                <p className="text-[11px] text-muted-foreground">Basic identity verification</p>
+                <h3 className="text-sm font-bold">KYC Lv.1</h3>
+                <p className="text-[11px] text-muted-foreground">Identity attestation</p>
               </div>
             </div>
             <StatusPill status={level1} />
@@ -134,7 +134,7 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
           ) : (
             <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <BadgeCheck className="size-3.5" />
-              {level1 === "pending" ? "Under compliance review" : "Level 1 verification complete"}
+              {level1 === "pending" ? "Under compliance review" : "Lv.1 verification complete"}
             </p>
           )}
         </article>
@@ -147,8 +147,8 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
                 <Fingerprint className="size-4" />
               </span>
               <div>
-                <h3 className="text-sm font-bold">KYC Level 2</h3>
-                <p className="text-[11px] text-muted-foreground">Advanced verification</p>
+                <h3 className="text-sm font-bold">KYC Lv.2</h3>
+                <p className="text-[11px] text-muted-foreground">Enhanced due diligence</p>
               </div>
             </div>
             <StatusPill status={level2} />
@@ -176,7 +176,7 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
           </div>
 
           <div className="mt-4 rounded-md border border-border bg-secondary/50 p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Unlocked at Level 2</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Unlocked at Lv.2</p>
             <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
               <li>• VIP fee tier eligibility and higher leverage access</li>
               <li>• Raised daily withdrawal thresholds</li>
@@ -196,7 +196,7 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
           ) : (
             <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <BadgeCheck className="size-3.5" />
-              {level2 === "pending" ? "Under compliance review" : "Level 2 verification complete"}
+              {level2 === "pending" ? "Under compliance review" : "Lv.2 verification complete"}
             </p>
           )}
         </article>

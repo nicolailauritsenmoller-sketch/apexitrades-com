@@ -80,7 +80,7 @@ function VerificationPage() {
       <div className="space-y-4">
         <KycTierCard
           stage="identity"
-          title="KYC Identity Verification"
+          title="KYC Lv.1 Identity Verification"
           status={level1Status}
           requirements={[
             "Full legal name, date of birth, country and residential address",
@@ -100,7 +100,7 @@ function VerificationPage() {
 
         <KycTierCard
           stage="enhanced"
-          title="Identity & Address Verification"
+          title="KYC Lv.2 Identity & Address Verification"
           status={level2Status}
           locked={level1Status !== "approved"}
           requirements={[

@@ -44,7 +44,7 @@ export function KycLevel2Panel({
   if (!level1Approved) {
     return (
       <p className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        Complete and pass Level 1 verification to unlock enhanced verification.
+        Complete and pass Lv.1 verification to unlock enhanced due diligence.
       </p>
     );
   }
@@ -52,7 +52,7 @@ export function KycLevel2Panel({
   if (level2 === "pending") {
     return (
       <p className="rounded-xl border border-amber-400/40 bg-amber-400/5 p-4 text-xs text-amber-400">
-        Your Level 2 documents are under compliance review. This usually takes 1-2 business days.
+        Your Lv.2 documents are under compliance review. This usually takes 1-2 business days.
       </p>
     );
   }
@@ -60,7 +60,7 @@ export function KycLevel2Panel({
   if (level2 === "approved") {
     return (
       <p className="rounded-xl border border-bull/40 bg-bull/5 p-4 text-xs text-bull">
-        Level 2 verification approved - unlimited daily withdrawals, priority support, high-leverage
+        Lv.2 verification approved - unlimited daily withdrawals, priority support, high-leverage
         trading and fiat rails are enabled.
       </p>
     );
@@ -111,7 +111,7 @@ export function KycLevel2Panel({
       {level2 === "rejected" && (
         <div className="rounded-xl border border-bear/40 bg-bear/5 p-3 text-xs text-bear sm:col-span-2">
           <p className="font-semibold">
-            Your Level 2 submission was rejected. Please re-submit below.
+            Your Lv.2 submission was rejected. Please re-submit below.
           </p>
            {kyc?.level2AdminNote && <p className="mt-1">Compliance note: {institutionalizeCopy(kyc.level2AdminNote)}</p>}
         </div>
@@ -147,7 +147,7 @@ export function KycLevel2Panel({
         disabled={busy}
         className="touch-manipulation rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 sm:col-span-2"
       >
-        {busy ? "Submitting…" : "Submit Level 2 documents"}
+        {busy ? "Submitting…" : "Submit Lv.2 documents"}
       </button>
     </form>
   );
