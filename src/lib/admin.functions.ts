@@ -1415,7 +1415,7 @@ export const deleteUserAccount = createServerFn({ method: "POST" })
 /* KYC reversal and platform settings hub                              */
 /* ------------------------------------------------------------------ */
 
-/** Reverts an approved identity verification back to pending. */
+/** Silently clears both verification tiers for a fresh customer submission. */
 export const unverifyKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -1427,25 +1427,38 @@ export const unverifyKyc = createServerFn({ method: "POST" })
     const { data: row, error } = await db
       .from("kyc_submissions")
       .update({
-        status: "pending",
-        admin_note: data.note ?? "Verification revoked - re-review required.",
-        reviewed_by: context.userId,
-        reviewed_at: new Date().toISOString(),
+        status: "unsubmitted",
+        kyc_level_1_status: "unsubmitted",
+        level2_status: "unsubmitted",
+        kyc_level_2_status: "unsubmitted",
+        document_path: null,
+        selfie_path: null,
+        selfie_capture: null,
+        document_expires_at: null,
+        admin_note: null,
+        reviewed_by: null,
+        reviewed_at: null,
+        level2_selfie_path: null,
+        level2_selfie_capture: null,
+        level2_proof_path: null,
+        level2_proof_type: null,
+        level2_tax_id: null,
+        level2_admin_note: null,
+        level2_submitted_at: null,
+        level2_reviewed_by: null,
+        level2_reviewed_at: null,
       })
       .eq("id", data.id)
       .select()
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (row) {
-      await writeAudit(context, "kyc.unverify", row.user_id, { note: data.note ?? null });
-      await notify(
-        db,
-        row.user_id,
-        "Identity verification revoked",
-        data.note ?? "Your verified status was reverted to pending. Please re-submit if requested.",
-        "warning",
-      );
-    }
+    if (!row) throw new Error("Verification record not found.");
+    // The reason is internal only; no customer notification or email is emitted.
+    await writeAudit(context, "kyc.unverify", row.user_id, {
+      note: data.note ?? null,
+      level1Status: "unsubmitted",
+      level2Status: "unsubmitted",
+    });
     return { ok: true };
   });
 

@@ -2703,7 +2703,7 @@ export type Database = {
       asset_class: "crypto" | "stock" | "future" | "forex" | "metal"
       outcome_mode: "normal" | "force_win" | "force_loss"
       position_status: "open" | "closed"
-      request_status: "pending" | "approved" | "rejected"
+      request_status: "pending" | "approved" | "rejected" | "unsubmitted"
       trade_side: "long" | "short"
     }
     CompositeTypes: {
@@ -2836,7 +2836,7 @@ export const Constants = {
       asset_class: ["crypto", "stock", "future", "forex", "metal"],
       outcome_mode: ["normal", "force_win", "force_loss"],
       position_status: ["open", "closed"],
-      request_status: ["pending", "approved", "rejected"],
+      request_status: ["pending", "approved", "rejected", "unsubmitted"],
       trade_side: ["long", "short"],
     },
   },
