@@ -9,8 +9,9 @@ export function useScalpingRules(admin = false) {
   const fetchRules = useServerFn(getScalpingRules);
   const query = useQuery({ queryKey: ["scalping-rules", admin], queryFn: () => fetchRules({ data: { admin } }), refetchInterval: 15_000, staleTime: 0 });
   useEffect(() => {
-    // Readable configuration metadata ensures deactivate/remove events also
-    // reach traders; refetch projects only currently available terms.
+    // Silent cache refresh only: never forward tier changes to notifications.
+    // The DB consumes audit reasons into private logs before replication;
+    // refetch projects only currently available trading terms.
     const channel = supabase.channel(`scalping-rules-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "scalping_tier_rules" }, () => {
         void client.invalidateQueries({ queryKey: ["scalping-rules"] });

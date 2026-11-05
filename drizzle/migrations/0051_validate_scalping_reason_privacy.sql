@@ -1,0 +1,1 @@
+ALTER TABLE public.scalping_tier_rules VALIDATE CONSTRAINT scalping_reason_not_retained;
