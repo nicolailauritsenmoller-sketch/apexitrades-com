@@ -8,8 +8,9 @@ import { formatMoney, formatPrice } from "@/lib/instruments";
 import type { Quote } from "@/lib/market-types";
 import { getContracts, type ContractRow } from "@/lib/contracts.functions";
 import { formatCountdown } from "@/lib/contract-tiers";
-import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
-import { TradeCloseSummary } from "@/components/TradeCloseSummary";
+import { buildHistory, type HistoryEntry } from "@/lib/trade-history";
+import { ContractSettlementDialog } from "@/components/ContractSettlementDialog";
+import { Button } from "@/components/ui/button";
 import { LivePnl } from "@/components/LivePnl";
 
 type Tab = "positions" | "orders" | "history" | "assets";
@@ -34,7 +35,7 @@ export function MobileTradeTabs({
   quotes: Record<string, Quote>;
 }) {
   const [tab, setTab] = useState<Tab>("positions");
-  const [summary, setSummary] = useState<TradeSummary | null>(null);
+  const [summary, setSummary] = useState<HistoryEntry | null>(null);
 
   const fetchContracts = useServerFn(getContracts);
   const contracts = useQuery({
@@ -71,7 +72,7 @@ export function MobileTradeTabs({
   return (
     <section className="mt-4">
       {summary && (
-        <TradeCloseSummary summary={summary} onClose={() => setSummary(null)} />
+        <ContractSettlementDialog entry={summary} onClose={() => setSummary(null)} onViewHistory={() => { setSummary(null); setTab("history"); }} />
       )}
 
       <div className="-mx-1 flex gap-4 overflow-x-auto border-b border-border px-1">
@@ -129,37 +130,22 @@ export function MobileTradeTabs({
             {settled.length > 0 && (
               <ul className="space-y-1.5 p-3 text-xs">
                 {settled.map((c) => {
-                  const net = (c.payout ?? 0) - c.stake;
+                  const [entry] = buildHistory([], [c]);
+                  const net = entry?.pnl ?? null;
                   return (
                     <li key={c.id}>
-                      <button
+                      <Button variant="ghost"
                         type="button"
-                        onClick={() =>
-                          setSummary(
-                            buildContractSummary({
-                              id: c.id,
-                              symbol: c.symbol,
-                              displaySymbol: c.displaySymbol,
-                              direction: c.direction,
-                              stake: c.stake,
-                              currency: c.currency,
-                              entryPrice: c.entryPrice,
-                              exitPrice: c.exitPrice ?? c.entryPrice,
-                              payout: c.payout ?? 0,
-                              result: (c.result ?? "draw") as "win" | "loss" | "draw",
-                              openedAt: c.openedAt,
-                              closedAt: c.settledAt ?? c.expiresAt,
-                            }),
-                          )
-                        }
-                        className="flex w-full touch-manipulation items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-secondary/60"
+                        onClick={() => { if (entry) setSummary(entry); }}
+                        aria-haspopup="dialog"
+                        className="flex h-auto w-full touch-manipulation items-center justify-between gap-2 rounded-md px-1.5 py-2 text-left text-xs transition-colors hover:bg-secondary/60"
                       >
                         <span className="truncate text-muted-foreground">
                           {c.displaySymbol} ·{" "}
                           {c.direction === "up" ? "Call / Higher" : "Put / Lower"}
                         </span>
                         <LivePnl value={net} currency={c.currency} />
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}

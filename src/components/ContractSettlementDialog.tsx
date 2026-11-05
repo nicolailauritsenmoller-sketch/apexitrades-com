@@ -38,11 +38,11 @@ export function ContractSettlementDialog({ entry: e, hidden = false, onClose, on
   ];
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
     <DialogContent className="flex max-h-[94dvh] w-[calc(100%-24px)] max-w-xl flex-col gap-0 overflow-hidden rounded-lg bg-card p-0">
-      <header className="flex items-center gap-3 border-b border-border px-5 py-4 pr-12">
+      <header className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-4 pr-12">
         <AssetIcon symbol={e.symbol} size={36} />
         <div className="min-w-0"><DialogTitle className="text-base leading-6">{e.displaySymbol} · Closed</DialogTitle><DialogDescription className="num mt-1 text-[10px]">{e.reference} · Settlement</DialogDescription></div>
       </header>
-      <div className="min-h-0 overflow-y-auto px-5 py-5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
         <p className="text-xs text-muted-foreground">Net Realized PnL</p>
         <p className={`num mt-2 break-words text-3xl font-bold sm:text-4xl ${tone}`}>{pnl}</p>
         <p className={`num mt-2 text-sm font-semibold ${tone}`}>ROI {roi}</p>
@@ -56,7 +56,7 @@ export function ContractSettlementDialog({ entry: e, hidden = false, onClose, on
         <h3 className="mb-2 mt-5 text-[10px] font-semibold uppercase text-muted-foreground">Settlement breakdown</h3>
         <dl className="divide-y divide-border">{rows.map(([label, value]) => <div key={label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 py-3 text-xs"><dt className="text-muted-foreground">{label}</dt><dd className="num break-words text-right font-medium">{value}</dd></div>)}</dl>
       </div>
-      <footer className="grid grid-cols-2 gap-2 border-t border-border px-5 py-4 sm:grid-cols-3">
+      <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-border px-5 py-4 sm:grid-cols-3">
         <Button asChild className="col-span-2 min-h-11 sm:col-span-1"><Link to="/terminal/$symbol" params={{ symbol: e.symbol }} onClick={onClose}><RefreshCw /> Trade Again</Link></Button>
         <Button variant="outline" onClick={() => void share()} className="min-h-11"><Share2 /> Share PnL</Button>
         <Button variant="outline" onClick={onViewHistory} className="min-h-11"><History /> View History</Button>
@@ -70,8 +70,9 @@ function SettlementCandles({ candles }: { candles: Candle[] }) {
   const high = Math.max(...candles.map((c) => c.h));
   const y = (price: number) => 132 - (price - low) / (high - low || 1) * 120;
   const step = 520 / candles.length;
+  const bodyWidth = Math.min(12, Math.max(1, step * .6));
   return <svg viewBox="0 0 520 144" className="h-36 w-full" role="img" aria-label="Historical candlesticks during the trade">
     {[24, 72, 120].map((y) => <line key={y} x1="0" x2="520" y1={y} y2={y} stroke="var(--color-border)" strokeDasharray="3 4" />)}
-    {candles.map((c, i) => <g key={c.t} className={c.c >= c.o ? "text-bull" : "text-bear"}><line x1={(i + .5) * step} x2={(i + .5) * step} y1={y(c.h)} y2={y(c.l)} stroke="currentColor" /><rect x={(i + .2) * step} y={y(Math.max(c.o, c.c))} width={Math.max(1, step * .6)} height={Math.max(1, Math.abs(y(c.o) - y(c.c)))} fill="currentColor" /></g>)}
+    {candles.map((c, i) => <g key={c.t} className={c.c >= c.o ? "text-bull" : "text-bear"}><line x1={(i + .5) * step} x2={(i + .5) * step} y1={y(c.h)} y2={y(c.l)} stroke="currentColor" /><rect x={(i + .5) * step - bodyWidth / 2} y={y(Math.max(c.o, c.c))} width={bodyWidth} height={Math.max(1, Math.abs(y(c.o) - y(c.c)))} fill="currentColor" /></g>)}
   </svg>;
 }
