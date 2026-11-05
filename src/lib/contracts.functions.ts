@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { validateScalpingOrder, scalpingProfit } from "./scalping-rules";
+import { validateScalpingOrder, scalpingProfit, scalpingCommission, SCALPING_RULE_COLUMNS } from "./scalping-rules";
 
 const placeInput = z.object({
   symbol: z.string().max(20),
@@ -97,13 +97,13 @@ export const placeContract = createServerFn({ method: "POST" })
     await assertTradingAllowed(1);
 
     const tierResult = await supabase.from("scalping_tier_rules")
-      .select("id,label,duration_seconds,min_trade_amount,roi_pct,active,updated_at,deleted_at")
+      .select(SCALPING_RULE_COLUMNS)
       .eq("id", data.tierId).maybeSingle();
     if (tierResult.error) throw new Error("Unable to load current trading terms.");
     const tier = validateScalpingOrder(tierResult.data, data);
 
     const { resolveFeeRate, feeAmount } = await import("./vip-fees.server");
-    const fee = feeAmount(data.stake, await resolveFeeRate(db, userId, "scalp", "taker"));
+    const fee = feeAmount(data.stake, await resolveFeeRate(db, userId, "scalp", "taker")) + scalpingCommission(data.stake, tier.commission_pct);
     const required = data.stake + fee;
 
     const { data: wallet } = await supabase
@@ -124,9 +124,7 @@ export const placeContract = createServerFn({ method: "POST" })
     const price = await fetchPrice(inst.symbol);
     const acknowledgedAt = Date.now();
 
-    const { walletAdjust } = await import("./wallet-atomic.server");
-    await walletAdjust(db, userId, CONTRACT_CURRENCY, -required);
-
+    // The tier guard atomically reserves payout capacity and debits stake plus fees.
     const expiresAt = new Date(Date.now() + tier.duration_seconds * 1000).toISOString();
 
     const { data: contract, error } = await db
@@ -151,7 +149,6 @@ export const placeContract = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      await walletAdjust(db, userId, CONTRACT_CURRENCY, required);
       throw new Error(error.message);
     }
 
@@ -172,7 +169,7 @@ export const placeContract = createServerFn({ method: "POST" })
     return {
       id: contract.id,
       entryPrice: price,
-      expiresAt,
+      expiresAt: contract.expires_at,
       expectedProfit: scalpingProfit(data.stake, Number(tier.roi_pct), data.leverage),
       leverage: data.leverage,
       currency: CONTRACT_CURRENCY,

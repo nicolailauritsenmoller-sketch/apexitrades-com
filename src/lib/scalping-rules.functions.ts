@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { scalpingRuleInput, type ScalpingRule } from "./scalping-rules";
+import { scalpingRuleInput, SCALPING_RULE_COLUMNS, type ScalpingRule } from "./scalping-rules";
 
 async function requireAdmin(context: { supabase: any; userId: string }) {
   const { data, error } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
@@ -13,7 +13,7 @@ export const getScalpingRules = createServerFn({ method: "POST" }).middleware([r
   .handler(async ({ context, data }): Promise<ScalpingRule[]> => {
     if (data.admin) await requireAdmin(context);
     let query = context.supabase.from("scalping_tier_rules")
-      .select("id,label,duration_seconds,min_trade_amount,roi_pct,active,updated_at,deleted_at")
+      .select(SCALPING_RULE_COLUMNS)
       .is("deleted_at", null).order("duration_seconds").order("min_trade_amount");
     if (!data.admin) query = query.eq("active", true);
     const result = await query;
