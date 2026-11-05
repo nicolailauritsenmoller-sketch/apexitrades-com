@@ -46,14 +46,42 @@ type AggTrade = { a: number; p: string; q: string; T: number; m: boolean };
 
 let cache: { at: number; data: SmartMoneySnapshot } | null = null;
 
-async function loadAsset(asset: string) {
+type OkxResp<T> = { code: string; data: T };
+async function okx<T>(path: string): Promise<T> {
+  const res = await fetch("https://www.okx.com" + path, { signal: AbortSignal.timeout(6000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const j = (await res.json()) as OkxResp<T>;
+  if (j.code !== "0") throw new Error(`OKX ${j.code}`);
+  return j.data;
+}
+
+// Real taker flow from Binance; falls back to OKX spot taker volume + trades when Binance blocks the server.
+async function loadFlow(asset: string): Promise<{ qv: number; tb: number; trades: AggTrade[]; close: number }> {
   const symbol = `${asset}USDT`;
-  const [klines, trades] = await Promise.all([
-    get<Kline[]>(`/api/v3/klines?symbol=${symbol}&interval=1h&limit=24`),
-    get<AggTrade[]>(`/api/v3/aggTrades?symbol=${symbol}&limit=1000`),
-  ]);
-  let qv = 0, tb = 0;
-  for (const k of klines) { qv += Number(k[7]); tb += Number(k[10]); }
+  try {
+    const [klines, trades] = await Promise.all([
+      get<Kline[]>(`/api/v3/klines?symbol=${symbol}&interval=1h&limit=24`),
+      get<AggTrade[]>(`/api/v3/aggTrades?symbol=${symbol}&limit=1000`),
+    ]);
+    let qv = 0, tb = 0;
+    for (const k of klines) { qv += Number(k[7]); tb += Number(k[10]); }
+    return { qv, tb, trades, close: close };
+  } catch {
+    const [vol, raw] = await Promise.all([
+      okx<[string, string, string][]>(`/api/v5/rubik/stat/taker-volume?ccy=${asset}&instType=SPOT&period=1H`),
+      okx<{ tradeId: string; px: string; sz: string; side: string; ts: string }[]>(`/api/v5/market/trades?instId=${asset}-USDT&limit=500`),
+    ]);
+    const trades: AggTrade[] = raw.map(t => ({ a: Number(t.tradeId), p: t.px, q: t.sz, T: Number(t.ts), m: t.side === "sell" })).reverse();
+    const close = trades.length ? Number(trades[trades.length - 1].p) : 0;
+    if (!close) throw new Error("no price");
+    let qv = 0, tb = 0;
+    for (const [, sell, buy] of vol.slice(0, 24)) { const b = Number(buy) * close, s2 = Number(sell) * close; qv += b + s2; tb += b; }
+    return { qv, tb, trades, close };
+  }
+}
+
+async function loadAsset(asset: string) {
+  const { qv, tb, trades, close } = await loadFlow(asset);
   const netFlowUsd = 2 * tb - qv;
   // Dynamic whale threshold: top 2% of prints in this asset's sample, floored at MIN_WHALE_USD,
   // so thinner books (ADA, AVAX, LINK) still surface their genuinely largest trades.
@@ -73,7 +101,7 @@ async function loadAsset(asset: string) {
     }
   }
   prints.sort((a, b) => b.usd - a.usd).splice(FEED_PER_ASSET);
-  const price = trades.length ? Number(trades[trades.length - 1].p) : Number(klines.at(-1)?.[4] ?? 0);
+  const price = trades.length ? Number(trades[trades.length - 1].p) : close;
   const row: SmartMoneyRow = {
     asset, netFlowUsd, quoteVolumeUsd: qv, trend: classifyTrend(qv ? netFlowUsd / qv : 0),
     largeVolumeUsd: largeUsd, largeCount, thresholdUsd: threshold, whaleEntry: largeQty ? largeUsd / largeQty : null, lastActivity, price,
