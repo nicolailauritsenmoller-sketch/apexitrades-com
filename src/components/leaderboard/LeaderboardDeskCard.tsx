@@ -55,7 +55,7 @@ export function LeaderboardDeskCard({ entry: e, rank, following = false, isMe = 
     e.vip_level >= 3 && { icon: Crown, label: "Prime Tier" },
     Number(e.trades_30d) >= 50 && { icon: Zap, label: "High-Frequency Desk" },
   ].filter(Boolean) as { icon: typeof Crown; label: string }[];
-  return <article className="rounded-2xl border border-border bg-card p-3.5 touch-manipulation transition-colors duration-300 motion-reduce:transition-none">
+  return <article className="rounded-lg border border-border bg-card p-4 touch-manipulation transition-colors duration-300 motion-reduce:transition-none sm:p-5">
     <header className="flex items-center gap-2.5">
       <span className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${rankClass(rank)}`}>{rank}</span>
       {e.avatar_url ? <img src={e.avatar_url} alt="" className="size-9 rounded-full object-cover" /> : <span className="grid size-9 place-items-center rounded-full bg-secondary text-sm font-semibold">{e.public_name.slice(0, 1).toUpperCase()}</span>}
@@ -63,18 +63,18 @@ export function LeaderboardDeskCard({ entry: e, rank, following = false, isMe = 
         <p className="truncate text-sm font-semibold">{e.public_name}</p>
         <p className="text-[11px] text-muted-foreground">{Number(e.trades_30d)} trades (30d) - 30d PnL <span className={Number(e.pnl_30d) >= 0 ? "text-bull" : "text-bear"}>{usdK(Number(e.pnl_30d))}</span></p>
       </div>
-      {!isMe && <Button size="sm" variant={following ? "secondary" : "outline"} className="h-8 rounded-full px-3 text-xs" disabled={preview || !canFollow || followPending} onClick={onFollow}>
+      {!isMe && <Button size="sm" variant={following ? "secondary" : "outline"} className="min-h-10 rounded-md px-3 text-xs" disabled={preview || !canFollow || followPending} onClick={onFollow}>
         {following ? <><Check className="size-3.5" />Following</> : <><Plus className="size-3.5" />Follow</>}
       </Button>}
     </header>
-    {badges.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{badges.map(b => <span key={b.label} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary"><b.icon className="size-3" />{b.label}</span>)}</div>}
-    <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl border border-border p-2.5 text-[11px]">
-      <div><dt className="text-muted-foreground">Sharpe / Sortino</dt><dd className="mt-0.5 font-mono font-semibold">{ratio(e.sharpe)} / {ratio(e.sortino)}</dd></div>
-      <div><dt className="text-muted-foreground">Max Drawdown (30d)</dt><dd className="mt-0.5 font-mono font-semibold text-bear">{e.max_drawdown_pct == null ? "-" : `-${num(Number(e.max_drawdown_pct))}%`}</dd></div>
-      <div><dt className="text-muted-foreground">Allocated Capital</dt><dd className="mt-0.5 font-mono font-semibold">{usdK(Number(e.margin_30d))}</dd></div>
+    {badges.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{badges.map(b => <span key={b.label} className="inline-flex items-center gap-1 rounded border border-bull/25 bg-bull/5 px-2 py-1 text-[10px] font-medium text-bull"><b.icon className="size-3" />{b.label}</span>)}</div>}
+    <dl className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border bg-surface/40 py-3 text-[10px]">
+      <div className="px-2"><dt className="text-muted-foreground">Sharpe / Sortino</dt><dd className="mt-1 break-words font-mono text-[11px] font-semibold">{ratio(e.sharpe)} / {ratio(e.sortino)}</dd></div>
+      <div className="px-2"><dt className="text-muted-foreground">Max Drawdown (30d)</dt><dd className="mt-1 font-mono text-[11px] font-semibold text-bear">{e.max_drawdown_pct == null ? "-" : `-${num(Number(e.max_drawdown_pct))}%`}</dd></div>
+      <div className="px-2"><dt className="text-muted-foreground">Committed margin (30d)</dt><dd className="mt-1 font-mono text-[11px] font-semibold">{usdK(Number(e.margin_30d))}</dd></div>
     </dl>
     {e.bio && <p className="mt-2.5 text-sm leading-relaxed">{e.bio}</p>}
-    <div className="mt-3 rounded-xl bg-secondary/60 p-3">
+    <div className="mt-4 border-y border-border bg-surface px-3 py-4">
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
         <AssetIcon symbol={e.symbol} size={22} /><span className="font-semibold">{e.display_symbol}</span>
         {e.asset_class === "future" && <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Perp</span>}
@@ -82,7 +82,7 @@ export function LeaderboardDeskCard({ entry: e, rank, following = false, isMe = 
         <span className="text-muted-foreground">Closed</span>
         <span className={`font-semibold capitalize ${e.side === "long" ? "text-bull" : "text-bear"}`}>{e.side}</span>
       </div>
-      <div className="mt-2 flex items-end justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] text-muted-foreground">Realized PNL (USDT)</p>
           <p className={`font-mono text-lg font-semibold ${up ? "text-bull" : "text-bear"}`}>{up ? "+" : ""}{num(Number(e.realized_pnl))} {e.pnl_pct != null && <span className="text-sm">{up ? "+" : ""}{num(Number(e.pnl_pct))}%</span>}</p>
@@ -92,13 +92,13 @@ export function LeaderboardDeskCard({ entry: e, rank, following = false, isMe = 
         <Spark symbol={e.symbol} up={up} />
       </div>
       {preview
-        ? <Button size="sm" className="mt-3 h-9 w-full rounded-full" disabled>Mirror Trade / Execute</Button>
-        : <Button asChild size="sm" className="mt-3 h-9 w-full rounded-full"><Link to="/trade" search={{ symbol: e.symbol }}>Mirror Trade / Execute</Link></Button>}
+        ? <Button size="sm" className="mt-4 min-h-11 w-full rounded-md" disabled>Mirror Trade / Execute</Button>
+        : <Button asChild size="sm" className="mt-4 min-h-11 w-full rounded-md"><Link to="/trade" search={{ symbol: e.symbol }}>Mirror Trade / Execute</Link></Button>}
     </div>
     <footer className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
       <span className="flex min-h-10 items-center gap-1 px-1" title="Views"><Eye className="size-4" />{Number(e.views)} views</span>
       <span className="flex min-h-10 items-center gap-1 px-1" title="Verified copy-traders"><Users className="size-4" />{Number(e.copy_traders)} copy-traders</span>
-      <button type="button" disabled={preview} onClick={onShare} className="flex min-h-10 items-center gap-1 px-1" aria-label="Share execution"><Share2 className="size-4" />{Number(e.shares)} shares</button>
+      <Button variant="ghost" type="button" disabled={preview} onClick={onShare} className="flex min-h-10 items-center gap-1 px-1 text-xs text-muted-foreground" aria-label="Share execution"><Share2 className="size-4" />{Number(e.shares)} shares</Button>
     </footer>
   </article>;
 }
