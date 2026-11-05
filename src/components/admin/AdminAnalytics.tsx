@@ -228,14 +228,24 @@ export function MetricsBar({
           onClick={go("trades")}
         />
         <Stat
-          label="Pending KYC"
+          label="Pending Lv.1"
           value={String(m.pendingKyc)}
           icon={ShieldAlert}
           accent="amber"
           badge="Review"
-          hint="Identity documents awaiting approval"
+          hint="Identity attestation awaiting approval"
           alert={Number(m.pendingKyc) > 0}
-          onClick={go("users", { status: "pending" })}
+          onClick={go("users", { status: "l1_pending" })}
+        />
+        <Stat
+          label="Pending Lv.2"
+          value={String(m.pendingKycL2 ?? 0)}
+          icon={ShieldAlert}
+          accent="amber"
+          badge="Biometric"
+          hint="Enhanced due diligence awaiting review"
+          alert={Number(m.pendingKycL2 ?? 0) > 0}
+          onClick={go("users", { status: "l2_pending" })}
         />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
