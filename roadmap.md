@@ -2,8 +2,6 @@
 
 ## In Progress
 
-- [x] Open recorded settlement modals from Portfolio, terminal settled-contract rows and mobile History; real-row PnL/payout/fees, Share PnL clipboard, View History, Trade Again and Escape verified signed-in on desktop/mobile. Nine tests pass; build OK. Historical provider candles render when available, with explicit unavailable state on provider failure and no synthetic fallback.
-- [x] Redesign Trade History as an institutional blotter with recorded fields, sortable date/PnL, filters, status indicators and currency-safe performance totals; signed-in real executions, details, sorting and filters verified on desktop/mobile without page errors or overflow. Ten financial-display/logo tests pass; build OK. Venue/routing and slippage remain explicitly unrecorded.
 - [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
 - [ ] Activate USDC receiving networks - blocked on operator-provided Ethereum ERC-20, Solana and Base receiving addresses; admin network selection and validation are ready, no addresses fabricated.
 - [x] Add persistent listings/Alpha/news moderation, institutional news publishing and real desk-performance snapshots with audited admin controls; signed-in draft save/reload/update and mobile checked, test drafts withdrawn. Preserve the existing deposit ledger and five-minute client rotation; snapshots update on real trade changes rather than idle polling. Nineteen focused tests pass.

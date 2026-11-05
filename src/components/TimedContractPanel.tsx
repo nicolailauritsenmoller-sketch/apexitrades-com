@@ -22,9 +22,6 @@ import { buildContractSummary, type TradeSummary } from "@/lib/trade-summary";
 import { LivePnl } from "@/components/LivePnl";
 import { useQuotes } from "@/hooks/useMarket";
 import { logActivity } from "@/lib/telemetry";
-import { ContractSettlementDialog } from "@/components/ContractSettlementDialog";
-import { buildHistory, type HistoryEntry } from "@/lib/trade-history";
-import { Button } from "@/components/ui/button";
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -48,7 +45,6 @@ export function TimedContractPanel({
   const [amount, setAmount] = useState(String(CONTRACT_TIERS[0].minInvestment));
   const [leverage, setLeverage] = useState<1 | 2 | 5 | 10>(1);
   const [summary, setSummary] = useState<TradeSummary | null>(null);
-  const [settlement, setSettlement] = useState<HistoryEntry | null>(null);
 
   const fetchContracts = useServerFn(getContracts);
   const contracts = useQuery({
@@ -202,7 +198,6 @@ export function TimedContractPanel({
 
   return (
     <div className="panel overflow-hidden border border-border bg-card p-0">
-      {settlement && <ContractSettlementDialog entry={settlement} onClose={() => setSettlement(null)} onViewHistory={() => { setSettlement(null); setListTab("settled"); }} />}
       {summary && (
         <TradeCloseSummary
           summary={summary}
@@ -377,7 +372,7 @@ export function TimedContractPanel({
         ) : (
           <ul className="max-h-96 space-y-2 overflow-y-auto">
             {settledContracts.map((c) => (
-              <SettledCard key={c.id} contract={c} onOpen={() => { const [entry] = buildHistory([], [c]); if (entry) setSettlement(entry); }} />
+              <SettledCard key={c.id} contract={c} />
             ))}
           </ul>
         )}
@@ -458,7 +453,7 @@ function ContractCard({
   );
 }
 
-function SettledCard({ contract: c, onOpen }: { contract: ContractRow; onOpen: () => void }) {
+function SettledCard({ contract: c }: { contract: ContractRow }) {
   const pnl = (c.payout ?? 0) - c.stake;
   const win = c.result === "win";
   const loss = c.result === "loss";
@@ -472,7 +467,7 @@ function SettledCard({ contract: c, onOpen }: { contract: ContractRow; onOpen: (
     </div>
   );
   return (
-    <li><Button variant="ghost" onClick={onOpen} aria-label={`Settlement for ${c.displaySymbol} ${c.id.slice(0, 8)}`} aria-haspopup="dialog" className={`block h-auto w-full whitespace-normal rounded-md border p-2.5 text-left text-[11px] hover:bg-secondary/40 ${tone}`}>
+    <li className={`rounded-md border p-2.5 text-[11px] ${tone}`}>
       <div className="mb-1.5 flex items-center justify-between text-xs">
         <span className="flex items-center gap-1.5 font-medium">
           <AssetIcon symbol={c.symbol} size={16} />
@@ -496,12 +491,12 @@ function SettledCard({ contract: c, onOpen }: { contract: ContractRow; onOpen: (
         {row("Settlement Price", c.exitPrice != null ? formatPrice(c.exitPrice, c.symbol) : "-")}
         {row(
           "Mark Delta",
-          delta != null && deltaPct != null ? `${delta >= 0 ? "+" : "-"}${formatPrice(Math.abs(delta), c.symbol)} (${deltaPct >= 0 ? "+" : "-"}${Math.abs(deltaPct).toFixed(3)}%)` : "-",
+          delta != null ? `${delta >= 0 ? "+" : "-"}${formatPrice(Math.abs(delta), c.symbol)} (${deltaPct! >= 0 ? "+" : "-"}${Math.abs(deltaPct!).toFixed(3)}%)` : "-",
         )}
         {row("Investment", formatMoney(c.stake, c.currency))}
         {row("Settled", c.settledAt ? new Date(c.settledAt).toLocaleString() : "-")}
       </dl>
-    </Button></li>
+    </li>
   );
 }
 

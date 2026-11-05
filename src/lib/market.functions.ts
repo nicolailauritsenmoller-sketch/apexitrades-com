@@ -39,12 +39,3 @@ export const getCandles = createServerFn({ method: "POST" })
       return [];
     }
   });
-
-export const getSettlementCandles = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({
-    symbol: z.string().max(20), start: z.number().int().positive(), end: z.number().int().positive(),
-  }).refine((v) => v.end >= v.start && v.end - v.start <= 32 * 86400 && v.end <= Date.now() / 1000 + 60).parse(input))
-  .handler(async ({ data }) => {
-    const { fetchSettlementCandles } = await import("./settlement-candles.server");
-    return fetchSettlementCandles(data.symbol, data.start, data.end);
-  });
