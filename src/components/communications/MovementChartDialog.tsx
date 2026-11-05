@@ -28,7 +28,7 @@ function MovementChart({ alert }: { alert: MovementChartAlert }) {
       <div className="text-right text-xs text-muted-foreground"><p className={live ? "text-bull" : "text-muted-foreground"}>{live ? "Live price" : "Awaiting live price"}</p>{quote && <p className="num mt-1">24h High {formatPrice(quote.high, alert.symbol)} · Low {formatPrice(quote.low, alert.symbol)}</p>}</div>
     </div>
     <div className="min-w-0 overflow-hidden" aria-label={`${alert.symbol} live price and volume chart`}>
-      <TradingViewChart key={alert.symbol} symbol={alert.symbol} candles={candles.data ?? []} quote={live ? quote : undefined} timeframe={timeframe} onTimeframeChange={setTimeframe} height={420} isLoading={candles.isPending} />
+      <TradingViewChart key={alert.symbol} symbol={alert.symbol} candles={(candles.data ?? []).slice(-80)} quote={live ? quote : undefined} timeframe={timeframe} onTimeframeChange={setTimeframe} height={480} isLoading={candles.isPending} movementPreview />
     </div>
     {(candles.isError || (!candles.isPending && !candles.data?.length)) && <div role="status" className="flex items-center justify-between gap-2 text-xs text-muted-foreground"><span>Chart feed interrupted. Reconnecting automatically.</span><Button variant="ghost" size="icon" aria-label="Retry movement chart" title="Retry movement chart" onClick={() => void candles.refetch()}><RefreshCw /></Button></div>}
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3"><p className="max-w-md text-xs text-muted-foreground">{alert.detail}</p>{instrument && <Button asChild variant="outline" size="sm"><Link to="/terminal/$symbol" params={{ symbol: alert.symbol }}>Open terminal<ArrowUpRight /></Link></Button>}</div>
