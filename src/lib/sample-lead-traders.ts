@@ -52,7 +52,8 @@ export function sampleLeadTraders(bucket = 0): SampleLeadTrader[] {
       style: STYLES[Math.floor(r(3) * STYLES.length)],
       roiPct: Math.round((r(4) * 70 - 15 + d(1) * 3) * 100) / 100,
       sharpe: Math.round((r(5) * 3.2 - 0.4 + d(2) * 0.1) * 100) / 100,
-      managedVolume: Math.round(20_000 + r(6) ** 3 * 25_000_000 * (1 + d(3) * 0.04)),
+      // Retail-scale managed volume: 30-day range stays inside $45K-$480K even after drift.
+      managedVolume: Math.min(480_000, Math.max(45_000, Math.round(45_000 + r(6) * 435_000 * (1 + d(3) * 0.04)))),
       followers: Math.round(r(0) ** 2.5 * 12_000 + bucket % 1000 * r(8) * 0.5),
     });
   }

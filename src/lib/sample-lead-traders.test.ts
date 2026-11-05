@@ -15,4 +15,12 @@ describe("sample lead traders", () => {
     const b = sampleLeadTraders(2).find(r => r.id === "sample-5")!.roiPct;
     expect(a).not.toBe(b);
   });
+  it("caps every 30-day volume below $500K across refresh buckets", () => {
+    for (const bucket of [0, 1, 2, 999, 12345]) {
+      for (const r of sampleLeadTraders(bucket)) {
+        expect(r.managedVolume).toBeGreaterThanOrEqual(45_000);
+        expect(r.managedVolume).toBeLessThan(500_000);
+      }
+    }
+  });
 });
