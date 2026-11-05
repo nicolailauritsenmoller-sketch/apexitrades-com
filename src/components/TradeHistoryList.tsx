@@ -1,331 +1,179 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Clock, Search } from "lucide-react";
-
-const PAGE = 20;
+import { useEffect, useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
-import { formatMoney, formatPrice } from "@/lib/instruments";
-import { TradeCloseSummary } from "@/components/TradeCloseSummary";
-import {
-  buildContractSummary,
-  buildPositionSummary,
-  type TradeSummary,
-} from "@/lib/trade-summary";
+import { formatMoney, formatPrice, INSTRUMENT_MAP } from "@/lib/instruments";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { buildHistory, sortHistory, summarizeHistory, type HistoryEntry, type HistorySort } from "@/lib/trade-history";
 import type { PositionRow } from "@/components/PositionsTable";
 import type { ContractRow } from "@/lib/contracts.functions";
 
-export type HistoryEntry = {
-  key: string;
-  kind: "position" | "contract";
-  symbol: string;
-  displaySymbol: string;
-  sideLabel: string;
-  isLong: boolean;
-  leverage: number;
-  entryPrice: number;
-  exitPrice: number;
-  size: number;
-  currency: string;
-  pnl: number;
-  pnlPct: number;
-  openedAt: string;
-  closedAt: string;
-  summary: TradeSummary;
-};
+export { buildHistory } from "@/lib/trade-history";
+export type { HistoryEntry } from "@/lib/trade-history";
+const PAGE = 20;
+const MASK = "••••";
 
 function durationLabel(openedAt: string, closedAt: string) {
-  const s = Math.max(0, Math.round((new Date(closedAt).getTime() - new Date(openedAt).getTime()) / 1000));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${s % 60}s`;
-  return `${s}s`;
+  const seconds = Math.max(0, Math.round((Date.parse(closedAt) - Date.parse(openedAt)) / 1000));
+  if (!Number.isFinite(seconds)) return "Not recorded";
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor(seconds % 86400 / 3600);
+  const minutes = Math.floor(seconds % 3600 / 60);
+  if (days) return `${days}d ${hours}h`;
+  if (hours) return `${hours}h ${minutes}m`;
+  if (minutes) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
 }
 
-function formatExchangeDate(dateString: string): string {
-  const date = new Date(dateString);
-  const datePart = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+function executionDate(date: string) {
+  return new Date(date).toLocaleString("en-GB", {
+    month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "UTC", hour12: false,
   });
-  const timePart = date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-  return `${datePart} \u2022 ${timePart}`;
 }
 
-/** Merges closed leveraged positions and settled scalp contracts into one report list. */
-export function buildHistory(positions: PositionRow[], contracts: ContractRow[]): HistoryEntry[] {
-  const fromPositions = positions
-    .filter((p) => p.status === "closed" && p.exitPrice != null)
-    .map<HistoryEntry>((p) => {
-      const pnl = p.realizedPnl ?? 0;
-      const margin = (p.entryPrice * p.quantity) / Math.max(p.leverage, 1);
-      return {
-        key: `pos-${p.id}`,
-        kind: "position",
-        symbol: p.symbol,
-        displaySymbol: p.displaySymbol,
-        sideLabel: p.side === "long" ? "Buy / Long" : "Sell / Short",
-        isLong: p.side === "long",
-        leverage: p.leverage,
-        entryPrice: p.entryPrice,
-        exitPrice: p.exitPrice ?? 0,
-        size: margin,
-        currency: p.currency,
-        pnl,
-        pnlPct: margin > 0 ? (pnl / margin) * 100 : 0,
-        openedAt: p.openedAt,
-        closedAt: p.closedAt ?? p.openedAt,
-        summary: buildPositionSummary({
-          id: p.id,
-          symbol: p.symbol,
-          displaySymbol: p.displaySymbol,
-          side: p.side,
-          quantity: p.quantity,
-          entryPrice: p.entryPrice,
-          exitPrice: p.exitPrice ?? p.entryPrice,
-          leverage: p.leverage,
-          currency: p.currency,
-          pnl,
-          openedAt: p.openedAt,
-          closedAt: p.closedAt ?? p.openedAt,
-        }),
-      };
-    });
-
-  const fromContracts = contracts
-    .filter((c) => c.status === "settled" && c.exitPrice != null)
-    .map<HistoryEntry>((c) => {
-      const pnl = (c.payout ?? 0) - c.stake;
-      return {
-        key: `ctr-${c.id}`,
-        kind: "contract",
-        symbol: c.symbol,
-        displaySymbol: c.displaySymbol,
-        sideLabel: c.direction === "up" ? "Buy / Long" : "Sell / Short",
-        isLong: c.direction === "up",
-        leverage: 1,
-        entryPrice: c.entryPrice,
-        exitPrice: c.exitPrice ?? 0,
-        size: c.stake,
-        currency: c.currency,
-        pnl,
-        pnlPct: c.stake > 0 ? (pnl / c.stake) * 100 : 0,
-        openedAt: c.openedAt,
-        closedAt: c.settledAt ?? c.expiresAt,
-        summary: buildContractSummary({
-          id: c.id,
-          symbol: c.symbol,
-          displaySymbol: c.displaySymbol,
-          direction: c.direction,
-          stake: c.stake,
-          currency: c.currency,
-          entryPrice: c.entryPrice,
-          exitPrice: c.exitPrice ?? c.entryPrice,
-          payout: c.payout ?? 0,
-          result: (c.result ?? "draw") as "win" | "loss" | "draw",
-          openedAt: c.openedAt,
-          closedAt: c.settledAt ?? c.expiresAt,
-        }),
-      };
-    });
-
-  return [...fromPositions, ...fromContracts].sort((a, b) => (a.closedAt < b.closedAt ? 1 : -1));
+function signedMoney(value: number, currency: string) {
+  return `${value > 0 ? "+" : ""}${formatMoney(value, currency)}`;
+}
+function pnlTone(value: number | null) {
+  return value == null || value === 0 ? "text-muted-foreground" : value > 0 ? "text-bull" : "text-bear";
 }
 
-export function TradeHistoryList({
-  positions,
-  contracts,
-  isLoading,
-  hidden = false,
-}: {
-  positions: PositionRow[];
-  contracts: ContractRow[];
-  isLoading?: boolean;
-  hidden?: boolean;
+export function TradeHistoryList({ positions, contracts, isLoading, hidden = false }: {
+  positions: PositionRow[]; contracts: ContractRow[]; isLoading?: boolean; hidden?: boolean;
 }) {
   const all = useMemo(() => buildHistory(positions, contracts), [positions, contracts]);
-  const [active, setActive] = useState<TradeSummary | null>(null);
   const [kind, setKind] = useState<"all" | "contract" | "position">("all");
   const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [sort, setSort] = useState<HistorySort>("newest");
   const [limit, setLimit] = useState(PAGE);
-
+  const [active, setActive] = useState<string | null>(null);
   const entries = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const fromMs = from ? new Date(`${from}T00:00:00`).getTime() : -Infinity;
-    const toMs = to ? new Date(`${to}T23:59:59`).getTime() : Infinity;
-    return all.filter((e) => {
+    const start = from ? Date.parse(`${from}T00:00:00Z`) : -Infinity;
+    const end = to ? Date.parse(`${to}T23:59:59.999Z`) : Infinity;
+    return sortHistory(all.filter((e) => {
       if (kind !== "all" && e.kind !== kind) return false;
-      if (term && !e.displaySymbol.toLowerCase().includes(term) && !e.symbol.toLowerCase().includes(term)) return false;
-      const t = new Date(e.closedAt).getTime();
-      return t >= fromMs && t <= toMs;
-    });
-  }, [all, kind, q, from, to]);
-
-  useEffect(() => setLimit(PAGE), [kind, q, from, to]);
-
-  const sentinel = useRef<HTMLDivElement>(null);
-  const hasMore = entries.length > limit;
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el || !hasMore) return;
-    const io = new IntersectionObserver((obs) => {
-      if (obs[0]?.isIntersecting) setLimit((l) => l + PAGE);
-    }, { rootMargin: "200px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [hasMore, limit]);
-
-  const counts = {
-    all: all.length,
-    contract: all.filter((e) => e.kind === "contract").length,
-    position: all.filter((e) => e.kind === "position").length,
-  };
-  const tabs = [
-    { id: "all", label: "All" },
-    { id: "contract", label: "Scalp Contracts" },
-    { id: "position", label: "Margin Trades" },
-  ] as const;
+      if (term && ![e.symbol, e.displaySymbol, e.reference, e.id].some((v) => v.toLowerCase().includes(term))) return false;
+      const date = Date.parse(e.closedAt);
+      return date >= start && date <= end;
+    }), sort);
+  }, [all, kind, q, from, to, sort]);
+  const stats = useMemo(() => summarizeHistory(entries), [entries]);
+  useEffect(() => { setLimit(PAGE); setActive(null); }, [kind, q, from, to, sort]);
+  const tabs = [{ id: "all", label: "All trades" }, { id: "position", label: "Margin" }, { id: "contract", label: "Scalp" }] as const;
   const filtered = Boolean(q.trim() || from || to || kind !== "all");
-
-  const toolbar = (
-    <div className="space-y-2.5 border-b border-border/60 p-3">
-      <div className="flex gap-1.5 overflow-x-auto" role="tablist">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={kind === t.id}
-            onClick={() => setKind(t.id)}
-            className={`touch-manipulation whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-              kind === t.id ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label} <span className="num opacity-70">{counts[t.id]}</span>
-          </button>
-        ))}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[160px] flex-1">
-          <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search symbol"
-            className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs outline-none focus:border-primary"
-          />
-        </div>
-        <input
-          type="date"
-          value={from}
-          max={to || undefined}
-          onChange={(e) => setFrom(e.target.value)}
-          aria-label="From date"
-          className="num h-9 rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
-        />
-        <span className="text-xs text-muted-foreground">-</span>
-        <input
-          type="date"
-          value={to}
-          min={from || undefined}
-          onChange={(e) => setTo(e.target.value)}
-          aria-label="To date"
-          className="num h-9 rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
-        />
-        {filtered && (
-          <button
-            onClick={() => { setKind("all"); setQ(""); setFrom(""); setTo(""); }}
-            className="h-9 rounded-lg px-2 text-xs font-semibold text-primary"
-          >
-            Reset
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  if (!isLoading && entries.length === 0) {
-    return (
-      <>
-        {all.length > 0 && toolbar}
-        <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-          {all.length > 0
-            ? "No trades match these filters."
-            : "No closed trades yet. Executed trades appear here with a full performance report."}
-        </p>
-      </>
-    );
-  }
+  const th = "whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase text-muted-foreground";
 
   return (
-    <div>
-      {toolbar}
-    <div className="divide-y divide-border/60">
-      {active && <TradeCloseSummary summary={active} onClose={() => setActive(null)} />}
-      {entries.slice(0, limit).map((e) => {
-        const positive = e.pnl >= 0;
-        return (
-          <button
-            key={e.key}
-            onClick={() => setActive(e.summary)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
-          >
-            <AssetIcon symbol={e.symbol} currency={e.symbol} size={30} />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="truncate text-sm font-semibold">{e.displaySymbol}</span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                    e.isLong ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-                  }`}
-                >
-                  {e.sideLabel}
-                </span>
-                {e.leverage > 1 && (
-                  <span className="num rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
-                    {e.leverage}x
-                  </span>
-                )}
-                <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {e.kind === "contract" ? "Scalp contract" : "Position"}
-                </span>
-              </div>
-              <div className="num mt-0.5 truncate text-[11px] text-muted-foreground">
-                {hidden ? "•••• → •••• · ••••" : `${formatPrice(e.entryPrice, e.symbol)} → ${formatPrice(e.exitPrice, e.symbol)} · ${formatMoney(e.size, e.currency)}`} ·{" "}
-                <Clock className="inline size-3 -translate-y-px" />{" "}
-                {durationLabel(e.openedAt, e.closedAt)} · {formatExchangeDate(e.closedAt)}
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-              <div
-                className={`num rounded-md px-2 py-1 text-sm font-bold ${
-                  positive ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-                }`}
-              >
-                {hidden ? "••••" : `${positive ? "+" : "-"}${formatMoney(Math.abs(e.pnl), e.currency)}`}
-              </div>
-              <div className={`num text-[11px] ${positive ? "text-bull" : "text-bear"}`}>
-                {hidden ? "••••" : `${positive ? "+" : "-"}${Math.abs(e.pnlPct).toFixed(2)}%`}
-              </div>
-            </div>
-          </button>
-        );
-      })}
-    </div>
-      <div ref={sentinel} className="px-4 py-3 text-center text-[11px] text-muted-foreground">
-        {hasMore ? (
-          <button onClick={() => setLimit((l) => l + PAGE)} className="font-semibold text-primary">
-            Load more
-          </button>
-        ) : (
-          <span className="num">{entries.length} trades</span>
-        )}
+    <section aria-label="Trade history blotter" className="min-w-0 touch-manipulation">
+      <div className="grid grid-cols-2 gap-y-4 border-b border-border bg-surface px-4 py-4 sm:grid-cols-[1fr_1fr_2fr] sm:gap-6">
+        <div>
+          <div className="text-[10px] font-semibold uppercase text-muted-foreground">Completed trades</div>
+          <div className="num mt-1 text-xl font-semibold">{isLoading ? "-" : stats.completed.toLocaleString()}</div>
+        </div>
+        <div className="border-l border-border pl-4 sm:pl-6">
+          <div className="text-[10px] font-semibold uppercase text-muted-foreground">Win rate</div>
+          <div className="num mt-1 text-xl font-semibold">{isLoading ? "-" : hidden ? MASK : stats.winRate == null ? "-" : `${stats.winRate.toFixed(1)}%`}</div>
+        </div>
+        <div className="col-span-2 border-t border-border pt-3 sm:col-span-1 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+          <div className="text-[10px] font-semibold uppercase text-muted-foreground">Aggregate net realized PnL</div>
+          <div className="num mt-1 flex flex-wrap gap-x-4 gap-y-1 text-lg font-semibold">
+            {isLoading ? "-" : hidden ? MASK : stats.totals.length ? stats.totals.map(([currency, pnl]) => <span key={currency} className={pnlTone(pnl)}>{signedMoney(pnl, currency)}</span>) : <span className="text-muted-foreground">-</span>}
+          </div>
+          {!isLoading && stats.priced < stats.completed && <span className="text-[10px] text-muted-foreground">{stats.priced} of {stats.completed} trades with recorded net PnL</span>}
+        </div>
       </div>
-    </div>
+
+      <div className="space-y-3 border-b border-border px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1" role="tablist" aria-label="Trade product">
+            {tabs.map((tab) => <Button key={tab.id} variant="ghost" size="sm" role="tab" aria-selected={kind === tab.id} onClick={() => setKind(tab.id)} className={`h-9 touch-manipulation px-3 text-xs ${kind === tab.id ? "bg-secondary text-foreground" : "text-muted-foreground"}`}>
+              {tab.label}<span className="num text-[10px] text-muted-foreground">{tab.id === "all" ? all.length : all.filter((e) => e.kind === tab.id).length}</span>
+            </Button>)}
+          </div>
+          <Select value={sort} onValueChange={(v) => { if (v === "newest" || v === "oldest" || v === "pnl-high" || v === "pnl-low") setSort(v); }}>
+            <SelectTrigger aria-label="Sort trade history" className="h-9 w-[190px] text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Date: newest first</SelectItem><SelectItem value="oldest">Date: oldest first</SelectItem>
+              <SelectItem value="pnl-high">PnL: highest per currency</SelectItem><SelectItem value="pnl-low">PnL: lowest per currency</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1">
+            <Search aria-hidden="true" className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input aria-label="Search trade history" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Asset, pair or execution ref" className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+          </div>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <input type="date" aria-label="From date (UTC)" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} className="num h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-[143px]" />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input type="date" aria-label="To date (UTC)" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className="num h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-[143px]" />
+            {filtered && <Button variant="ghost" size="icon" title="Reset filters" aria-label="Reset history filters" onClick={() => { setKind("all"); setQ(""); setFrom(""); setTo(""); }}><X /></Button>}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-h-[620px] overflow-auto overscroll-x-contain" role="region" aria-label="Execution table" tabIndex={0}>
+        <table className="w-full min-w-[1500px] border-collapse text-xs">
+          <caption className="sr-only">Completed margin positions and settled scalp contracts. Prices and net PnL use recorded trade data. Dates are UTC.</caption>
+          <thead className="sticky top-0 z-10 bg-surface-raised">
+            <tr className="border-b border-border">
+              <th scope="col" className={th} aria-sort={sort === "newest" ? "descending" : sort === "oldest" ? "ascending" : "none"}>
+                <Button variant="ghost" size="sm" onClick={() => setSort(sort === "newest" ? "oldest" : "newest")} className="-ml-3 h-7 text-[10px] uppercase text-muted-foreground">Execution ref (#ORD){sort === "newest" ? <ArrowDown /> : sort === "oldest" ? <ArrowUp /> : <ArrowUpDown />}</Button>
+              </th>
+              <th scope="col" className={th}>Asset / pair</th><th scope="col" className={th}>Type</th><th scope="col" className={th}>Status</th>
+              <th scope="col" className={th}>Venue / routing</th><th scope="col" className={th}>Entry / exit price</th>
+              <th scope="col" className={`${th} text-right`}>Notional size</th><th scope="col" className={`${th} text-right`}>Leverage</th>
+              <th scope="col" className={`${th} text-right`}>Fees / slippage</th><th scope="col" className={th}>Duration</th>
+              <th scope="col" className={`${th} text-right`}>
+                <Button variant="ghost" size="sm" onClick={() => setSort(sort === "pnl-high" ? "pnl-low" : "pnl-high")} className="-mr-3 h-7 text-[10px] uppercase text-muted-foreground">Net PnL / %{sort === "pnl-high" ? <ArrowDown /> : sort === "pnl-low" ? <ArrowUp /> : <ArrowUpDown />}</Button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? <tr><td colSpan={11} className="px-4 py-12 text-center text-muted-foreground" role="status">Loading executions...</td></tr>
+              : entries.length === 0 ? <tr><td colSpan={11} className="px-4 py-12 text-center text-muted-foreground">{all.length ? "No trades match these filters." : "No completed trades."}</td></tr>
+                : entries.slice(0, limit).map((entry) => <HistoryRow key={entry.key} entry={entry} hidden={hidden} expanded={active === entry.key} onToggle={() => setActive(active === entry.key ? null : entry.key)} />)}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 text-[10px] text-muted-foreground">
+        <span className="num">{isLoading ? "-" : `${Math.min(limit, entries.length)} / ${entries.length}`} executions · UTC</span>
+        <span>Net of recorded fees · ROI on margin / stake</span>
+        {entries.length > limit && <Button variant="secondary" size="sm" onClick={() => setLimit((n) => n + PAGE)}>Load more</Button>}
+      </div>
+    </section>
   );
+}
+
+function HistoryRow({ entry: e, hidden, expanded, onToggle }: { entry: HistoryEntry; hidden: boolean; expanded: boolean; onToggle: () => void }) {
+  const cell = "whitespace-nowrap px-4 py-3.5 align-middle";
+  const unavailable = <span className="text-muted-foreground">Not recorded</span>;
+  return <>
+    <tr className="border-b border-border/70 bg-background even:bg-muted/20 hover:bg-secondary/40 focus-within:bg-secondary/40">
+      <td className={cell}>
+        <Button variant="ghost" size="sm" aria-expanded={expanded} aria-label={`Details for ${e.reference}`} title={`Record ${e.id}`} onClick={onToggle} className="num -ml-3 h-7 text-[11px] font-semibold">{expanded ? <ChevronDown /> : <ChevronRight />}{e.reference}</Button>
+        <div className="num mt-1 text-[10px] text-muted-foreground">{executionDate(e.closedAt)}</div>
+      </td>
+      <td className={cell}><div className="flex items-center gap-2.5"><AssetIcon symbol={e.symbol} size={28} /><div><div className="font-semibold">{e.displaySymbol}</div><div className="mt-1 max-w-[165px] truncate text-[10px] text-muted-foreground" title={INSTRUMENT_MAP[e.symbol]?.name}>{INSTRUMENT_MAP[e.symbol]?.name ?? e.symbol}</div></div></div></td>
+      <td className={cell}><span className={`font-semibold ${e.isLong ? "text-bull" : "text-bear"}`}>{e.isLong ? "Buy / Long" : "Sell / Short"}</span><div className="mt-1 text-[10px] text-muted-foreground">{e.kind === "position" ? "Margin position" : "Scalp contract"}</div></td>
+      <td className={cell}><span className="inline-flex items-center gap-1.5 rounded border border-border bg-secondary/40 px-2 py-1 text-[10px] font-medium"><span className="size-1.5 rounded-full bg-bull" />{e.kind === "position" ? "Closed" : "Settled"}</span></td>
+      <td className={cell}>{unavailable}<div className="mt-1 text-[10px] text-muted-foreground">{e.kind === "contract" ? "Expiry settlement" : "Routing not recorded"}</div></td>
+      <td className={`${cell} num`}><div>{hidden ? MASK : formatPrice(e.entryPrice, e.symbol)}</div><div className="mt-1 text-muted-foreground">{hidden ? MASK : formatPrice(e.exitPrice, e.symbol)}</div></td>
+      <td className={`${cell} num text-right`} title={e.kind === "contract" ? "Contract stake is not underlying traded notional" : "Entry price multiplied by quantity"}>{hidden ? MASK : e.notional == null ? "N/A" : formatMoney(e.notional, e.currency)}<div className="mt-1 text-[10px] text-muted-foreground">{e.stake != null ? hidden ? MASK : `${formatMoney(e.stake, e.currency)} stake` : "Entry notional"}</div></td>
+      <td className={`${cell} num text-right`}>{e.leverage}x</td>
+      <td className={`${cell} num text-right`}><div>{hidden ? MASK : e.fees == null ? unavailable : formatMoney(e.fees, e.currency)}</div><div className="mt-1 text-[10px] text-muted-foreground">Slippage: not recorded</div></td>
+      <td className={`${cell} num`}>{durationLabel(e.openedAt, e.closedAt)}<div className="mt-1 text-[10px] text-muted-foreground">Holding time</div></td>
+      <td className={`${cell} num text-right ${pnlTone(e.pnl)}`}><div className="font-semibold">{hidden ? MASK : e.pnl == null ? unavailable : signedMoney(e.pnl, e.currency)}</div><div className="mt-1 text-[11px]">{hidden ? MASK : e.pnlPct == null ? "-" : `${e.pnlPct > 0 ? "+" : ""}${e.pnlPct.toFixed(2)}%`}</div></td>
+    </tr>
+    {expanded && <tr className="border-b border-border bg-secondary/30"><td colSpan={11} className="px-6 py-4"><dl className="flex flex-wrap gap-x-8 gap-y-3 text-xs">
+      <div><dt className="text-[10px] uppercase text-muted-foreground">Record ID</dt><dd className="num mt-1">{e.id}</dd></div>
+      <div><dt className="text-[10px] uppercase text-muted-foreground">Opened (UTC)</dt><dd className="num mt-1">{executionDate(e.openedAt)}</dd></div>
+      <div><dt className="text-[10px] uppercase text-muted-foreground">Closed (UTC)</dt><dd className="num mt-1">{executionDate(e.closedAt)}</dd></div>
+      <div><dt className="text-[10px] uppercase text-muted-foreground">Settlement currency</dt><dd className="mt-1">{e.currency}</dd></div>
+      <div><dt className="text-[10px] uppercase text-muted-foreground">Return basis</dt><dd className="mt-1">{e.kind === "position" ? "Initial margin" : "Contract stake"}</dd></div>
+    </dl></td></tr>}
+  </>;
 }
