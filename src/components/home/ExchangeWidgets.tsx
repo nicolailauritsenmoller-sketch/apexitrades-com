@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgePercent, ChevronRight, Landmark, ShieldCheck, Trophy, X } from "lucide-react";
+import { BadgePercent, ChevronRight, Landmark, ShieldCheck, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TradingProgramDialog, type TradingProgram } from "./TradingProgramDialog";
 import { usePreference } from "@/lib/preferences";
@@ -9,8 +8,6 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { useCandles, useQuotes } from "@/hooks/useMarket";
 import { formatPrice } from "@/lib/instruments";
 import { sparklinePoints } from "@/lib/home-markets";
-import { supabase } from "@/integrations/supabase/client";
-import { num, publishedFeed, type DeskEntry } from "@/components/leaderboard/LeaderboardDeskCard";
 
 const PROMOS = [
   {
