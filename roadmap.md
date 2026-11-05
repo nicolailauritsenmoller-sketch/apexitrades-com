@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Refine Futures Copy Trading enrollment, directory, allocation and leaderboard presentation; retain explicit consent and authoritative metrics, verify desktop/mobile controls.
+
 - [x] Add a protected operations health center with durable rate-limited provider samples while the console is open, ledger reconciliation counts, notification dispatch/read visibility, risk exposure and compliance/support queue ages; signed-in persisted checks verified.
 - [x] Enforce receiving-address asset/network format validation on writes and customer reads; settle confirmations atomically, prevent repeated chain transfer credits and make withdrawal holds and corrections atomic.
 - [x] Add immutable trigger-captured configuration history and guarded restoration; preserve role boundaries with fail-closed caller-role checks.
