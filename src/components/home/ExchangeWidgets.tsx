@@ -2,6 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { BadgePercent, ChevronRight, Landmark, ShieldCheck, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getTradingPrograms } from "@/lib/trading-programs.functions";
 import { TradingProgramDialog, type TradingProgram } from "./TradingProgramDialog";
 import { usePreference } from "@/lib/preferences";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -53,6 +56,9 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [program, setProgram] = useState<TradingProgram | null>(null);
+  const fetchPrograms = useServerFn(getTradingPrograms);
+  const programs = useQuery({ queryKey: ["trading-programs"], queryFn: () => fetchPrograms(), staleTime: 30_000 });
+  const enrolled = programs.data?.application?.status === "pending" || programs.data?.application?.status === "approved";
   const { quotes } = useQuotes(["BTCUSDT"], 5000);
   const candles = useCandles("BTCUSDT", "1h");
   const quote = quotes.BTCUSDT;
@@ -88,7 +94,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   return <div className="exchange-widgets space-y-3">
     <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
       <span className="flex min-w-0 items-center gap-2 text-sm font-semibold"><Trophy className="size-4 shrink-0 text-muted-foreground" />Trader leaderboard</span>
-      <Button variant="outline" size="sm" className="min-h-11 shrink-0" onClick={() => setProgram("copy_trading")}>Join leaderboard<ChevronRight className="size-4" /></Button>
+      <Button variant="outline" size="sm" className="min-h-11 shrink-0" onClick={() => setProgram("copy_trading")}>{enrolled ? "Open Leaderboard" : "Join leaderboard"}<ChevronRight className="size-4" /></Button>
     </div>
     {!dismissed.includes("exchange-futures-promo") && (
       <article className="relative rounded-lg border border-border bg-surface px-3 py-2" aria-label="Exchange promotions">
