@@ -47,6 +47,33 @@ describe("Scalping administrator authorization", () => {
 });
 
 describe("Silent scalping administration", () => {
+  it("accepts tier modifications without a manual audit reason", () => {
+    const parsed = scalpingRuleInput.parse({ ...rule, duration_seconds: 30, roi_pct: 5 });
+    expect(parsed.reason).toBeUndefined();
+    expect(parsed.duration_seconds).toBe(30);
+    expect(parsed.roi_pct).toBe(5);
+  });
+
+  it.each([
+    [saveScalpingRule, { ...rule, duration_seconds: 30, roi_pct: 5 }],
+    [saveScalpingRule, { ...rule, active: false }],
+    [removeScalpingRule, { id: rule.id }],
+  ])("executes confirmed mutations without requiring text entry", async (fn, data) => {
+    const update = vi.fn();
+    const builder = {
+      update, eq: () => builder, is: () => builder, select: () => builder,
+      single: async () => ({ data: { id: rule.id }, error: null }),
+    };
+    update.mockReturnValue(builder);
+    const from = vi.fn((table: string) => table === "user_roles"
+      ? { select: () => ({ eq: async () => ({ data: [{ role: "admin" }], error: null }) }) }
+      : builder);
+    const handler = fn as unknown as (args: unknown) => Promise<unknown>;
+    await expect(handler({ context: { supabase: { from }, userId: "operator" }, data })).resolves.toEqual({ id: rule.id });
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ audit_reason: "" }));
+    expect(from.mock.calls.map(([table]) => table)).toEqual(["user_roles", "scalping_tier_rules"]);
+  });
+
   it.each([
     [saveScalpingRule, { ...rule, reason: "Private threshold adjustment" }],
     [saveScalpingRule, { ...rule, active: false, reason: "Private threshold adjustment" }],
