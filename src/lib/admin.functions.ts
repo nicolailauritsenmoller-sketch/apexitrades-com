@@ -267,7 +267,7 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
 
     if (data.action === "approve") {
       const { data: evidence, error: evidenceError } = await supabase.from("kyc_submissions")
-        .select("user_id,status,level2_status,level2_selfie_path,level2_selfie_capture,level2_proof_path,level2_proof_type,level2_proof_issued_at")
+        .select("user_id,status,level2_status,level2_selfie_path,level2_selfie_capture")
         .eq("id", data.id).maybeSingle();
       if (evidenceError) throw new Error(evidenceError.message);
       if (!evidence) throw new Error("Verification submission not found.");
@@ -315,7 +315,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: row } = await context.supabase
       .from("kyc_submissions")
-      .select("user_id, document_path, document_back_path, selfie_path, level2_selfie_path, level2_proof_path, level2_proof_type, level2_proof_issued_at, level2_selfie_capture")
+      .select("user_id, document_path, document_back_path, selfie_path, level2_selfie_path, level2_selfie_capture")
       .eq("id", data.id)
       .maybeSingle();
     if (!row) throw new Error("Submission not found.");
@@ -342,9 +342,6 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
       documentBack: await sign(r["document_back_path"] ?? null),
       selfie: await sign(row.selfie_path),
       level2Selfie: await sign(r["level2_selfie_path"] ?? null),
-      level2Proof: await sign(r["level2_proof_path"] ?? null),
-      level2ProofType: row.level2_proof_type,
-      level2ProofIssuedAt: row.level2_proof_issued_at,
       level2SelfieCapture: row.level2_selfie_capture,
     };
   });
