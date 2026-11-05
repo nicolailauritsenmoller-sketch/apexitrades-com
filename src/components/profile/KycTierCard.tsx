@@ -31,12 +31,12 @@ export function KycTierCard({
     <section className="touch-manipulation rounded-xl border border-border bg-card p-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-lg bg-secondary font-display text-sm font-bold text-primary">
-            {stage === "identity" ? "ID" : "A+"}
+          <span className="grid size-8 place-items-center rounded-lg bg-secondary font-display text-[11px] font-bold text-primary">
+            {stage === "identity" ? "Lv.1" : "Lv.2"}
           </span>
           <div>
             <h3 className="font-display text-sm font-bold tracking-tight">{title}</h3>
-            <p className="text-[11px] text-muted-foreground">{stage === "identity" ? "KYC identity review" : "Enhanced KYC review"}</p>
+            <p className="text-[11px] text-muted-foreground">{stage === "identity" ? "KYC Lv.1 identity review" : "KYC Lv.2 enhanced due diligence review"}</p>
           </div>
         </div>
         <span
