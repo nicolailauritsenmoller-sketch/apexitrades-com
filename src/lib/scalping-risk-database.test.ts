@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 afterAll(async () => { await db.close(); });
 async function place(stake = 500, symbol = "BTCUSDT", fee = 7.5) {
-  return db.query("INSERT INTO contracts(user_id,tier_id,tier_version,duration_seconds,payout_pct,stake,symbol,currency,leverage,expires_at,fee_paid) VALUES($1,$2,$3,60,10,$4,$5,'USDT',1,now()+interval '60 seconds',$6) RETURNING *",[userId,tierId,version,stake,symbol,fee]);
+  return db.query<{ protocol_fee_pct: string }>("INSERT INTO contracts(user_id,tier_id,tier_version,duration_seconds,payout_pct,stake,symbol,currency,leverage,expires_at,fee_paid) VALUES($1,$2,$3,60,10,$4,$5,'USDT',1,now()+interval '60 seconds',$6) RETURNING *",[userId,tierId,version,stake,symbol,fee]);
 }
 async function balance() { return (await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance; }
 describe("Database-enforced scalping risks", () => {
