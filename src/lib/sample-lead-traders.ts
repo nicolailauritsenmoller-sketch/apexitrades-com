@@ -9,10 +9,22 @@ export type SampleLeadTrader = {
   followers: number;
 };
 
-export const SAMPLE_LEAD_TRADER_COUNT = 5000;
+export const SAMPLE_LEAD_TRADER_COUNT = 15000;
 
 const PREFIX = ["Alpha", "Delta", "Quant", "Apex", "Vector", "Sigma", "Atlas", "Nova", "Orion", "Helix", "Vertex", "Zenith", "Prime", "Strata", "Kappa", "Nimbus"];
 const SUFFIX = ["Capital", "Desk", "Labs", "Systems", "Macro", "Flow", "Partners", "Quant", "Edge", "Arb", "Trend", "Basis"];
+const FIRST = [
+  "James","Emily","Michael","Ashley","Tyler","Madison","Brandon","Hailey", // American
+  "Liam","Chloe","Ethan","Avery","Logan","Brooke","Owen","Claire", // Canadian
+  "Oliver","Amelia","Harry","Isla","George","Poppy","Alfie","Imogen", // British
+  "Jack","Matilda","Lachlan","Ruby","Cooper","Mia","Riley","Zara", // Australian
+];
+const LAST = [
+  "Johnson","Miller","Davis","Walker","Anderson","Carter",
+  "Tremblay","Gagnon","Roy","Campbell","Fraser","Leblanc",
+  "Smith","Taylor","Hughes","Evans","Wright","Clarke",
+  "Nguyen","Kelly","Murphy","Ryan","Mitchell","Harris",
+];
 const STYLES: SampleLeadTrader["style"][] = ["Institutional", "Algorithmic", "Discretionary"];
 
 function rand(seed: number) {
@@ -31,7 +43,7 @@ export function sampleLeadTraders(): SampleLeadTrader[] {
     const r = (k: number) => rand(i * 7 + k);
     rows.push({
       id: `sample-${i}`,
-      handle: `${PREFIX[Math.floor(r(1) * PREFIX.length)]}${SUFFIX[Math.floor(r(2) * SUFFIX.length)]}${100 + i}`,
+      handle: i % 3 === 0 ? `${PREFIX[Math.floor(r(1) * PREFIX.length)]}${SUFFIX[Math.floor(r(2) * SUFFIX.length)]}${100 + i}` : `${FIRST[Math.floor(r(1) * FIRST.length)]}${LAST[Math.floor(r(2) * LAST.length)]}${10 + (i % 990)}`,
       style: STYLES[Math.floor(r(3) * STYLES.length)],
       roiPct: Math.round((r(4) * 70 - 15) * 100) / 100,
       sharpe: Math.round((r(5) * 3.2 - 0.4) * 100) / 100,
