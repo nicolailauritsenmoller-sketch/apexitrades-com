@@ -44,7 +44,7 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
       <DialogHeader className="border-b border-border bg-surface px-5 py-6 text-left sm:px-7">
         <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase text-muted-foreground"><Layers3 className="size-4 text-bull" />Velocity Trade / Trader programs</div>
         <DialogTitle className="pr-6 text-xl font-semibold tracking-normal sm:text-2xl">{program ? titles[program] : "Trading programs"}</DialogTitle>
-        <DialogDescription className="max-w-xl text-xs leading-5">{program === "copy_trading" ? "Leader enrollment and copy preferences. Real-money execution is not enabled." : "Proposed program - registration of interest only."}</DialogDescription>
+        <DialogDescription className={program === "copy_trading" ? "sr-only" : "max-w-xl text-xs leading-5"}>{program === "copy_trading" ? "Leader enrollment and copy preferences." : "Proposed program - registration of interest only."}</DialogDescription>
       </DialogHeader>
       <div className="space-y-6 px-5 py-6 sm:px-7">
       {query.isPending ? <p className="text-sm text-muted-foreground">Loading...</p> : query.isError ? <div role="alert" className="text-sm text-bear">Unable to load programs.<Button variant="ghost" onClick={() => query.refetch()}>Retry</Button></div> : <>
