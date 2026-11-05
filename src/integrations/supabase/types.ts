@@ -1038,6 +1038,7 @@ export type Database = {
           country: string
           created_at: string
           date_of_birth: string | null
+          document_back_path: string | null
           document_expires_at: string | null
           document_number: string | null
           document_path: string | null
@@ -1070,6 +1071,7 @@ export type Database = {
           country: string
           created_at?: string
           date_of_birth?: string | null
+          document_back_path?: string | null
           document_expires_at?: string | null
           document_number?: string | null
           document_path?: string | null
@@ -1102,6 +1104,7 @@ export type Database = {
           country?: string
           created_at?: string
           date_of_birth?: string | null
+          document_back_path?: string | null
           document_expires_at?: string | null
           document_number?: string | null
           document_path?: string | null

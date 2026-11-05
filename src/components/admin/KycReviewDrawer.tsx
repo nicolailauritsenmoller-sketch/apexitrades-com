@@ -74,7 +74,7 @@ export function KycReviewDrawer({
     queryFn: () => fetchDocs({ data: { id: row.id } }),
   });
   const d = docs.data as
-    | { document: string | null; selfie: string | null; level2Selfie: string | null; level2Proof: string | null }
+    | { document: string | null; documentBack?: string | null; selfie: string | null; level2Selfie: string | null; level2Proof: string | null }
     | undefined;
 
   const act = useMutation({
@@ -147,22 +147,38 @@ export function KycReviewDrawer({
             <>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
                 <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Personal details & residence</h4>
-                <Row label="Legal name" value={row.full_name} />
-                <Row label="Date of birth" value={row.date_of_birth} />
-                <Row label="Country" value={row.country} />
-                <Row label="Residential address" value={row.address} />
-                <Row label="Government ID" value={`${row.document_type} - ${row.document_number ?? "-"}`} />
-                <Row label="ID expires" value={row.document_expires_at ?? "-"} />
+                <Row label="Full legal name" value={row.full_name} />
+                <Row label="Date of birth" value={row.date_of_birth ?? "-"} />
+                <Row label="Country of residence" value={row.country} />
+                <Row label="Residential address" value={row.address ?? "-"} />
+                <Row label="Document type" value={({ passport: "Passport", id_card: "National ID", drivers_license: "Driver's License" } as Record<string, string>)[row.document_type] ?? row.document_type} />
+                <Row label="Document number" value={row.document_number ?? "-"} />
+                <Row label="Document expiry date" value={row.document_expires_at ?? "-"} />
                 <Row label="Submitted" value={new Date(row.created_at).toLocaleString()} />
               </section>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
-                <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Government ID / passport</h4>
+                <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Identity document images</h4>
                 {docs.isLoading && <p className="text-xs text-muted-foreground">Loading documents...</p>}
                 <div className="grid gap-3 md:grid-cols-2">
-                  {d?.document && <DocumentViewer src={d.document} alt={`${row.full_name} identity document`} />}
-                  {d?.selfie && <DocumentViewer src={d.selfie} alt={`${row.full_name} ID holding photo`} />}
+                  {d && (
+                    <div>
+                      <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Document front</p>
+                      {d.document ? <DocumentViewer src={d.document} alt={`${row.full_name} document front`} /> : <p className="text-xs text-muted-foreground">Not provided</p>}
+                    </div>
+                  )}
+                  {d && (
+                    <div>
+                      <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Document back</p>
+                      {d.documentBack ? <DocumentViewer src={d.documentBack} alt={`${row.full_name} document back`} /> : <p className="text-xs text-muted-foreground">Not provided</p>}
+                    </div>
+                  )}
+                  {d?.selfie && (
+                    <div>
+                      <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Legacy selfie</p>
+                      <DocumentViewer src={d.selfie} alt={`${row.full_name} ID holding photo`} />
+                    </div>
+                  )}
                 </div>
-                {d && !d.document && !d.selfie && <p className="text-xs text-muted-foreground">No files uploaded.</p>}
               </section>
               {row.admin_note && <p className="text-xs text-muted-foreground">Previous Level 1 note: {row.admin_note}</p>}
             </>

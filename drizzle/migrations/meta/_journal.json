@@ -302,6 +302,13 @@
       "when": 1793842893004,
       "tag": "0042_allow_unsubmitted_basic_kyc_status",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793844060778,
+      "tag": "0043_kyc_level1_document_back",
+      "breakpoints": true
     }
   ]
 }
