@@ -330,6 +330,13 @@
       "when": 1793845962284,
       "tag": "0046_kyc_level2_biometric_only",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793847488724,
+      "tag": "0047_kyc_level2_compliance_alerts",
+      "breakpoints": true
     }
   ]
 }

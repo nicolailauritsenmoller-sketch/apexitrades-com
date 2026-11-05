@@ -1,4 +1,5 @@
 import { NAV } from "@/lib/operations-routing";
+import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
@@ -264,7 +265,7 @@ function ModeToggle({
   );
 }
 
-export function OperationsConsole({ selectedTab = "overview", onTab }: { selectedTab?: string; onTab: (tab: string) => void }) {
+export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, onReview, onCloseReview }: { selectedTab?: string; onTab: (tab: string) => void; reviewId?: string; onReview: (id: string) => void; onCloseReview: () => void }) {
   const qc = useQueryClient();
   const hasSession = useHasSession();
   const tab = selectedTab ?? "overview";
@@ -449,6 +450,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab }: { selecte
 
   return (
     <AdminShell>
+      {isAdmin && <ComplianceAlerts reviewId={reviewId} onReview={onReview} onClose={onCloseReview} />}
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Vertical backend sidebar */}
         <aside className="shrink-0 lg:w-60">
