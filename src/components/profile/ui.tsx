@@ -4,6 +4,7 @@ import { ChevronRight, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export const KYC_TONE: Record<string, string> = {
+  unsubmitted: "border-border text-muted-foreground",
   unverified: "border-border text-muted-foreground",
   pending: "border-amber-400/40 text-amber-400",
   approved: "border-bull/40 text-bull",
@@ -11,6 +12,7 @@ export const KYC_TONE: Record<string, string> = {
 };
 
 export const KYC_LABEL: Record<string, string> = {
+  unsubmitted: "KYC REQUIRED",
   unverified: "Unverified",
   pending: "Under security review",
   approved: "Verified",
