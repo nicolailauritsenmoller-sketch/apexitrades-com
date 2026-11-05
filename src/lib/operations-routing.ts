@@ -67,8 +67,9 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
   },
 ];
 
-export function validateOperationsSearch(search: Record<string, unknown>): { tab?: string } {
- return { tab: typeof search.tab === "string" && NAV.some(g => g.items.some(i => i.id === search.tab)) ? search.tab : "overview" };
+export function validateOperationsSearch(search: Record<string, unknown>): { tab?: string; review?: string } {
+ const review = typeof search.review === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(search.review) ? search.review : undefined;
+ return { tab: review ? "users" : typeof search.tab === "string" && NAV.some(g => g.items.some(i => i.id === search.tab)) ? search.tab : "overview", ...(review ? { review } : {}) };
 }
 export function operationsHead(tab = "overview") {
  const label = NAV.flatMap(g => g.items).find(i => i.id === tab)?.label;
