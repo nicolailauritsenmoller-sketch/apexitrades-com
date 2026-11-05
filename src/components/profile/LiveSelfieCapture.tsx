@@ -65,7 +65,10 @@ export function LiveSelfieCapture({
       if (run !== runRef.current) return;
       const video = videoRef.current;
       const detector = detectorRef.current;
-      if (!video || !detector) return;
+      if (!video || !detector) {
+        frameRef.current = requestAnimationFrame(tick);
+        return;
+      }
       if (now - state.startedAt > CHALLENGE_TIMEOUT_MS) {
         stop();
         setError("Head-turn check timed out. Open the camera to try again.");
@@ -102,16 +105,18 @@ export function LiveSelfieCapture({
     setInstruction("Look straight ahead");
     const run = runRef.current;
     try {
+      // Request immediately from the authorization click. The browser alone
+      // controls its permission prompt and reuses an existing grant.
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      if (run !== runRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      streamRef.current = stream;
+      setActive(true);
       if (headTurn) {
         const { createFaceMovementDetector } = await import("@/lib/face-movement-detector");
         const detector = await createFaceMovementDetector();
         if (run !== runRef.current) { detector.close(); return; }
         detectorRef.current = detector;
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-      if (run !== runRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
-      streamRef.current = stream;
-      setActive(true);
       requestAnimationFrame(() => {
         if (videoRef.current) {
           if (videoRef.current.srcObject !== stream) videoRef.current.srcObject = stream;
@@ -209,7 +214,7 @@ export function LiveSelfieCapture({
               Biometric Sensor Authorization
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-muted-foreground">
-              Velocity Trade requires secure camera access to perform live cryptographic liveness verification and identity attestation.
+              Velocity Trade requires secure camera access for live facial capture, a head-turn movement check and identity attestation review.
             </DialogDescription>
           </div>
           <div className="space-y-2 px-6 py-4 text-xs text-muted-foreground">
