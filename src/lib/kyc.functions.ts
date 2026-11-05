@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { level2Input } from "@/lib/kyc-level2-schema";
 
 const submitInput = z.object({
   fullName: z.string().trim().min(2).max(120),
@@ -12,14 +13,6 @@ const submitInput = z.object({
   documentPath: z.string().trim().min(1).max(300),
   documentBackPath: z.string().trim().min(1).max(300),
   documentExpiresAt: z.string().trim().min(4).max(20),
-});
-
-const level2Input = z.object({
-  livenessSelfiePath: z.string().trim().min(1).max(300),
-  livenessCapture: z.object({ source: z.literal("camera"), capturedAt: z.string().min(10).max(40), width: z.number().int().positive(), height: z.number().int().positive(), device: z.string().max(200) }),
-  proofPath: z.string().trim().min(1).max(300),
-  proofType: z.enum(["utility_bill", "bank_statement", "tax_document"]),
-  taxId: z.string().trim().max(60).optional(),
 });
 
 export const getMyKyc = createServerFn({ method: "POST" })
@@ -88,11 +81,13 @@ export const getMyKyc = createServerFn({ method: "POST" })
       level2AdminNote: (row["level2_admin_note"] as string | null) ?? null,
       level2SubmittedAt: (row["level2_submitted_at"] as string | null) ?? null,
       level2ProofType: (row["level2_proof_type"] as string | null) ?? null,
+      level2ProofIssuedAt: (row["level2_proof_issued_at"] as string | null) ?? null,
       level2TaxId: (row["level2_tax_id"] as string | null) ?? null,
       level2SelfieUrl: await sign((row["level2_selfie_path"] as string | null) ?? null),
       level2ProofUrl: await sign((row["level2_proof_path"] as string | null) ?? null),
       biometricSubmitted: Boolean(row["level2_selfie_path"]),
       sourceOfFundsSubmitted: Boolean(row["level2_proof_path"]),
+      proofOfAddressSubmitted: Boolean(row["level2_proof_path"]),
     };
   });
 
@@ -173,8 +168,9 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
         level2_status: "pending",
         level2_selfie_path: data.livenessSelfiePath,
         level2_selfie_capture: data.livenessCapture,
-        level2_proof_path: data.proofPath,
-        level2_proof_type: data.proofType,
+        level2_proof_path: data.proofPath ?? null,
+        level2_proof_type: data.proofType ?? null,
+        level2_proof_issued_at: data.proofIssuedAt ?? null,
         level2_tax_id: data.taxId || null,
         level2_submitted_at: new Date().toISOString(),
         level2_reviewed_at: null,

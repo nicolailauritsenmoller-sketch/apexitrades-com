@@ -10,14 +10,18 @@ import {
   type UploadStage,
 } from "@/components/profile/FileUploadField";
 import { LiveSelfieCapture, type SelfieCaptureMeta } from "@/components/profile/LiveSelfieCapture";
+import { Button } from "@/components/ui/button";
+import { KycEvidencePreview } from "@/components/profile/KycEvidencePreview";
+import { isRecentProofDate, proofDateWindow } from "@/lib/kyc-level2-schema";
 
 type KycData = Awaited<ReturnType<typeof getMyKyc>>;
 
 export type Level2Payload = {
   livenessSelfiePath: string;
   livenessCapture: SelfieCaptureMeta;
-  proofPath: string;
-  proofType: "utility_bill" | "bank_statement" | "tax_document";
+  proofPath?: string;
+  proofType?: "utility_bill" | "bank_statement" | "tax_document";
+  proofIssuedAt?: string;
   taxId?: string;
 };
 
@@ -32,7 +36,8 @@ export function KycLevel2Panel({
   onSubmit: (payload: Level2Payload) => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
-  const [proofType, setProofType] = useState<Level2Payload["proofType"]>("utility_bill");
+  const [proofType, setProofType] = useState<NonNullable<Level2Payload["proofType"]>>("utility_bill");
+  const [proofIssuedAt, setProofIssuedAt] = useState("");
   const [taxId, setTaxId] = useState("");
   const [selfie, setSelfie] = useState<{ file: File; meta: SelfieCaptureMeta } | null>(null);
   const [proof, setProof] = useState<File | null>(null);
@@ -76,8 +81,12 @@ export function KycLevel2Panel({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!userId) return;
-    if (!selfie || !proof) {
-      toast.error("Upload both a live selfie and your proof document.");
+    if (!selfie) {
+      toast.error("Capture a live facial selfie before submitting Lv.2.");
+      return;
+    }
+    if (proof && !isRecentProofDate(proofIssuedAt)) {
+      toast.error("Proof of Address must be dated within the last 3 months.");
       return;
     }
     setBusy(true);
@@ -85,18 +94,20 @@ export function KycLevel2Panel({
     try {
       const [livenessSelfiePath, proofPath] = await Promise.all([
         upload(selfie.file, "level2-selfie"),
-        upload(proof, "level2-proof"),
+        proof ? upload(proof, "level2-proof") : Promise.resolve(undefined),
       ]);
       setStage("done");
       await onSubmit({
         livenessSelfiePath,
         livenessCapture: selfie.meta,
         proofPath,
-        proofType,
+        proofType: proof ? proofType : undefined,
+        proofIssuedAt: proof ? proofIssuedAt : undefined,
         taxId: taxId.trim() || undefined,
       });
       setSelfie(null);
       setProof(null);
+      setProofIssuedAt("");
       setStage("idle");
     } catch (err) {
       setStage("idle");
@@ -116,39 +127,47 @@ export function KycLevel2Panel({
            {kyc?.level2AdminNote && <p className="mt-1">Compliance note: {institutionalizeCopy(kyc.level2AdminNote)}</p>}
         </div>
       )}
-      <select
+      <label className="space-y-1 text-xs text-muted-foreground">Proof of Address document type (optional)
+        <select
         value={proofType}
-        onChange={(e) => setProofType(e.target.value as Level2Payload["proofType"])}
+        onChange={(e) => setProofType(e.target.value as NonNullable<Level2Payload["proofType"]>)}
         className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       >
         <option value="utility_bill">Utility bill</option>
         <option value="bank_statement">Bank statement</option>
         <option value="tax_document">Tax document</option>
       </select>
-      <input
-        value={taxId}
-        onChange={(e) => setTaxId(e.target.value)}
-        placeholder="SSN / Tax ID (optional)"
+      </label>
+      <label className="space-y-1 text-xs text-muted-foreground">Document issue date {proof ? "(required)" : "(if provided)"}
+      <input type="date" required={Boolean(proof)} min={proofDateWindow().min} max={proofDateWindow().max}
+        value={proofIssuedAt}
+        onChange={(e) => setProofIssuedAt(e.target.value)}
         className="rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
+      </label>
       <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
-        <LiveSelfieCapture label="Live selfie / liveness photo" value={selfie} onChange={setSelfie} />
+        <LiveSelfieCapture label="Biometric facial selfie capture (required)" value={selfie} onChange={setSelfie} />
+        <div className="space-y-2">
         <FileUploadField
-          label="Proof of address document"
+          label="Proof of Address (PoA) document (optional)"
           accept="image/*,application/pdf"
           allowed={DOC_TYPES}
           file={proof}
           onChange={setProof}
           stage={stage}
         />
+        <p className="text-xs text-muted-foreground">Utility bill, bank statement or tax document dated within the last 3 months.</p>
+        <KycEvidencePreview file={proof} />
+        {proof && <Button type="button" variant="ghost" size="sm" onClick={() => { setProof(null); setProofIssuedAt(""); }}>Remove document</Button>}
+        </div>
       </div>
-      <button
+      <Button
         type="submit"
         disabled={busy}
         className="touch-manipulation rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 sm:col-span-2"
       >
-        {busy ? "Submitting…" : "Submit Lv.2 documents"}
-      </button>
+        {busy ? "Submitting..." : "Submit Lv.2 documents"}
+      </Button>
     </form>
   );
 }
