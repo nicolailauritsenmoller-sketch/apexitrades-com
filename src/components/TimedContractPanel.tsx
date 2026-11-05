@@ -143,12 +143,24 @@ export function TimedContractPanel({
     onSuccess: ({ id, res }) => {
       const c = (contracts.data ?? []).find((row) => row.id === id);
       if (c) showSettled(c, res);
+      // Move the card to Settled immediately, then reconcile with the server.
+      const settledAt = new Date().toISOString();
+      queryClient.setQueriesData({ queryKey: ["contracts"] }, (old: unknown) =>
+        Array.isArray(old)
+          ? old.map((row: ContractRow) =>
+              row.id === id
+                ? { ...row, status: "settled" as const, result: res.result, exitPrice: res.exitPrice, payout: res.payout, settledAt }
+                : row,
+            )
+          : old,
+      );
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
     },
     onError: (_e, id) => {
       // Retry shortly instead of leaving the card stuck on "Settling...".
-      setTimeout(() => settlingRef.current.delete(id), 1000);
+      setTimeout(() => settlingRef.current.delete(id), 300);
     },
   });
 
@@ -179,6 +191,18 @@ export function TimedContractPanel({
   );
 
   const now = useNow(openContracts.length > 0);
+  // One clock-skew-safe expiry per contract, shared by the countdown and the settlement trigger.
+  const expiryRef = useRef<Map<string, number>>(new Map());
+  const localExpiryOf = (c: ContractRow) => {
+    let v = expiryRef.current.get(c.id);
+    if (v == null) {
+      const t = Date.now();
+      const total = c.durationSeconds * 1000;
+      v = t + Math.min(total, Math.max(0, new Date(c.expiresAt).getTime() - t));
+      expiryRef.current.set(c.id, v);
+    }
+    return v;
+  };
   const { quotes } = useQuotes(
     useMemo(() => Array.from(new Set(openContracts.map((c) => c.symbol))), [openContracts]),
     1000,
@@ -189,7 +213,7 @@ export function TimedContractPanel({
     const timers: ReturnType<typeof setTimeout>[] = [];
     for (const c of openContracts) {
       if (settlingRef.current.has(c.id)) continue;
-      const wait = Math.max(0, new Date(c.expiresAt).getTime() - Date.now());
+      const wait = Math.max(0, localExpiryOf(c) - Date.now());
       timers.push(
         setTimeout(() => {
           if (settlingRef.current.has(c.id)) return;
@@ -385,7 +409,7 @@ export function TimedContractPanel({
           ) : (
             <ul className="space-y-2">
               {openContracts.map((c) => (
-                <ContractCard key={c.id} contract={c} now={now} mark={quotes[c.symbol]?.price} />
+                <ContractCard key={c.id} contract={c} expiry={localExpiryOf(c)} now={now} mark={quotes[c.symbol]?.price} />
               ))}
             </ul>
           )
@@ -405,10 +429,12 @@ export function TimedContractPanel({
 
 function ContractCard({
   contract,
+  expiry,
   now,
   mark,
 }: {
   contract: ContractRow;
+  expiry: number;
   now: number;
   mark?: number;
 }) {
@@ -416,12 +442,7 @@ function ContractCard({
   // Anchor the countdown to this device's clock when the contract is first seen,
   // clamped to the contract's own duration, so device/server clock skew can never
   // make a 60s contract start at 02:00.
-  const [localExpiry] = useState(() => {
-    const t = Date.now();
-    const remaining = new Date(contract.expiresAt).getTime() - t;
-    return t + Math.min(total, Math.max(0, remaining));
-  });
-  const left = Math.min(total, localExpiry - now);
+  const left = Math.min(total, expiry - now);
   const progress = Math.min(100, Math.max(0, ((total - left) / total) * 100));
   const lev = contract.leverage ?? 1;
   const profit = (contract.stake * contract.payoutPct * lev) / 100;
