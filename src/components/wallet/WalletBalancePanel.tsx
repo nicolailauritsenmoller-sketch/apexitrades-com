@@ -150,10 +150,6 @@ export function WalletBalancePanel({
             className={`size-4 shrink-0 transition-transform duration-300 ease-out ${balancesOpen ? "rotate-180" : ""}`}
           />
         </button>
-        <label className="flex min-h-11 items-center gap-2">
-          <Switch checked={sample} onCheckedChange={setSample} aria-label="Sample balances" />
-          Sample balances
-        </label>
       </div>
 
       <div
