@@ -34,7 +34,7 @@ export function KycOverridePanel({ userId, level, onDone }: { userId: string; le
           <p className="w-full text-[11px] text-muted-foreground">Compliance officers only. The customer is notified and the change is written to the audit log.</p>
         </div>
       )}
-      <AdminActionConfirm open={confirm} title={`Override KYC Level ${level}`} description={`Set Level ${level} to "${status}". A mandatory audit note is required.`} pending={m.isPending} destructive={status === "rejected"} onClose={() => setConfirm(false)} onConfirm={async (reason) => { await m.mutateAsync(reason); }} />
+      <AdminActionConfirm open={confirm} title={`Override KYC Lv.${level}`} description={`Set Lv.${level} to "${status}". A mandatory audit note is required.`} pending={m.isPending} destructive={status === "rejected"} onClose={() => setConfirm(false)} onConfirm={async (reason) => { await m.mutateAsync(reason); }} />
     </div>
   );
 }

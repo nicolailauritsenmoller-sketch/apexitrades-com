@@ -289,9 +289,9 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
         supabase,
         row.user_id,
         data.action === "approve"
-          ? "Level 2 verification complete"
-          : "Level 2 compliance check failed",
-        data.note ?? (data.action === "approve" ? "Your Level 2 verification is complete." : "Your Level 2 submission did not pass the compliance review."),
+          ? "Lv.2 verification complete"
+          : "Lv.2 compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your Lv.2 verification is complete." : "Your Lv.2 submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
     }
