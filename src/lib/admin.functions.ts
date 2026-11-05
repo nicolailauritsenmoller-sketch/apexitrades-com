@@ -209,6 +209,18 @@ export const reviewKyc = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     const status = data.action === "approve" ? "approved" : "rejected";
+    if (data.action === "approve") {
+      const { data: current, error: readErr } = await supabase
+        .from("kyc_submissions")
+        .select("full_name,date_of_birth,country,address,document_type,document_number,document_expires_at,document_path,document_back_path")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (readErr) throw new Error(readErr.message);
+      const missing = current
+        ? Object.entries(current).filter(([, v]) => v == null || String(v).trim() === "").map(([k]) => k)
+        : ["submission"];
+      if (missing.length) throw new Error(`Level 1 submission is incomplete: ${missing.join(", ")}`);
+    }
     const { data: row, error } = await supabase
       .from("kyc_submissions")
       .update({
