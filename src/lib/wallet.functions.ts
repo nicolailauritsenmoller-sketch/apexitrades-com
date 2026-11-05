@@ -35,7 +35,8 @@ export const getDepositAddresses = createServerFn({ method: "POST" })
       .select("*")
       .eq("active", true)
       .order("coin");
-    return (data ?? []).map((a) => ({
+    const { validateAssetAddress } = await import("./address-validation");
+    return (data ?? []).filter(a => a.status === "active" && !validateAssetAddress(a.coin, a.network, a.address, a.memo)).map((a) => ({
       id: a.id,
       coin: a.coin,
       network: a.network,
@@ -392,25 +393,8 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
-    const { walletAdjust } = await import("./wallet-atomic.server");
-    await walletAdjust(db, userId, data.coin, -data.amount);
-
-    const { data: row, error } = await supabase
-      .from("withdrawals")
-      .insert({
-        user_id: userId,
-        coin: data.coin,
-        network: data.network,
-        amount: data.amount,
-        destination_address: data.destinationAddress,
-      })
-      .select("id,created_at")
-      .single();
-    if (error) {
-      // Roll the hold back if the request could not be recorded.
-      await walletAdjust(db, userId, data.coin, data.amount);
-      throw new Error(error.message);
-    }
+    const { data: row, error } = await db.rpc("request_withdrawal_atomic", { p_user: userId, p_coin: data.coin, p_network: data.network, p_amount: data.amount, p_destination: data.destinationAddress });
+    if (error) throw new Error(error.message);
     return { ok: true, id: row.id as string, createdAt: row.created_at as string };
   });
 

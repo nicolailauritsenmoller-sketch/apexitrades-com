@@ -1,4 +1,5 @@
 import { NAV } from "@/lib/operations-routing";
+import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCenter";
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
 import { ScalpingManagement } from "@/components/admin/ScalpingManagement";
@@ -179,6 +180,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "health",
   "scalping",
   "discovery",
   "restrictions",
@@ -594,6 +596,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
           {tab === "corrections" && <TradeCorrections />}
           {tab === "discovery" && isAdmin && <DiscoveryDesk />}
           {tab === "scalping" && isAdmin && <ScalpingManagement />}
+          {tab === "health" && isAdmin && <OperationsHealthCenter onOpen={go} />}
           {tab === "risk" && <RiskMonitor readOnly={!canFinance} />}
           {tab === "engine" && <EngineSpreadPanel />}
           {tab === "accounting" && <AccountingPanel />}
@@ -770,8 +773,8 @@ function useReview(fn: typeof reviewDeposit, onDone: () => void, label: string) 
   return useMutation({
     mutationFn: (input: { id: string; action: "approve" | "reject"; note?: string }) =>
       call({ data: input }),
-    onSuccess: (_r, v) => {
-      toast.success(`${label} ${v.action === "approve" ? "approved" : "rejected"}.`);
+    onSuccess: (r: any, v) => {
+      toast.success(r?.awaitingSecondApproval ? "First approval recorded. A different finance operator must approve before settlement." : `${label} ${v.action === "approve" ? "approved" : "rejected"}.`);
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),

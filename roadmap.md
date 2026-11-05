@@ -2,6 +2,13 @@
 
 ## In Progress
 
+- [x] Add a protected operations health center with durable rate-limited provider samples while the console is open, ledger reconciliation counts, notification dispatch/read visibility, risk exposure and compliance/support queue ages; signed-in persisted checks verified.
+- [x] Enforce receiving-address asset/network format validation on writes and customer reads; settle confirmations atomically, prevent repeated chain transfer credits and make withdrawal holds and corrections atomic.
+- [x] Add immutable trigger-captured configuration history and guarded restoration; preserve role boundaries with fail-closed caller-role checks.
+- [x] Add distinct-operator approval and recent app 2FA checks for high-value stablecoin withdrawals/corrections when existing large-withdrawal review controls are enabled; preserve the operator's current disabled setting. Add operator re-verification control.
+- [ ] Verify a production recovery drill - blocked on operator-controlled backup inventory and a separate restore destination; daily snapshots exclude storage files.
+- [ ] Connect external push/email dispatch receipts and verified blockchain deposit receipt reconciliation - blocked on selected delivery/custody providers and credentials; existing skips are reported honestly. Hash-depth checks alone no longer authorize automatic credits: deposits remain pending until an authorized finance reviewer approves.
+
 - [x] Make movement alerts open pair-specific live chart dialogs styled like the reference: filled price line, neutral moving-average overlay, compact 15m/1h/4h/1d selectors and volume histogram. Signed-in SOL alert, all four timeframe selections, changing live price and mobile no-overflow verified; no page errors. Closing keeps the original URL.
 
 - [x] Restore live New and Alpha feeds by separating public moderation access from signed-in administrator checks and enforcing safe-column reads; both signed-in tabs show current provider rows and change automatically after 30 seconds. Nineteen regression tests pass; provider outages remain honestly reported rather than fabricated.

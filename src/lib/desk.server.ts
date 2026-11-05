@@ -3,10 +3,7 @@
 type Ctx = { supabase: any; userId: string };
 
 export async function myRoles(context: Ctx): Promise<string[]> {
-  // Read through the caller's own client first (RLS: users can read their own
-  // roles). If that returns nothing - e.g. the row is only visible to the
-  // service role - fall back to a service-role lookup scoped strictly to the
-  // authenticated user id, never to a client-supplied value.
+  // Authorization must be established through the caller's own role rows.
   const { data, error } = await context.supabase
     .from("user_roles")
     .select("role")
@@ -16,12 +13,8 @@ export async function myRoles(context: Ctx): Promise<string[]> {
     return data.map((r: { role: string }) => r.role);
   }
 
-  const db = await privileged();
-  const { data: fallback } = await db
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", context.userId);
-  return (fallback ?? []).map((r: { role: string }) => r.role);
+  if (error) throw new Error("Could not verify staff permissions. Please retry.");
+  return [];
 }
 
 export async function assertStaff(context: Ctx) {
@@ -63,7 +56,7 @@ async function requestIp(): Promise<string | null> {
   try {
     const { getRequestHeader } = await import("@tanstack/react-start/server");
     const raw = getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? getRequestHeader("x-real-ip");
-    return raw ? raw.split(",")[0]!.trim() : null;
+    return raw ? raw.split(",")[0]?.trim() ?? null : null;
   } catch {
     return null;
   }

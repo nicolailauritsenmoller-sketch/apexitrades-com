@@ -272,6 +272,51 @@ export type Database = {
         }
         Relationships: []
       }
+      balance_correction_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          mode: string
+          reason: string
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          kind: string
+          mode: string
+          reason: string
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          mode?: string
+          reason?: string
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       broadcast_logs: {
         Row: {
           actor_id: string
@@ -862,6 +907,30 @@ export type Database = {
           },
         ]
       }
+      credited_deposit_transfers: {
+        Row: {
+          coin: string
+          credited_at: string
+          deposit_id: string
+          network: string
+          transfer_id: string
+        }
+        Insert: {
+          coin: string
+          credited_at?: string
+          deposit_id: string
+          network: string
+          transfer_id: string
+        }
+        Update: {
+          coin?: string
+          credited_at?: string
+          deposit_id?: string
+          network?: string
+          transfer_id?: string
+        }
+        Relationships: []
+      }
       deposit_addresses: {
         Row: {
           active: boolean
@@ -1093,6 +1162,27 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_review_approvals: {
+        Row: {
+          approver_id: string
+          created_at: string
+          request_id: string
+          request_kind: string
+        }
+        Insert: {
+          approver_id: string
+          created_at?: string
+          request_id: string
+          request_kind: string
+        }
+        Update: {
+          approver_id?: string
+          created_at?: string
+          request_id?: string
+          request_kind?: string
+        }
+        Relationships: []
+      }
       kyc_submissions: {
         Row: {
           address: string | null
@@ -1300,6 +1390,78 @@ export type Database = {
           read_at?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      operations_check_locks: {
+        Row: {
+          claimed_at: string
+          name: string
+        }
+        Insert: {
+          claimed_at?: string
+          name: string
+        }
+        Update: {
+          claimed_at?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      operations_feed_checks: {
+        Row: {
+          checked_at: string
+          detail: string
+          feed: string
+          last_success_at: string | null
+          latency_ms: number
+          row_count: number
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          detail?: string
+          feed: string
+          last_success_at?: string | null
+          latency_ms?: number
+          row_count?: number
+          status: string
+        }
+        Update: {
+          checked_at?: string
+          detail?: string
+          feed?: string
+          last_success_at?: string | null
+          latency_ms?: number
+          row_count?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      platform_setting_revisions: {
+        Row: {
+          actor_id: string | null
+          after_value: Json | null
+          before_value: Json | null
+          created_at: string
+          id: string
+          key: string
+        }
+        Insert: {
+          actor_id?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          created_at?: string
+          id?: string
+          key: string
+        }
+        Update: {
+          actor_id?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          created_at?: string
+          id?: string
+          key?: string
         }
         Relationships: []
       }
@@ -2662,7 +2824,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_balance_correction: {
+        Args: {
+          p_actor: string
+          p_amount: number
+          p_currency: string
+          p_kind: string
+          p_mode: string
+          p_reason: string
+          p_request?: string
+          p_user: string
+        }
+        Returns: number
+      }
       capture_desk_performance: { Args: never; Returns: number }
+      claim_operations_feed_check: { Args: never; Returns: boolean }
       copy_leader_directory: {
         Args: never
         Returns: {
@@ -2740,10 +2916,29 @@ export type Database = {
           views: number
         }[]
       }
+      operations_health_summary: { Args: never; Returns: Json }
       purge_old_session_replays: { Args: never; Returns: number }
       record_self_alert: {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
+      }
+      request_withdrawal_atomic: {
+        Args: {
+          p_amount: number
+          p_coin: string
+          p_destination: string
+          p_network: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      restore_platform_setting: {
+        Args: { p_actor: string; p_reason: string; p_revision: string }
+        Returns: undefined
+      }
+      review_balance_correction: {
+        Args: { p_action: string; p_actor: string; p_id: string }
+        Returns: number
       }
       review_withdrawal_atomic: {
         Args: {
