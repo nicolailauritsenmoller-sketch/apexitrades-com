@@ -79,7 +79,7 @@ function PreferenceSettings() {
   const [securityPush, setSecurityPush] = usePreference("notifySecurityPush", true);
   const { lang, setLang, t } = useI18n();
   const { theme, setTheme, variant, setVariant } = useTheme();
-  const [appearanceOpen, setAppearanceOpen] = useState(true);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
 
   const sections = [
@@ -169,25 +169,26 @@ function PreferenceSettings() {
               </div>
             </SettingRow>
             <div className="px-4 py-5 sm:px-5">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setAppearanceOpen((open) => !open)}
                 aria-expanded={appearanceOpen}
                 aria-controls="appearance-panel"
-                className="flex w-full items-start gap-3 text-left"
+                className="h-auto w-full items-start justify-start gap-3 whitespace-normal p-0 text-left hover:bg-transparent"
               >
                 <Palette className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold">Appearance</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Pick your interface mode and color theme. Midnight Black deepens dark surfaces for low-light trading rooms.</p>
                 </div>
-                <ChevronDown className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-300 ${appearanceOpen ? "" : "-rotate-90"}`} />
-              </button>
+                <ChevronDown className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none ${appearanceOpen ? "" : "-rotate-90"}`} />
+              </Button>
               <div
                 id="appearance-panel"
                 aria-hidden={!appearanceOpen}
-                className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                style={{ gridTemplateRows: appearanceOpen ? "1fr" : "0fr" }}
+                inert={!appearanceOpen}
+                className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${appearanceOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
               >
                 <div className="overflow-hidden">
 
