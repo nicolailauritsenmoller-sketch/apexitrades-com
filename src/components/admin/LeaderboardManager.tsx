@@ -16,7 +16,7 @@ export function LeaderboardManager() {
   const qc = useQueryClient();
   const fetchManager = useServerFn(getLeaderboardManager), saveDraft = useServerFn(saveLeaderboardDraft), review = useServerFn(reviewLeaderboardPost);
   const q = useQuery({ queryKey: ["leaderboard-manager"], queryFn: () => fetchManager() });
-  const trades = (q.data?.trades ?? []) as unknown as DeskEntry[];
+  const trades = (q.data?.trades ?? []) as unknown as (DeskEntry & { public_eligible: boolean })[];
   const posts = (q.data?.posts ?? []) as Post[];
   const postByPosition = useMemo(() => new Map(posts.map(p => [p.position_id, p])), [posts]);
   const [positionId, setPositionId] = useState("");
@@ -48,7 +48,7 @@ export function LeaderboardManager() {
   return <div className="space-y-6">
     <div>
       <h2 className="text-base font-semibold">Leaderboard Manager</h2>
-      <p className="text-xs text-muted-foreground">Curate real closed trades from consenting approved leaders. Trade figures, views, shares and copy-trader counts always come from the platform and cannot be edited. Nothing appears on the public leaderboard until you approve it.</p>
+      <p className="text-xs text-muted-foreground">Every closed trade from the last 30 days is listed here internally. Only trades from traders who opted in can be published. Trade figures, views, shares and copy-trader counts always come from the platform and cannot be edited. Nothing appears on the public leaderboard until you approve it.</p>
     </div>
     {q.error && <p role="alert" className="text-sm text-bear">{(q.error as Error).message}</p>}
 
@@ -57,8 +57,8 @@ export function LeaderboardManager() {
         <h3 className="text-sm font-semibold">Compose post</h3>
         <label className="block space-y-1.5 text-xs font-medium">Closed trade
           <select aria-label="Closed trade" value={positionId} onChange={e => select(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">{q.isPending ? "Loading trades..." : trades.length ? "Select a real closed trade" : "No eligible closed trades yet"}</option>
-            {trades.map(t => <option key={t.position_id} value={t.position_id}>{t.public_name} - {t.display_symbol} {t.side} {num(Number(t.leverage), 0)}X - {Number(t.realized_pnl) >= 0 ? "+" : ""}{num(Number(t.realized_pnl))} USDT{postByPosition.get(t.position_id) ? ` (${postByPosition.get(t.position_id)!.status})` : ""}</option>)}
+            <option value="">{q.isPending ? "Loading trades..." : trades.length ? "Select a closed trade" : "No closed trades in the last 30 days"}</option>
+            {trades.map(t => <option key={t.position_id} value={t.position_id}>{t.public_name} - {t.display_symbol} {t.side} {num(Number(t.leverage), 0)}X - {Number(t.realized_pnl) >= 0 ? "+" : ""}{num(Number(t.realized_pnl))} USDT{t.public_eligible ? "" : " - internal only"}{postByPosition.get(t.position_id) ? ` (${postByPosition.get(t.position_id)!.status})` : ""}</option>)}
           </select>
         </label>
         <label className="block space-y-1.5 text-xs font-medium">Display name (optional)
@@ -70,10 +70,11 @@ export function LeaderboardManager() {
         </label>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" disabled={!trade || draft.isPending} onClick={() => draft.mutate()}>{post ? "Save edits as draft" : "Save draft"}</Button>
-          {post && post.status !== "published" && <Button disabled={dirty || act.isPending} onClick={() => act.mutate({ id: post.id, action: "publish" })}>Approve & Publish</Button>}
+          {post && post.status !== "published" && <Button disabled={dirty || act.isPending || !trade?.public_eligible} onClick={() => act.mutate({ id: post.id, action: "publish" })}>Approve & Publish</Button>}
           {post && post.status !== "rejected" && <Button variant="destructive" disabled={act.isPending} onClick={() => setRejecting(post)}>Reject</Button>}
           {post?.status === "published" && <Button variant="secondary" disabled={act.isPending} onClick={() => act.mutate({ id: post.id, action: "unpublish" })}>Unpublish</Button>}
         </div>
+        {trade && !trade.public_eligible && <p className="text-[11px] text-muted-foreground">Internal only: this trader has not opted in to public display, so the card cannot be published.</p>}
         {dirty && <p className="text-[11px] text-muted-foreground">Save your edits as a draft before approving.</p>}
         {post?.status === "rejected" && post.review_note && <p className="text-[11px] text-muted-foreground">Rejection note: {post.review_note}</p>}
       </section>
