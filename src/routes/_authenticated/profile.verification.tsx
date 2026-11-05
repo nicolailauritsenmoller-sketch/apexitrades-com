@@ -106,7 +106,6 @@ function VerificationPage() {
           requirements={[
             "Approved KYC identity verification",
             "Biometric facial selfie captured live in-app (required)",
-            "Proof of Address dated within the last 3 months (optional)",
           ]}
         >
           <KycLevel2Panel
