@@ -337,6 +337,13 @@
       "when": 1793847488724,
       "tag": "0047_kyc_level2_compliance_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793852569665,
+      "tag": "0048_scalping_configuration_rules",
+      "breakpoints": true
     }
   ]
 }

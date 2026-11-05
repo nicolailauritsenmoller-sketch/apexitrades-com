@@ -762,6 +762,8 @@ export type Database = {
           stake: number
           status: string
           symbol: string
+          tier_id: string | null
+          tier_version: string | null
           user_id: string
         }
         Insert: {
@@ -784,6 +786,8 @@ export type Database = {
           stake: number
           status?: string
           symbol: string
+          tier_id?: string | null
+          tier_version?: string | null
           user_id: string
         }
         Update: {
@@ -806,9 +810,19 @@ export type Database = {
           stake?: number
           status?: string
           symbol?: string
+          tier_id?: string | null
+          tier_version?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contracts_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "scalping_tier_rules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       copy_leader_applications: {
         Row: {
@@ -1504,6 +1518,45 @@ export type Database = {
           reward_amount?: number
           rewarded_at?: string | null
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scalping_tier_rules: {
+        Row: {
+          active: boolean
+          audit_reason: string
+          created_at: string
+          deleted_at: string | null
+          duration_seconds: number
+          id: string
+          label: string
+          min_trade_amount: number
+          roi_pct: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          audit_reason: string
+          created_at?: string
+          deleted_at?: string | null
+          duration_seconds: number
+          id?: string
+          label: string
+          min_trade_amount: number
+          roi_pct: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          audit_reason?: string
+          created_at?: string
+          deleted_at?: string | null
+          duration_seconds?: number
+          id?: string
+          label?: string
+          min_trade_amount?: number
+          roi_pct?: number
           updated_at?: string
         }
         Relationships: []
