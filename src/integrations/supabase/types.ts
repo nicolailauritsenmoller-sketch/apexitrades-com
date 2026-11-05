@@ -1327,6 +1327,56 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_posts: {
+        Row: {
+          commentary: string | null
+          created_at: string
+          created_by: string
+          display_name: string | null
+          id: string
+          position_id: string
+          published_at: string | null
+          review_note: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commentary?: string | null
+          created_at?: string
+          created_by: string
+          display_name?: string | null
+          id?: string
+          position_id: string
+          published_at?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commentary?: string | null
+          created_at?: string
+          created_by?: string
+          display_name?: string | null
+          id?: string
+          position_id?: string
+          published_at?: string | null
+          review_note?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_posts_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: true
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_insights: {
         Row: {
           active: boolean
