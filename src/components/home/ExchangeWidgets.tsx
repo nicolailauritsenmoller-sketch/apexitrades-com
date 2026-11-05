@@ -58,7 +58,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [program, setProgram] = useState<TradingProgram | null>(null);
   const fetchPrograms = useServerFn(getTradingPrograms);
   const programs = useQuery({ queryKey: ["trading-programs"], queryFn: () => fetchPrograms(), staleTime: 30_000 });
-  const enrolled = programs.data?.application?.status === "pending" || programs.data?.application?.status === "approved";
+  const enrolled = ["pending", "review", "approved"].includes(programs.data?.application?.status ?? "");
   const { quotes } = useQuotes(["BTCUSDT"], 5000);
   const candles = useCandles("BTCUSDT", "1h");
   const quote = quotes.BTCUSDT;

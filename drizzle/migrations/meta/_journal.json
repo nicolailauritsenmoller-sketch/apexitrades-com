@@ -435,6 +435,13 @@
       "when": 1793885568007,
       "tag": "0061_leader_application_statuses",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1793885951817,
+      "tag": "0062_leader_application_resubmission",
+      "breakpoints": true
     }
   ]
 }

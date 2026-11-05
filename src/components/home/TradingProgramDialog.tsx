@@ -1,5 +1,5 @@
 import { SampleLeadTraderDirectory } from "./SampleLeadTraderDirectory";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, Layers3, ShieldCheck, Trophy, Users } from "lucide-react";
@@ -28,6 +28,14 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const existing = query.data?.requests.find(request => request.program === program);
+  const application = query.data?.application;
+  const rejected = application?.status === "rejected";
+  const prefillRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (application?.status !== "rejected" || prefillRef.current === application.user_id) return;
+    prefillRef.current = application.user_id;
+    setPublicName(application.public_name); setBio(application.bio ?? ""); setConsent(true);
+  }, [application]);
   const leaders = [...(query.data?.leaders ?? [])].sort((a, b) => Number(b.roi_pct ?? -Infinity) - Number(a.roi_pct ?? -Infinity));
   async function submit(asLeader = false) {
     if (!program) return;
@@ -36,7 +44,7 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
       if (asLeader) await applyLeader({ data: leaderApplicationSchema.parse({ publicName, bio, consent }) });
       else await saveRequest({ data: programRequestSchema.parse({ program, leaderId, budget: budget === "" ? 0 : Number(budget), leverage }) });
       await client.invalidateQueries({ queryKey: ["trading-programs"] });
-      setFeedback(asLeader ? "Application submitted for review." : "Request saved. No funds reserved or debited.");
+      setFeedback(asLeader ? (rejected ? "Revised application submitted for review." : "Application submitted for review.") : "Request saved. No funds reserved or debited.");
     } catch (error) { setFeedback(error instanceof Error ? error.message : "Unable to save. Please try again."); }
     finally { setBusy(false); }
   }
@@ -52,7 +60,8 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
         {program === "copy_trading" ? <>
           <form onSubmit={event => { event.preventDefault(); void submit(true); }} className="space-y-4 border-b border-border pb-6">
             <div className="flex items-center gap-3"><Trophy className="size-4 text-muted-foreground" /><h2 className="text-sm font-semibold tracking-normal">Public leaderboard enrollment</h2></div>
-            {query.data?.application ? <p role="status" className="flex items-center gap-2 border-l-2 border-bull bg-bull/5 px-3 py-3 text-xs"><ShieldCheck className="size-4 text-bull" />Leader application<span className="ml-auto font-mono uppercase text-bull">{query.data.application.status === "pending" || query.data.application.status === "review" ? "Pending Review" : query.data.application.status}</span></p> : <>
+            {application && !rejected ? <p role="status" className="flex items-center gap-2 border-l-2 border-bull bg-bull/5 px-3 py-3 text-xs"><ShieldCheck className="size-4 text-bull" />Leader application<span className="ml-auto font-mono uppercase text-bull">{application.status === "pending" || application.status === "review" ? "Pending Review" : application.status}</span></p> : <>
+              {rejected && <p role="status" className="flex items-center gap-2 border-l-2 border-bear bg-bear/5 px-3 py-3 text-xs"><ShieldCheck className="size-4 text-bear" />Your application was not approved. Update your details and submit it again for review.<span className="ml-auto font-mono uppercase text-bear">Rejected</span></p>}
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block space-y-2 text-xs font-medium text-muted-foreground">Public trader name<Input className="h-11 rounded-md bg-surface text-foreground" placeholder="Trader handle" value={publicName} onChange={event => setPublicName(event.target.value)} minLength={2} maxLength={60} required /></label>
                 <label className="block space-y-2 text-xs font-medium text-muted-foreground">Strategy summary<Input className="h-11 rounded-md bg-surface text-foreground" placeholder="Markets, approach and risk mandate" value={bio} onChange={event => setBio(event.target.value)} maxLength={400} /></label>
@@ -61,7 +70,7 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
                 <label htmlFor="leader-public-consent" className="cursor-pointer text-xs leading-5"><span className="mb-1 block font-semibold text-foreground">Public performance disclosure</span><span className="text-muted-foreground">I consent to publishing my trader name, strategy and closed-trade results on the public leaderboard.</span></label>
                 <Switch id="leader-public-consent" checked={consent} onCheckedChange={setConsent} required className="data-[state=checked]:bg-bull" />
               </div>
-              <Button className="min-h-11 w-full rounded-md sm:w-auto" disabled={busy || !consent} type="submit">Submit leader application<ArrowRight className="size-4" /></Button>
+              <Button className="min-h-11 w-full rounded-md sm:w-auto" disabled={busy || !consent} type="submit">{rejected ? "Resubmit leader application" : "Submit leader application"}<ArrowRight className="size-4" /></Button>
             </>}
           </form>
           <section className="space-y-4" aria-label="Lead trader directory">

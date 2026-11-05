@@ -22,11 +22,11 @@ export function LeaderApplicationsQueue() {
     <h3 className="text-sm font-semibold">Leader applications <span className="ml-1 font-mono text-xs text-muted-foreground">{pending} pending</span></h3>
     {q.isPending ? <p className="text-xs text-muted-foreground">Loading...</p> : apps.length === 0 ? <p className="text-xs text-muted-foreground">No applications submitted.</p> :
       <div className="overflow-x-auto rounded-lg border border-border"><table className="w-full text-xs">
-        <thead className="bg-surface text-left text-muted-foreground"><tr><th className="p-2">Trader name</th><th className="p-2">Strategy</th><th className="p-2">Submitted</th><th className="p-2">Status</th><th className="p-2 text-right">Actions</th></tr></thead>
+        <thead className="bg-surface text-left text-muted-foreground"><tr><th className="p-2">Trader name</th><th className="p-2">Strategy</th><th className="p-2">Last submitted</th><th className="p-2">Status</th><th className="p-2 text-right">Actions</th></tr></thead>
         <tbody>{apps.map(a => <tr key={a.user_id} className="border-t border-border">
           <td className="p-2 font-medium">{a.public_name}</td>
           <td className="max-w-xs truncate p-2 text-muted-foreground">{a.bio || "-"}</td>
-          <td className="p-2 font-mono">{new Date(a.created_at).toLocaleString()}</td>
+          <td className="p-2 font-mono">{new Date(a.updated_at).toLocaleString()}</td>
           <td className={`p-2 font-mono uppercase ${TONE[a.status] ?? ""}`}>{LABEL[a.status] ?? a.status}</td>
           <td className="space-x-2 p-2 text-right">
             {a.status !== "approved" && <Button size="sm" disabled={act.isPending} onClick={() => act.mutate({ userId: a.user_id, action: "approve" })}>Approve</Button>}
