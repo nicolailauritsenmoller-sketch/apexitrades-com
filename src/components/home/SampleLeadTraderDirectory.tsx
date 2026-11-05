@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { currentSampleBucket, filterSampleLeadTraders, SAMPLE_REFRESH_MS, sampleLeadTraders } from "@/lib/sample-lead-traders";
+import { currentSampleBucket, filterSampleLeadTraders, sampleLeadTraders } from "@/lib/sample-lead-traders";
 
 const usd = (n: number) => (n >= 1e6 ? `$${(n / 1e6).toFixed(2)}M` : `$${(n / 1e3).toFixed(1)}K`);
 
@@ -54,7 +54,7 @@ export function SampleLeadTraderDirectory() {
         </table>
       </div>
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span className="font-mono">{view.total.toLocaleString()} sample traders · refreshes every {SAMPLE_REFRESH_MS / 60000} min</span>
+        <span />
         <div className="flex items-center gap-2">
           <Button type="button" size="icon" variant="outline" className="size-8" disabled={view.page <= 1} onClick={() => setPage(view.page - 1)} aria-label="Previous page"><ChevronLeft className="size-4" /></Button>
           <span className="font-mono">{view.page} / {view.pages}</span>
