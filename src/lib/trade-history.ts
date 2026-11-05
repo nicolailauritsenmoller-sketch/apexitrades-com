@@ -18,7 +18,6 @@ export type HistoryEntry = {
   fees: number | null;
   pnl: number | null;
   pnlPct: number | null;
-  settledAmount: number | null;
   openedAt: string;
   closedAt: string;
 };
@@ -42,7 +41,6 @@ export function buildHistory(positions: PositionRow[], contracts: ContractRow[])
       isLong: p.side === "long", leverage: p.leverage, entryPrice: p.entryPrice,
       exitPrice: p.exitPrice, notional, stake: null, currency: p.currency, fees, pnl,
       pnlPct: pnl != null && margin > 0 ? pnl / margin * 100 : null,
-      settledAmount: null,
       openedAt: p.openedAt, closedAt: p.closedAt,
     });
   }
@@ -56,7 +54,6 @@ export function buildHistory(positions: PositionRow[], contracts: ContractRow[])
       isLong: c.direction === "up", leverage: c.leverage, entryPrice: c.entryPrice,
       exitPrice: c.exitPrice, notional: null, stake: c.stake, currency: c.currency, fees, pnl,
       pnlPct: pnl != null && c.stake > 0 ? pnl / c.stake * 100 : null,
-      settledAmount: c.payout,
       openedAt: c.openedAt, closedAt: c.settledAt,
     });
   }

@@ -31,7 +31,6 @@ describe("institutional trade blotter", () => {
     expect(row.stake).toBe(100);
     expect(row.pnl).toBe(19);
     expect(row.pnlPct).toBe(19);
-    expect(row.settledAmount).toBe(120);
   });
   it("never turns missing realized PnL, payout or fee records into zero or a loss", () => {
     expect(buildHistory([{ ...position, realizedPnl: null }], [])[0].pnl).toBeNull();
@@ -60,9 +59,5 @@ describe("institutional trade blotter", () => {
   });
   it("excludes incomplete settlement timestamps and exits", () => {
     expect(buildHistory([{ ...position, closedAt: null }, { ...position, exitPrice: null }], [{ ...contract, settledAt: null }])).toEqual([]);
-  });
-  it("preserves zero and unknown payouts without reconstructing settlement from market prices", () => {
-    expect(buildHistory([], [{ ...contract, payout: 0 }])[0].settledAmount).toBe(0);
-    expect(buildHistory([], [{ ...contract, payout: null }])[0].settledAmount).toBeNull();
   });
 });
