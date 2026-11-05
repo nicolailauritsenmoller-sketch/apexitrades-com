@@ -14,6 +14,7 @@ export type HistoryEntry = {
   exitPrice: number;
   notional: number | null;
   stake: number | null;
+  settledAmount: number | null;
   currency: string;
   fees: number | null;
   pnl: number | null;
@@ -39,7 +40,7 @@ export function buildHistory(positions: PositionRow[], contracts: ContractRow[])
       key: `pos-${p.id}`, id: p.id, reference: `#ORD-P-${p.id.slice(0, 8).toUpperCase()}`,
       kind: "position", symbol: p.symbol, displaySymbol: p.displaySymbol,
       isLong: p.side === "long", leverage: p.leverage, entryPrice: p.entryPrice,
-      exitPrice: p.exitPrice, notional, stake: null, currency: p.currency, fees, pnl,
+      exitPrice: p.exitPrice, notional, stake: null, settledAmount: null, currency: p.currency, fees, pnl,
       pnlPct: pnl != null && margin > 0 ? pnl / margin * 100 : null,
       openedAt: p.openedAt, closedAt: p.closedAt,
     });
@@ -52,7 +53,7 @@ export function buildHistory(positions: PositionRow[], contracts: ContractRow[])
       key: `ctr-${c.id}`, id: c.id, reference: `#ORD-C-${c.id.slice(0, 8).toUpperCase()}`,
       kind: "contract", symbol: c.symbol, displaySymbol: c.displaySymbol,
       isLong: c.direction === "up", leverage: c.leverage, entryPrice: c.entryPrice,
-      exitPrice: c.exitPrice, notional: null, stake: c.stake, currency: c.currency, fees, pnl,
+      exitPrice: c.exitPrice, notional: null, stake: c.stake, settledAmount: c.payout, currency: c.currency, fees, pnl,
       pnlPct: pnl != null && c.stake > 0 ? pnl / c.stake * 100 : null,
       openedAt: c.openedAt, closedAt: c.settledAt,
     });

@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [ ] Open recorded settlement modals from Portfolio and terminal settled-contract rows; verify breakdown, historical candles and actions.
 - [x] Redesign Trade History as an institutional blotter with recorded fields, sortable date/PnL, filters, status indicators and currency-safe performance totals; signed-in real executions, details, sorting and filters verified on desktop/mobile without page errors or overflow. Ten financial-display/logo tests pass; build OK. Venue/routing and slippage remain explicitly unrecorded.
 - [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
 - [ ] Activate USDC receiving networks - blocked on operator-provided Ethereum ERC-20, Solana and Base receiving addresses; admin network selection and validation are ready, no addresses fabricated.
