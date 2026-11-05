@@ -48,3 +48,4 @@
 - Discovery moderation and institutional articles persist in protected editorial tables with database-triggered audit entries; public feed reads project safe moderation columns - why: operator decisions survive refreshes without exposing internal notes.
 - Desk snapshots use the existing closed-position metrics RPC on trade changes and explicit admin capture, bucketed to five minutes; client rotation remains separate - why: durable measured history without idle polling or fabricated results.
 - Trade History display calculations live in src/lib/trade-history.ts, using recorded prices and total fees, with currency-separated totals and unrecorded execution fields left unavailable - why: presentation must not fabricate venue fills or mix settlement currencies.
+- Settled-contract history uses ContractSettlementDialog and an owner-scoped historical-candle read; never reuse synthetic summary paths - why: payout details and market context must remain authentic.

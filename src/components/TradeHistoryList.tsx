@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronRight, Search, X }
 import { AssetIcon } from "@/lib/asset-icons";
 import { formatMoney, formatPrice, INSTRUMENT_MAP } from "@/lib/instruments";
 import { Button } from "@/components/ui/button";
+import { ContractSettlementDialog } from "@/components/ContractSettlementDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { buildHistory, sortHistory, summarizeHistory, type HistoryEntry, type HistorySort } from "@/lib/trade-history";
 import type { PositionRow } from "@/components/PositionsTable";
@@ -49,6 +50,7 @@ export function TradeHistoryList({ positions, contracts, isLoading, hidden = fal
   const [sort, setSort] = useState<HistorySort>("newest");
   const [limit, setLimit] = useState(PAGE);
   const [active, setActive] = useState<string | null>(null);
+  const [settlement, setSettlement] = useState<HistoryEntry | null>(null);
   const entries = useMemo(() => {
     const term = q.trim().toLowerCase();
     const start = from ? Date.parse(`${from}T00:00:00Z`) : -Infinity;
@@ -67,7 +69,8 @@ export function TradeHistoryList({ positions, contracts, isLoading, hidden = fal
   const th = "whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase text-muted-foreground";
 
   return (
-    <section aria-label="Trade history blotter" className="min-w-0 touch-manipulation">
+    <section id="trade-history" aria-label="Trade history blotter" className="min-w-0 touch-manipulation">
+      {settlement && <ContractSettlementDialog entry={settlement} hidden={hidden} onClose={() => setSettlement(null)} onViewHistory={() => { setSettlement(null); document.getElementById("trade-history")?.scrollIntoView({ block: "start" }); }} />}
       <div className="grid grid-cols-2 gap-y-4 border-b border-border bg-surface px-4 py-4 sm:grid-cols-[1fr_1fr_2fr] sm:gap-6">
         <div>
           <div className="text-[10px] font-semibold uppercase text-muted-foreground">Completed trades</div>
@@ -135,7 +138,7 @@ export function TradeHistoryList({ positions, contracts, isLoading, hidden = fal
           <tbody>
             {isLoading ? <tr><td colSpan={11} className="px-4 py-12 text-center text-muted-foreground" role="status">Loading executions...</td></tr>
               : entries.length === 0 ? <tr><td colSpan={11} className="px-4 py-12 text-center text-muted-foreground">{all.length ? "No trades match these filters." : "No completed trades."}</td></tr>
-                : entries.slice(0, limit).map((entry) => <HistoryRow key={entry.key} entry={entry} hidden={hidden} expanded={active === entry.key} onToggle={() => setActive(active === entry.key ? null : entry.key)} />)}
+                : entries.slice(0, limit).map((entry) => <HistoryRow key={entry.key} entry={entry} hidden={hidden} expanded={active === entry.key} onToggle={() => entry.kind === "contract" ? setSettlement(entry) : setActive(active === entry.key ? null : entry.key)} />)}
           </tbody>
         </table>
       </div>
@@ -152,9 +155,12 @@ function HistoryRow({ entry: e, hidden, expanded, onToggle }: { entry: HistoryEn
   const cell = "whitespace-nowrap px-4 py-3.5 align-middle";
   const unavailable = <span className="text-muted-foreground">Not recorded</span>;
   return <>
-    <tr className="border-b border-border/70 bg-background even:bg-muted/20 hover:bg-secondary/40 focus-within:bg-secondary/40">
+    <tr tabIndex={e.kind === "contract" ? 0 : undefined} aria-label={e.kind === "contract" ? `Open settlement ${e.reference}` : undefined}
+      onClick={e.kind === "contract" ? onToggle : undefined}
+      onKeyDown={e.kind === "contract" ? (event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onToggle(); } } : undefined}
+      className={`border-b border-border/70 bg-background even:bg-muted/20 hover:bg-secondary/40 focus-within:bg-secondary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${e.kind === "contract" ? "cursor-pointer" : ""}`}>
       <td className={cell}>
-        <Button variant="ghost" size="sm" aria-expanded={expanded} aria-label={`Details for ${e.reference}`} title={`Record ${e.id}`} onClick={onToggle} className="num -ml-3 h-7 text-[11px] font-semibold">{expanded ? <ChevronDown /> : <ChevronRight />}{e.reference}</Button>
+        <Button variant="ghost" size="sm" aria-expanded={e.kind === "position" ? expanded : undefined} aria-haspopup={e.kind === "contract" ? "dialog" : undefined} aria-label={`Details for ${e.reference}`} title={`Record ${e.id}`} onClick={(event) => { event.stopPropagation(); onToggle(); }} className="num -ml-3 h-7 text-[11px] font-semibold">{expanded ? <ChevronDown /> : <ChevronRight />}{e.reference}</Button>
         <div className="num mt-1 text-[10px] text-muted-foreground">{executionDate(e.closedAt)}</div>
       </td>
       <td className={cell}><div className="flex items-center gap-2.5"><AssetIcon symbol={e.symbol} size={28} /><div><div className="font-semibold">{e.displaySymbol}</div><div className="mt-1 max-w-[165px] truncate text-[10px] text-muted-foreground" title={INSTRUMENT_MAP[e.symbol]?.name}>{INSTRUMENT_MAP[e.symbol]?.name ?? e.symbol}</div></div></div></td>
