@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Fix reason-free scalping confirmations at the database trigger; verify signed-in creation, editing, activation, deactivation and removal without manual audit text.
+- [x] Fix reason-free scalping confirmations at the database trigger; 22 tests pass and signed-in creation, persisted reload, editing, activation, deactivation and removal work without manual audit text. Temporary test tiers removed.
 
 - [x] Keep scalping tier changes silent for customers and reasons exclusively in admin audit logs. Validated empty-reason storage constraint, 18 tests pass; signed-in edit/deactivate/reactivate/remove updates trading without alerts or reason leaks, notification count unchanged. Temporary tier removed.
 
