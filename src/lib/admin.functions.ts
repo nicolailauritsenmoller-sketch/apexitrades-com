@@ -293,7 +293,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: row } = await context.supabase
       .from("kyc_submissions")
-      .select("user_id, document_path, selfie_path, level2_selfie_path, level2_proof_path")
+      .select("user_id, document_path, document_back_path, selfie_path, level2_selfie_path, level2_proof_path")
       .eq("id", data.id)
       .maybeSingle();
     if (!row) throw new Error("Submission not found.");
@@ -317,6 +317,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     return {
       registeredEmail: profile?.email ?? null,
       document: await sign(row.document_path),
+      documentBack: await sign(r["document_back_path"] ?? null),
       selfie: await sign(row.selfie_path),
       level2Selfie: await sign(r["level2_selfie_path"] ?? null),
       level2Proof: await sign(r["level2_proof_path"] ?? null),
@@ -1440,6 +1441,7 @@ export const unverifyKyc = createServerFn({ method: "POST" })
         level2_status: "unsubmitted",
         kyc_level_2_status: "unsubmitted",
         document_path: null,
+        document_back_path: null,
         selfie_path: null,
         selfie_capture: null,
         document_expires_at: null,

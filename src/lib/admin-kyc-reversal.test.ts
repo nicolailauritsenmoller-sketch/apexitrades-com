@@ -65,7 +65,7 @@ describe("Unverify user", () => {
     expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({
       status: "unsubmitted", kyc_level_1_status: "unsubmitted",
       level2_status: "unsubmitted", kyc_level_2_status: "unsubmitted",
-      document_path: null, selfie_path: null, selfie_capture: null,
+      document_path: null, document_back_path: null, selfie_path: null, selfie_capture: null,
       level2_selfie_path: null, level2_selfie_capture: null, level2_proof_path: null,
       reviewed_by: null, reviewed_at: null, level2_reviewed_by: null,
       level2_reviewed_at: null, level2_submitted_at: null,

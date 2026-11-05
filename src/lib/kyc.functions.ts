@@ -10,9 +10,8 @@ const submitInput = z.object({
   documentType: z.enum(["passport", "id_card", "drivers_license"]),
   documentNumber: z.string().trim().min(2).max(60),
   documentPath: z.string().trim().min(1).max(300),
-  selfiePath: z.string().trim().min(1).max(300),
-  selfieCapture: z.object({ source: z.literal("camera"), capturedAt: z.string().min(10).max(40), width: z.number().int().positive(), height: z.number().int().positive(), device: z.string().max(200) }),
-  documentExpiresAt: z.string().trim().min(4).max(20).optional(),
+  documentBackPath: z.string().trim().min(1).max(300),
+  documentExpiresAt: z.string().trim().min(4).max(20),
 });
 
 const level2Input = z.object({
@@ -79,6 +78,7 @@ export const getMyKyc = createServerFn({ method: "POST" })
       expired,
       dailyLimitUsdt,
       documentUrl: await sign(data.document_path),
+      documentBackUrl: await sign((row["document_back_path"] as string | null) ?? null),
       selfieUrl: await sign(data.selfie_path),
       level1Status,
       level2Status,
@@ -113,9 +113,8 @@ export const submitKyc = createServerFn({ method: "POST" })
             document_type: data.documentType,
             document_number: data.documentNumber,
             document_path: data.documentPath,
-            selfie_path: data.selfiePath,
-            selfie_capture: data.selfieCapture,
-            document_expires_at: data.documentExpiresAt || null,
+            document_back_path: data.documentBackPath,
+            document_expires_at: data.documentExpiresAt,
             status: "pending",
           }) as any,
           { onConflict: "user_id" },
