@@ -32,13 +32,6 @@ async function settleDeposit(dep: any, confirmations: number) {
   });
   if (error || !r?.settled) return false; // another pass (or an admin) already handled it
 
-  await admin.from("notifications").insert({
-    user_id: dep.user_id,
-    title: "Deposit confirmed",
-    body: `${Number(dep.amount)} ${dep.coin} (${dep.network}) cleared with ${confirmations} network confirmations and is now available in your balance.`,
-    kind: "success",
-  });
-
   await admin.from("admin_audit_logs").insert({
     actor_id: dep.user_id,
     actor_name: "Network confirmation service",

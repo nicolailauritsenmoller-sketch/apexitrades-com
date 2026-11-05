@@ -17,11 +17,17 @@ beforeAll(async () => {
     CREATE TABLE platform_settings(key text PRIMARY KEY,value jsonb);
     CREATE TABLE credited_deposit_transfers(network text,coin text,transfer_id text,deposit_id uuid UNIQUE,PRIMARY KEY(network,coin,transfer_id));
     CREATE TABLE financial_review_approvals(request_kind text,request_id uuid,approver_id uuid,PRIMARY KEY(request_kind,request_id,approver_id));
+    ALTER TABLE withdrawals ADD COLUMN created_at timestamptz DEFAULT now(), ADD COLUMN destination_address text;
+    CREATE TABLE profiles(id uuid PRIMARY KEY, withdrawals_disabled boolean DEFAULT false, account_frozen boolean DEFAULT false);
+    CREATE TABLE kyc_submissions(user_id uuid,status text);
+    CREATE TABLE user_withdrawal_limits(user_id uuid,daily_limit_usdt numeric);
     CREATE FUNCTION wallet_adjust(p_user uuid,p_currency text,p_delta numeric) RETURNS numeric LANGUAGE plpgsql AS $$ DECLARE v numeric; BEGIN UPDATE wallets SET balance=balance+p_delta WHERE user_id=p_user AND currency=p_currency RETURNING balance INTO v; IF v<0 THEN RAISE EXCEPTION 'Insufficient balance'; END IF; RETURN v; END $$;
     INSERT INTO user_roles VALUES('${a}','admin'),('${b}','finance');`);
   await db.exec(guard);
+  const withdrawalSql = readFileSync("drizzle/migrations/0059_atomic_withdrawal_request_holds.sql", "utf8");
+  await db.exec(withdrawalSql.slice(0, withdrawalSql.indexOf("REVOKE EXECUTE")));
 }, 30000);
-beforeEach(async () => { await db.exec(`DELETE FROM deposits;DELETE FROM withdrawals;DELETE FROM wallets;DELETE FROM notifications;DELETE FROM credited_deposit_transfers;DELETE FROM financial_review_approvals;DELETE FROM platform_settings; INSERT INTO wallets VALUES('${user}','USDT',1000);`); });
+beforeEach(async () => { await db.exec(`DELETE FROM deposits;DELETE FROM withdrawals;DELETE FROM wallets;DELETE FROM notifications;DELETE FROM credited_deposit_transfers;DELETE FROM financial_review_approvals;DELETE FROM platform_settings; DELETE FROM profiles;DELETE FROM kyc_submissions;DELETE FROM user_withdrawal_limits; INSERT INTO profiles(id) VALUES('${user}');INSERT INTO kyc_submissions VALUES('${user}','approved'); INSERT INTO wallets VALUES('${user}','USDT',1000);`); });
 afterAll(async () => { await db.close(); });
 async function deposit(hash = "0xABC") { return (await db.query<{ id: string }>("INSERT INTO deposits(user_id,coin,network,amount,tx_hash) VALUES($1,'USDT','ERC20',100,$2) RETURNING id", [user, hash])).rows[0]?.id; }
 describe("Atomic financial safeguards", () => {
@@ -56,5 +62,31 @@ describe("Atomic financial safeguards", () => {
   });
   it("rejects an ordinary user as a reviewer", async () => {
     await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(),user])).rejects.toThrow("Finance access required");
+  });
+  it("records a withdrawal and holds its amount in the same transaction", async () => {
+    await db.query("SELECT request_withdrawal_atomic($1,'USDT','ERC20',200,'destination')", [user]);
+    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(800);
+    expect((await db.query("SELECT * FROM withdrawals WHERE amount=200 AND status='pending'")).rows).toHaveLength(1);
+  });
+  it("rolls back the hold if the withdrawal insert fails", async () => {
+    await db.exec("ALTER TABLE withdrawals ADD CONSTRAINT destination_test_guard CHECK(destination_address <> 'invalid')");
+    try {
+      await expect(db.query("SELECT request_withdrawal_atomic($1,'USDT','ERC20',200,'invalid')", [user])).rejects.toThrow();
+      expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1000);
+      expect((await db.query("SELECT * FROM withdrawals")).rows).toHaveLength(0);
+    } finally { await db.exec("ALTER TABLE withdrawals DROP CONSTRAINT destination_test_guard"); }
+  });
+  it("enforces the shared USDT and USDC daily cap before a second hold", async () => {
+    await db.exec(`INSERT INTO user_withdrawal_limits VALUES('${user}',300);INSERT INTO wallets VALUES('${user}','USDC',1000);`);
+    await db.query("SELECT request_withdrawal_atomic($1,'USDT','ERC20',200,'destination')", [user]);
+    await expect(db.query("SELECT request_withdrawal_atomic($1,'USDC','ERC20',101,'destination')", [user])).rejects.toThrow("Daily withdrawal limit exceeded");
+    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets WHERE currency='USDC'")).rows[0]?.balance)).toBe(1000);
+  });
+  it("refunds a rejected withdrawal only once", async () => {
+    const row = await db.query<{ result: { id: string } }>("SELECT request_withdrawal_atomic($1,'USDT','ERC20',200,'destination') AS result", [user]);
+    const id = row.rows[0]?.result.id;
+    await db.query("SELECT review_withdrawal_atomic($1,'rejected',NULL,$2)", [id,a]);
+    await db.query("SELECT review_withdrawal_atomic($1,'rejected',NULL,$2)", [id,a]);
+    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1000);
   });
 });
