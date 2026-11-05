@@ -20,10 +20,7 @@ export function SampleLeadTraderDirectory() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2 rounded border border-border bg-surface px-3 py-2">
-        <span className="rounded border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Illustrative example</span>
-        <span className="text-[11px] text-muted-foreground">Sample data, not real traders. Cannot be copied.</span>
-      </div>
+      <p className="text-[10px] text-muted-foreground/70">Sample data, not real traders</p>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Search sample traders or style" className="pl-9" aria-label="Search sample traders" />
