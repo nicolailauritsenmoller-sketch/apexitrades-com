@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LeaderboardDeskCard, applyPublishedPost, num, type DeskEntry } from "@/components/leaderboard/LeaderboardDeskCard";
 import { getLeaderboardManager, reviewLeaderboardPost, saveLeaderboardDraft } from "@/lib/leaderboard-posts.functions";
 import { AdminActionConfirm } from "./AdminActionConfirm";
+import { LeaderApplicationsQueue } from "./LeaderApplicationsQueue";
 
 type Post = { id: string; position_id: string; display_name: string | null; commentary: string | null; status: "draft" | "published" | "rejected"; review_note: string | null; updated_at: string };
 const TONE: Record<Post["status"], string> = { draft: "text-ops-amber", published: "text-ops-emerald", rejected: "text-ops-red" };
@@ -46,6 +47,7 @@ export function LeaderboardManager() {
   const previewEntry = trade ? applyPublishedPost(trade, { display_name: displayName, commentary }) : null;
 
   return <div className="space-y-6">
+    <LeaderApplicationsQueue />
     <div>
       <h2 className="text-base font-semibold">Leaderboard Manager</h2>
       <p className="text-xs text-muted-foreground">Every closed trade from the last 30 days is listed here internally. Only trades from traders who joined copy trading can be published. Trade figures, views, shares and copy-trader counts always come from the platform and cannot be edited. Nothing appears on the public leaderboard until you approve it.</p>
