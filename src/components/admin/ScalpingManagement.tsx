@@ -13,8 +13,8 @@ import { saveScalpingRule, removeScalpingRule } from "@/lib/scalping-rules.funct
 import { scalpingRuleInput, type ScalpingRule } from "@/lib/scalping-rules";
 import { downloadCsv } from "@/lib/csv";
 
-type Draft = { id?: string; label: string; seconds: string; minimum: string; roi: string; active: boolean; reason: string };
-const emptyDraft: Draft = { label: "60s", seconds: "60", minimum: "100", roi: "10", active: true, reason: "" };
+type Draft = { id?: string; label: string; seconds: string; minimum: string; roi: string; active: boolean };
+const emptyDraft: Draft = { label: "60s", seconds: "60", minimum: "100", roi: "10", active: true };
 const presets = [[60, "60s"], [120, "120s"], [180, "180s"], [86400, "24hr"], [604800, "7 days"]] as const;
 const inputClass = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 
@@ -30,14 +30,14 @@ export function ScalpingManagement() {
   const refresh = () => { void client.invalidateQueries({ queryKey: ["scalping-rules"] }); };
   const saveMutation = useMutation({ mutationFn: (data: Parameters<typeof scalpingRuleInput.parse>[0]) => save({ data: scalpingRuleInput.parse(data) }),
     onSuccess: () => { refresh(); setDraft(null); toast.success("Scalping tier saved."); }, onError: (error: Error) => toast.error(error.message) });
-  const actionMutation = useMutation({ mutationFn: async (reason: string) => {
+  const actionMutation = useMutation({ mutationFn: async () => {
     if (!action) throw new Error("No tier selected.");
-    if (action.remove) return remove({ data: { id: action.rule.id, reason } });
-    return save({ data: { ...action.rule, active: !action.rule.active, reason } });
+    if (action.remove) return remove({ data: { id: action.rule.id } });
+    return save({ data: { ...action.rule, active: !action.rule.active } });
   }, onSuccess: () => { refresh(); toast.success("Scalping tier updated."); }, onError: (error: Error) => toast.error(error.message) });
   const rows = (rules.data ?? []).filter(r => r.label.toLowerCase().includes(term.toLowerCase()) && (status === "all" || r.active === (status === "active")));
   const patch = (values: Partial<Draft>) => setDraft(current => current ? { ...current, ...values } : current);
-  const parsed = draft ? scalpingRuleInput.safeParse({ id: draft.id, label: draft.label, duration_seconds: Number(draft.seconds), min_trade_amount: Number(draft.minimum), roi_pct: Number(draft.roi), active: draft.active, reason: draft.reason }) : null;
+  const parsed = draft ? scalpingRuleInput.safeParse({ id: draft.id, label: draft.label, duration_seconds: Number(draft.seconds), min_trade_amount: Number(draft.minimum), roi_pct: Number(draft.roi), active: draft.active }) : null;
 
   return <section className="space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
@@ -55,7 +55,7 @@ export function ScalpingManagement() {
           <td className="num px-4 py-4">{Number(rule.min_trade_amount).toLocaleString("en-US")}</td><td className="num px-4 py-4">{Number(rule.roi_pct)}%</td>
           <td className="px-4 py-4"><div className="flex items-center gap-2"><Switch aria-label={`Active ${rule.label}`} checked={rule.active} onCheckedChange={() => setAction({ rule, remove: false })} /><span className="text-xs text-muted-foreground">{rule.active ? "Active" : "Inactive"}</span></div></td>
           <td className="px-4 py-4 text-xs text-muted-foreground">{new Date(rule.updated_at).toLocaleString()}</td>
-          <td className="px-4 py-4"><div className="flex gap-1"><Button variant="outline" size="icon" title={`Edit ${rule.label}`} aria-label={`Edit ${rule.label}`} onClick={() => setDraft({ id: rule.id, label: rule.label, seconds: String(rule.duration_seconds), minimum: String(rule.min_trade_amount), roi: String(rule.roi_pct), active: rule.active, reason: "" })}><Pencil /></Button><Button variant="ghost" size="icon" className="text-destructive" title={`Remove ${rule.label}`} aria-label={`Remove ${rule.label}`} onClick={() => setAction({ rule, remove: true })}><Trash2 /></Button></div></td>
+          <td className="px-4 py-4"><div className="flex gap-1"><Button variant="outline" size="icon" title={`Edit ${rule.label}`} aria-label={`Edit ${rule.label}`} onClick={() => setDraft({ id: rule.id, label: rule.label, seconds: String(rule.duration_seconds), minimum: String(rule.min_trade_amount), roi: String(rule.roi_pct), active: rule.active })}><Pencil /></Button><Button variant="ghost" size="icon" className="text-destructive" title={`Remove ${rule.label}`} aria-label={`Remove ${rule.label}`} onClick={() => setAction({ rule, remove: true })}><Trash2 /></Button></div></td>
         </tr>)}{rows.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No duration tiers.</td></tr>}</tbody>
       </table>
     </div>}
@@ -67,10 +67,9 @@ export function ScalpingManagement() {
         <label className="block space-y-1 text-sm">Minimum trade amount (USDT)<input aria-label="Minimum trade amount" type="number" min="0.00000001" max={100000000} step="any" required className={inputClass} value={draft.minimum} onChange={e => patch({ minimum: e.target.value })} /></label>
         <label className="block space-y-1 text-sm">ROI / Estimated return (%)<input aria-label="Estimated return percentage" type="number" min={0} max={10000} step="any" required className={inputClass} value={draft.roi} onChange={e => patch({ roi: e.target.value })} /></label>
         <div className="flex items-center justify-between text-sm"><span>Active</span><Switch aria-label="Tier active" checked={draft.active} onCheckedChange={active => patch({ active })} /></div>
-        <label className="block space-y-1 text-sm">Audit reason<input aria-label="Audit reason" required minLength={5} maxLength={400} className={inputClass} value={draft.reason} onChange={e => patch({ reason: e.target.value })} /></label>
         <div className="flex justify-end gap-2 border-t border-border pt-4"><Button type="button" variant="outline" disabled={saveMutation.isPending} onClick={() => setDraft(null)}>Cancel</Button><Button type="submit" disabled={!parsed?.success || saveMutation.isPending}>{saveMutation.isPending && <Loader2 className="animate-spin" />}Save tier</Button></div>
       </form>}
     </DialogContent></Dialog>
-    <AdminActionConfirm open={action !== null} title={action?.remove ? "Remove tier" : action?.rule.active ? "Deactivate tier" : "Activate tier"} description={`Change availability for ${action?.rule.label ?? "this tier"}. Existing contracts retain their original terms.`} pending={actionMutation.isPending} onClose={() => setAction(null)} onConfirm={reason => actionMutation.mutateAsync(reason)} destructive={!!action?.remove || !!action?.rule.active} />
+    <AdminActionConfirm open={action !== null} title={action?.remove ? "Remove tier" : action?.rule.active ? "Deactivate tier" : "Activate tier"} description={`Change availability for ${action?.rule.label ?? "this tier"}. Existing contracts retain their original terms.`} pending={actionMutation.isPending} onClose={() => setAction(null)} onConfirm={() => actionMutation.mutateAsync()} destructive={!!action?.remove || !!action?.rule.active} noReason />
   </section>;
 }
