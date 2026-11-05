@@ -24,25 +24,32 @@ async function officialLogos(): Promise<Record<string, string>> {
   } catch { return logosCache?.logos ?? {}; }
 }
 
-async function json<T>(url: string): Promise<T> {
-  const response = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000) });
-  if (!response.ok) throw new Error("Listing provider unavailable");
-  return response.json() as Promise<T>;
+async function json<T>(url: string, attempts = 3): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(12000) });
+      if (!response.ok) throw new Error("Listing provider unavailable");
+      return await (response.json() as Promise<T>);
+    } catch (error) { last = error; if (i < attempts - 1) await new Promise(r => setTimeout(r, 300 * (i + 1))); }
+  }
+  throw last;
 }
+let lastGood: { rows: RecentListing[]; asOf: number } | null = null;
 
 async function spotProducts(): Promise<{ at: number; rows: SpotProduct[] }> {
   if (productsCache && Date.now() - productsCache.at < 20_000) return productsCache;
   const response = await json<{ data?: SpotProduct[] }>("https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=false");
-  if (!Array.isArray(response.data) || !response.data.length) throw new Error("Spot products unavailable");
+  if (!Array.isArray(response.data) || !response.data.length) { if (productsCache) return productsCache; throw new Error("Spot products unavailable"); }
   productsCache = { at: Date.now(), rows: response.data };
   return productsCache;
 }
 
 async function announcements(): Promise<ListingAnnouncement[]> {
   if (announcementsCache && Date.now() - announcementsCache.at < 300_000) return announcementsCache.rows;
-  const pages = await Promise.all([1, 2, 3].map(page => json<{ data?: { catalogs?: { articles?: ListingAnnouncement[] }[] } }>(`${CMS}?type=1&pageNo=${page}&pageSize=50&catalogId=48`)));
+  const pages = (await Promise.allSettled([1, 2, 3].map(page => json<{ data?: { catalogs?: { articles?: ListingAnnouncement[] }[] } }>(`${CMS}?type=1&pageNo=${page}&pageSize=50&catalogId=48`)))).flatMap(r => r.status === "fulfilled" ? [r.value] : []);
   const rows = pages.flatMap(page => page.data?.catalogs?.flatMap(c => c.articles ?? []) ?? []);
-  if (!rows.length) throw new Error("Announcements unavailable");
+  if (!rows.length) { if (announcementsCache) return announcementsCache.rows; throw new Error("Announcements unavailable"); }
   announcementsCache = { at: Date.now(), rows };
   return rows;
 }
@@ -87,6 +94,12 @@ export async function fetchNewListings(): Promise<{ rows: RecentListing[]; unava
     // Official web spot feed avoids repeated heavyweight exchangeInfo calls and supplies 24h quote volume.
     const active = new Set(products.rows.filter(s => s.st === "TRADING" && s.q === "USDT").map(s => s.s));
     const tickers: ListingTicker[] = products.rows.map(s => ({ symbol: s.s, lastPrice: s.c, quoteVolume: s.qv, closeTime: products.at, priceChangePercent: Number(s.o) > 0 ? String((Number(s.c) / Number(s.o) - 1) * 100) : "NaN" }));
-    return { rows: applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null, logoUrl: logos[row.ticker] ?? null })), unavailable: false, asOf: products.at };
-  } catch { return { rows: [], unavailable: true, asOf: Date.now() }; }
+    const result = applyListingQuotes(rows, tickers, active, Date.now()).map(row => ({ ...row, marketCap: caps[row.ticker] ?? null, logoUrl: logos[row.ticker] ?? null }));
+    lastGood = { rows: result, asOf: products.at };
+    return { rows: result, unavailable: false, asOf: products.at };
+  } catch {
+    // Serve the most recent genuine snapshot (up to 30 min old) rather than blanking the table.
+    if (lastGood && Date.now() - lastGood.asOf < 1_800_000) return { ...lastGood, unavailable: false };
+    return { rows: [], unavailable: true, asOf: Date.now() };
+  }
 }
