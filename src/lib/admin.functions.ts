@@ -244,8 +244,8 @@ export const reviewKyc = createServerFn({ method: "POST" })
       await notify(
         supabase,
         row.user_id,
-        data.action === "approve" ? "Verification complete" : "Identity compliance check failed",
-        data.note ?? (data.action === "approve" ? "Your identity verification is complete." : "Your identity submission did not pass the compliance review."),
+        data.action === "approve" ? "Lv.1 verification complete" : "Lv.1 compliance check failed",
+        data.note ?? (data.action === "approve" ? "Your Lv.1 identity attestation is complete." : "Your Lv.1 submission did not pass the compliance review."),
         data.action === "approve" ? "success" : "warning",
       );
       if (data.action === "approve") {
