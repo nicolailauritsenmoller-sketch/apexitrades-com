@@ -77,14 +77,14 @@ export function WalletBalancePanel({
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return filterInventory(assetInventory(holdings, sample), hideZero)
+    return filterInventory(assetInventory(holdings), hideZero)
       .filter(
         (h) =>
           !term ||
           h.currency.toLowerCase().includes(term) ||
           assetName(h.currency).toLowerCase().includes(term),
       );
-  }, [holdings, hideZero, search, sample]);
+  }, [holdings, hideZero, search]);
 
   return (
     <div className="space-y-4">
@@ -144,9 +144,7 @@ export function WalletBalancePanel({
           aria-controls="account-balances-table"
           className="-ml-1 flex min-h-11 touch-manipulation items-center gap-1.5 rounded-md px-1 text-left text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {sample
-            ? "Illustrative balances - not available to withdraw or swap"
-            : "Account balances"}
+          {balancesOpen ? "Hide account balances" : "Account balances"}
           <ChevronDown
             aria-hidden
             className={`size-4 shrink-0 transition-transform duration-300 ease-out ${balancesOpen ? "rotate-180" : ""}`}
