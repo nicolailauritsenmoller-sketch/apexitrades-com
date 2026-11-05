@@ -57,6 +57,7 @@ export const getContracts = createServerFn({ method: "POST" })
       status: c.status as "open" | "settled",
       result: c.result as "win" | "loss" | "draw" | null,
       payout: c.payout == null ? null : Number(c.payout),
+      feePaid: c.fee_paid == null ? null : Number(c.fee_paid),
       openedAt: c.opened_at,
       expiresAt: c.expires_at,
       settledAt: c.settled_at,

@@ -45,6 +45,7 @@ export const getPortfolio = createServerFn({ method: "POST" })
         currency: p.currency,
         status: p.status,
         realizedPnl: p.realized_pnl == null ? null : Number(p.realized_pnl),
+        feesPaid: p.fees_paid == null ? null : Number(p.fees_paid),
         openedAt: p.opened_at,
         closedAt: p.closed_at,
       })),
