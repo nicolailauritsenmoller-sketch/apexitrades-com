@@ -80,7 +80,7 @@ export const reviewLeaderboardPost = createServerFn({ method: "POST" }).middlewa
 export const getLeaderApplications = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   await requireAdmin(context);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.from("copy_leader_applications").select("user_id,public_name,bio,status,created_at,consent_at").order("created_at", { ascending: false }).limit(200);
+  const { data, error } = await supabaseAdmin.from("copy_leader_applications").select("user_id,public_name,bio,status,created_at,updated_at,consent_at").order("updated_at", { ascending: false }).limit(200);
   if (error) throw new Error(error.message);
   return data ?? [];
 });
@@ -91,7 +91,7 @@ export const reviewLeaderApplication = createServerFn({ method: "POST" }).middle
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const status = data.action === "approve" ? "approved" : "rejected";
-    const { error } = await supabaseAdmin.from("copy_leader_applications").update({ status }).eq("user_id", data.userId);
+    const { error } = await supabaseAdmin.from("copy_leader_applications").update({ status, updated_at: new Date().toISOString() }).eq("user_id", data.userId);
     if (error) throw new Error(error.message);
     await audit(context, `leader_application.${data.action}`, { user_id: data.userId });
     return { status };
