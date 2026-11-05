@@ -25,7 +25,7 @@ import shibIcon from "@/assets/crypto/shib.png";
 import pepeIcon from "@/assets/crypto/pepe.png";
 
 // ---- Country / currency flags ----
-import usFlag from "@/assets/flags/us.svg";
+import usdBadge from "@/assets/crypto/usd-badge.svg";
 import euFlag from "@/assets/flags/eu.svg";
 import gbFlag from "@/assets/flags/gb.svg";
 import jpFlag from "@/assets/flags/jp.svg";
@@ -75,7 +75,7 @@ const cryptoCdns = (base: string): string[] => {
 };
 
 const FLAG_ICON: Record<string, string> = {
-  USD: usFlag,
+  USD: usdBadge,
   EUR: euFlag,
   GBP: gbFlag,
   JPY: jpFlag,
