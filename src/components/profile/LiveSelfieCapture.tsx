@@ -65,7 +65,10 @@ export function LiveSelfieCapture({
       if (run !== runRef.current) return;
       const video = videoRef.current;
       const detector = detectorRef.current;
-      if (!video || !detector) return;
+      if (!video || !detector) {
+        frameRef.current = requestAnimationFrame(tick);
+        return;
+      }
       if (now - state.startedAt > CHALLENGE_TIMEOUT_MS) {
         stop();
         setError("Head-turn check timed out. Open the camera to try again.");
