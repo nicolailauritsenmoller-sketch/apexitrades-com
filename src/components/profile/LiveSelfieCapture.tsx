@@ -114,7 +114,7 @@ export function LiveSelfieCapture({
       setActive(true);
       requestAnimationFrame(() => {
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          if (videoRef.current.srcObject !== stream) videoRef.current.srcObject = stream;
           void videoRef.current.play();
         }
       });
