@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Make Unverify user silently reset both KYC tiers to UNSUBMITTED, require fresh submissions, preserve the internal audit trail and verify regression coverage.
+- [x] Make Unverify user silently reset both KYC tiers to UNSUBMITTED, clear submission/review references, reopen fresh Basic submission and preserve internal audit reasons. Four handler regression tests pass; enum and trigger compatibility checked, signed-in compliance desk renders without errors. No live customer's verification was revoked for testing.
 
 - [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
 - [ ] Activate USDC receiving networks - blocked on operator-provided Ethereum ERC-20, Solana and Base receiving addresses; admin network selection and validation are ready, no addresses fabricated.

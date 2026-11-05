@@ -16,6 +16,7 @@
 - Every money movement is mirrored into `public.transactions` by DB triggers on deposits/withdrawals/swaps/contracts/positions (admin corrections insert directly) - why: one ledger with COMPLETED/PENDING/FAILED status that app code cannot skip.
 - KYC selfies must carry in-app camera capture metadata, validated by the `validate_kyc_submission` trigger; display-name 60-day cooldown is enforced by a profiles trigger - why: rules hold even if a client bypasses the UI.
 - KYC reversal resets canonical and legacy tier statuses in one update, clears current document/review references and keeps its reason only in the audit trail - why: synchronized states reopen fresh submission without exposing internal compliance messages.
+- Unit tests use the dedicated Vitest configuration without Start's RPC transform - why: authenticated handler behavior can be tested directly with controlled clients.
 - IP/device bans live in `public.access_bans` (admin-read only); enforcement runs server-side in checkAccessBan using the request IP header, called after every session register/heartbeat - why: client-reported IPs are spoofable.
 - Platform treasury: balances in `treasury_wallets`, append-only `treasury_ledger`; all movements go through the service-role-only `treasury_transfer` DB function (also mirrors customer legs into `transactions`) - why: treasury and customer balances change in one atomic step.
 - Mount the shared Platform Tour only on the public landing route after its hero, not on the authenticated dashboard - why: visitors can watch without signing in.
