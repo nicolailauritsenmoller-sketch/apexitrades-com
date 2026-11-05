@@ -80,6 +80,8 @@ async function loadFlow(asset: string): Promise<{ qv: number; tb: number; trades
   }
 }
 
+const lastGood = new Map<string, { at: number; v: Awaited<ReturnType<typeof loadAsset>> }>();
+
 async function loadAsset(asset: string) {
   const { qv, tb, trades, close } = await loadFlow(asset);
   const netFlowUsd = 2 * tb - qv;
@@ -112,7 +114,12 @@ async function loadAsset(asset: string) {
 export const getSmartMoney = createServerFn({ method: "GET" }).handler(async (): Promise<SmartMoneySnapshot | null> => {
   if (cache && Date.now() - cache.at < 10_000) return cache.data;
   const results = await Promise.allSettled(SMART_MONEY_ASSETS.map(loadAsset));
-  const ok = results.flatMap(r => (r.status === "fulfilled" ? [r.value] : []));
+  const ok = results.flatMap((r, i) => {
+    const asset = SMART_MONEY_ASSETS[i];
+    if (r.status === "fulfilled") { lastGood.set(asset, { at: Date.now(), v: r.value }); return [r.value]; }
+    const prev = lastGood.get(asset);
+    return prev && Date.now() - prev.at < 15 * 60_000 ? [prev.v] : [];
+  });
   if (!ok.length) { console.error("smart money: all sources failed"); return cache?.data ?? null; }
   const rows = ok.map(r => r.row);
   const netFlowUsd = rows.reduce((s, r) => s + r.netFlowUsd, 0);
