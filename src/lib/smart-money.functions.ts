@@ -65,7 +65,7 @@ async function loadFlow(asset: string): Promise<{ qv: number; tb: number; trades
     ]);
     let qv = 0, tb = 0;
     for (const k of klines) { qv += Number(k[7]); tb += Number(k[10]); }
-    return { qv, tb, trades, close: close };
+    return { qv, tb, trades, close: Number(klines.at(-1)?.[4] ?? 0) };
   } catch {
     const [vol, raw] = await Promise.all([
       okx<[string, string, string][]>(`/api/v5/rubik/stat/taker-volume?ccy=${asset}&instType=SPOT&period=1H`),
