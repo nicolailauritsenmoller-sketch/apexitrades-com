@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { currentSampleBucket, filterSampleLeadTraders, sampleLeadTraders } from "@/lib/sample-lead-traders";
@@ -20,10 +20,10 @@ export function SampleLeadTraderDirectory() {
 
   return (
     <div className="space-y-3">
-      <p className="text-[10px] text-muted-foreground/70">Sample data, not real traders</p>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Search sample traders or style" className="pl-9" aria-label="Search sample traders" />
+        <span title="Sample data, not real traders" className="absolute right-2.5 top-1/2 -translate-y-1/2"><Info className="size-3.5 text-muted-foreground/50" aria-label="Sample data, not real traders" /></span>
       </div>
       <div className="overflow-x-auto border-y border-border">
         <table className="w-full text-xs">
