@@ -457,7 +457,7 @@ function ContractCard({
         </span>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
-        <div className="h-full bg-primary transition-[width] duration-1000 ease-linear" style={{ width: `${progress}%` }} />
+        <div className="h-full bg-primary transition-[width] duration-1000 ease-linear" style={{ width: `${100 - progress}%` }} />
       </div>
       <div className="mt-2 flex items-center gap-3">
         <CircularTimer progress={progress} label={left > 0 ? formatCountdown(left) : "..."} />
