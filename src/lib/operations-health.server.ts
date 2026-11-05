@@ -8,10 +8,19 @@ export async function runFeedChecks(db: any) {
     listings: async () => { const feed = await fetchNewListings(); return feed.unavailable ? 0 : feed.rows.length; },
     quotes: async () => (await fetchQuotes(["BTCUSDT", "ETHUSDT", "SOLUSDT"])).filter(q => !q.stale && q.price > 0).length,
     chart: async () => {
-      const response = await fetch("https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=80", { signal: AbortSignal.timeout(8000) });
+      for (const host of ["https://data-api.binance.vision", "https://api.binance.com"]) {
+        try {
+          const response = await fetch(`${host}/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=80`, { signal: AbortSignal.timeout(8000) });
+          if (!response.ok) continue;
+          const rows = await response.json() as unknown;
+          const count = Array.isArray(rows) ? rows.filter(r => Array.isArray(r) && Number(r[4]) > 0 && Number(r[0]) <= Date.now()).length : 0;
+          if (count) return count;
+        } catch { /* Try the next provider. */ }
+      }
+      const response = await fetch("https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=900", { signal: AbortSignal.timeout(8000) });
       if (!response.ok) return 0;
       const rows = await response.json() as unknown;
-      return Array.isArray(rows) ? rows.filter(r => Array.isArray(r) && Number(r[4]) > 0).length : 0;
+      return Array.isArray(rows) ? rows.filter(r => Array.isArray(r) && Number(r[4]) > 0 && Number(r[0]) * 1000 <= Date.now()).length : 0;
     },
     news: async () => {
       const response = await fetch("https://cointelegraph.com/rss", { signal: AbortSignal.timeout(8000) });
