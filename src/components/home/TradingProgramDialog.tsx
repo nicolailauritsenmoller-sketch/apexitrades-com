@@ -1,5 +1,5 @@
 import { SampleLeadTraderDirectory } from "./SampleLeadTraderDirectory";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, Layers3, ShieldCheck, Trophy, Users } from "lucide-react";
@@ -28,6 +28,14 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const existing = query.data?.requests.find(request => request.program === program);
+  const application = query.data?.application;
+  const rejected = application?.status === "rejected";
+  const prefillRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (application?.status !== "rejected" || prefillRef.current === application.user_id) return;
+    prefillRef.current = application.user_id;
+    setPublicName(application.public_name); setBio(application.bio ?? ""); setConsent(true);
+  }, [application]);
   const leaders = [...(query.data?.leaders ?? [])].sort((a, b) => Number(b.roi_pct ?? -Infinity) - Number(a.roi_pct ?? -Infinity));
   async function submit(asLeader = false) {
     if (!program) return;
