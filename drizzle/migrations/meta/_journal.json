@@ -428,6 +428,13 @@
       "when": 1793880125225,
       "tag": "0060_leaderboard_post_curation",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1793885568007,
+      "tag": "0061_leader_application_statuses",
+      "breakpoints": true
     }
   ]
 }
