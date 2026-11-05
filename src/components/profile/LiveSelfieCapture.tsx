@@ -124,15 +124,15 @@ export function LiveSelfieCapture({
           void videoRef.current.play();
         }
       });
-  } catch (err) {
-    stop();
-    const denied = typeof navigator !== "undefined" && "permissions" in navigator && (err instanceof DOMException) && (err.name === "NotAllowedError" || err.name === "SecurityError");
-    setError(
-      denied
-        ? "Camera access is blocked. Open Settings > Safari > Camera (or the site menu) and allow camera for this site, then try again."
-        : "Camera or face tracking could not start. Check camera permission and your connection, then try again.",
-    );
-  } finally {
+    } catch (err) {
+      stop();
+      const denied = err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "SecurityError");
+      setError(
+        denied
+          ? "Camera access is blocked. Allow camera for this site in your browser settings, then try again."
+          : "Camera or face tracking could not start. Check camera permission and your connection, then try again.",
+      );
+    } finally {
       setStarting(false);
     }
   }
