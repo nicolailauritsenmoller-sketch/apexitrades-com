@@ -196,6 +196,7 @@ export function KycReviewDrawer({
                 <Row label="Country of residence" value={row.country} />
                 <Row label="Residential address" value={row.address ?? "-"} />
                 <Row label="Facial capture source" value={captureMeta?.source === "camera" ? "In-app camera - manual matching review" : "Capture metadata unavailable"} />
+                <Row label="Movement check" value={captureMeta && "movementChallenge" in captureMeta && captureMeta.movementChallenge ? "Client-observed head turn - officer review required" : "Legacy live capture"} />
                 <Row label="Captured at" value={typeof captureMeta?.capturedAt === "string" ? new Date(captureMeta.capturedAt).toLocaleString() : "-"} />
                 <Row label="Submitted" value={row.level2_submitted_at ? new Date(row.level2_submitted_at).toLocaleString() : "-"} />
               </section>
