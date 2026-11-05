@@ -175,7 +175,7 @@ export function LiveSelfieCapture({
       <p className="mb-2 font-medium text-foreground">{label}</p>
       {preview && value ? (
         <div className="space-y-2">
-          <img src={preview} alt="Captured selfie" className="h-40 w-full rounded-md object-cover" />
+          <img src={preview} alt="Captured selfie" className="aspect-video w-full rounded-md object-cover" />
           <Button variant="outline"
             type="button"
             onClick={() => {
@@ -188,16 +188,29 @@ export function LiveSelfieCapture({
           </Button>
         </div>
       ) : active ? (
-        <div className="space-y-2">
-          <video ref={videoRef} playsInline muted className="h-40 w-full rounded-md bg-muted object-cover" />
-          {headTurn ? <p role="status" aria-live="polite" className="font-medium text-foreground">{instruction}</p> : <Button
-            type="button"
-            onClick={() => capture()}
-            className="inline-flex touch-manipulation items-center gap-1 rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-foreground"
-          >
-            <Camera className="h-3.5 w-3.5" /> Capture photo
-          </Button>}
-          <Button type="button" variant="ghost" size="sm" onClick={stop}>Cancel</Button>
+        <div className="fixed inset-0 z-50 flex flex-col bg-background">
+          <div className="border-b border-border bg-card px-4 py-3 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Live Liveness Capture</p>
+            <p role="status" aria-live="polite" className="mt-1 text-sm font-medium text-muted-foreground">
+              {headTurn ? instruction : "Position your face within the guide"}
+            </p>
+          </div>
+          <div className="relative flex-1 overflow-hidden">
+            <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="h-[55%] max-h-[420px] w-[70%] max-w-[320px] rounded-[50%] border-2 border-primary/80 shadow-[0_0_0_9999px_color-mix(in_oklab,var(--background)_55%,transparent)]" />
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-3 border-t border-border bg-card px-4 py-4">
+            <Button type="button" variant="ghost" onClick={stop} className="touch-manipulation">
+              <X className="h-4 w-4" /> Cancel
+            </Button>
+            {!headTurn && (
+              <Button type="button" onClick={() => capture()} className="touch-manipulation px-6 font-semibold">
+                <Camera className="h-4 w-4" /> Capture Liveness Scan
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <Button variant="outline"
