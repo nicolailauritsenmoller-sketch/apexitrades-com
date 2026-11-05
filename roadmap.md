@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Update Lv.2 with optional recent Proof of Address, required live selfie, private paired admin previews and submission/approval safeguards; verify focused tests and signed-in UI.
+
 - [x] Make Unverify user silently reset both KYC tiers to UNSUBMITTED, clear submission/review references, reopen fresh Basic submission and preserve internal audit reasons. Four handler regression tests pass; enum and trigger compatibility checked, signed-in compliance desk renders without errors. No live customer's verification was revoked for testing.
 
 - [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
