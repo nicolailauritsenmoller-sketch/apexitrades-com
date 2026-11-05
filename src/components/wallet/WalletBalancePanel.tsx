@@ -72,7 +72,6 @@ export function WalletBalancePanel({
 }) {
   const [search, setSearch] = useState("");
   const [hideZero, setHideZero] = useState(false);
-  const [sample, setSample] = useState(false);
   // The asset table starts expanded; the "Account balances" header folds it away.
   const [balancesOpen, setBalancesOpen] = useState(true);
 
