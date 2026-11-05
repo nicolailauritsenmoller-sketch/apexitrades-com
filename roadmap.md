@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Add automated Lv.2 head-turn or passive liveness with server-verified anti-spoofing results - blocked on selection and access to a biometric liveness provider; do not claim webcam capture measures depth.
+
 - [x] Simplify Lv.2 submission, review and database validation to live biometric selfie only; retain camera metadata and staff approval. Schema checked and 13 focused tests pass; signed-in page omits PoA. Live submission remains unverified because the available account has not passed Lv.1.
 
 - [x] Update Lv.2 with optional recent Proof of Address, required live selfie, private paired admin previews and submission/approval guards. Twelve tests pass; signed-in image upload preview, fake-device camera capture and mobile layout verified. Admin paired inspection renders; legacy evidence files did not render, and no live customer submission or approval was performed. Automated biometric matching is not claimed.
