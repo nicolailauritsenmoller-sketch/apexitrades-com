@@ -19,8 +19,9 @@ export const getOperationsHealth = createServerFn({ method: "POST" }).middleware
   ]);
   if (results.some(r => r.error)) throw new Error("Operations data could not be fully loaded. Refresh to retry.");
   const { validateAssetAddress } = await import("./address-validation");
-  const addresses = (results[2].data ?? []).map((row: any) => ({ id: row.id, coin: row.coin, network: row.network, active: row.active && row.status === "active", issue: validateAssetAddress(row.coin, row.network, row.address, row.memo) }));
-  return { asOf: new Date().toISOString(), operatorId: context.userId, summary: results[0].data as any, feeds: results[1].data as any[], addresses, revisions: (results[3].data ?? []).map((r: any) => ({ id: r.id, key: r.key, created_at: r.created_at, restorable: r.before_value !== null })), broadcasts: results[4].data as any[], tiers: results[5].data as any[], controls: results[6].data?.value ?? {}, approvals: results[7].data as any[], corrections: results[8].data as any[] };
+  const addresses: { id: string; coin: string; network: string; active: boolean; issue: string | null }[] = (results[2].data ?? []).map((row: any) => ({ id: row.id, coin: row.coin, network: row.network, active: row.active && row.status === "active", issue: validateAssetAddress(row.coin, row.network, row.address, row.memo) }));
+  const revisions: { id: string; key: string; created_at: string; restorable: boolean }[] = (results[3].data ?? []).map((r: any) => ({ id: r.id, key: r.key, created_at: r.created_at, restorable: r.before_value !== null }));
+  return { asOf: new Date().toISOString(), operatorId: context.userId, summary: results[0].data as any, feeds: results[1].data as any[], addresses, revisions, broadcasts: results[4].data as any[], tiers: results[5].data as any[], controls: results[6].data?.value ?? {}, approvals: results[7].data as any[], corrections: results[8].data as any[] };
 });
 
 export const checkOperationsFeeds = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {

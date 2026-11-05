@@ -1,7 +1,7 @@
 export const FEED_NAMES = { alpha: "Alpha intelligence", listings: "New listings", quotes: "Market quotes", chart: "BTC movement chart", news: "News publisher sample" } as const;
 export function feedState(row: { checked_at: string; status: string } | undefined, now = Date.now()) {
   if (!row) return "unchecked";
-  if (now - Date.parse(row.checked_at) > 120_000) return "stale";
+  if (!Number.isFinite(Date.parse(row.checked_at)) || now - Date.parse(row.checked_at) > 120_000) return "stale";
   return row.status;
 }
 export function queueAge(value: string | null | undefined, now = Date.now()) {

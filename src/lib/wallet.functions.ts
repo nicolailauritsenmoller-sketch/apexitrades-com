@@ -35,7 +35,8 @@ export const getDepositAddresses = createServerFn({ method: "POST" })
       .select("*")
       .eq("active", true)
       .order("coin");
-    return (data ?? []).map((a) => ({
+    const { validateAssetAddress } = await import("./address-validation");
+    return (data ?? []).filter(a => a.status === "active" && !validateAssetAddress(a.coin, a.network, a.address, a.memo)).map((a) => ({
       id: a.id,
       coin: a.coin,
       network: a.network,
