@@ -174,7 +174,7 @@ function Portfolio() {
             search={{ tab: "swap" }}
             className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
           >
-            <Repeat className="size-4" /> Swap / Convert
+            <Repeat className="size-4" /> Convert
           </Link>
         </div>
 
