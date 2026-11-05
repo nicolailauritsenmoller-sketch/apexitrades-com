@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add audited Scalping Management CRUD, live tier synchronization, server-side minimum/return validation and preserve existing open-contract terms.
+- [x] Add audited Scalping Management CRUD, live tier synchronization, server-side minimum/return validation and preserve existing open-contract terms. Fifteen tests pass; signed-in create/edit/reload/deactivate/reactivate/remove and live trader minimum/ROI updates verified, mobile has no page overflow. Temporary tiers removed; no financial trades executed during testing.
 
 - [x] Generate durable admin-only high-priority alerts on new Lv.2 pending transitions; console realtime pop-ups open the exact Lv.2 review and reconcile reconnect gaps. Publication, trigger and admin-only policy verified; thirteen tests pass and signed-in live SYSTEM TEST alert-to-review flow passes without errors. Temporary alerts removed; no customer's verification status changed to test the trigger.
 
