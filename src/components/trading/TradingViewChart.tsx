@@ -236,6 +236,7 @@ export function TradingViewChart({
   height = 420,
   isLoading,
   overlays = [],
+  movementPreview = false,
 }: {
   symbol: string;
   candles: Candle[];
@@ -245,6 +246,7 @@ export function TradingViewChart({
   height?: number;
   isLoading?: boolean;
   overlays?: ChartOverlay[];
+  movementPreview?: boolean;
 }) {
   const hydrated = useHydrated();
   if (!hydrated) {
@@ -267,6 +269,7 @@ export function TradingViewChart({
       height={height}
       isLoading={isLoading}
       overlays={overlays}
+      movementPreview={movementPreview}
     />
   );
 }
@@ -280,6 +283,7 @@ function TradingViewChartInner({
   height = 420,
   isLoading,
   overlays = [],
+  movementPreview = false,
 }: {
   symbol: string;
   candles: Candle[];
@@ -289,6 +293,7 @@ function TradingViewChartInner({
   height?: number;
   isLoading?: boolean;
   overlays?: ChartOverlay[];
+  movementPreview?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
@@ -299,8 +304,8 @@ function TradingViewChartInner({
   const libRef = useRef<any>(null);
   const fittedRef = useRef(false);
 
-  const [chartType, setChartType] = useState<ChartType>("candlestick");
-  const [activeIndicators, setActiveIndicators] = useState<IndicatorKey[]>(["volume"]);
+  const [chartType, setChartType] = useState<ChartType>(movementPreview ? "area" : "candlestick");
+  const [activeIndicators, setActiveIndicators] = useState<IndicatorKey[]>(movementPreview ? ["volume", "sma50"] : ["volume"]);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
   const [pendingPoints, setPendingPoints] = useState<{ time: number; price: number }[]>([]);
@@ -562,7 +567,8 @@ function TradingViewChartInner({
 
     const ensureIndicator = (key: IndicatorKey) => {
       if (indicatorRefs.current.find((i) => i.key === key)) return;
-      const def = INDICATORS.find((d) => d.key === key)!;
+      const def = INDICATORS.find((d) => d.key === key);
+      if (!def) return;
       if (key === "volume") {
         indicatorRefs.current.push({ key, series: [volumeSeries], pane: volumePaneRef.current });
         volumePaneRef.current.setHeight(Math.round((wrapRef.current?.clientHeight ?? 420) * 0.2));
@@ -603,7 +609,7 @@ function TradingViewChartInner({
         indicatorRefs.current.push({ key, series: [upper, middle, lower] });
       } else {
         const s = chart.addSeries(lib.LineSeries, {
-          color: def.color || colors.primary,
+          color: movementPreview && key === "sma50" ? colors.foreground : def.color || colors.primary,
           lineWidth: 2,
           lastValueVisible: false,
         });
@@ -755,13 +761,14 @@ function TradingViewChartInner({
       ref={wrapRef}
       className={cn(
         "relative w-full overflow-hidden rounded-lg border border-border bg-card",
+        movementPreview && "movement-chart-preview rounded-none border-x-0",
         isFullscreen && "fixed inset-0 z-50 rounded-none",
       )}
       style={{ height: isFullscreen ? "100vh" : height }}
     >
       {/* Toolbar */}
       <div className="absolute left-0 right-0 top-0 z-10 flex flex-col gap-1 border-b border-border bg-card/95 px-2 py-1.5 backdrop-blur sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-        <div className="hidden items-center gap-1 overflow-x-auto sm:flex">
+        <div className={cn("hidden items-center gap-1 overflow-x-auto sm:flex", movementPreview && "sm:hidden")}>
           {CHART_TYPES.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -780,17 +787,17 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="hidden h-4 w-px bg-border sm:block" />
+        <div className={cn("hidden h-4 w-px bg-border sm:block", movementPreview && "sm:hidden")} />
 
         <div className="flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto">
-          {VISIBLE_TIMEFRAMES.map((tf) => [tf, TIMEFRAME_LABELS[tf]] as const).map(([tf, label]) => (
+          {(movementPreview ? ["15m", "1h", "4h", "1d"] as Timeframe[] : VISIBLE_TIMEFRAMES).map((tf) => [tf, TIMEFRAME_LABELS[tf]] as const).map(([tf, label]) => (
             <button
               key={tf}
               onClick={() => onTimeframeChange(tf as Timeframe)}
               className={cn(
                 "touch-manipulation rounded-md px-2 py-1 text-[11px] transition-colors",
                 timeframe === tf
-                  ? "bg-primary text-primary-foreground"
+                  ? movementPreview ? "border-b border-foreground text-foreground" : "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
@@ -799,8 +806,8 @@ function TradingViewChartInner({
           ))}
         </div>
 
-        <div className="hidden h-4 w-px bg-border sm:block" />
-        <div className="flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto sm:overflow-visible">
+        <div className={cn("hidden h-4 w-px bg-border sm:block", movementPreview && "sm:hidden")} />
+        <div className={cn("flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap sm:w-auto sm:overflow-visible", movementPreview && "hidden")}>
           {inspected && (
             <span className="shrink-0 pr-1 font-mono text-[10px] tabular-nums sm:hidden">
               <span className="text-muted-foreground">O </span>
@@ -840,7 +847,7 @@ function TradingViewChartInner({
           </button>
         </div>
 
-        <div className="ml-auto hidden items-center gap-1 sm:flex">
+        <div className={cn("ml-auto hidden items-center gap-1 sm:flex", movementPreview && "sm:hidden")}>
           <div className="relative">
             <button
               onClick={() => setShowIndicators((s) => !s)}
