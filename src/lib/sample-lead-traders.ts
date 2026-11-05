@@ -34,25 +34,30 @@ function rand(seed: number) {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-let cache: SampleLeadTrader[] | null = null;
+export const SAMPLE_REFRESH_MS = 3 * 60 * 1000;
+export const currentSampleBucket = (now = Date.now()) => Math.floor(now / SAMPLE_REFRESH_MS);
 
-export function sampleLeadTraders(): SampleLeadTrader[] {
-  if (cache) return cache;
+let cache: { bucket: number; rows: SampleLeadTrader[] } | null = null;
+
+// Metrics drift slightly per 3-minute bucket so the illustrative table refreshes over time.
+export function sampleLeadTraders(bucket = 0): SampleLeadTrader[] {
+  if (cache && cache.bucket === bucket) return cache.rows;
   const rows: SampleLeadTrader[] = [];
   for (let i = 0; i < SAMPLE_LEAD_TRADER_COUNT; i++) {
     const r = (k: number) => rand(i * 7 + k);
+    const d = (k: number) => rand(i * 13 + k + bucket * 104729) - 0.5;
     rows.push({
       id: `sample-${i}`,
       handle: i % 3 === 0 ? `${PREFIX[Math.floor(r(1) * PREFIX.length)]}${SUFFIX[Math.floor(r(2) * SUFFIX.length)]}${100 + i}` : `${FIRST[Math.floor(r(1) * FIRST.length)]}${LAST[Math.floor(r(2) * LAST.length)]}${10 + (i % 990)}`,
       style: STYLES[Math.floor(r(3) * STYLES.length)],
-      roiPct: Math.round((r(4) * 70 - 15) * 100) / 100,
-      sharpe: Math.round((r(5) * 3.2 - 0.4) * 100) / 100,
-      managedVolume: Math.round(20_000 + r(6) ** 3 * 25_000_000),
-      followers: Math.round(r(0) ** 2.5 * 12_000),
+      roiPct: Math.round((r(4) * 70 - 15 + d(1) * 3) * 100) / 100,
+      sharpe: Math.round((r(5) * 3.2 - 0.4 + d(2) * 0.1) * 100) / 100,
+      managedVolume: Math.round(20_000 + r(6) ** 3 * 25_000_000 * (1 + d(3) * 0.04)),
+      followers: Math.round(r(0) ** 2.5 * 12_000 + bucket % 1000 * r(8) * 0.5),
     });
   }
   rows.sort((a, b) => b.roiPct - a.roiPct);
-  cache = rows;
+  cache = { bucket, rows };
   return rows;
 }
 
