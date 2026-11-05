@@ -60,6 +60,23 @@ describe("communications center feed filters", () => {
     ).toBe("financial");
   });
 
+  it("routes approved deposit and withdrawal settlements to Financial", () => {
+    expect(
+      notificationFilterOf({
+        kind: "success",
+        title: "Deposit settled",
+        body: "500 USDT (TRC20) - clearing complete.",
+      }),
+    ).toBe("financial");
+    expect(
+      notificationFilterOf({
+        kind: "success",
+        title: "Withdrawal settled",
+        body: "250 USDT to bc1q... - settlement complete.",
+      }),
+    ).toBe("financial");
+  });
+
   it("routes identity and access notices to Security", () => {
     expect(
       notificationFilterOf({
