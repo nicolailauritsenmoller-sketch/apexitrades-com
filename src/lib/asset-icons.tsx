@@ -76,7 +76,7 @@ const cryptoCdns = (base: string): string[] => {
 };
 
 const FLAG_ICON: Record<string, string> = {
-  USD: usFlag,
+  USD: usdBadge,
   EUR: euFlag,
   GBP: gbFlag,
   JPY: jpFlag,
