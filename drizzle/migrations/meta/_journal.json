@@ -344,6 +344,13 @@
       "when": 1793852569665,
       "tag": "0048_scalping_configuration_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793852778550,
+      "tag": "0049_scalping_safe_realtime_visibility",
+      "breakpoints": true
     }
   ]
 }
