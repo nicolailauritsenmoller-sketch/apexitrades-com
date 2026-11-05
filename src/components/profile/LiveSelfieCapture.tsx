@@ -120,7 +120,6 @@ export function LiveSelfieCapture({
         </button>
       )}
       {error && <p className="mt-2 text-bear">{error}</p>}
-      <p className="mt-2 text-muted-foreground">Uploaded photos are not accepted - take the selfie live.</p>
     </div>
   );
 }
