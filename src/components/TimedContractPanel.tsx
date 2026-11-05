@@ -155,7 +155,7 @@ export function TimedContractPanel({
           : old,
       );
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio-value"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
     },
     onError: (_e, id) => {
