@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add automated Lv.2 head-turn or passive liveness with server-verified anti-spoofing results - blocked on selection and access to a biometric liveness provider; do not claim webcam capture measures depth.
+- [ ] Add the user-approved free Lv.2 head-turn movement check with automatic selfie capture and final officer review; no paid provider or certified anti-spoofing/depth claim.
 
 - [x] Simplify Lv.2 submission, review and database validation to live biometric selfie only; retain camera metadata and staff approval. Schema checked and 13 focused tests pass; signed-in page omits PoA. Live submission remains unverified because the available account has not passed Lv.1.
 

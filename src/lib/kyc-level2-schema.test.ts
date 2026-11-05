@@ -27,6 +27,11 @@ describe("Lv.2 compliance evidence", () => {
   it("stores only biometric input, stripping retired address and tax fields", () => {
     expect(level2Input.parse({ ...selfie, proofPath: "legacy.pdf", proofType: "tax_document", proofIssuedAt: "2020-01-01", taxId: "old" })).toEqual(selfie);
   });
+  it("preserves movement metadata without treating it as certified liveness", () => {
+    const movementChallenge = { kind: "head_turn", assurance: "client_observed_movement", direction: "left", completedAt: new Date().toISOString(), durationMs: 2500 };
+    expect(level2Input.parse({ ...selfie, livenessCapture: { ...selfie.livenessCapture, movementChallenge } }).livenessCapture.movementChallenge).toEqual(movementChallenge);
+    expect(level2Input.safeParse({ ...selfie, livenessCapture: { ...selfie.livenessCapture, movementChallenge: { ...movementChallenge, assurance: "certified" } } }).success).toBe(false);
+  });
   it("requires approved Lv.1 and pending Lv.2 before officer approval", () => {
     expect(() => assertLevel2ReviewEvidence({ ...review, status: "pending" })).toThrow("approved Lv.1");
     expect(() => assertLevel2ReviewEvidence({ ...review, level2_status: "unsubmitted" })).toThrow("pending Lv.2");
