@@ -65,7 +65,7 @@ function VerificationPage() {
   });
 
   const status = kyc.data?.status ?? "unverified";
-  const needsResubmit = status === "rejected" || Boolean(kyc.data?.expired);
+  const needsResubmit = status === "unsubmitted" || status === "rejected" || Boolean(kyc.data?.expired);
   const level1Status = kyc.data?.level1Status ?? "unverified";
   const level2Status = kyc.data?.level2Status ?? "unsubmitted";
   const userId = overview.data?.profile.id ?? null;

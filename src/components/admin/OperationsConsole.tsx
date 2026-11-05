@@ -1643,7 +1643,7 @@ function KycRow({ row, onDone }: { row: any; onDone: () => void }) {
   const unverify = useMutation({
     mutationFn: (input: { id: string; note?: string }) => revoke({ data: input }),
     onSuccess: () => {
-      toast.success("User reverted to pending verification.");
+      toast.success("Both verification tiers reset to unsubmitted.");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
