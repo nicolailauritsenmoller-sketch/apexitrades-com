@@ -5,6 +5,7 @@ import { moderateRows } from "./discovery-policy";
 
 const db = new PGlite();
 const migration = readFileSync("drizzle/migrations/0055_scope_scalping_and_discovery_reads.sql", "utf8");
+const publicPolicyFix = readFileSync("drizzle/migrations/0056_separate_public_moderation_policy.sql", "utf8");
 const userId = "bcb48f8e-1f83-46e4-a492-9f63ba39c15a";
 const adminId = "ce4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 
@@ -16,8 +17,11 @@ beforeAll(async () => {
     GRANT USAGE ON SCHEMA auth TO anon, authenticated;
     CREATE TYPE public.app_role AS ENUM ('admin', 'user');
     CREATE FUNCTION public.has_role(id uuid, role public.app_role) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT id = '${adminId}'::uuid AND role = 'admin'::public.app_role $$;
+    REVOKE EXECUTE ON FUNCTION public.has_role(uuid,public.app_role) FROM PUBLIC,anon;
+    GRANT EXECUTE ON FUNCTION public.has_role(uuid,public.app_role) TO authenticated,service_role;
     CREATE TABLE public.scalping_tier_rules(id text, active boolean, deleted_at timestamptz, audit_reason text);
     CREATE TABLE public.discovery_moderation(content_kind text, content_id text, status text, priority integer, reason text, reviewed_by uuid);
+    ALTER TABLE public.discovery_moderation ADD COLUMN id uuid DEFAULT gen_random_uuid(), ADD COLUMN updated_at timestamptz DEFAULT now();
     GRANT SELECT(id, active, deleted_at) ON public.scalping_tier_rules TO authenticated;
     GRANT SELECT(content_kind, content_id, status, priority) ON public.discovery_moderation TO anon, authenticated;
     GRANT ALL ON public.scalping_tier_rules, public.discovery_moderation TO service_role;
@@ -26,9 +30,10 @@ beforeAll(async () => {
     CREATE POLICY "Authenticated users read configuration metadata" ON public.scalping_tier_rules FOR SELECT TO authenticated USING(true);
     CREATE POLICY moderation_read ON public.discovery_moderation FOR SELECT TO anon, authenticated USING(true);
     INSERT INTO public.scalping_tier_rules VALUES ('live',true,NULL,''),('inactive',false,NULL,''),('deleted',true,now(),'');
-    INSERT INTO public.discovery_moderation VALUES ('news','approved','approved',0,'private', '${adminId}'),('news','hidden','hidden',0,'private','${adminId}'),('news','featured','featured',5,'private','${adminId}');
+    INSERT INTO public.discovery_moderation(content_kind,content_id,status,priority,reason,reviewed_by) VALUES ('news','approved','approved',0,'private', '${adminId}'),('news','hidden','hidden',0,'private','${adminId}'),('news','featured','featured',5,'private','${adminId}');
   `);
   await db.exec(migration);
+  await db.exec(publicPolicyFix);
 }, 30000);
 afterAll(async () => { await db.close(); });
 
@@ -64,5 +69,9 @@ describe("Scoped configuration read policies", () => {
   });
   it("preserves authorized privileged access", async () => {
     expect(await asRole("service_role", "", "SELECT * FROM public.discovery_moderation")).toHaveLength(3);
+  });
+  it("serves public feed directives without permission to inspect administrator roles", async () => {
+    await expect(asRole("anon", "", "SELECT public.has_role(auth.uid(),'admin'::public.app_role)")).rejects.toThrow("permission denied");
+    expect(await asRole("anon", "", "SELECT content_id FROM public.discovery_moderation")).toHaveLength(2);
   });
 });

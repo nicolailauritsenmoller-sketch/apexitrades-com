@@ -393,6 +393,13 @@
       "when": 1793856974164,
       "tag": "0055_scope_scalping_and_discovery_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1793857383077,
+      "tag": "0056_separate_public_moderation_policy",
+      "breakpoints": true
     }
   ]
 }
