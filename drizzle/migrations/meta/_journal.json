@@ -309,6 +309,13 @@
       "when": 1793844060778,
       "tag": "0043_kyc_level1_document_back",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793844348886,
+      "tag": "0044_kyc_level1_complete_fields_guard",
+      "breakpoints": true
     }
   ]
 }
