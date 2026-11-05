@@ -209,7 +209,8 @@ function Markets() {
     return () => observer.disconnect();
   }, [hasMore, sorted.length]);
 
-  const summary = useQuotes(["BTCUSDT", "AAPL", "XAUUSD=X"], 8000).quotes;
+  const summary = useQuotes(["BTCUSDT", "AAPL", ...GOLD_FEEDS], 8000).quotes;
+  const summaryHistory = useRef<Record<string, number[]>>({});
 
   return (
     <AppShell>
@@ -256,9 +257,14 @@ function Markets() {
         {[
           { label: "Crypto", symbol: "BTCUSDT" },
           { label: "Stocks", symbol: "AAPL" },
-          { label: "Gold", symbol: "XAUUSD=X" },
+          { label: "Gold", symbol: GOLD_FEEDS.find((g) => summary[g] && !summary[g].stale) ?? "1OZ=F" },
         ].map(({ label, symbol }) => {
           const s = summary[symbol];
+          const hist = (summaryHistory.current[label] ??= []);
+          if (s && !s.stale && hist[hist.length - 1] !== s.price) {
+            hist.push(s.price);
+            if (hist.length > 30) hist.shift();
+          }
           const up = (s?.changePercent ?? 0) >= 0;
           return (
             <div key={label} className="panel p-3">
@@ -272,6 +278,7 @@ function Markets() {
               <div className={`num text-[11px] font-semibold ${up ? "text-bull" : "text-bear"}`}>
                 {s && !s.stale ? `${up ? "+" : ""}${s.changePercent.toFixed(2)}%` : "-"}
               </div>
+              <SummarySpark points={hist} up={up} />
             </div>
           );
         })}
@@ -518,5 +525,23 @@ function Markets() {
         )
       )}
     </AppShell>
+  );
+}
+
+/** Gold feeds in preference order: spot first, then the futures contracts listed on this page. */
+const GOLD_FEEDS = ["XAUUSD=X", "1OZ=F", "GC=F", "MGC=F"];
+
+/** Tiny line of prices observed live in this session. */
+function SummarySpark({ points, up }: { points: number[]; up: boolean }) {
+  if (points.length < 2) return <div className="mt-1 h-5" />;
+  const min = Math.min(...points);
+  const range = Math.max(...points) - min || 1;
+  const d = points
+    .map((p, i) => `${(i / (points.length - 1)) * 100},${20 - ((p - min) / range) * 18 - 1}`)
+    .join(" ");
+  return (
+    <svg viewBox="0 0 100 20" preserveAspectRatio="none" className={`mt-1 h-5 w-full ${up ? "text-bull" : "text-bear"}`}>
+      <polyline points={d} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
