@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { AssetIcon } from "@/lib/asset-icons";
 import { useMarketInsights } from "@/lib/use-market-insights";
 import { PriceAlertManager, type usePriceAlerts } from "./comms-alerts";
+import { MovementChartDialog } from "./MovementChartDialog";
 
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "DOGEUSDT", "XRPUSDT", "SOLUSDT"];
 type Pulse = {
@@ -121,6 +121,7 @@ export function MarketIntelligence({
   priceAlerts?: ReturnType<typeof usePriceAlerts>;
 }) {
   const fetchNews = useServerFn(getExpertCommentary);
+  const [selectedAlert, setSelectedAlert] = useState<Pulse | null>(null);
   const [cycle, setCycle] = useState(0);
   useEffect(() => {
     const timer = window.setInterval(() => setCycle((value) => value + 1), COMMENTARY_ROTATION_MS);
@@ -170,11 +171,13 @@ export function MarketIntelligence({
         {market.pulses.map((p) => {
           const Icon = p.tone === "up" ? TrendingUp : p.tone === "down" ? TrendingDown : Activity;
           return (
-            <Link
+            <Button
               key={p.id}
-              to="/terminal/$symbol"
-              params={{ symbol: p.symbol }}
-              className="flex gap-3 border-b border-border py-3 last:border-0 hover:bg-secondary/50"
+              variant="ghost"
+              onClick={() => setSelectedAlert(p)}
+              aria-label={`View ${p.symbol.replace("USDT", "")} ${p.title} chart`}
+              aria-haspopup="dialog"
+              className="flex h-auto w-full items-start justify-start gap-3 whitespace-normal rounded-none border-b border-border px-0 py-3 text-left last:border-0 hover:bg-secondary/50"
             >
               <AssetIcon symbol={p.symbol} size={24} /><Icon
                 className={`mt-0.5 size-4 shrink-0 ${p.tone === "up" ? "text-bull" : p.tone === "down" ? "text-bear" : "text-muted-foreground"}`}
@@ -191,10 +194,11 @@ export function MarketIntelligence({
                 <p className="text-xs font-semibold">{p.title}</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{p.detail}</p>
               </div>
-            </Link>
+            </Button>
           );
         })}
       </section>
+      <MovementChartDialog alert={selectedAlert} onClose={() => setSelectedAlert(null)} />
       <section className="px-5 py-4">
         <h3 className="mb-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           Trading commentary & outlooks

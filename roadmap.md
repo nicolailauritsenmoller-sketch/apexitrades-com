@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Make movement alerts open pair-specific live chart dialogs with 15m/1h/4h/1d selectors, volume and five-second price updates. Signed-in real BTC movement opens a populated chart with volume and no page errors; build OK. Additional timeframe/mobile/close checks were interrupted by a blank preview on subsequent browser runs and remain unverified.
+
 - [x] Restore live New and Alpha feeds by separating public moderation access from signed-in administrator checks and enforcing safe-column reads; both signed-in tabs show current provider rows and change automatically after 30 seconds. Nineteen regression tests pass; provider outages remain honestly reported rather than fabricated.
 
 - [x] Add scalping maximum stake, eligible pair selection, additive protocol commission and UTC expiry-day aggregate payout budget; database tier lock and atomic debit protect entry, accepted terms remain unchanged. Signed-in create/reload/edit/pair presets/remove verified; 37 unit/PostgreSQL tests pass. Test tiers removed; no customer funds used.
