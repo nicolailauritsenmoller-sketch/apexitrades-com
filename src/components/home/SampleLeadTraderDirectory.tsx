@@ -23,7 +23,7 @@ export function SampleLeadTraderDirectory() {
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Search sample traders or style" className="pl-9" aria-label="Search sample traders" />
-        <Info className="pointer-events-auto absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/50" aria-label="Sample data, not real traders" title="Sample data, not real traders" />
+        <span title="Sample data, not real traders" className="absolute right-2.5 top-1/2 -translate-y-1/2"><Info className="size-3.5 text-muted-foreground/50" aria-label="Sample data, not real traders" /></span>
       </div>
       <div className="overflow-x-auto border-y border-border">
         <table className="w-full text-xs">
