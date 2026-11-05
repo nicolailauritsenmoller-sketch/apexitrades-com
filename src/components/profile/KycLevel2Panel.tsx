@@ -95,7 +95,7 @@ export function KycLevel2Panel({
         </div>
       )}
       <div className="sm:col-span-2">
-        <LiveSelfieCapture label="Biometric facial selfie capture (required)" value={selfie} onChange={setSelfie} />
+        <LiveSelfieCapture label="Biometric facial selfie capture (required)" value={selfie} onChange={setSelfie} headTurn />
       </div>
       <Button
         type="submit"
