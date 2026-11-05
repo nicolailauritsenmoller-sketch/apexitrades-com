@@ -8,6 +8,7 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
   const [zoom, setZoom] = useState(1);
   const [invert, setInvert] = useState(false);
   const [contrast, setContrast] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   const btn =
     "touch-manipulation rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground";
@@ -31,9 +32,11 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
     )}
     <figure className="rounded-lg border border-border bg-muted/30">
       <div className="flex h-56 items-center justify-center overflow-auto">
+        {failedSrc === src ? <p className="p-3 text-center text-xs text-bear">Document preview unavailable. Open the original document below to inspect it.</p> : (
         <img
           src={src}
           alt={alt}
+          onError={() => setFailedSrc(src)}
           onClick={() => setFull(true)}
           className="max-h-full max-w-full cursor-zoom-in object-contain transition-transform"
           style={{
@@ -41,6 +44,7 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
             filter: `${invert ? "invert(1)" : ""} ${contrast ? "contrast(1.8) grayscale(1)" : ""}`.trim() || undefined,
           }}
         />
+        )}
       </div>
       <figcaption className="flex flex-wrap items-center gap-1 border-t border-border p-1.5">
         <button type="button" aria-label="Rotate 90 degrees" className={btn} onClick={() => setRot((r) => (r + 90) % 360)}>
