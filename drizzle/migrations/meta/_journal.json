@@ -365,6 +365,13 @@
       "when": 1793854523832,
       "tag": "0051_validate_scalping_reason_privacy",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793855442375,
+      "tag": "0052_scalping_reason_free_confirmations",
+      "breakpoints": true
     }
   ]
 }
