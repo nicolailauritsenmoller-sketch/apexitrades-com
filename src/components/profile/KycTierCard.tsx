@@ -2,7 +2,7 @@ import { KYC_LABEL, KYC_TONE } from "@/components/profile/ui";
 import { Lock } from "lucide-react";
 
 const STATUS_KEY: Record<string, string> = {
-  unsubmitted: "unverified",
+  unsubmitted: "unsubmitted",
   unverified: "unverified",
   pending: "pending",
   approved: "approved",
