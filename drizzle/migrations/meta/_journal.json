@@ -386,6 +386,13 @@
       "when": 1793856754718,
       "tag": "0054_scalping_risk_field_read_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1793856974164,
+      "tag": "0055_scope_scalping_and_discovery_reads",
+      "breakpoints": true
     }
   ]
 }

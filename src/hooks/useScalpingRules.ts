@@ -11,7 +11,8 @@ export function useScalpingRules(admin = false) {
   useEffect(() => {
     // Silent cache refresh only: never forward tier changes to notifications.
     // The DB consumes audit reasons into private logs before replication;
-    // refetch projects only currently available trading terms.
+    // refetch projects only currently available trading terms. The 15-second
+    // catch-up also removes tiers whose deactivation makes them invisible to RLS.
     const channel = supabase.channel(`scalping-rules-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "scalping_tier_rules" }, () => {
         void client.invalidateQueries({ queryKey: ["scalping-rules"] });
