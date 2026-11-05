@@ -51,3 +51,4 @@
 - Discovery moderation and institutional articles persist in protected editorial tables with database-triggered audit entries; public feed reads project safe moderation columns - why: operator decisions survive refreshes without exposing internal notes.
 - Desk snapshots use the existing closed-position metrics RPC on trade changes and explicit admin capture, bucketed to five minutes; client rotation remains separate - why: durable measured history without idle polling or fabricated results.
 - Scalping syncs silently with version guards; reasons persist only in admin logs - why: protect private context and saved returns.
+- Public leaderboard cards appear only for real closed trades with an admin-approved `leaderboard_posts` row; posts may override display name and commentary only - why: trade figures and engagement stay authoritative and are never fabricated.
