@@ -12,7 +12,7 @@ import { level2Input } from "./kyc-level2-schema";
 describe("Lv.2 biometric-only persistence", () => {
   it("saves selfie and original capture metadata, marks the owner pending, and does not write PoA", async () => {
     const updateOwner = vi.fn(async () => ({ error: null }));
-    const update = vi.fn(() => ({ eq: updateOwner }));
+    const update = vi.fn((_payload: Record<string, unknown>) => ({ eq: updateOwner }));
     const from = vi.fn(() => ({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: "submission", status: "approved", level2_status: "unsubmitted" } }) }) }),
       update,
