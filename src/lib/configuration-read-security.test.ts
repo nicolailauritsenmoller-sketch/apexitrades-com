@@ -21,6 +21,7 @@ beforeAll(async () => {
     GRANT EXECUTE ON FUNCTION public.has_role(uuid,public.app_role) TO authenticated,service_role;
     CREATE TABLE public.scalping_tier_rules(id text, active boolean, deleted_at timestamptz, audit_reason text);
     CREATE TABLE public.discovery_moderation(content_kind text, content_id text, status text, priority integer, reason text, reviewed_by uuid);
+    ALTER TABLE public.discovery_moderation ADD COLUMN id uuid DEFAULT gen_random_uuid(), ADD COLUMN updated_at timestamptz DEFAULT now();
     GRANT SELECT(id, active, deleted_at) ON public.scalping_tier_rules TO authenticated;
     GRANT SELECT(content_kind, content_id, status, priority) ON public.discovery_moderation TO anon, authenticated;
     GRANT ALL ON public.scalping_tier_rules, public.discovery_moderation TO service_role;
@@ -29,7 +30,7 @@ beforeAll(async () => {
     CREATE POLICY "Authenticated users read configuration metadata" ON public.scalping_tier_rules FOR SELECT TO authenticated USING(true);
     CREATE POLICY moderation_read ON public.discovery_moderation FOR SELECT TO anon, authenticated USING(true);
     INSERT INTO public.scalping_tier_rules VALUES ('live',true,NULL,''),('inactive',false,NULL,''),('deleted',true,now(),'');
-    INSERT INTO public.discovery_moderation VALUES ('news','approved','approved',0,'private', '${adminId}'),('news','hidden','hidden',0,'private','${adminId}'),('news','featured','featured',5,'private','${adminId}');
+    INSERT INTO public.discovery_moderation(content_kind,content_id,status,priority,reason,reviewed_by) VALUES ('news','approved','approved',0,'private', '${adminId}'),('news','hidden','hidden',0,'private','${adminId}'),('news','featured','featured',5,'private','${adminId}');
   `);
   await db.exec(migration);
   await db.exec(publicPolicyFix);
