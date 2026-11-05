@@ -584,7 +584,7 @@ export const adjustUserBalance = createServerFn({ method: "POST" })
     }
     const { data: applied, error } = await db.rpc("apply_balance_correction", { p_user: data.userId, p_currency: currency, p_amount: data.amount, p_mode: data.mode, p_kind: data.kind, p_reason: data.reason, p_actor: context.userId });
     if (error) throw new Error(error.message);
-    return { balance: next };
+    return { balance: Number(applied) };
   });
 
 

@@ -65,7 +65,7 @@ export function BalanceAdjustDialog({
         },
       }),
     onSuccess: (res: any) => {
-      toast.success(`Balance updated - new ${active} balance ${res?.balance ?? ""}`);
+      toast.success(res?.awaitingSecondApproval ? "Correction requested. A different finance operator must approve it in Operations health." : `Balance updated - new ${active} balance ${res?.balance ?? ""}`);
       setAmount("");
       setReason("");
       void qc.invalidateQueries({ queryKey: ["admin-user-wallets", userId] });
