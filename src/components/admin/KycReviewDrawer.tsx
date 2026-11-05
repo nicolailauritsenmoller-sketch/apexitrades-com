@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { getKycDocumentUrls, reviewKyc, reviewKycLevel2 } from "@/lib/admin.functions";
 import { DocumentViewer } from "@/components/admin/DocumentViewer";
 import { KycOverridePanel } from "@/components/admin/KycOverridePanel";
+import { isRecentProofDate } from "@/lib/kyc-level2-schema";
 
 export const REJECTION_CODES = [
   { code: "ILLEGIBLE", label: "Illegible Document", message: "The document is illegible. Please upload a sharp, fully visible photo of every corner." },
@@ -16,7 +17,7 @@ export const REJECTION_CODES = [
   { code: "IMAGE_BLURRY", label: "Image Blurry", message: "The document image is blurry or unreadable. Please upload a clear, well-lit photo." },
   { code: "NAME_MISMATCH", label: "Name Mismatch", message: "The name on the document does not match your account details." },
   { code: "FAILED_SELFIE_MATCH", label: "Failed Selfie Match", message: "The selfie could not be matched to the document photo." },
-  { code: "POA_OLD", label: "PoA Older than 90 Days", message: "Your proof of address is older than 90 days. Please upload a document issued within the last 90 days." },
+  { code: "POA_OLD", label: "PoA Older than 3 Months", message: "Your proof of address is older than 3 months. Please upload a document issued within the last 3 months." },
   { code: "ADDRESS_UNVERIFIED", label: "Address Unverified", message: "The proof of address could not be verified. Please upload a recent utility bill or bank statement." },
   { code: "SOF_INSUFFICIENT", label: "Source of Funds Insufficient", message: "The source of funds evidence provided is insufficient." },
   { code: "ALTERED_DOCUMENT", label: "Suspected Altered Document", message: "The document appears altered and could not be accepted." },
@@ -97,6 +98,10 @@ export function KycReviewDrawer({
 
   const status = tier === "L1" ? row.status : level2Status;
   const canReview = status === "pending";
+  const capture = docs.data?.level2SelfieCapture;
+  const captureMeta = capture && typeof capture === "object" && !Array.isArray(capture) ? capture : null;
+  const l2EvidenceReady = Boolean(d?.level2Selfie && captureMeta?.source === "camera" && captureMeta?.capturedAt
+    && (!d?.level2Proof || (docs.data?.level2ProofIssuedAt && isRecentProofDate(docs.data.level2ProofIssuedAt))));
 
   return (
     <div className="fixed inset-0 z-[115] flex justify-end bg-black/60 backdrop-blur-sm">
@@ -188,15 +193,30 @@ export function KycReviewDrawer({
             <>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
                 <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Enhanced risk assessment</h4>
-                <Row label="Proof type" value={row.level2_proof_type ?? "-"} />
+                <Row label="Full legal name" value={row.full_name} />
+                <Row label="Date of birth" value={row.date_of_birth ?? "-"} />
+                <Row label="Country of residence" value={row.country} />
+                <Row label="Residential address" value={row.address ?? "-"} />
+                <Row label="Proof of Address type" value={docs.data?.level2ProofType ? ({ utility_bill: "Utility bill", bank_statement: "Bank statement", tax_document: "Tax document" } as Record<string, string>)[docs.data.level2ProofType] : "Not provided (optional)"} />
+                <Row label="PoA issue date" value={docs.data?.level2ProofIssuedAt ?? "Not provided"} />
+                <Row label="Facial capture source" value={captureMeta?.source === "camera" ? "In-app camera - manual matching review" : "Capture metadata unavailable"} />
+                <Row label="Captured at" value={typeof captureMeta?.capturedAt === "string" ? new Date(captureMeta.capturedAt).toLocaleString() : "-"} />
                 <Row label="Tax ID" value={row.level2_tax_id ?? "-"} />
                 <Row label="Submitted" value={row.level2_submitted_at ? new Date(row.level2_submitted_at).toLocaleString() : "-"} />
               </section>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
-                <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Biometric selfie / liveness & supporting proof</h4>
+                <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">Proof of Address & biometric facial capture</h4>
+                {docs.isLoading && <p className="text-xs text-muted-foreground">Loading private evidence...</p>}
+                {docs.isError && <p className="text-xs text-bear">Unable to load private evidence. Reopen the review to try again.</p>}
                 <div className="grid gap-3 md:grid-cols-2">
-                  {d?.level2Selfie && <DocumentViewer src={d.level2Selfie} alt={`${row.full_name} liveness selfie`} />}
-                  {d?.level2Proof && <DocumentViewer src={d.level2Proof} alt={`${row.full_name} supporting proof`} />}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium">Proof of Address (optional)</p>
+                    {d?.level2Proof ? <DocumentViewer src={d.level2Proof} alt={`${row.full_name} Proof of Address`} /> : <p className="text-xs text-muted-foreground">Not provided (optional)</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium">Biometric facial selfie (required)</p>
+                    {d?.level2Selfie ? <DocumentViewer src={d.level2Selfie} alt={`${row.full_name} biometric facial selfie`} /> : <p className="text-xs text-bear">Required selfie unavailable</p>}
+                  </div>
                 </div>
               </section>
               {row.level2_admin_note && <p className="text-xs text-muted-foreground">Previous Lv.2 note: {row.level2_admin_note}</p>}
@@ -246,7 +266,7 @@ export function KycReviewDrawer({
               </>
             ) : (
               <div className="flex justify-end gap-2">
-                <Button disabled={act.isPending} onClick={() => act.mutate({ action: "approve" })}>
+                <Button disabled={act.isPending || (tier === "L2" && !l2EvidenceReady)} onClick={() => act.mutate({ action: "approve" })}>
                   {act.isPending && <Loader2 className="animate-spin" />}Approve KYC {tier === "L1" ? "Lv.1" : "Lv.2"}
                 </Button>
                 <button onClick={() => setRejecting(true)} className={`flex-1 ${DANGER_BTN}`}>
@@ -254,6 +274,7 @@ export function KycReviewDrawer({
                 </button>
               </div>
             )}
+            {tier === "L2" && !rejecting && !docs.isLoading && !l2EvidenceReady && <p className="text-xs text-bear">Approval requires an inspectable live selfie with camera metadata and, if provided, PoA dated within the last 3 months.</p>}
           </footer>
         )}
       </aside>

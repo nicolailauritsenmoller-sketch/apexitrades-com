@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertLevel2ReviewEvidence } from "@/lib/kyc-level2-schema";
 import {
   myRoles,
   assertAdmin,
@@ -264,6 +265,15 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { supabase, userId } = context;
 
+    if (data.action === "approve") {
+      const { data: evidence, error: evidenceError } = await supabase.from("kyc_submissions")
+        .select("user_id,status,level2_status,level2_selfie_path,level2_selfie_capture,level2_proof_path,level2_proof_type,level2_proof_issued_at")
+        .eq("id", data.id).maybeSingle();
+      if (evidenceError) throw new Error(evidenceError.message);
+      if (!evidence) throw new Error("Verification submission not found.");
+      assertLevel2ReviewEvidence(evidence);
+    }
+
     const status = data.action === "approve" ? "approved" : "rejected";
     const { data: row, error } = await supabase
       .from("kyc_submissions")
@@ -305,7 +315,7 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { data: row } = await context.supabase
       .from("kyc_submissions")
-      .select("user_id, document_path, document_back_path, selfie_path, level2_selfie_path, level2_proof_path")
+      .select("user_id, document_path, document_back_path, selfie_path, level2_selfie_path, level2_proof_path, level2_proof_type, level2_proof_issued_at, level2_selfie_capture")
       .eq("id", data.id)
       .maybeSingle();
     if (!row) throw new Error("Submission not found.");
@@ -333,6 +343,9 @@ export const getKycDocumentUrls = createServerFn({ method: "POST" })
       selfie: await sign(row.selfie_path),
       level2Selfie: await sign(r["level2_selfie_path"] ?? null),
       level2Proof: await sign(r["level2_proof_path"] ?? null),
+      level2ProofType: row.level2_proof_type,
+      level2ProofIssuedAt: row.level2_proof_issued_at,
+      level2SelfieCapture: row.level2_selfie_capture,
     };
   });
 
@@ -1464,6 +1477,7 @@ export const unverifyKyc = createServerFn({ method: "POST" })
         level2_selfie_capture: null,
         level2_proof_path: null,
         level2_proof_type: null,
+        level2_proof_issued_at: null,
         level2_tax_id: null,
         level2_admin_note: null,
         level2_submitted_at: null,

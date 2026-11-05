@@ -1048,6 +1048,7 @@ export type Database = {
           kyc_level_1_status: string
           kyc_level_2_status: string
           level2_admin_note: string | null
+          level2_proof_issued_at: string | null
           level2_proof_path: string | null
           level2_proof_type: string | null
           level2_reviewed_at: string | null
@@ -1081,6 +1082,7 @@ export type Database = {
           kyc_level_1_status?: string
           kyc_level_2_status?: string
           level2_admin_note?: string | null
+          level2_proof_issued_at?: string | null
           level2_proof_path?: string | null
           level2_proof_type?: string | null
           level2_reviewed_at?: string | null
@@ -1114,6 +1116,7 @@ export type Database = {
           kyc_level_1_status?: string
           kyc_level_2_status?: string
           level2_admin_note?: string | null
+          level2_proof_issued_at?: string | null
           level2_proof_path?: string | null
           level2_proof_type?: string | null
           level2_reviewed_at?: string | null

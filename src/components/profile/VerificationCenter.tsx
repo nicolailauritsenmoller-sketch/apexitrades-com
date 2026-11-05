@@ -157,20 +157,18 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
           <div className="mt-4 space-y-2 border-t border-border pt-4">
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ScanFace className="size-3.5" /> Biometric liveness check
+                <ScanFace className="size-3.5" /> Biometric facial verification
               </span>
               <span className="text-xs font-semibold">
                 {level2 === "approved" ? "Passed" : kyc?.biometricSubmitted ? "Submitted" : "Not submitted"}
               </span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">Source of funds</span>
+              <span className="text-xs text-muted-foreground">Proof of Address (optional)</span>
               <span className="text-xs font-semibold">
-                {level2 === "approved"
-                  ? "Verified"
-                  : kyc?.sourceOfFundsSubmitted
+                {kyc?.proofOfAddressSubmitted
                     ? `Submitted${kyc?.level2ProofType ? ` - ${PROOF_LABEL[kyc.level2ProofType] ?? kyc.level2ProofType}` : ""}`
-                    : "Not submitted"}
+                    : "Not provided"}
               </span>
             </div>
           </div>

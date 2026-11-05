@@ -100,13 +100,13 @@ function VerificationPage() {
 
         <KycTierCard
           stage="enhanced"
-          title="KYC Lv.2 Identity & Address Verification"
+          title="KYC Lv.2 Enhanced Due Diligence"
           status={level2Status}
           locked={level1Status !== "approved"}
           requirements={[
             "Approved KYC identity verification",
-            "Live selfie / liveness check",
-            "Proof of address or SSN / Tax ID",
+            "Biometric facial selfie captured live in-app (required)",
+            "Proof of Address dated within the last 3 months (optional)",
           ]}
         >
           <KycLevel2Panel
