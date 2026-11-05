@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { scalpingRuleInput, scalpingProfit, validateScalpingOrder, type ScalpingRule } from "./scalping-rules";
 
-const rule: ScalpingRule = { id: "ce4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3", label: "60s", duration_seconds: 60, min_trade_amount: 100, roi_pct: 10, active: true, updated_at: "2026-11-05T04:21:00+00:00", deleted_at: null };
+const rule: ScalpingRule = { id: "ce4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3", label: "60s", duration_seconds: 60, min_trade_amount: 100, max_trade_amount: null, allowed_pairs: [], commission_pct: 0, daily_payout_cap: null, roi_pct: 10, active: true, updated_at: "2026-11-05T04:21:00+00:00", deleted_at: null };
 const order = { stake: 100, durationSeconds: 60, tierVersion: rule.updated_at };
 describe("Scalping configuration rules", () => {
   it.each([60, 120, 180, 86400, 604800, 245])("accepts configurable duration %s seconds", duration_seconds => {

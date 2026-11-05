@@ -757,6 +757,7 @@ export type Database = {
           outcome_override: Database["public"]["Enums"]["outcome_mode"]
           payout: number | null
           payout_pct: number
+          protocol_fee_pct: number
           result: string | null
           settled_at: string | null
           stake: number
@@ -781,6 +782,7 @@ export type Database = {
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
           payout_pct: number
+          protocol_fee_pct?: number
           result?: string | null
           settled_at?: string | null
           stake: number
@@ -805,6 +807,7 @@ export type Database = {
           outcome_override?: Database["public"]["Enums"]["outcome_mode"]
           payout?: number | null
           payout_pct?: number
+          protocol_fee_pct?: number
           result?: string | null
           settled_at?: string | null
           stake?: number
@@ -1525,36 +1528,48 @@ export type Database = {
       scalping_tier_rules: {
         Row: {
           active: boolean
+          allowed_pairs: string[]
           audit_reason: string
+          commission_pct: number
           created_at: string
+          daily_payout_cap: number | null
           deleted_at: string | null
           duration_seconds: number
           id: string
           label: string
+          max_trade_amount: number | null
           min_trade_amount: number
           roi_pct: number
           updated_at: string
         }
         Insert: {
           active?: boolean
+          allowed_pairs?: string[]
           audit_reason: string
+          commission_pct?: number
           created_at?: string
+          daily_payout_cap?: number | null
           deleted_at?: string | null
           duration_seconds: number
           id?: string
           label: string
+          max_trade_amount?: number | null
           min_trade_amount: number
           roi_pct: number
           updated_at?: string
         }
         Update: {
           active?: boolean
+          allowed_pairs?: string[]
           audit_reason?: string
+          commission_pct?: number
           created_at?: string
+          daily_payout_cap?: number | null
           deleted_at?: string | null
           duration_seconds?: number
           id?: string
           label?: string
+          max_trade_amount?: number | null
           min_trade_amount?: number
           roi_pct?: number
           updated_at?: string

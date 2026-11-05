@@ -14,7 +14,7 @@ import {
   formatCountdown,
 } from "@/lib/contract-tiers";
 import { useScalpingRules } from "@/hooks/useScalpingRules";
-import { scalpingProfit } from "@/lib/scalping-rules";
+import { scalpingProfit, scalpingCommission, scalpingPairAllowed } from "@/lib/scalping-rules";
 import { Button } from "@/components/ui/button";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
@@ -43,7 +43,7 @@ export function TimedContractPanel({
 }) {
   const queryClient = useQueryClient();
   const rules = useScalpingRules();
-  const tiers = rules.data ?? [];
+  const tiers = (rules.data ?? []).filter(t => scalpingPairAllowed(t, symbol));
   const [tierId, setTierId] = useState<string | null>(null);
   const tier = tiers.find(t => t.id === tierId) ?? tiers[0];
   const [amount, setAmount] = useState("");
@@ -204,9 +204,11 @@ export function TimedContractPanel({
 
   const stake = Number(amount) || 0;
   const belowMin = !tier || stake < Number(tier.min_trade_amount);
-  const overBalance = balance != null && stake > balance;
+  const aboveMax = !!tier && tier.max_trade_amount !== null && stake > Number(tier.max_trade_amount);
+  const protocolFee = tier ? scalpingCommission(stake, tier.commission_pct) : 0;
+  const overBalance = balance != null && stake + protocolFee > balance;
   const expectedProfit = tier ? scalpingProfit(stake, Number(tier.roi_pct), leverage) : 0;
-  const disabled = !tier || rules.isError || rules.isPending || belowMin || overBalance || placeMutation.isPending;
+  const disabled = !tier || rules.isError || rules.isPending || belowMin || aboveMax || overBalance || placeMutation.isPending;
 
   return (
     <div className="panel overflow-hidden border border-border bg-card p-0">
@@ -310,9 +312,9 @@ export function TimedContractPanel({
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           inputMode="decimal"
-          aria-invalid={belowMin || overBalance}
+          aria-invalid={belowMin || aboveMax || overBalance}
           className={`num mb-2 w-full rounded-md border bg-surface px-3 py-2 text-sm outline-none focus:border-ring ${
-            belowMin || overBalance ? "border-bear" : "border-input"
+            belowMin || aboveMax || overBalance ? "border-bear" : "border-input"
           }`}
         />
         {belowMin && tier && (
@@ -321,6 +323,7 @@ export function TimedContractPanel({
             {Number(tier.min_trade_amount).toLocaleString("en-US")} {CONTRACT_CURRENCY}.
           </p>
         )}
+        {aboveMax && tier && <p role="alert" className="mb-2 text-[11px] text-bear">Maximum investment: {formatMoney(Number(tier.max_trade_amount), CONTRACT_CURRENCY)}.</p>}
         {!belowMin && overBalance && (
           <p role="alert" className="mb-2 text-[11px] text-bear">
             Not enough {CONTRACT_CURRENCY} balance for this contract.
@@ -328,6 +331,7 @@ export function TimedContractPanel({
         )}
 
         <dl className="mb-3 space-y-1.5 border-t border-border pt-3 text-xs">
+          <div className="flex justify-between"><dt className="text-muted-foreground">Protocol commission ({tier?.commission_pct ?? 0}%)</dt><dd className="num">{formatMoney(protocolFee, CONTRACT_CURRENCY)}</dd></div>
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Estimated return</dt>
             <dd className="num text-bull">+{formatMoney(expectedProfit, CONTRACT_CURRENCY)}</dd>

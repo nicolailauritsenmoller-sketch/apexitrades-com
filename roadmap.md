@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Add scalping maximum stake, eligible pair selection, additive protocol commission and UTC expiry-day aggregate payout budget; database tier lock and atomic debit protect entry, accepted terms remain unchanged. Signed-in create/reload/edit/pair presets/remove verified; 37 unit/PostgreSQL tests pass. Test tiers removed; no customer funds used.
+
 - [x] Fix reason-free scalping confirmations at the database trigger; 22 tests pass and signed-in creation, persisted reload, editing, activation, deactivation and removal work without manual audit text. Temporary test tiers removed.
 
 - [x] Keep scalping tier changes silent for customers and reasons exclusively in admin audit logs. Validated empty-reason storage constraint, 18 tests pass; signed-in edit/deactivate/reactivate/remove updates trading without alerts or reason leaks, notification count unchanged. Temporary tier removed.
