@@ -48,62 +48,6 @@ const PROMOS = [
   },
 ];
 
-function LeaderboardBanner({ onJoin }: { onJoin: () => void }) {
-  // Same published-feed contract as the leaderboard panel: only approved desks, never simulated results.
-  const feed = useQuery({
-    queryKey: ["leaderboard", "All"],
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    queryFn: async () => {
-      const [desks, posts] = await Promise.all([
-        supabase.rpc("leaderboard_desks", {}),
-        supabase.from("leaderboard_posts").select("position_id,display_name,commentary").eq("status", "published"),
-      ]);
-      if (desks.error) throw desks.error;
-      if (posts.error) throw posts.error;
-      return publishedFeed((desks.data ?? []) as unknown as DeskEntry[], posts.data ?? []);
-    },
-  });
-  const top = feed.data?.[0];
-  const topPct = top?.pnl_pct ?? null;
-  const topUp = (topPct ?? 0) >= 0;
-
-  return (
-    <section aria-label="Trader leaderboard" className="relative overflow-hidden rounded-xl border border-border bg-surface px-4 py-4 touch-manipulation">
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-      <span aria-hidden className="pointer-events-none absolute -right-14 -top-14 size-36 rounded-full bg-primary/10 blur-3xl" />
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            <ShieldCheck className="size-3 shrink-0 text-bull" />Institutional Desk Leaderboard
-          </span>
-          <h2 className="mt-2 text-[15px] leading-5 font-semibold tracking-tight">Verified Liquidity Providers</h2>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">30-day realized performance from copy-enabled desks</p>
-        </div>
-        <Button size="sm" className="group min-h-11 shrink-0 gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-transform active:scale-[0.98]" onClick={onJoin}>
-          Join leaderboard<ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-        </Button>
-      </div>
-      <div className="relative mt-3 flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/40 px-3 py-2">
-        {top ? (
-          <>
-            <span className="flex min-w-0 items-center gap-2 text-[11px]">
-              <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary font-mono text-[10px] font-bold text-primary-foreground">1</span>
-              <span className="truncate font-semibold">{top.public_name}</span>
-              <span className="hidden shrink-0 text-muted-foreground sm:inline">{top.display_symbol}</span>
-            </span>
-            <span className={`num shrink-0 text-[11px] font-semibold ${topUp ? "text-bull" : "text-bear"}`}>
-              {topUp ? "+" : ""}{num(topPct ?? 0)}% 30d
-            </span>
-          </>
-        ) : (
-          <span className="text-[11px] leading-4 text-muted-foreground">Live desk rankings appear as approved desks close positions.</span>
-        )}
-      </div>
-    </section>
-  );
-}
-
 export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
   const trackRef = useRef<HTMLDivElement>(null);
