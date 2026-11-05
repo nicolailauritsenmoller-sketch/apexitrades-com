@@ -316,6 +316,13 @@
       "when": 1793844348886,
       "tag": "0044_kyc_level1_complete_fields_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793845243213,
+      "tag": "0045_kyc_level2_optional_address_evidence",
+      "breakpoints": true
     }
   ]
 }
