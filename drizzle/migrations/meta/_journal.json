@@ -295,6 +295,13 @@
       "when": 1793836280704,
       "tag": "0041_discovery_editorial_and_desk_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793842893004,
+      "tag": "0042_allow_unsubmitted_basic_kyc_status",
+      "breakpoints": true
     }
   ]
 }
