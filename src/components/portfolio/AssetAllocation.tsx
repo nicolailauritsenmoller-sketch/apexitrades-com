@@ -1,11 +1,14 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import { ASSET_CLASS_LABEL, INSTRUMENTS, type AssetClass } from "@/lib/instruments";
+import { ASSET_CLASS_LABEL, type AssetClass } from "@/lib/instruments";
+import { categoryOf, type AllocationCategory } from "@/lib/asset-category";
+export { categoryOf };
 
 /** Primary market categories, in display order, matching the Markets page. */
-const CATEGORY_ORDER: AssetClass[] = [
+const CATEGORY_ORDER: AllocationCategory[] = [
   "crypto",
+  "fiat",
   "stock",
   "future",
   "forex",
@@ -22,7 +25,8 @@ const CATEGORY_ORDER: AssetClass[] = [
 ];
 
 /** High-contrast asset class colors for the donut chart. */
-const CATEGORY_COLOR: Record<AssetClass, string> = {
+const CATEGORY_COLOR: Record<AllocationCategory, string> = {
+  fiat: "#22D3EE",
   crypto: "#FCD535",
   stock: "#3B82F6",
   future: "#8B5CF6",
@@ -39,35 +43,7 @@ const CATEGORY_COLOR: Record<AssetClass, string> = {
   fund: "#94A3B8",
 };
 
-const FIAT = new Set([
-  "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "NZD", "CNY", "HKD", "SGD",
-  "SEK", "NOK", "DKK", "MXN", "ZAR", "TRY", "INR", "BRL", "KRW",
-]);
-const STABLES = new Set(["USDT", "USDC", "BUSD", "DAI", "FDUSD", "TUSD"]);
-const METALS = new Set(["XAU", "XAG", "XPT", "XPD", "GOLD", "SILVER"]);
-
-/** Crypto base codes (BTC, ETH, …) derived from the live catalog. */
-const CRYPTO_BASES = new Set(
-  INSTRUMENTS.filter((i) => i.assetClass === "crypto").map((i) =>
-    i.symbol.replace(/USDT?$/, ""),
-  ),
-);
-
-/** Exact instrument-symbol → asset class lookup (AAPL, SPY, ZN=F, GC=F, …). */
-const SYMBOL_CLASS = new Map(INSTRUMENTS.map((i) => [i.symbol.toUpperCase(), i.assetClass]));
-
-/** Classify a wallet currency into one of the primary market categories. */
-export function categoryOf(currency: string): AssetClass {
-  const c = currency.toUpperCase();
-  const direct = SYMBOL_CLASS.get(c);
-  if (direct) return direct;
-  if (METALS.has(c) || c.startsWith("XAU") || c.startsWith("XAG")) return "metal";
-  if (FIAT.has(c) || STABLES.has(c)) return "forex";
-  if (CRYPTO_BASES.has(c)) return "crypto";
-  return "crypto";
-}
-
-type Slice = { cls: AssetClass; name: string; value: number; pct: number };
+type Slice = { cls: AllocationCategory; name: string; value: number; pct: number };
 
 /** Donut breakdown of holdings by primary market category. */
 export function AssetAllocation({
@@ -80,7 +56,7 @@ export function AssetAllocation({
   hidden?: boolean;
 }) {
   const { funded, empty } = useMemo(() => {
-    const map = new Map<AssetClass, number>();
+    const map = new Map<AllocationCategory, number>();
     for (const h of holdings) {
       if (!h.valueUsdt) continue;
       const cls = categoryOf(h.currency);
@@ -91,7 +67,7 @@ export function AssetAllocation({
       const value = map.get(cls) ?? 0;
       return {
         cls,
-        name: ASSET_CLASS_LABEL[cls],
+        name: cls === "fiat" ? "Fiat" : ASSET_CLASS_LABEL[cls as AssetClass],
         value,
         pct: denom > 0 ? (value / denom) * 100 : 0,
       };
