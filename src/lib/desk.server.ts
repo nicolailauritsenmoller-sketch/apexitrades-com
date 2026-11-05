@@ -1,3 +1,5 @@
+import { createServerOnlyFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 /** Server-only helpers for the operations desk server functions. */
 
 type Ctx = { supabase: any; userId: string };
@@ -52,15 +54,14 @@ export async function privileged() {
   });
 }
 
-async function requestIp(): Promise<string | null> {
+const requestIp = createServerOnlyFn(async (): Promise<string | null> => {
   try {
-    const { getRequestHeader } = await import("@tanstack/react-start/server");
     const raw = getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? getRequestHeader("x-real-ip");
     return raw ? raw.split(",")[0]?.trim() ?? null : null;
   } catch {
     return null;
   }
-}
+});
 
 export const AGENT_ROLES = [
   "Compliance/KYC Officer",

@@ -1,10 +1,10 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin, privileged } from "@/lib/desk.server";
 
-function callerIp(): string | null {
+const callerIp = createServerOnlyFn((): string | null => {
   try {
     const h = getRequestHeaders() as unknown as Record<string, string | undefined>;
     const fwd = h["x-forwarded-for"];
@@ -12,7 +12,7 @@ function callerIp(): string | null {
   } catch {
     return null;
   }
-}
+});
 
 /** Checks the caller's real network IP (from request headers) and device ID against active bans. */
 export const checkAccessBan = createServerFn({ method: "POST" })
