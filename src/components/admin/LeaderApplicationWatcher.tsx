@@ -13,14 +13,14 @@ export function LeaderApplicationWatcher({ onReview }: { onReview: () => void })
   useEffect(() => { primeComplianceChime(); }, []);
   useEffect(() => {
     if (!q.data) return;
-    const pending = q.data.filter(a => a.status === "pending");
+    const pending = q.data.filter(a => (a.status === "pending" || a.status === "review"));
     if (seen.current === null) { seen.current = new Set(pending.map(a => a.user_id + a.created_at)); return; }
     const fresh = pending.filter(a => !seen.current!.has(a.user_id + a.created_at));
     fresh.forEach(a => seen.current!.add(a.user_id + a.created_at));
     if (fresh.length === 0) return;
     playComplianceChime();
     for (const a of fresh) toast(`New Leaderboard Application Received from ${a.public_name}`, {
-      description: "Awaiting manual admin review.", duration: 12_000,
+      description: "Awaiting manual review.", duration: 12_000,
       action: { label: "Review", onClick: onReview },
     });
   }, [q.data, onReview]);

@@ -76,7 +76,7 @@ export const reviewLeaderboardPost = createServerFn({ method: "POST" }).middlewa
     return { ok: true };
   });
 
-/** Leader applications awaiting or past manual admin review. */
+/** Leader applications awaiting or past manual review. */
 export const getLeaderApplications = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   await requireAdmin(context);
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
