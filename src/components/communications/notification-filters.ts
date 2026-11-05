@@ -92,8 +92,11 @@ export function notificationFilterOf(row: NotificationLike): NotificationFilter 
   if (SECURITY_KINDS.has(kind)) return "security";
   if (SYSTEM_OPS_WORDS.test(text)) return "system";
   if (SECURITY_WORDS.test(text)) return "security";
-  if (TRADE_KINDS.has(kind) || TRADE_WORDS.test(text)) return "trades";
+  if (TRADE_KINDS.has(kind)) return "trades";
+  // Money movement wins over trade wording: "Deposit settled" / "Withdrawal
+  // settled" confirmations must land in Financial, not Trades.
   if (FINANCIAL_KINDS.has(kind) || FINANCIAL_WORDS.test(text)) return "financial";
+  if (TRADE_WORDS.test(text)) return "trades";
   return "system";
 }
 
