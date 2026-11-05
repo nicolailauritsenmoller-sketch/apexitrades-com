@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Refine Futures Copy Trading enrollment, directory, allocation and leaderboard presentation; retain explicit consent and authoritative metrics, verify desktop/mobile controls.
+- [x] Refine Futures Copy Trading enrollment, directory, allocation and shared leaderboard cards with micro-borders, emerald consent/leverage controls and gold primary actions; signed-in desktop/mobile consent and leverage checks pass without overflow or errors, 10 tests pass. Current directory has no approved traders, so populated live-card inspection is unavailable.
 
 - [x] Add a protected operations health center with durable rate-limited provider samples while the console is open, ledger reconciliation counts, notification dispatch/read visibility, risk exposure and compliance/support queue ages; signed-in persisted checks verified.
 - [x] Enforce receiving-address asset/network format validation on writes and customer reads; settle confirmations atomically, prevent repeated chain transfer credits and make withdrawal holds and corrections atomic.
