@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add the user-approved free Lv.2 head-turn movement check with automatic selfie capture and final officer review; no paid provider or certified anti-spoofing/depth claim.
+- [x] Add the user-approved free Lv.2 head-turn movement check with automatic selfie capture and final officer review; no paid provider or certified anti-spoofing/depth claim. Eleven tests pass; browser model/camera startup, missing-face blocking and cancel verified. Actual human movement and signed-in Lv.2 submission remain unverified because the available account lacks approved Lv.1.
 
 - [x] Simplify Lv.2 submission, review and database validation to live biometric selfie only; retain camera metadata and staff approval. Schema checked and 13 focused tests pass; signed-in page omits PoA. Live submission remains unverified because the available account has not passed Lv.1.
 
