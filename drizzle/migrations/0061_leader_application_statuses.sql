@@ -1,0 +1,2 @@
+ALTER TABLE public.copy_leader_applications DROP CONSTRAINT copy_leader_applications_status_check;
+ALTER TABLE public.copy_leader_applications ADD CONSTRAINT copy_leader_applications_status_check CHECK (status IN ('pending','review','approved','rejected','suspended'));

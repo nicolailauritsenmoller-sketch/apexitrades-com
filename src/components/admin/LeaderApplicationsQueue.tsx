@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getLeaderApplications, reviewLeaderApplication } from "@/lib/leaderboard-posts.functions";
 
 const TONE: Record<string, string> = { pending: "text-ops-amber", approved: "text-ops-emerald", rejected: "text-ops-red" };
-const LABEL: Record<string, string> = { pending: "Pending Admin Review", approved: "Approved", rejected: "Rejected" };
+const LABEL: Record<string, string> = { pending: "Pending Review", review: "In Review", approved: "Approved", rejected: "Rejected" };
 
 export function LeaderApplicationsQueue() {
   const qc = useQueryClient();
