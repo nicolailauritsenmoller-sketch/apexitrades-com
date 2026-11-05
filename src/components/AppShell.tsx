@@ -181,7 +181,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
           </nav>
 
           <div className="flex items-center gap-2 md:ml-auto">
-            <SupportNavButton />
+            {!exchangeHome && <SupportNavButton />}
             <div className="hidden items-center gap-2 md:flex">
               <GlobalSearch />
             </div>
