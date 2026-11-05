@@ -103,10 +103,13 @@ export function KycReviewDrawer({
       <button aria-label="Close" className="flex-1" onClick={onClose} />
       <aside className="flex h-full w-full max-w-4xl flex-col border-l border-border bg-background shadow-2xl">
         <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <FileCheck2 className="size-4 text-primary" />
-          <div className="min-w-0">
-            <p className="truncate font-display text-sm font-bold tracking-tight">Compliance review - {row.full_name}</p>
+          <FileCheck2 className="size-4 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <p className="break-words font-display text-sm font-bold">Compliance review - {row.full_name}</p>
             <p className="font-mono text-[11px] text-muted-foreground">User {String(row.user_id).slice(0, 8)}</p>
+            {docs.data?.registeredEmail && (
+              <p className="select-text break-all text-xs text-muted-foreground">{docs.data.registeredEmail}</p>
+            )}
           </div>
           <button onClick={onClose} aria-label="Close" className="ml-auto touch-manipulation rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground">
             <X className="size-4" />
