@@ -83,7 +83,7 @@ function LeaderboardBanner({ onJoin }: { onJoin: () => void }) {
           <h2 className="mt-2 text-[15px] leading-5 font-semibold tracking-tight">Verified Liquidity Providers</h2>
           <p className="mt-1 text-[11px] leading-4 text-muted-foreground">30-day realized performance from copy-enabled desks</p>
         </div>
-        <Button size="sm" className="group min-h-11 shrink-0 gap-1.5 rounded-lg px-3.5 text-xs font-semibold shadow-elegant-sm transition-transform active:scale-[0.98]" onClick={onJoin}>
+        <Button size="sm" className="group min-h-11 shrink-0 gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-transform active:scale-[0.98]" onClick={onJoin}>
           Join leaderboard<ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Button>
       </div>
