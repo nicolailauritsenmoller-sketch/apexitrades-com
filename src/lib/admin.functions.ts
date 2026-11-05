@@ -219,7 +219,7 @@ export const reviewKyc = createServerFn({ method: "POST" })
       const missing = current
         ? Object.entries(current).filter(([, v]) => v == null || String(v).trim() === "").map(([k]) => k)
         : ["submission"];
-      if (missing.length) throw new Error(`Level 1 submission is incomplete: ${missing.join(", ")}`);
+      if (missing.length) throw new Error(`Lv.1 submission is incomplete: ${missing.join(", ")}`);
     }
     const { data: row, error } = await supabase
       .from("kyc_submissions")

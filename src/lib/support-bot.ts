@@ -90,7 +90,7 @@ export const BOT_TOPICS: { id: BotTopicId; label: string; items: BotQA[] }[] = [
       {
         id: "kyc-how",
         q: "How do I verify my account?",
-        a: "Go to Profile > Security / Personal Info to submit Level 1 & Level 2 ID documentation.",
+        a: "Go to Profile > Security / Personal Info to submit Lv.1 & Lv.2 ID documentation.",
         keywords: ["verify", "verification", "kyc", "identity", "id document", "passport"],
       },
       {

@@ -69,11 +69,11 @@ export const getChatUserContext = createServerFn({ method: "POST" })
       used <= 0 ? "None" : util < 25 ? "Low" : util < 50 ? "Moderate" : util < 75 ? "Elevated" : "High";
     const tier =
       k?.level2_status === "approved"
-        ? "KYC Level 2"
+        ? "KYC Lv.2"
         : k?.status === "approved"
-          ? "KYC Level 1"
+          ? "KYC Lv.1"
           : k?.status === "pending"
-            ? "KYC Level 1 (pending)"
+            ? "KYC Lv.1 (pending)"
             : "Unverified";
     return {
       uid: (p.uid as string | null) ?? null,

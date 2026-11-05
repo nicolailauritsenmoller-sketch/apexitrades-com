@@ -41,7 +41,7 @@ export function TierBadge({ tier }: { tier: Tier }) {
         tier === "L1" ? "border-primary/50 text-primary" : "border-ops-amber/50 text-ops-amber"
       }`}
     >
-      {tier === "L1" ? "KYC Lv.1 Basic" : "KYC Lv.2 Advanced"}
+      {tier === "L1" ? "KYC Lv.1 Attestation" : "KYC Lv.2 EDD"}
     </span>
   );
 }
@@ -88,7 +88,7 @@ export function KycReviewDrawer({
       return tier === "L1" ? reviewL1({ data: payload }) : reviewL2({ data: payload });
     },
     onSuccess: (_r, vars) => {
-      toast.success(`${tier === "L1" ? "Level 1" : "Level 2"} ${vars.action === "approve" ? "approved" : "rejected"} - user notified.`);
+      toast.success(`${tier === "L1" ? "Lv.1" : "Lv.2"} ${vars.action === "approve" ? "approved" : "rejected"} - user notified.`);
       onDone();
       onClose();
     },
@@ -130,7 +130,7 @@ export function KycReviewDrawer({
                   tier === t ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
                 }`}
               >
-                {t === "L1" ? "Level 1 - Basic" : "Level 2 - Advanced"}
+                {t === "L1" ? "Lv.1 - Identity Attestation" : "Lv.2 - Enhanced Due Diligence"}
                 <span className="ml-1.5 text-[10px] uppercase opacity-80">({s})</span>
               </button>
             );
@@ -180,10 +180,10 @@ export function KycReviewDrawer({
                   )}
                 </div>
               </section>
-              {row.admin_note && <p className="text-xs text-muted-foreground">Previous Level 1 note: {row.admin_note}</p>}
+              {row.admin_note && <p className="text-xs text-muted-foreground">Previous Lv.1 note: {row.admin_note}</p>}
             </>
           ) : level2Status === "unsubmitted" ? (
-            <p className="text-xs text-muted-foreground">Level 2 has not been submitted yet.</p>
+            <p className="text-xs text-muted-foreground">Lv.2 has not been submitted yet.</p>
           ) : (
             <>
               <section className="rounded-xl border border-border/70 bg-card/60 p-3">
@@ -199,7 +199,7 @@ export function KycReviewDrawer({
                   {d?.level2Proof && <DocumentViewer src={d.level2Proof} alt={`${row.full_name} supporting proof`} />}
                 </div>
               </section>
-              {row.level2_admin_note && <p className="text-xs text-muted-foreground">Previous Level 2 note: {row.level2_admin_note}</p>}
+              {row.level2_admin_note && <p className="text-xs text-muted-foreground">Previous Lv.2 note: {row.level2_admin_note}</p>}
             </>
           )}
         </div>
@@ -247,7 +247,7 @@ export function KycReviewDrawer({
             ) : (
               <div className="flex justify-end gap-2">
                 <Button disabled={act.isPending} onClick={() => act.mutate({ action: "approve" })}>
-                  {act.isPending && <Loader2 className="animate-spin" />}Approve KYC {tier === "L1" ? "Level 1" : "Level 2"}
+                  {act.isPending && <Loader2 className="animate-spin" />}Approve KYC {tier === "L1" ? "Lv.1" : "Lv.2"}
                 </Button>
                 <button onClick={() => setRejecting(true)} className={`flex-1 ${DANGER_BTN}`}>
                   Reject Verification

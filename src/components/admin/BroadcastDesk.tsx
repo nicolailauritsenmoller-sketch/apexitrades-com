@@ -110,7 +110,7 @@ export function BroadcastDesk() {
             </div>
             {kind === "kyc" && (
               <select value={kycLevel} onChange={(e) => setKycLevel(e.target.value as any)} className={input}>
-                <option value="unverified">Unverified</option><option value="tier1">Tier 1 Verified</option><option value="tier2">Tier 2 (Level 2 approved)</option>
+                <option value="unverified">Unverified</option><option value="tier1">Tier 1 Verified</option><option value="tier2">Tier 2 (Lv.2 approved)</option>
               </select>
             )}
             {kind === "vip" && (
