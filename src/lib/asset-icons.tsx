@@ -25,6 +25,7 @@ import shibIcon from "@/assets/crypto/shib.png";
 import pepeIcon from "@/assets/crypto/pepe.png";
 
 // ---- Country / currency flags ----
+import usdBadge from "@/assets/crypto/usd-badge.svg";
 import usFlag from "@/assets/flags/us.svg";
 import euFlag from "@/assets/flags/eu.svg";
 import gbFlag from "@/assets/flags/gb.svg";
