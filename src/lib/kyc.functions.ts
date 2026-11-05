@@ -80,14 +80,8 @@ export const getMyKyc = createServerFn({ method: "POST" })
       verificationLevel,
       level2AdminNote: (row["level2_admin_note"] as string | null) ?? null,
       level2SubmittedAt: (row["level2_submitted_at"] as string | null) ?? null,
-      level2ProofType: (row["level2_proof_type"] as string | null) ?? null,
-      level2ProofIssuedAt: (row["level2_proof_issued_at"] as string | null) ?? null,
-      level2TaxId: (row["level2_tax_id"] as string | null) ?? null,
       level2SelfieUrl: await sign((row["level2_selfie_path"] as string | null) ?? null),
-      level2ProofUrl: await sign((row["level2_proof_path"] as string | null) ?? null),
       biometricSubmitted: Boolean(row["level2_selfie_path"]),
-      sourceOfFundsSubmitted: Boolean(row["level2_proof_path"]),
-      proofOfAddressSubmitted: Boolean(row["level2_proof_path"]),
     };
   });
 
@@ -140,7 +134,7 @@ export const submitKyc = createServerFn({ method: "POST" })
     }
   });
 
-/** Enhanced KYC verification: liveness selfie + proof of address / tax ID. */
+/** Lv.2 verification stores live biometric selfie evidence only. */
 export const submitKycLevel2 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => level2Input.parse(input))
@@ -168,10 +162,6 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
         level2_status: "pending",
         level2_selfie_path: data.livenessSelfiePath,
         level2_selfie_capture: data.livenessCapture,
-        level2_proof_path: data.proofPath ?? null,
-        level2_proof_type: data.proofType ?? null,
-        level2_proof_issued_at: data.proofIssuedAt ?? null,
-        level2_tax_id: data.taxId || null,
         level2_submitted_at: new Date().toISOString(),
         level2_reviewed_at: null,
       } as any)
@@ -181,10 +171,10 @@ export const submitKycLevel2 = createServerFn({ method: "POST" })
       throw new Error(
         error.message.includes("Level 1")
           ? "KYC identity verification must be approved before enhanced review."
-          : `Unable to save your enhanced KYC documents: ${error.message}`,
+          : `Unable to save your Lv.2 biometric selfie: ${error.message}`,
       );
     }
 
 
-    return { ok: true, message: "Enhanced KYC documents submitted for compliance review." };
+    return { ok: true, message: "Lv.2 biometric selfie submitted for compliance review." };
   });

@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Simplify Lv.2 submission, review and database validation to live biometric selfie only; retain camera metadata and staff approval. Schema checked and 13 focused tests pass; signed-in page omits PoA. Live submission remains unverified because the available account has not passed Lv.1.
+
 - [x] Update Lv.2 with optional recent Proof of Address, required live selfie, private paired admin previews and submission/approval guards. Twelve tests pass; signed-in image upload preview, fake-device camera capture and mobile layout verified. Admin paired inspection renders; legacy evidence files did not render, and no live customer submission or approval was performed. Automated biometric matching is not claimed.
 
 - [x] Make Unverify user silently reset both KYC tiers to UNSUBMITTED, clear submission/review references, reopen fresh Basic submission and preserve internal audit reasons. Four handler regression tests pass; enum and trigger compatibility checked, signed-in compliance desk renders without errors. No live customer's verification was revoked for testing.

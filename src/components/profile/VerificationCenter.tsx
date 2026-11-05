@@ -33,12 +33,6 @@ const DOC_LABEL: Record<string, string> = {
   drivers_license: "Driver's licence",
 };
 
-const PROOF_LABEL: Record<string, string> = {
-  utility_bill: "Utility bill",
-  bank_statement: "Bank statement",
-  tax_document: "Tax document",
-};
-
 function StatusPill({ status }: { status: string }) {
   const key = STATUS_KEY[status] ?? "unverified";
   return (
@@ -161,14 +155,6 @@ export function VerificationCenter({ kyc }: { kyc: KycData }) {
               </span>
               <span className="text-xs font-semibold">
                 {level2 === "approved" ? "Passed" : kyc?.biometricSubmitted ? "Submitted" : "Not submitted"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">Proof of Address (optional)</span>
-              <span className="text-xs font-semibold">
-                {kyc?.proofOfAddressSubmitted
-                    ? `Submitted${kyc?.level2ProofType ? ` - ${PROOF_LABEL[kyc.level2ProofType] ?? kyc.level2ProofType}` : ""}`
-                    : "Not provided"}
               </span>
             </div>
           </div>

@@ -323,6 +323,13 @@
       "when": 1793845243213,
       "tag": "0045_kyc_level2_optional_address_evidence",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793845962284,
+      "tag": "0046_kyc_level2_biometric_only",
+      "breakpoints": true
     }
   ]
 }
