@@ -14,6 +14,14 @@ export function DocumentViewer({ src, alt }: { src: string; alt: string }) {
   const on = "border-primary/60 text-primary";
 
   const [full, setFull] = useState(false);
+  if (/\.pdf(?:[?#]|$)/i.test(src)) {
+    return <figure className="rounded-lg border border-border bg-muted/30">
+      <iframe src={src} title={alt} className="h-56 w-full rounded-t-lg" />
+      <figcaption className="border-t border-border p-2">
+        <a href={src} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Open PDF document</a>
+      </figcaption>
+    </figure>;
+  }
   return (
     <>
     {full && (
