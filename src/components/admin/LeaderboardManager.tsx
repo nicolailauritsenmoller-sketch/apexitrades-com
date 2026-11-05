@@ -48,7 +48,7 @@ export function LeaderboardManager() {
   return <div className="space-y-6">
     <div>
       <h2 className="text-base font-semibold">Leaderboard Manager</h2>
-      <p className="text-xs text-muted-foreground">Every closed trade from the last 30 days is listed here internally. Only trades from traders who opted in can be published. Trade figures, views, shares and copy-trader counts always come from the platform and cannot be edited. Nothing appears on the public leaderboard until you approve it.</p>
+      <p className="text-xs text-muted-foreground">Every closed trade from the last 30 days is listed here internally. Only trades from traders who joined copy trading can be published. Trade figures, views, shares and copy-trader counts always come from the platform and cannot be edited. Nothing appears on the public leaderboard until you approve it.</p>
     </div>
     {q.error && <p role="alert" className="text-sm text-bear">{(q.error as Error).message}</p>}
 
