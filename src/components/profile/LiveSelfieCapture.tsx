@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, RotateCcw } from "lucide-react";
+import { Camera, RotateCcw, ShieldCheck, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { advanceHeadTurn, CHALLENGE_TIMEOUT_MS, type ChallengeState, type HeadTurnEvidence } from "@/lib/head-turn-challenge";
 
 export type SelfieCaptureMeta = {
@@ -28,6 +29,7 @@ export function LiveSelfieCapture({
   const streamRef = useRef<MediaStream | null>(null);
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preAuthOpen, setPreAuthOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [instruction, setInstruction] = useState("Look straight ahead");
@@ -112,7 +114,7 @@ export function LiveSelfieCapture({
       setActive(true);
       requestAnimationFrame(() => {
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          if (videoRef.current.srcObject !== stream) videoRef.current.srcObject = stream;
           void videoRef.current.play();
         }
       });
@@ -190,13 +192,53 @@ export function LiveSelfieCapture({
         <Button variant="outline"
           type="button"
           disabled={starting}
-          onClick={start}
+          onClick={() => setPreAuthOpen(true)}
           className="inline-flex touch-manipulation items-center gap-1 rounded-md border border-border px-3 py-1.5"
         >
           <Camera className="h-3.5 w-3.5" /> {starting ? "Preparing camera..." : "Open camera"}
         </Button>
       )}
       {error && <p className="mt-2 text-bear">{error}</p>}
+      <Dialog open={preAuthOpen} onOpenChange={setPreAuthOpen}>
+        <DialogContent className="max-w-sm gap-0 rounded-lg border border-border bg-card p-0 shadow-xl">
+          <div className="flex flex-col items-center gap-3 border-b border-border bg-gradient-to-b from-muted/60 to-transparent px-6 pb-5 pt-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-primary/10">
+              <ShieldCheck className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-sm font-semibold uppercase tracking-wide text-foreground">
+              Biometric Sensor Authorization
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-muted-foreground">
+              Velocity Trade requires secure camera access to perform live cryptographic liveness verification and identity attestation.
+            </DialogDescription>
+          </div>
+          <div className="space-y-2 px-6 py-4 text-xs text-muted-foreground">
+            <p className="flex items-start gap-2">
+              <Video className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+              <span>Video frames are processed in your browser and only the captured attestation image is submitted.</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+              <span>Access is used solely for this verification session and can be revoked at any time.</span>
+            </p>
+          </div>
+          <div className="flex gap-2 border-t border-border px-6 py-4">
+            <Button variant="ghost" type="button" onClick={() => setPreAuthOpen(false)} className="flex-1">
+              <X className="h-3.5 w-3.5" /> Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setPreAuthOpen(false);
+                void start();
+              }}
+              className="flex-1 font-semibold"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" /> Authorize Access
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
