@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertLevel2ReviewEvidence } from "@/lib/kyc-level2-schema";
 import {
   myRoles,
   assertAdmin,
@@ -263,6 +264,15 @@ export const reviewKycLevel2 = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabase, userId } = context;
+
+    if (data.action === "approve") {
+      const { data: evidence, error: evidenceError } = await supabase.from("kyc_submissions")
+        .select("user_id,status,level2_status,level2_selfie_path,level2_selfie_capture,level2_proof_path,level2_proof_type,level2_proof_issued_at")
+        .eq("id", data.id).maybeSingle();
+      if (evidenceError) throw new Error(evidenceError.message);
+      if (!evidence) throw new Error("Verification submission not found.");
+      assertLevel2ReviewEvidence(evidence);
+    }
 
     const status = data.action === "approve" ? "approved" : "rejected";
     const { data: row, error } = await supabase

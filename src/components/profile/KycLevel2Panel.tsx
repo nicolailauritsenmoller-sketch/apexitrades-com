@@ -38,7 +38,6 @@ export function KycLevel2Panel({
   const [busy, setBusy] = useState(false);
   const [proofType, setProofType] = useState<NonNullable<Level2Payload["proofType"]>>("utility_bill");
   const [proofIssuedAt, setProofIssuedAt] = useState("");
-  const [taxId, setTaxId] = useState("");
   const [selfie, setSelfie] = useState<{ file: File; meta: SelfieCaptureMeta } | null>(null);
   const [proof, setProof] = useState<File | null>(null);
   const [stage, setStage] = useState<UploadStage>("idle");
@@ -103,7 +102,6 @@ export function KycLevel2Panel({
         proofPath,
         proofType: proof ? proofType : undefined,
         proofIssuedAt: proof ? proofIssuedAt : undefined,
-        taxId: taxId.trim() || undefined,
       });
       setSelfie(null);
       setProof(null);
@@ -131,7 +129,7 @@ export function KycLevel2Panel({
         <select
         value={proofType}
         onChange={(e) => setProofType(e.target.value as NonNullable<Level2Payload["proofType"]>)}
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        className="block w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
       >
         <option value="utility_bill">Utility bill</option>
         <option value="bank_statement">Bank statement</option>
@@ -142,7 +140,7 @@ export function KycLevel2Panel({
       <input type="date" required={Boolean(proof)} min={proofDateWindow().min} max={proofDateWindow().max}
         value={proofIssuedAt}
         onChange={(e) => setProofIssuedAt(e.target.value)}
-        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        className="block w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       </label>
       <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">

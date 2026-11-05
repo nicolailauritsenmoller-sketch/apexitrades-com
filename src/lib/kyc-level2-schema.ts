@@ -34,3 +34,14 @@ export const level2Input = z.object({
     ctx.addIssue({ code: "custom", path: ["proofPath"], message: "Upload the optional Proof of Address document or remove its details." });
   }
 });
+
+export function assertLevel2ReviewEvidence(row: {
+  user_id: string; status: string; level2_status: string | null;
+  level2_selfie_path: string | null; level2_selfie_capture: unknown;
+  level2_proof_path: string | null; level2_proof_type: string | null; level2_proof_issued_at: string | null;
+}, now = new Date()) {
+  if (row.status !== "approved" || row.level2_status !== "pending") throw new Error("Lv.2 approval requires approved Lv.1 and a pending Lv.2 submission.");
+  const capture = z.object({ source: z.literal("camera"), capturedAt: z.string().datetime() }).safeParse(row.level2_selfie_capture);
+  if (!row.level2_selfie_path?.startsWith(`${row.user_id}/level2-selfie-`) || !capture.success) throw new Error("Lv.2 approval requires a live facial selfie and in-app camera metadata.");
+  if (row.level2_proof_path && (!row.level2_proof_path.startsWith(`${row.user_id}/level2-proof-`) || !["utility_bill", "bank_statement", "tax_document"].includes(row.level2_proof_type ?? "") || !row.level2_proof_issued_at || !isRecentProofDate(row.level2_proof_issued_at, now))) throw new Error("Optional Proof of Address must include a valid document type and be dated within the last 3 months.");
+}
