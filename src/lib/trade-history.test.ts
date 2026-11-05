@@ -29,6 +29,7 @@ describe("institutional trade blotter", () => {
     expect(row.leverage).toBe(5);
     expect(row.notional).toBeNull();
     expect(row.stake).toBe(100);
+    expect(row.settledAmount).toBe(120);
     expect(row.pnl).toBe(19);
     expect(row.pnlPct).toBe(19);
   });
