@@ -7,7 +7,7 @@ export const scalpingRuleInput = z.object({
   min_trade_amount: z.number().positive().max(100_000_000),
   roi_pct: z.number().min(0).max(10_000),
   active: z.boolean(),
-  reason: z.string().trim().min(5).max(400),
+  reason: z.string().trim().max(400).optional(),
 });
 
 export type ScalpingRule = Omit<z.infer<typeof scalpingRuleInput>, "id" | "reason"> & {
