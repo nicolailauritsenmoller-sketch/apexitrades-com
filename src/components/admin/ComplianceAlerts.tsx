@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { playComplianceChime, primeComplianceChime } from "@/lib/compliance-chime";
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ export function ComplianceAlerts({ reviewId, onReview, onClose }: {
     let catchingUp = false;
     let cursor = new Date().toISOString();
     const seen = new Set<string>();
+    const unprime = primeComplianceChime();
     const receive = (value: unknown) => {
       const parsed = complianceAlertSchema.safeParse(value);
       if (!active || !parsed.success || seen.has(parsed.data.id)) return;
@@ -37,6 +39,7 @@ export function ComplianceAlerts({ reviewId, onReview, onClose }: {
       seen.add(alert.id);
       void qc.invalidateQueries({ queryKey: ["admin-overview"] });
       void qc.invalidateQueries({ queryKey: ["admin-analytics"] });
+      playComplianceChime();
       toast.warning(`New Lv.2 Biometric Verification Pending Review - ${alert.user_name}`, {
         id: `compliance-${alert.id}`, duration: Infinity,
         description: "High priority - compliance review required",
@@ -70,6 +73,7 @@ export function ComplianceAlerts({ reviewId, onReview, onClose }: {
       window.clearInterval(interval);
       window.removeEventListener("focus", focus);
       void supabase.removeChannel(channel);
+      unprime();
       for (const id of seen) toast.dismiss(`compliance-${id}`);
     };
   }, [qc]);

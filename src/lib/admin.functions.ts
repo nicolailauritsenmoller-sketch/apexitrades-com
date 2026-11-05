@@ -649,7 +649,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         db.from("chat_sessions").select("id,user_id,subject,status,last_message_at").order("last_message_at", { ascending: false }).limit(60),
         db.from("swaps").select("id,user_id,from_currency,to_currency,from_amount,to_amount,created_at").order("created_at", { ascending: false }).limit(60),
         db.from("wallets").select("currency,balance"),
-        db.from("kyc_submissions").select("id,user_id,full_name,status,document_expires_at,created_at").order("created_at", { ascending: false }).limit(200),
+        db.from("kyc_submissions").select("id,user_id,full_name,status,level2_status,document_expires_at,created_at").order("created_at", { ascending: false }).limit(200),
         db.from("support_tickets").select("id,status"),
       ]);
 
@@ -726,6 +726,7 @@ export const getAdminAnalytics = createServerFn({ method: "POST" })
         revenue,
         activeTrades: C.filter((c) => c.status === "open").length,
         pendingKyc: K.filter((k) => k.status === "pending").length,
+        pendingKycL2: K.filter((k: any) => k.level2_status === "pending").length,
         // Only genuinely open tickets count - resolved/closed drop out instantly.
         openTickets: (ticketRows.data ?? []).filter((t: any) => t.status === "open").length,
       },

@@ -389,7 +389,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
     withdrawals: Number(
       (analyticsQuery.data as Analytics | undefined)?.metrics?.pendingWithdrawals ?? 0,
     ),
-    users: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.pendingKyc ?? 0),
+    users: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.pendingKyc ?? 0) + Number((analyticsQuery.data as any)?.metrics?.pendingKycL2 ?? 0),
     tickets: Number((analyticsQuery.data as Analytics | undefined)?.metrics?.openTickets ?? 0),
   } as Record<string, number>;
 
@@ -444,7 +444,9 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
   const filterLabel = filter.users
     ? USER_FILTER_LABEL[filter.users]
     : filter.status
-      ? `Status: ${filter.status}`
+      ? filter.status === "l1_pending" ? "Lv.1 pending review"
+        : filter.status === "l2_pending" ? "Lv.2 pending review"
+        : `Status: ${filter.status}`
       : null;
 
 
@@ -1331,7 +1333,10 @@ function UsersTab({
   // when the applicant's Level 1 record is already approved.
   const kyc = statusFilter
     ? kycAll.filter(
-        (k) => k.status === statusFilter || (statusFilter === "pending" && k.level2_status === "pending"),
+        (k) =>
+          statusFilter === "l1_pending" ? k.status === "pending"
+          : statusFilter === "l2_pending" ? k.level2_status === "pending"
+          : k.status === statusFilter || (statusFilter === "pending" && k.level2_status === "pending"),
       )
     : kycAll;
   const verifiedIds = new Set(
