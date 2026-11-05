@@ -86,7 +86,10 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   }
 
   return <div className="exchange-widgets space-y-3">
-    <LeaderboardBanner onJoin={() => setProgram("copy_trading")} />
+    <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+      <span className="flex min-w-0 items-center gap-2 text-sm font-semibold"><Trophy className="size-4 shrink-0 text-muted-foreground" />Trader leaderboard</span>
+      <Button variant="outline" size="sm" className="min-h-11 shrink-0" onClick={() => setProgram("copy_trading")}>Join leaderboard<ChevronRight className="size-4" /></Button>
+    </div>
     {!dismissed.includes("exchange-futures-promo") && (
       <article className="relative rounded-lg border border-border bg-surface px-3 py-2" aria-label="Exchange promotions">
         <div className="flex items-center justify-between gap-2">
