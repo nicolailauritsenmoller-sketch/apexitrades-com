@@ -1,12 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { validateScalpingOrder, scalpingProfit } from "./scalping-rules";
 
 const placeInput = z.object({
   symbol: z.string().max(20),
   direction: z.enum(["up", "down"]),
   stake: z.number().positive().max(100_000_000),
   durationSeconds: z.number().int().positive(),
+  tierId: z.string().uuid(),
+  tierVersion: z.string().datetime({ offset: true }),
   leverage: z.union([z.literal(1), z.literal(2), z.literal(5), z.literal(10)]).default(1),
 });
 
@@ -71,7 +74,7 @@ export const placeContract = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { INSTRUMENT_MAP, displaySymbol } = await import("./instruments");
-    const { TIER_MAP, CONTRACT_CURRENCY } = await import("./contract-tiers");
+    const { CONTRACT_CURRENCY } = await import("./contract-tiers");
     const { fetchPrice } = await import("./market.server");
     // Financial writes bypass the caller's token: clients have no write access
     // to wallets/contracts, so every value here is derived server-side.
@@ -93,13 +96,11 @@ export const placeContract = createServerFn({ method: "POST" })
     const { assertTradingAllowed } = await import("./risk-controls.server");
     await assertTradingAllowed(1);
 
-    const tier = TIER_MAP[data.durationSeconds];
-    if (!tier) throw new Error("Unknown contract duration.");
-    if (data.stake < tier.minInvestment) {
-      throw new Error(
-        `Minimum investment for ${tier.label} is ${tier.minInvestment.toLocaleString("en-US")} ${CONTRACT_CURRENCY}.`,
-      );
-    }
+    const tierResult = await supabase.from("scalping_tier_rules")
+      .select("id,label,duration_seconds,min_trade_amount,roi_pct,active,updated_at,deleted_at")
+      .eq("id", data.tierId).maybeSingle();
+    if (tierResult.error) throw new Error("Unable to load current trading terms.");
+    const tier = validateScalpingOrder(tierResult.data, data);
 
     const { resolveFeeRate, feeAmount } = await import("./vip-fees.server");
     const fee = feeAmount(data.stake, await resolveFeeRate(db, userId, "scalp", "taker"));
@@ -126,7 +127,7 @@ export const placeContract = createServerFn({ method: "POST" })
     const { walletAdjust } = await import("./wallet-atomic.server");
     await walletAdjust(db, userId, CONTRACT_CURRENCY, -required);
 
-    const expiresAt = new Date(Date.now() + tier.seconds * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + tier.duration_seconds * 1000).toISOString();
 
     const { data: contract, error } = await db
       .from("contracts")
@@ -137,8 +138,10 @@ export const placeContract = createServerFn({ method: "POST" })
         direction: data.direction,
         stake: data.stake,
         currency: CONTRACT_CURRENCY,
-        duration_seconds: tier.seconds,
-        payout_pct: tier.profitPct,
+        duration_seconds: tier.duration_seconds,
+        payout_pct: Number(tier.roi_pct),
+        tier_id: tier.id,
+        tier_version: tier.updated_at,
         entry_price: price,
         expires_at: expiresAt,
         fee_paid: fee,
@@ -170,7 +173,7 @@ export const placeContract = createServerFn({ method: "POST" })
       id: contract.id,
       entryPrice: price,
       expiresAt,
-      expectedProfit: (data.stake * tier.profitPct * data.leverage) / 100,
+      expectedProfit: scalpingProfit(data.stake, Number(tier.roi_pct), data.leverage),
       leverage: data.leverage,
       currency: CONTRACT_CURRENCY,
     };

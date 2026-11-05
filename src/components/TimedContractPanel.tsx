@@ -11,10 +11,11 @@ import {
 } from "@/lib/contracts.functions";
 import {
   CONTRACT_CURRENCY,
-  CONTRACT_TIERS,
   formatCountdown,
-  type ContractTier,
 } from "@/lib/contract-tiers";
+import { useScalpingRules } from "@/hooks/useScalpingRules";
+import { scalpingProfit } from "@/lib/scalping-rules";
+import { Button } from "@/components/ui/button";
 import { formatMoney, formatPrice } from "@/lib/instruments";
 import { AssetIcon } from "@/lib/asset-icons";
 import { TradeCloseSummary } from "@/components/TradeCloseSummary";
@@ -41,8 +42,14 @@ export function TimedContractPanel({
   balance?: number;
 }) {
   const queryClient = useQueryClient();
-  const [tier, setTier] = useState<ContractTier>(CONTRACT_TIERS[0]);
-  const [amount, setAmount] = useState(String(CONTRACT_TIERS[0].minInvestment));
+  const rules = useScalpingRules();
+  const tiers = rules.data ?? [];
+  const [tierId, setTierId] = useState<string | null>(null);
+  const tier = tiers.find(t => t.id === tierId) ?? tiers[0];
+  const [amount, setAmount] = useState("");
+  useEffect(() => {
+    if (tier && amount === "") setAmount(String(tier.min_trade_amount));
+  }, [tier, amount]);
   const [leverage, setLeverage] = useState<1 | 2 | 5 | 10>(1);
   const [summary, setSummary] = useState<TradeSummary | null>(null);
 
@@ -57,8 +64,10 @@ export function TimedContractPanel({
   const settle = useServerFn(settleContract);
 
   const placeMutation = useMutation({
-    mutationFn: (direction: "up" | "down") =>
-      place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.seconds, leverage } }),
+    mutationFn: (direction: "up" | "down") => {
+      if (!tier || rules.isError) throw new Error("Current trading terms are unavailable.");
+      return place({ data: { symbol, direction, stake: Number(amount), durationSeconds: tier.duration_seconds, tierId: tier.id, tierVersion: tier.updated_at, leverage } });
+    },
     onSuccess: (res) => {
       void logActivity("order", `Opened ${symbol} scalp contract`, { symbol, stake: Number(amount) });
       toast.success(
@@ -67,7 +76,10 @@ export function TimedContractPanel({
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      void queryClient.invalidateQueries({ queryKey: ["scalping-rules"] });
+    },
   });
 
   const amountRef = useRef<HTMLInputElement>(null);
@@ -191,10 +203,10 @@ export function TimedContractPanel({
   }, [openContracts, now]);
 
   const stake = Number(amount) || 0;
-  const belowMin = stake < tier.minInvestment;
+  const belowMin = !tier || stake < Number(tier.min_trade_amount);
   const overBalance = balance != null && stake > balance;
-  const expectedProfit = (stake * tier.profitPct * leverage) / 100;
-  const disabled = belowMin || overBalance || placeMutation.isPending;
+  const expectedProfit = tier ? scalpingProfit(stake, Number(tier.roi_pct), leverage) : 0;
+  const disabled = !tier || rules.isError || rules.isPending || belowMin || overBalance || placeMutation.isPending;
 
   return (
     <div className="panel overflow-hidden border border-border bg-card p-0">
@@ -231,23 +243,29 @@ export function TimedContractPanel({
           Duration
         </label>
         <div className="mb-3 flex flex-wrap gap-1 rounded-lg border border-border p-1">
-          {CONTRACT_TIERS.map((t) => (
-            <button
+          {tiers.map((t) => (
+            <Button
+              type="button"
+              variant="ghost"
               key={t.id}
               onClick={() => {
-                setTier(t);
-                if (Number(amount) < t.minInvestment) setAmount(String(t.minInvestment));
+                setTierId(t.id);
+                if (Number(amount) < Number(t.min_trade_amount)) setAmount(String(t.min_trade_amount));
               }}
               className={`min-w-[3.25rem] flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors sm:flex-none sm:px-3 ${
-                tier.id === t.id
+                tier?.id === t.id
                   ? "bg-surface-raised text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t.label}
-            </button>
+            </Button>
           ))}
         </div>
+
+        {rules.isPending && <p className="mb-3 text-xs text-muted-foreground">Loading durations...</p>}
+        {rules.isError && <p role="alert" className="mb-3 text-xs text-bear">Trading configuration unavailable.</p>}
+        {!rules.isPending && !rules.isError && !tier && <p className="mb-3 text-xs text-muted-foreground">No active duration tiers.</p>}
 
         <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Leverage
@@ -272,11 +290,11 @@ export function TimedContractPanel({
         <div className="mb-3 rounded-md border border-border bg-surface px-3 py-2 text-[11px] text-muted-foreground">
           Min. investment{" "}
           <span className="num text-foreground">
-            {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}
+            {tier ? Number(tier.min_trade_amount).toLocaleString("en-US") : "-"} {CONTRACT_CURRENCY}
           </span>
           <span className="mx-1.5 text-border">|</span>
           Est. return{" "}
-          <span className="num text-bull">{tier.profitPct * leverage}%</span>
+          <span className="num text-bull">{tier ? `${Number(tier.roi_pct) * leverage}%` : "-"}</span>
           <span className="mx-1.5 text-border">|</span>
           Est. payout{" "}
           <span className="num text-foreground">
@@ -297,10 +315,10 @@ export function TimedContractPanel({
             belowMin || overBalance ? "border-bear" : "border-input"
           }`}
         />
-        {belowMin && (
+        {belowMin && tier && (
           <p role="alert" className="mb-2 text-[11px] text-bear">
             Amount is below the {tier.label} minimum of{" "}
-            {tier.minInvestment.toLocaleString("en-US")} {CONTRACT_CURRENCY}.
+            {Number(tier.min_trade_amount).toLocaleString("en-US")} {CONTRACT_CURRENCY}.
           </p>
         )}
         {!belowMin && overBalance && (

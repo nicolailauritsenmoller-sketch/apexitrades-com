@@ -16,6 +16,7 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
       { id: "overview", label: "Dashboard", icon: LayoutDashboard },
       { id: "analytics", label: "Analytics & volume", icon: BarChart3 },
       { id: "trades", label: "Trades & outcomes", icon: Gauge },
+      { id: "scalping", label: "Scalping Management", icon: Gauge },
       { id: "corrections", label: "Trade corrections", icon: Wrench },
       { id: "active", label: "Active users now", icon: Radio },
       { id: "risk", label: "Risk & liquidation", icon: ShieldAlert },
