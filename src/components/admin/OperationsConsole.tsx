@@ -2,6 +2,7 @@ import { NAV } from "@/lib/operations-routing";
 import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCenter";
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
+import { LeaderboardManager } from "@/components/admin/LeaderboardManager";
 import { ScalpingManagement } from "@/components/admin/ScalpingManagement";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
@@ -183,6 +184,7 @@ const ADMIN_ONLY_TABS = new Set([
   "health",
   "scalping",
   "discovery",
+  "leaderboard",
   "restrictions",
   "telemetry",
   "roles",
@@ -595,6 +597,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 
           {tab === "corrections" && <TradeCorrections />}
           {tab === "discovery" && isAdmin && <DiscoveryDesk />}
+          {tab === "leaderboard" && isAdmin && <LeaderboardManager />}
           {tab === "scalping" && isAdmin && <ScalpingManagement />}
           {tab === "health" && isAdmin && <OperationsHealthCenter onOpen={go} />}
           {tab === "risk" && <RiskMonitor readOnly={!canFinance} />}

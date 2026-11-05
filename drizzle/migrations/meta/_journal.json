@@ -421,6 +421,13 @@
       "when": 1793860353250,
       "tag": "0059_atomic_withdrawal_request_holds",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1793880125225,
+      "tag": "0060_leaderboard_post_curation",
+      "breakpoints": true
     }
   ]
 }

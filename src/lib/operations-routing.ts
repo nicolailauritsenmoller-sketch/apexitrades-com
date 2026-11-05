@@ -49,6 +49,7 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
     section: "Engagement",
     items: [
       { id: "discovery", label: "Discovery & publishing", icon: Globe2 },
+      { id: "leaderboard", label: "Leaderboard Manager", icon: Star },
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
       { id: "community", label: "Community Desk", icon: Globe2 },
       { id: "referrals", label: "Referrals & rewards", icon: Gift },
