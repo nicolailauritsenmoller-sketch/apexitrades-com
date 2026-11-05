@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Keep scalping tier changes silent for customers and store reasons exclusively in admin audit logs; verify privacy, audit persistence and live values.
+- [x] Keep scalping tier changes silent for customers and reasons exclusively in admin audit logs. Validated empty-reason storage constraint, 18 tests pass; signed-in edit/deactivate/reactivate/remove updates trading without alerts or reason leaks, notification count unchanged. Temporary tier removed.
 
 - [x] Add audited Scalping Management CRUD, live tier synchronization, server-side minimum/return validation and preserve existing open-contract terms. Fifteen tests pass; signed-in create/edit/reload/deactivate/reactivate/remove and live trader minimum/ROI updates verified, mobile has no page overflow. Temporary tiers removed; no financial trades executed during testing.
 
