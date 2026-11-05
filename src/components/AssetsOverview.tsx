@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ChevronDown, Search, Wallet } from "lucide-react";
 import { AssetIcon } from "@/lib/asset-icons";
 import { assetName } from "@/lib/transactions";
+import { Button } from "@/components/ui/button";
 
 
 
@@ -237,13 +238,11 @@ export function AssetsOverview({
                     >
                       <ArrowUpFromLine className="size-3.5" /> Withdraw
                     </Link>
-                    <Link
-                      to="/trade"
-                      search={{ symbol: `${h.currency}USDT` }}
-                      className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
-                    >
-                      <ArrowLeftRight className="size-3.5" /> Trade
-                    </Link>
+                    <Button asChild variant="outline" size="sm" className="h-auto touch-manipulation gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
+                      <Link to="/wallet" search={{ tab: "swap" }}>
+                        <ArrowLeftRight className="size-3.5" /> Convert
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               )}
