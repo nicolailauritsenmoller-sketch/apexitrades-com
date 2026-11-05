@@ -2922,6 +2922,16 @@ export type Database = {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
       }
+      request_withdrawal_atomic: {
+        Args: {
+          p_amount: number
+          p_coin: string
+          p_destination: string
+          p_network: string
+          p_user: string
+        }
+        Returns: Json
+      }
       restore_platform_setting: {
         Args: { p_actor: string; p_reason: string; p_revision: string }
         Returns: undefined

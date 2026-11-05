@@ -414,6 +414,13 @@
       "when": 1793860156118,
       "tag": "0058_operations_check_lock_and_atomic_corrections",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793860353250,
+      "tag": "0059_atomic_withdrawal_request_holds",
+      "breakpoints": true
     }
   ]
 }
