@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, RotateCcw } from "lucide-react";
+import { Camera, RotateCcw, ShieldCheck, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { advanceHeadTurn, CHALLENGE_TIMEOUT_MS, type ChallengeState, type HeadTurnEvidence } from "@/lib/head-turn-challenge";
 
 export type SelfieCaptureMeta = {
@@ -28,6 +29,7 @@ export function LiveSelfieCapture({
   const streamRef = useRef<MediaStream | null>(null);
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preAuthOpen, setPreAuthOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [instruction, setInstruction] = useState("Look straight ahead");
