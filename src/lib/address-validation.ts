@@ -16,6 +16,12 @@ export function memoRequired(network: string) {
   return n === "XRP" || n === "XLM";
 }
 
+export function validateAssetAddress(coin: string, network: string, address: string, memo?: string | null) {
+  const allowed = ADDRESS_ASSETS[coin.toUpperCase()];
+  if (!allowed?.some(n => n.toUpperCase() === network.toUpperCase())) return "Unsupported asset/network combination.";
+  return validateAddress(network, address, memo);
+}
+
 export function validateAddress(network: string, address: string, memo?: string | null): string | null {
   const n = network.toUpperCase();
   const a = address.trim();
