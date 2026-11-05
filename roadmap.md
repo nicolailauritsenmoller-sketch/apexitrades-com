@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Open settled contract rows in a recorded-data settlement modal with historical candles, Trade Again, Share PnL and View History; verify desktop/mobile.
+- [x] Open settled contract rows in a recorded-data settlement modal with historical candles, Trade Again, Share PnL and View History; real signed-in settlement verified by asset-cell click and keyboard on desktop/mobile, recorded payout/fees/ROI read back, historical provider candles rendered, clipboard share and both navigation actions passed. Ten focused tests pass; build OK. Missing provider history remains explicitly unavailable.
 - [x] Redesign Trade History as an institutional blotter with recorded fields, sortable date/PnL, filters, status indicators and currency-safe performance totals; signed-in real executions, details, sorting and filters verified on desktop/mobile without page errors or overflow. Ten financial-display/logo tests pass; build OK. Venue/routing and slippage remain explicitly unrecorded.
 - [x] Audit catalog logo/CAD coverage and independent discovery branding; official futures marks and dollar-only CAD tests pass, live Alpha and USDC card verified without page errors.
 - [ ] Activate USDC receiving networks - blocked on operator-provided Ethereum ERC-20, Solana and Base receiving addresses; admin network selection and validation are ready, no addresses fabricated.
