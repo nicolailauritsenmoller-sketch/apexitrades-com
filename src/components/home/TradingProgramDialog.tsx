@@ -25,8 +25,9 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [applying, setApplying] = useState(false);
+  const [applying, setApplying] = useState<boolean | null>(null);
   const existing = query.data?.requests.find(request => request.program === program);
+  const showApplicationForm = applying ?? !query.data?.application;
   const leaders = [...(query.data?.leaders ?? [])].sort((a, b) => Number(b.roi_pct ?? -Infinity) - Number(a.roi_pct ?? -Infinity));
   async function submit(asLeader = false) {
     if (!program) return;
@@ -44,7 +45,7 @@ export function TradingProgramDialog({ program, onClose }: { program: TradingPro
       <DialogHeader><DialogTitle>{program ? titles[program] : "Trading programs"}</DialogTitle><DialogDescription>{program === "copy_trading" ? "Leader enrollment and copy preferences. Real-money execution is not enabled." : "Proposed program - registration of interest only."}</DialogDescription></DialogHeader>
       {query.isPending ? <p className="text-sm text-muted-foreground">Loading...</p> : query.isError ? <div role="alert" className="text-sm text-bear">Unable to load programs.<Button variant="ghost" onClick={() => query.refetch()}>Retry</Button></div> : <>
         {program === "copy_trading" ? <>
-          <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-semibold">Lead trader directory</h2><Button variant="outline" size="sm" onClick={() => setApplying(!applying)}><Users className="size-4" />Become a lead trader</Button></div>
+          <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-semibold">Lead trader directory</h2><Button variant="outline" size="sm" onClick={() => setApplying(!showApplicationForm)}><Users className="size-4" />{showApplicationForm ? "Hide application form" : "Become a lead trader"}</Button></div>
           <p className="text-xs text-muted-foreground">30-day closed-position return on committed margin, net of recorded fees. Historical results are not a guarantee. Rankings exclude scalp contracts.</p>
           {leaders.length === 0 ? <p className="border-y border-border py-6 text-sm text-muted-foreground">No approved lead traders yet. No performance figures are published.</p> : <div className="space-y-2">{leaders.map(leader => <Button key={leader.leader_id} variant="outline" aria-pressed={leaderId === leader.leader_id} onClick={() => setLeaderId(leader.leader_id)} className="h-auto w-full flex-col items-start whitespace-normal p-4 text-left"><span className="font-semibold">{leader.public_name}</span><span className="text-xs text-muted-foreground">{leader.bio}</span><span className="mt-2 text-xs">ROI {leader.roi_pct == null ? "Unavailable" : `${Number(leader.roi_pct).toFixed(2)}%`} · Win rate {leader.win_rate_pct == null ? "Unavailable" : `${Number(leader.win_rate_pct).toFixed(1)}%`} · {leader.closed_trades} closed trades</span></Button>)}</div>}
           {applying && <form onSubmit={event => { event.preventDefault(); void submit(true); }} className="space-y-3 border-b border-border pb-4">
