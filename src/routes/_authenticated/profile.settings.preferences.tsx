@@ -264,7 +264,7 @@ function PreferenceSettings() {
             </SettingRow>
           </SettingsSection>
 
-          <SettingsSection id="notifications" icon={BellRing} title="Notifications & Alerts" description="Choose where operational and account alerts reach you.">
+          <SettingsSection id="notifications" icon={BellRing} title="Notifications & Alerts" description="Choose where operational and account alerts reach you." collapsible>
             <div className="overflow-x-auto">
               <div className="min-w-[560px]">
                 <div className="grid grid-cols-[minmax(240px,1fr)_80px_80px_80px] items-center border-b border-border px-4 pb-3 text-[11px] font-semibold uppercase text-muted-foreground">
@@ -313,14 +313,23 @@ function PreferenceSettings() {
   );
 }
 
-function SettingsSection({ id, icon: Icon, title, description, children }: { id: string; icon: LucideIcon; title: string; description: string; children: React.ReactNode }) {
+function SettingsSection({ id, icon: Icon, title, description, children, collapsible = false }: { id: string; icon: LucideIcon; title: string; description: string; children: React.ReactNode; collapsible?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const expanded = !collapsible || open;
   return (
     <section id={id} className="scroll-mt-24 overflow-hidden rounded-lg border border-border bg-card">
-      <header className="flex items-start gap-3 border-b border-border px-4 py-4 sm:px-5">
+      <header className={`flex items-start gap-3 px-4 py-4 sm:px-5 ${expanded ? "border-b border-border" : ""}`}>
         <span className="grid size-9 shrink-0 place-items-center rounded-md bg-secondary text-primary"><Icon className="size-4" /></span>
-        <div><h2 className="text-base font-bold">{title}</h2><p className="mt-0.5 text-xs text-muted-foreground">{description}</p></div>
+        <div className="min-w-0 flex-1"><h2 className="text-base font-bold">{title}</h2><p className="mt-0.5 text-xs text-muted-foreground">{description}</p></div>
+        {collapsible && (
+          <Button type="button" variant="ghost" size="icon" onClick={() => setOpen((value) => !value)} aria-label={title} aria-expanded={open} aria-controls={`${id}-panel`} className="shrink-0 text-muted-foreground">
+            <ChevronDown className={`size-4 transition-transform duration-300 motion-reduce:transition-none ${open ? "" : "-rotate-90"}`} />
+          </Button>
+        )}
       </header>
-      <div className="divide-y divide-border">{children}</div>
+      <div id={`${id}-panel`} aria-hidden={!expanded} inert={!expanded} className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden"><div className="divide-y divide-border">{children}</div></div>
+      </div>
     </section>
   );
 }
