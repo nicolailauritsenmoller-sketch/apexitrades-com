@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Update VIP Portal withdrawal display to 5,000,000.00 USDT and replace VIP-related BNB references with real ETH holdings; preserve enforced account limits and verify signed-in views.
+
 - [x] Replace Priority Support agent browsing with department selection and private pending queue; actual assigned staff identity is gated on atomic acceptance/join and active status uses a 60-second heartbeat. Signed-in Treasury pending state, staff Accept & join, customer identity/status readback, message sending and mobile layout verified. Direct specialist-table reads restricted to staff; privacy and handler tests added.
 
 - [x] Add daily preview-only VIP gift collections with UTC 24-hour rotation/countdown and four merchandise visuals. Four boundary/cycle/countdown tests pass; signed-in midnight rollover, all collection images, countdown reset, dismissal and desktop/mobile fit verified. Claims intentionally unavailable.
