@@ -243,13 +243,51 @@ export function AssetsOverview({
                     >
                       <ArrowUpFromLine className="size-3.5" /> Withdraw
                     </Link>
-                    <Link
-                      to="/trade"
-                      search={{ symbol: `${h.currency}USDT` }}
-                      className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
-                    >
-                      <ArrowLeftRight className="size-3.5" /> Trade
-                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-haspopup="menu"
+                          aria-label={`Convert or trade ${h.currency}`}
+                          className="inline-flex touch-manipulation items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold"
+                        >
+                          <ArrowLeftRight className="size-3.5" /> Trade
+                          <ChevronDown className="size-3 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-44">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/wallet"
+                            search={{ tab: "swap" }}
+                            className="flex cursor-pointer items-center gap-2"
+                          >
+                            <Repeat className="size-4 text-muted-foreground" />
+                            <span className="flex flex-col">
+                              <span className="text-xs font-semibold">Convert</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                Swap {h.currency} into another asset
+                              </span>
+                            </span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/trade"
+                            search={{ symbol: `${h.currency}USDT` }}
+                            className="flex cursor-pointer items-center gap-2"
+                          >
+                            <ArrowLeftRight className="size-4 text-muted-foreground" />
+                            <span className="flex flex-col">
+                              <span className="text-xs font-semibold">Trade</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                Open {h.currency} in the Trade Terminal
+                              </span>
+                            </span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               )}
