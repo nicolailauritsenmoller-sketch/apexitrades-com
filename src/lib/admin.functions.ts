@@ -132,9 +132,10 @@ export const reviewDeposit = createServerFn({ method: "POST" })
     const status = data.action === "approve" ? "approved" : "rejected";
     const db = await privileged();
     if (status === "approved" && !String(dep.tx_hash ?? "").trim()) {
-      if (!data.txHash) throw new Error("Enter the on-chain transaction hash for this deposit before approving.");
+      if (data.txHash) {
       const { error: hashError } = await db.from("deposits").update({ tx_hash: data.txHash }).eq("id", dep.id).eq("status", "pending");
       if (hashError) throw new Error(hashError.message);
+      }
     }
     const { data: r, error } = await db.rpc("settle_deposit_atomic", {
       p_id: dep.id, p_status: status, p_note: data.note ?? null, p_reviewer: userId,

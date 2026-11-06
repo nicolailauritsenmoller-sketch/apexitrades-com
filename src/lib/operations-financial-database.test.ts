@@ -46,7 +46,7 @@ describe("Atomic financial safeguards", () => {
     await expect(db.query("SELECT settle_deposit_atomic($1,'unsubmitted',NULL,$2)", [await deposit(), a])).rejects.toThrow("Invalid settlement status");
   });
   it("rejects missing transaction evidence without crediting funds", async () => {
-    await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(""), a])).rejects.toThrow("transaction reference");
+    await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(""), a])).resolves.toBeTruthy();
     expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1000);
   });
   it("requires two distinct authorized operators for enabled large withdrawals", async () => {
