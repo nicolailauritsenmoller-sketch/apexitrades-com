@@ -1003,7 +1003,7 @@ function DepositsTab({
           ))}
         </ul>
       )}
-      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The operator note is recorded for each record.`} optionalNote pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
+      <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The operator note is recorded for each record.`} optionalNote reasonPresets={[{ label: "Approval preset", reason: "On-chain transaction hash verified, block confirmations cleared, and collateral credited to institutional client ledger under prime settlement mandate." }, { label: "Rejection preset", reason: "Transaction hash verification failed, insufficient network confirmations, or beneficiary account mismatch non-compliant with treasury intake policy." }]} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
         if (!confirmation) return;
         for (const id of confirmation.ids) {
           await review.mutateAsync({ id, action: confirmation.action, note: reason });
