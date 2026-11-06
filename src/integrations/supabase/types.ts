@@ -439,6 +439,8 @@ export type Database = {
           body: string
           created_at: string
           delivered_at: string | null
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           is_internal: boolean
           read_at: string | null
@@ -453,6 +455,8 @@ export type Database = {
           body: string
           created_at?: string
           delivered_at?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           is_internal?: boolean
           read_at?: string | null
@@ -467,6 +471,8 @@ export type Database = {
           body?: string
           created_at?: string
           delivered_at?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           is_internal?: boolean
           read_at?: string | null
@@ -539,6 +545,8 @@ export type Database = {
           department: string
           escalated_at: string | null
           handover_state: string | null
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           last_message_at: string
           priority: string
@@ -557,6 +565,8 @@ export type Database = {
           department?: string
           escalated_at?: string | null
           handover_state?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           last_message_at?: string
           priority?: string
@@ -575,6 +585,8 @@ export type Database = {
           department?: string
           escalated_at?: string | null
           handover_state?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           last_message_at?: string
           priority?: string
@@ -1915,6 +1927,8 @@ export type Database = {
           attachment_type: string | null
           body: string
           created_at: string
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           internal: boolean
           sender_id: string
@@ -1927,6 +1941,8 @@ export type Database = {
           attachment_type?: string | null
           body: string
           created_at?: string
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           internal?: boolean
           sender_id: string
@@ -1939,6 +1955,8 @@ export type Database = {
           attachment_type?: string | null
           body?: string
           created_at?: string
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           internal?: boolean
           sender_id?: string
@@ -1964,6 +1982,8 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string | null
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           internal_notes: string | null
           last_response_at: string | null
@@ -1987,6 +2007,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           internal_notes?: string | null
           last_response_at?: string | null
@@ -2010,6 +2032,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           internal_notes?: string | null
           last_response_at?: string | null
@@ -2577,6 +2601,8 @@ export type Database = {
           assigned_to: string | null
           created_at: string
           granted_by: string | null
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           resolved_at: string | null
           role_key: string
@@ -2592,6 +2618,8 @@ export type Database = {
           assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           resolved_at?: string | null
           role_key: string
@@ -2607,6 +2635,8 @@ export type Database = {
           assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           resolved_at?: string | null
           role_key?: string
@@ -2727,6 +2757,8 @@ export type Database = {
           attachment_type: string | null
           body: string
           created_at: string
+          hidden_from_customer_at: string | null
+          hidden_from_staff_at: string | null
           id: string
           is_internal: boolean
           read_at: string | null
@@ -2742,6 +2774,8 @@ export type Database = {
           attachment_type?: string | null
           body: string
           created_at?: string
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           is_internal?: boolean
           read_at?: string | null
@@ -2757,6 +2791,8 @@ export type Database = {
           attachment_type?: string | null
           body?: string
           created_at?: string
+          hidden_from_customer_at?: string | null
+          hidden_from_staff_at?: string | null
           id?: string
           is_internal?: boolean
           read_at?: string | null
