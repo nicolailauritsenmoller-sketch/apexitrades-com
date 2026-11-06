@@ -1,6 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowUpFromLine, Repeat } from "lucide-react";
-import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useDisplayCurrency } from "@/lib/display-currency";
@@ -112,7 +110,6 @@ function Portfolio() {
   const { hidden: balancesHidden, toggle: toggleBalances } = useBalancePrivacy();
   const display = useDisplayCurrency();
   const [range, setRange] = useState<Range>("1M");
-  const [depositOpen, setDepositOpen] = useState(false);
   const realized =
     closed.reduce((sum, p) => sum + (p.realizedPnl ?? 0), 0) +
     (contracts.data ?? [])
@@ -154,30 +151,6 @@ function Portfolio() {
           <BalancePrivacyToggle hidden={balancesHidden} onToggle={toggleBalances} />
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setDepositOpen(true)}
-            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            <ArrowDownToLine className="size-4" /> Deposit
-          </button>
-          <Link
-            to="/wallet"
-            search={{ tab: "withdraw" }}
-            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
-          >
-            <ArrowUpFromLine className="size-4" /> Withdraw
-          </Link>
-          <Link
-            to="/wallet"
-            search={{ tab: "swap" }}
-            className="flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-secondary/70"
-          >
-            <Repeat className="size-4" /> Convert
-          </Link>
-        </div>
-
         <PortfolioPerformance
           total={liveTotal}
           drift={realized + totalUnrealized}
@@ -186,7 +159,6 @@ function Portfolio() {
           hidden={balancesHidden}
         />
       </section>
-      <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
 
       <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <PnlCard
