@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, ChartNoAxesCombined, Gem, Gift, Headset, Info, LibraryBig, Percent } from "lucide-react";
+import { BadgeCheck, ChartNoAxesCombined, Crown, Gem, Gift, Headset, Info, LibraryBig, Percent } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -35,7 +35,7 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
   return <>
     <header className="flex items-center justify-between gap-4 pb-7 pt-2 sm:pb-9">
       <div>
-        <p className="mb-3 text-xs font-medium text-muted-foreground">VIP Memberships <span className="ml-2 border-l border-border pl-2">{status}</span></p>
+        <p className="mb-3 flex items-center gap-3 text-xs font-medium text-muted-foreground">VIP Memberships <span role="img" aria-label={`Account standing: ${status}`} title={status} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-ops-amber-bg bg-ops-amber/10 text-ops-amber"><Crown className="size-4" strokeWidth={1.5} aria-hidden="true" /></span></p>
         <h1 className="text-3xl font-medium leading-snug text-ops-amber sm:text-4xl">Experience your<br />Exclusive Benefits</h1>
       </div>
       <Gem aria-hidden="true" className="size-16 shrink-0 stroke-[0.8] text-ops-amber sm:size-24" />
