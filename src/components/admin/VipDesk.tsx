@@ -349,7 +349,7 @@ export function VipDesk() {
                   {activeThread?.assignedTo ? (
                     <button onClick={() => workflow.mutate({ action: "unassign" })} disabled={workflow.isPending} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Unassign</button>
                   ) : (
-                    <button onClick={() => workflow.mutate({ action: "assign" })} disabled={workflow.isPending} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Assign to me</button>
+                    <Button onClick={() => workflow.mutate({ action: "assign" })} disabled={workflow.isPending} variant="secondary" size="sm">Accept & join</Button>
                   )}
                   <button onClick={() => workflow.mutate({ action: activeThread?.status === "resolved" ? "reopen" : "resolve" })} disabled={workflow.isPending} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
                     {activeThread?.status === "resolved" ? "Reopen" : "Resolve"}
