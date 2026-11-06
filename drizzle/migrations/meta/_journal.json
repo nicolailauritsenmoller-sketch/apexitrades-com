@@ -477,6 +477,13 @@
       "when": 1793945727337,
       "tag": "0067_vip_ecosystem_management",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1793945886667,
+      "tag": "0068_vip_credit_review_guards",
+      "breakpoints": true
     }
   ]
 }
