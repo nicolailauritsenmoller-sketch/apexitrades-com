@@ -221,10 +221,11 @@ function PreferenceSettings() {
               </div>
 
               <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Theme</p>
-              <div className="mt-2 grid max-w-lg grid-cols-2 gap-3">
+              <div className="mt-2 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3">
                 {([
                   { id: "classic", label: "Classic", hint: "Standard slate dark" },
                   { id: "midnight", label: "Midnight Black", hint: "Deep true black" },
+                  { id: "obsidian", label: "Obsidian Gold", hint: "Warm gold on obsidian" },
                 ] as const).map(({ id, label, hint }) => (
                   <button
                     key={id}
@@ -386,19 +387,21 @@ function ModePreview({ mode }: { mode: Theme }) {
 }
 
 function ThemeSwatch({ variant }: { variant: ThemeVariant }) {
-  const palette = variant === "midnight"
-    ? { bg: "#07090D", card: "#12151B", text: "#3A414B" }
-    : { bg: "#0B0E11", card: "#181A20", text: "#2B2F36" };
+  const palette = variant === "obsidian"
+    ? { bg: "#0A0A0A", card: "#121212", text: "#3A3A3A", accent: "#D9C48A" }
+    : variant === "midnight"
+    ? { bg: "#07090D", card: "#12151B", text: "#3A414B", accent: GOLD }
+    : { bg: "#0B0E11", card: "#181A20", text: "#2B2F36", accent: GOLD };
 
   return (
     <div className="h-14 w-full overflow-hidden rounded-md border border-border/60 p-1.5" style={{ backgroundColor: palette.bg }}>
       <div className="flex h-full w-full flex-col gap-1 rounded-sm p-1.5" style={{ backgroundColor: palette.card }}>
         <div className="flex items-center gap-1">
-          <span className="size-1.5 rounded-full" style={{ backgroundColor: GOLD }} />
+          <span className="size-1.5 rounded-full" style={{ backgroundColor: palette.accent }} />
           <span className="h-1 w-6 rounded-full" style={{ backgroundColor: palette.text }} />
         </div>
         <span className="h-1 w-9 rounded-full" style={{ backgroundColor: palette.text }} />
-        <span className="mt-auto h-2 w-8 rounded-sm" style={{ backgroundColor: GOLD }} />
+        <span className="mt-auto h-2 w-8 rounded-sm" style={{ backgroundColor: palette.accent }} />
       </div>
     </div>
   );

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type Theme = "light" | "dark" | "system";
-export type ThemeVariant = "classic" | "midnight";
+export type ThemeVariant = "classic" | "midnight" | "obsidian";
 export const THEME_KEY = "velocity.theme";
 export const THEME_VARIANT_KEY = "velocity.theme-variant";
 export const DEFAULT_THEME: Theme = "dark";
 export const DEFAULT_THEME_VARIANT: ThemeVariant = "classic";
 
 /** Inline script injected before hydration so theme class and variant apply without flash. */
-export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"${DEFAULT_THEME}";var v=localStorage.getItem("${THEME_VARIANT_KEY}")||"${DEFAULT_THEME_VARIANT}";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";if(v==="midnight"){document.documentElement.setAttribute("data-variant","midnight");}else{document.documentElement.removeAttribute("data-variant");}}catch(e){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}})();`;
+export const themeBootstrapScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"${DEFAULT_THEME}";var v=localStorage.getItem("${THEME_VARIANT_KEY}")||"${DEFAULT_THEME_VARIANT}";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";if(v==="midnight"||v==="obsidian"){document.documentElement.setAttribute("data-variant",v);}else{document.documentElement.removeAttribute("data-variant");}}catch(e){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}})();`;
 
 function readTheme(): Theme {
   if (typeof window === "undefined") return DEFAULT_THEME;
@@ -19,7 +19,8 @@ function readTheme(): Theme {
 
 function readVariant(): ThemeVariant {
   if (typeof window === "undefined") return DEFAULT_THEME_VARIANT;
-  return localStorage.getItem(THEME_VARIANT_KEY) === "midnight" ? "midnight" : DEFAULT_THEME_VARIANT;
+  const stored = localStorage.getItem(THEME_VARIANT_KEY);
+  return stored === "midnight" || stored === "obsidian" ? stored : DEFAULT_THEME_VARIANT;
 }
 
 function applyTheme(theme: Theme) {
@@ -32,8 +33,8 @@ function applyTheme(theme: Theme) {
 
 function applyVariant(variant: ThemeVariant) {
   const root = document.documentElement;
-  if (variant === "midnight") {
-    root.setAttribute("data-variant", "midnight");
+  if (variant === "midnight" || variant === "obsidian") {
+    root.setAttribute("data-variant", variant);
   } else {
     root.removeAttribute("data-variant");
   }
