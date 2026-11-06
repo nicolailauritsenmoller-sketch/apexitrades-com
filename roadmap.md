@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add a synchronized VIP ecosystem control center for tier/ETH criteria, cleared-account promotion, daily gift catalog, priority routing, credit simulation review and portal settings; verify staff changes read back on customer pages.
+- [x] Add VIP Control Center at /admin?tab=vipecosystem with tier/AUM/collateral/ETH management, optional server-verified automatic promotion, persisted gift catalog/daily rotation/override/stock, department routing and accepted-staff badge identity, atomic credit simulation review/drawdown tracking and portal ETH/withdrawal display settings. Forty-five tests pass; signed-in gift override/customer readback/restoration, tier rename/customer readback/restoration, structured credit submission/staff approval/customer approved drawdown/readback and mobile fit verified without errors. Automatic promotion remains off until enabled; gifts remain previews and loans remain non-executing simulations.
 
 - [x] Build Institutional Loan collateral/LTV/rate simulation with real wallet/market references, 70% LTV ceiling, adjustable illustrative APR, risk buffer and frozen drawdown preview. Persist non-executing Treasury Operations support tickets; seven tests pass. Signed-in request VT-297201, drawdown, desktop/mobile fit and staff workspace scenario readback verified without runtime errors. Real lending and financial movements remain disabled.
 
