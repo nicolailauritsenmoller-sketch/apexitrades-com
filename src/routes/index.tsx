@@ -8,7 +8,7 @@ import { AssetIcon } from "@/lib/asset-icons";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CaseInPointSection, GlobalMembershipSection } from "@/components/home/HomeSections";
 import { CommunityHub } from "@/components/home/CommunityHub";
-import { BrandMark } from "@/components/Logo";
+import { BrandLockup } from "@/components/Logo";
 import { PlatformTourSection } from "@/components/home/PlatformTour";
 
 const TICKER = [
@@ -81,8 +81,7 @@ function Landing() {
       <header className="relative z-40 sticky top-0 w-full border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
           <div className="flex min-w-0 items-center gap-2">
-            <BrandMark className="size-9" alt="Velocity Trade logo" />
-            <span className="truncate font-display text-sm font-bold">VELOCITY TRADE</span>
+            <BrandLockup className="w-40 sm:w-48" />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Link

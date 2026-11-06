@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ShieldCheck, Lock, BadgeCheck } from "lucide-react";
-import { BrandMark } from "@/components/Logo";
+import { BrandLockup } from "@/components/Logo";
 import { openCookieSettings } from "@/lib/consent";
 import { TrustCertificates } from "@/components/TrustBadges";
 
@@ -43,8 +43,7 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <BrandMark className="size-8" />
-            <span className="font-display text-sm font-bold tracking-tight">VELOCITY TRADE</span>
+            <BrandLockup className="w-44" />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             An institutional-grade multi-asset trading terminal for crypto, equities, futures, FX
