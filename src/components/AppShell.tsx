@@ -63,6 +63,7 @@ const MOBILE_NAV = [
 const PAGE_TITLES: ReadonlyArray<readonly [prefix: string, title: string]> = [
   ["/dashboard", "Home"],
   ["/portfolio", "Portfolio"],
+  ["/vip-upgrade", "VIP Memberships"],
   ["/markets", "Markets"],
   ["/market", "Markets"],
   ["/terminal/", "Trade Terminal"],
