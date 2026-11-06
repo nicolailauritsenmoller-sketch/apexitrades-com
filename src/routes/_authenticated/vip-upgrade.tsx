@@ -1,251 +1,159 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Check, Crown, Headset, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, ChevronRight, Clock3, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
 import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
-import { getProfileOverview } from "@/lib/profile.functions";
-import { VIP1_PERKS, VIP1_THRESHOLD_USDT, isVip, isVipPending } from "@/lib/vip-tiers";
+import { supabase } from "@/integrations/supabase/client";
+import { getPrimeMembership, requestPrimeAllocation } from "@/lib/prime-membership.functions";
+import { PRIME_TIERS, collateralProgress, feeBps } from "@/lib/prime-tiers";
+import { isVip, isVipPending } from "@/lib/vip-tiers";
 
+const membershipOptions = queryOptions({ queryKey: ["prime-membership"], queryFn: () => getPrimeMembership(), refetchInterval: 5_000 });
+const description = "Prime Tier Architecture on Velocity Trade: collateral requirements, configured maker/taker fees and reviewed institutional tier allocations.";
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
-  head: () => ({
-    meta: [
-      { title: "Upgrade to VIP - benefits & thresholds | Velocity Trade" },
-      {
-        name: "description",
-        content:
-          "Unlock VIP on Velocity Trade with a 20,000 USDT balance: zero trading fees, a priority account manager, elevated withdrawal limits and exclusive scalp return rates.",
-      },
-      { property: "og:title", content: "Upgrade to VIP - Velocity Trade" },
-      {
-        property: "og:description",
-        content:
-          "Zero trading fees, priority account manager, elevated limits and exclusive scalp return rates.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => ({ meta: [
+    { title: "Institutional Tier Allocation | Velocity Trade" },
+    { name: "description", content: description },
+    { property: "og:title", content: "Prime Tier Architecture | Velocity Trade" },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(membershipOptions),
   component: VipUpgradePage,
-  errorComponent: ({ error }) => (
-    <div role="alert" className="p-8 text-sm text-bear">
-      {(error as Error).message}
-    </div>
-  ),
-  notFoundComponent: () => <div className="p-8 text-sm">Nothing here.</div>,
+  errorComponent: () => <AppShell><div role="alert" className="p-6 text-sm text-bear">Membership status is temporarily unavailable. Please reload to retry.</div></AppShell>,
 });
 
-const LADDER: { key: string; label: string; threshold: number; target?: boolean; plus?: boolean }[] = [
-  { key: "vip1", label: "VIP 1", threshold: 10_000 },
-  { key: "vip2", label: "VIP 2", threshold: VIP1_THRESHOLD_USDT, target: true },
-  { key: "vip3", label: "VIP 3", threshold: 50_000 },
-  { key: "vip4", label: "VIP Institutional", threshold: 100_000, plus: true },
-];
-
-const FEE_ROWS: { label: string; standard: string; vip: string }[] = [
-  { label: "Spot maker fee", standard: "Standard rate", vip: "0.00%" },
-  { label: "Spot taker fee", standard: "Standard rate", vip: "0.00%" },
-  { label: "Scalp contract returns", standard: "Standard payouts", vip: "Boosted returns" },
-  { label: "Daily withdrawal limit", standard: "Standard limit", vip: "Elevated limit" },
-];
-
-const fmt = (n: number, max = 2) =>
-  n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: max });
+const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+const feeRows = [
+  { label: "Spot maker", key: "spot_maker" },
+  { label: "Spot taker", key: "spot_taker" },
+  { label: "Futures maker", key: "futures_maker" },
+  { label: "Futures taker", key: "futures_taker" },
+  { label: "Scalp maker", key: "scalp_maker" },
+  { label: "Scalp taker", key: "scalp_taker" },
+] as const;
 
 function VipUpgradePage() {
-  const navigate = useNavigate();
-  const fetchOverview = useServerFn(getProfileOverview);
-  const overview = useQuery({
-    queryKey: ["profile-overview"],
-    queryFn: () => fetchOverview(),
-    refetchInterval: 15_000,
-  });
+  const qc = useQueryClient();
+  const { data, isFetching, isError } = useSuspenseQuery(membershipOptions);
+  const submit = useServerFn(requestPrimeAllocation);
+  const currentLevel = Number(data.account?.level ?? 0);
+  const recommended = data.account?.recommended_level;
+  const initialTarget = recommended ?? Math.min(4, currentLevel + 1);
+  const [selectedLevel, setSelectedLevel] = useState(initialTarget);
   const [depositOpen, setDepositOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const selected = PRIME_TIERS.find(t => t.level === selectedLevel) ?? PRIME_TIERS[0];
+  const selectedFees = data.schedule.find(t => t.level === selected.level);
+  const requirement = Number(selectedFees?.min_portfolio_usdt ?? selected.threshold);
+  const progress = collateralProgress(data.clearedBalance, requirement);
+  const approved = currentLevel >= selected.level;
+  const pending = !approved && (recommended != null && recommended >= selected.level);
+  const ready = progress.qualified && data.valuationComplete && !isError;
+  const statusLabel = isVip(data.status) ? "VIP" : isVipPending(data.status) ? "VIP (PENDING)" : "STANDARD";
+  const request = useMutation({
+    mutationFn: () => submit({ data: { level: selected.level } }),
+    onSuccess: async (result) => {
+      await Promise.all([qc.invalidateQueries({ queryKey: ["prime-membership"] }), qc.invalidateQueries({ queryKey: ["profile-overview"] })]);
+      toast.success(result.status === "active" ? "This allocation is already active." : "Allocation request submitted for review.");
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Request could not be submitted."),
+  });
 
-  const tier = (overview.data?.profile as any)?.vipTier ?? "regular";
-  const balance = Number(overview.data?.balances?.totalUsdt ?? 0);
-  const remaining = Math.max(0, VIP1_THRESHOLD_USDT - balance);
-  const progress = Math.min(100, (balance / VIP1_THRESHOLD_USDT) * 100);
-  const already = isVip(tier);
-  const awaiting = isVipPending(tier);
+  useEffect(() => {
+    const refresh = () => { void qc.invalidateQueries({ queryKey: ["prime-membership"] }); void qc.invalidateQueries({ queryKey: ["profile-overview"] }); };
+    const channel = supabase.channel(`prime-membership-${data.userId}`);
+    for (const table of ["profiles", "wallets", "vip_accounts", "deposits", "notifications"] as const) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `${table === "profiles" ? "id" : "user_id"}=eq.${data.userId}` }, refresh);
+    }
+    channel.subscribe(status => { if (status === "SUBSCRIBED") refresh(); });
+    return () => { void supabase.removeChannel(channel); };
+  }, [data.userId, qc]);
 
-  return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl space-y-5 [touch-action:manipulation]">
-        <button
-          onClick={() => navigate({ to: "/profile" })}
-          className="inline-flex touch-manipulation items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Profile
-        </button>
+  const rows = [
+    ...feeRows.map(row => ({ label: row.label, values: PRIME_TIERS.map(t => feeBps(data.schedule.find(s => s.level === t.level)?.[row.key])) })),
+    { label: "Depth-of-book priority routing", values: PRIME_TIERS.map(() => "Not enabled") },
+    { label: "Dedicated FIX API gateway", values: PRIME_TIERS.map(() => "Not provisioned") },
+    { label: "Collateral encumbrance limit", values: PRIME_TIERS.map(() => "No tier-specific limit") },
+    { label: "Dedicated account manager", values: PRIME_TIERS.map(t => t.level >= 3 ? "Eligible for assignment" : "Support desk") },
+  ];
 
-        <header>
-          <h1 className="font-display text-2xl font-bold tracking-tight">Upgrade to VIP</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Fund your account to the VIP threshold and your tier activates automatically once your
-            deposit clears.
-          </p>
-        </header>
+  return <AppShell>
+    <div className="mx-auto max-w-6xl space-y-7 touch-manipulation pb-5">
+      <Button asChild variant="ghost" size="sm" className="-ml-3 text-muted-foreground"><Link to="/profile"><ArrowLeft /> Profile</Link></Button>
+      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+        <div className="max-w-2xl">
+          <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground"><Layers3 className="size-4" /> Prime Tier Architecture</p>
+          <h1 className="font-display text-2xl font-semibold">Institutional Tier Allocation</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Collateral-based access. Quantified fees. Reviewed allocation.</p>
+        </div>
+        <div className="flex items-center gap-2 border-l border-border pl-4 text-xs font-semibold"><ShieldCheck className="size-4 text-bull" /> {statusLabel}</div>
+      </header>
 
-        {/* Progression ladder */}
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            VIP progression ladder
-          </p>
-          <ol className="mt-4 grid gap-2 sm:grid-cols-2">
-            {LADDER.map((step) => {
-              const reached = balance >= step.threshold;
-              return (
-                <li
-                  key={step.key}
-                  className={`flex items-center gap-3 rounded-xl border p-3.5 ${
-                    step.target
-                      ? "border-amber-500/40 bg-amber-500/5"
-                      : reached
-                        ? "border-bull/30 bg-bull/5"
-                        : "border-border bg-secondary/30"
-                  }`}
-                >
-                  <span
-                    className={`grid size-9 shrink-0 place-items-center rounded-full ${
-                      reached
-                        ? "bg-gradient-to-br from-amber-300 to-amber-600 text-black"
-                        : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    {reached ? <Check className="size-4" /> : <Crown className="size-4" />}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-2 text-sm font-bold">
-                      {step.label}
-                      {step.target && (
-                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-500">
-                          Current target
-                        </span>
-                      )}
-                    </p>
-                    <p className="num text-xs text-muted-foreground">
-                      {fmt(step.threshold, 0)}
-                      {step.plus ? "+" : ""} USDT balance
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+      <section aria-labelledby="architecture-title">
+        <div className="mb-3 flex items-center justify-between gap-3"><h2 id="architecture-title" className="text-sm font-semibold">Allocation levels</h2><span className="text-xs text-muted-foreground">USDT collateral</span></div>
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {PRIME_TIERS.map(t => {
+            const threshold = Number(data.schedule.find(s => s.level === t.level)?.min_portfolio_usdt ?? t.threshold);
+            const reached = data.valuationComplete && data.clearedBalance >= threshold;
+            const active = currentLevel >= t.level;
+            const waiting = !active && recommended != null && recommended >= t.level;
+            return <li key={t.level} className={`overflow-hidden rounded-lg border ${selected.level === t.level ? "border-ring bg-secondary/50" : "border-border bg-card"}`}>
+              <Button variant="ghost" onClick={() => setSelectedLevel(t.level)} aria-pressed={selected.level === t.level} className="h-auto min-h-44 w-full flex-col items-start justify-between whitespace-normal rounded-none p-4 text-left hover:bg-secondary/50">
+                <span className="flex w-full items-center justify-between text-xs text-muted-foreground"><span className="num">0{t.level}</span>{active ? <Check className="text-bull" /> : waiting ? <Clock3 /> : <ArrowUpRight />}</span>
+                <span className="mt-3 min-h-10 text-sm font-semibold">{t.name}</span>
+                <span className="num mt-3 text-lg font-semibold">{fmt(threshold)}{t.level === 4 ? "+" : ""} <span className="text-xs font-normal text-muted-foreground">USDT</span></span>
+                <span className={`mt-2 text-xs ${active ? "text-bull" : "text-muted-foreground"}`}>{active ? "Allocated" : waiting ? "Pending review" : reached ? "Collateral requirement met" : "Collateral requirement"}</span>
+              </Button>
+            </li>;
+          })}
+        </ol>
+      </section>
 
-        {/* Tier card with live tracker */}
-        <section className="overflow-hidden rounded-2xl border border-amber-500/30 bg-card">
-          <div className="flex items-center gap-3 border-b border-border bg-gradient-to-r from-amber-500/15 to-transparent p-5">
-            <span className="grid size-12 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-amber-600 text-black shadow-lg">
-              <Crown className="size-6" />
-            </span>
-            <div>
-              <p className="font-display text-lg font-bold tracking-tight">VIP</p>
-              <p className="text-xs uppercase tracking-widest text-amber-500">Membership tier</p>
-            </div>
+      <section className="grid gap-6 border-y border-border py-6 lg:grid-cols-[1.25fr_1fr]" aria-labelledby="evaluation-title">
+        <div>
+          <div className="flex items-center justify-between gap-3"><h2 id="evaluation-title" className="text-base font-semibold">Collateral evaluation</h2><Button variant="ghost" size="icon" aria-label="Refresh membership status" title="Refresh membership status" onClick={() => void qc.invalidateQueries({ queryKey: ["prime-membership"] })}><RefreshCw className={isFetching ? "animate-spin motion-reduce:animate-none" : ""} /></Button></div>
+          <p className="mt-1 text-xs text-muted-foreground">{selected.name}</p>
+          <dl className="mt-5 space-y-3 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-2"><dt className="text-muted-foreground">Minimum AUM / Collateral Requirement</dt><dd className="num font-semibold">{fmt(requirement)} USDT</dd></div>
+            <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">Cleared wallet collateral</dt><dd className="num font-semibold">{data.valuationComplete ? `${fmt(data.clearedBalance)} USDT` : "Valuation unavailable"}</dd></div>
+          </dl>
+          <div role="progressbar" aria-label="Collateral qualification" aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.valuationComplete ? Math.round(progress.percent) : 0} className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-bull transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${data.valuationComplete ? progress.percent : 0}%` }} /></div>
+          <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span>{data.valuationComplete ? `${Math.round(progress.percent)}% funded` : "Evaluation paused"}</span><span>{data.valuationComplete ? `${fmt(progress.remaining)} USDT remaining` : "Live conversion required"}</span></div>
+          <p className="mt-4 text-xs text-muted-foreground">Pending deposits and open-position notional are excluded. Meeting the requirement does not activate a tier.</p>
+          {isError && <p role="alert" className="mt-2 text-xs text-bear">Status refresh failed. Refresh before submitting an allocation request.</p>}
+        </div>
+        <div className="flex flex-col justify-between border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div>
+            <h2 className="text-base font-semibold">Allocation review</h2>
+            <ol className="mt-4 space-y-4 text-sm">
+              {[{ label: "Collateral requirement", done: ready, text: ready ? "Verified against cleared balances" : "Awaiting eligible collateral" }, { label: "Review request", done: pending || approved, text: pending ? "Pending review" : approved ? "Reviewed" : "Not submitted" }, { label: "Tier allocation", done: approved, text: approved ? "Active" : "Approval required" }].map((step, i) => <li key={step.label} className="flex items-start gap-3"><span className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${step.done ? "border-bull/40 bg-bull/10 text-bull" : "border-border text-muted-foreground"}`}>{step.done ? <Check className="size-3" /> : i + 1}</span><div><p className="font-medium">{step.label}</p><p className="mt-0.5 text-xs text-muted-foreground">{step.text}</p></div></li>)}
+            </ol>
           </div>
+          <Button className="mt-5 h-11 w-full whitespace-normal" disabled={pending || request.isPending || isError || !data.valuationComplete} onClick={() => approved ? setChatOpen(true) : ready ? request.mutate() : setDepositOpen(true)}>{request.isPending ? "Submitting request..." : approved ? "Open VIP support" : pending ? "Allocation pending review" : ready ? "Request tier allocation" : "Add collateral"}<ChevronRight /></Button>
+        </div>
+      </section>
 
-          <div className="space-y-5 p-5">
-            <div>
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Required threshold
-                </p>
-                <p className="num font-display text-xl font-bold">
-                  {VIP1_THRESHOLD_USDT.toLocaleString("en-US")} USDT
-                </p>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="num mt-2 text-xs text-muted-foreground">
-                {already
-                  ? "VIP is active on this account."
-                  : awaiting
-                    ? "Threshold reached - your VIP upgrade request is pending review."
-                    : `${fmt(balance)} / ${fmt(VIP1_THRESHOLD_USDT, 0)} USDT (${Math.round(progress)}% Progress) - ${fmt(remaining)} USDT remaining.`}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                Exclusive perks
-              </p>
-              <ul className="mt-3 space-y-2.5">
-                {VIP1_PERKS.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2.5 text-sm">
-                    <Check className="mt-0.5 size-4 shrink-0 text-bull" />
-                    <span>{perk}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {already ? (
-              <button
-                onClick={() => setChatOpen(true)}
-                className="inline-flex w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                <Headset className="size-4" /> Contact VIP Account Manager
-              </button>
-            ) : (
-              <button
-                disabled={awaiting}
-                onClick={() => setDepositOpen(true)}
-                className="w-full touch-manipulation rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {awaiting ? "VIP request pending approval" : "Deposit to Activate VIP"}
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* Fee comparison */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="border-b border-border p-5">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              VIP fee comparison
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[420px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-[11px] uppercase tracking-widest text-muted-foreground">
-                  <th className="px-5 py-3 font-semibold">Benefit</th>
-                  <th className="px-5 py-3 font-semibold">Standard</th>
-                  <th className="px-5 py-3 font-semibold text-amber-500">VIP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {FEE_ROWS.map((row) => (
-                  <tr key={row.label} className="border-b border-border/60 last:border-0">
-                    <td className="px-5 py-3 font-medium">{row.label}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{row.standard}</td>
-                    <td className="num px-5 py-3 font-semibold text-bull">{row.vip}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <p className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
-          <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-          Once your deposit clears and your balance reaches the threshold, your VIP request is
-          submitted for review. You will receive an in-app alert as soon as it is approved.
-        </p>
-      </div>
-
-      <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
-      <VipChatDialog open={chatOpen} onOpenChange={setChatOpen} />
-    </AppShell>
-  );
+      <section aria-labelledby="matrix-title">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h2 id="matrix-title" className="text-base font-semibold">Quantitative fee & access matrix</h2><p className="mt-1 text-xs text-muted-foreground">Configured base rates. 1 basis point = 0.01%. Account-specific overrides take precedence.</p></div><span className="text-xs text-muted-foreground">Maker / taker schedule</span></div>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full min-w-[880px] text-left text-xs">
+            <thead className="bg-secondary/50"><tr className="border-b border-border"><th className="px-4 py-4 font-medium text-muted-foreground">Execution parameter</th>{PRIME_TIERS.map(t => <th key={t.level} className={`max-w-48 px-4 py-4 font-semibold ${selected.level === t.level ? "bg-secondary" : ""}`}>{t.name}</th>)}</tr></thead>
+            <tbody>{rows.map(row => <tr key={row.label} className="border-b border-border/70 last:border-0"><th scope="row" className="px-4 py-3.5 font-medium">{row.label}</th>{row.values.map((value, i) => <td key={i} className={`px-4 py-3.5 ${i + 1 === selected.level ? "bg-secondary/30" : ""} ${value.includes("bps") ? "num text-foreground" : "text-muted-foreground"}`}>{value}</td>)}</tr>)}</tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">Routing priority and FIX access are not active entitlements. Collateral remains subject to existing margin and withdrawal controls. Account manager access requires an actual assignment.</p>
+      </section>
+      {data.account?.account_manager_name && currentLevel >= 3 && <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><p className="text-xs text-muted-foreground">Assigned account manager</p><p className="mt-1 text-sm font-medium">{data.account.account_manager_name}</p></div><Button variant="outline" onClick={() => setChatOpen(true)}>Contact support <ArrowUpRight /></Button></section>}
+      <div className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="size-4 shrink-0 text-bull" /><p>Allocations are reviewed, not automatic. Your current trading fees remain in effect until approval.</p></div>
+    </div>
+    <QuickDepositDialog open={depositOpen} onOpenChange={open => { setDepositOpen(open); if (!open) void qc.invalidateQueries({ queryKey: ["prime-membership"] }); }} />
+    <VipChatDialog open={chatOpen} onOpenChange={setChatOpen} />
+  </AppShell>;
 }
