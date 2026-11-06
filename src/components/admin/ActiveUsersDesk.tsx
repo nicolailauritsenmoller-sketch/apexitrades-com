@@ -8,6 +8,7 @@ import { getActiveDesk, forceLogoutSession, instantLockout } from "@/lib/active-
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { UserWorkspaceDrawer } from "@/components/admin/UserWorkspaceDrawer";
 import { Button } from "@/components/ui/button";
+import { heartbeatAgeSeconds, formatLastSeen } from "@/lib/last-seen";
 
 type Row = Awaited<ReturnType<typeof getActiveDesk>>["rows"][number];
 
@@ -30,14 +31,10 @@ function flag(country?: string | null) {
 }
 
 function heartbeat(last: string, now: number) {
-  const age = (now - new Date(last).getTime()) / 1000;
+  const age = heartbeatAgeSeconds(last, now) ?? Infinity;
   if (age < 30) return { label: "Active", cls: "bg-bull shadow-[0_0_8px_var(--color-bull)] live-dot", age };
   if (age < 300) return { label: "Idle", cls: "bg-amber-400", age };
   return { label: "Backgrounded", cls: "bg-muted-foreground/40", age };
-}
-
-function ago(s: number) {
-  return s < 60 ? `${Math.round(s)}s ago` : `${Math.round(s / 60)}m ago`;
 }
 
 export function ActiveUsersDesk() {
@@ -55,7 +52,7 @@ export function ActiveUsersDesk() {
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   useEffect(() => {
-    const ch = supabase.channel("desk-active-desk")
+    const ch = supabase.channel(`desk-active-desk-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "user_sessions" }, () => qc.invalidateQueries({ queryKey: ["active-desk"] }))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -114,9 +111,9 @@ export function ActiveUsersDesk() {
       </div>
 
       <section className="overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="w-full min-w-[960px] text-sm">
+        <table className="w-full min-w-[1080px] text-sm">
           <thead className="border-b border-border text-left text-[11px] uppercase tracking-widest text-muted-foreground">
-            <tr><th className="px-4 py-2">Heartbeat</th><th>User</th><th>Location / ISP</th><th>IP</th><th>Device</th><th>Page</th><th className="pr-4 text-right">Actions</th></tr>
+            <tr><th className="px-4 py-2">Heartbeat</th><th className="px-3">Last Seen</th><th>User</th><th>Location / ISP</th><th>IP</th><th>Device</th><th>Page</th><th className="pr-4 text-right">Actions</th></tr>
           </thead>
           <tbody>
             {filtered.map((r) => {
@@ -124,7 +121,12 @@ export function ActiveUsersDesk() {
               const place = [r.city, r.country].filter(Boolean).join(", ");
               return (
                 <tr key={r.id} className="border-b border-border/60 last:border-0">
-                  <td className="px-4 py-3"><span className="flex items-center gap-2"><span className={`size-2.5 rounded-full ${hb.cls}`} /><span className="text-xs">{hb.label}<span className="block font-mono text-muted-foreground">{ago(hb.age)}</span></span></span></td>
+                  <td className="px-4 py-3"><span className="flex items-center gap-2"><span className={`size-2.5 rounded-full ${hb.cls}`} /><span className="text-xs">{hb.label}</span></span></td>
+                  <td className="min-w-28 whitespace-nowrap px-3 py-3 font-mono text-xs tabular-nums">
+                    <time dateTime={r.lastActiveAt} title={`Last heartbeat: ${r.lastActiveAt}`} className={hb.age < 5 ? "text-bull" : "text-muted-foreground"}>
+                      {formatLastSeen(heartbeatAgeSeconds(r.lastActiveAt, now))}
+                    </time>
+                  </td>
                   <td>
                     <p className="font-medium">{r.name} {r.frozen && <span className="ml-1 rounded bg-destructive/15 px-1.5 text-[10px] text-destructive">FROZEN</span>}{r.flagged && <span className="ml-1 rounded bg-amber-400/15 px-1.5 text-[10px] text-amber-500">MULTI-DEVICE</span>}</p>
                     <p className="font-mono text-xs text-muted-foreground">{r.uid ?? r.userId.slice(0, 8)} · {r.role === "admin" ? "Super Admin" : r.role === "staff" ? "Staff" : "Trader"}</p>
@@ -143,7 +145,7 @@ export function ActiveUsersDesk() {
                 </tr>
               );
             })}
-            {!filtered.length && <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">{q.isLoading ? "Loading sessions..." : "No active sessions match these filters."}</td></tr>}
+            {!filtered.length && <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">{q.isLoading ? "Loading sessions..." : "No active sessions match these filters."}</td></tr>}
           </tbody>
         </table>
       </section>
@@ -156,7 +158,7 @@ export function ActiveUsersDesk() {
           : `Sign ${action?.row.name ?? "this user"} out of every device. They can sign in again unless the account is frozen.`}
         pending={mut.isPending}
         onClose={() => setAction(null)}
-        onConfirm={(reason) => mut.mutateAsync({ kind: action!.kind, row: action!.row, reason })}
+        onConfirm={async (reason) => { if (!action) return; await mut.mutateAsync({ kind: action.kind, row: action.row, reason }); }}
       />
       {inspect && <UserWorkspaceDrawer userId={inspect} onClose={() => setInspect(null)} />}
     </div>
