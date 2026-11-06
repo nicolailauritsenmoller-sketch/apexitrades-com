@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { setStoredLanguage } from "@/lib/preferences";
 
 /**
  * Lightweight global i18n provider.
@@ -293,11 +294,16 @@ type I18nValue = {
 const I18nContext = createContext<I18nValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<LangCode>("en");
+  // Initialize from the stored choice on the very first client render so
+  // returning users never see an English flash before their language applies.
+  // readLang() returns "en" on the server, keeping SSR output stable.
+  const [lang, setLangState] = useState<LangCode>(() => readLang());
 
   useEffect(() => {
-    setLangState(readLang());
-    const onEvent = (e: Event) => setLangState((e as CustomEvent<LangCode>).detail);
+    const onEvent = (e: Event) => {
+      const next = (e as CustomEvent<unknown>).detail;
+      if (isLang(next)) setLangState(next);
+    };
     window.addEventListener("velocity:lang", onEvent);
     return () => window.removeEventListener("velocity:lang", onEvent);
   }, []);
@@ -309,12 +315,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((next: LangCode) => {
+    if (!isLang(next)) return;
     setLangState(next);
     try {
       localStorage.setItem(LANG_KEY, next);
     } catch {
       /* storage unavailable */
     }
+    // Mirror into the shared preference store (and the signed-in account)
+    // so the language follows the user across devices.
+    setStoredLanguage(next);
     window.dispatchEvent(new CustomEvent<LangCode>("velocity:lang", { detail: next }));
   }, []);
 

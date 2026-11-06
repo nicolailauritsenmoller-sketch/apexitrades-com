@@ -105,9 +105,25 @@ export async function restoreAccountPreferences() {
     const merged = { ...remote, ...readPreferences() };
     localStorage.setItem(KEY, JSON.stringify(merged));
     window.dispatchEvent(new CustomEvent<Preferences>(EVENT, { detail: merged }));
+    // Let the i18n provider adopt the account-stored language on this device.
+    if (typeof merged.language === "string" && merged.language) {
+      window.dispatchEvent(new CustomEvent("velocity:lang", { detail: merged.language }));
+    }
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * Persists the interface language through the shared preference store so it
+ * mirrors onto the signed-in account and follows the user across devices.
+ * Without functional consent the choice stays in the i18n store only.
+ */
+export function setStoredLanguage(lang: string) {
+  if (typeof window === "undefined") return;
+  const current = readPreferences();
+  if (current.language === lang) return;
+  writePreferences({ ...current, language: lang });
 }
 
 /** Reads/writes a single personalization key with consent gating. */

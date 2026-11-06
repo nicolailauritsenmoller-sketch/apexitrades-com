@@ -64,7 +64,6 @@ export const Route = createFileRoute("/_authenticated/profile/settings/preferenc
 function PreferenceSettings() {
   const { currency } = useDisplayCurrency();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [, setLanguagePref] = usePreference("language", "en");
   const [timezone, setTimezone] = usePreference("timezone", "utc");
   const [orderConfirmations, setOrderConfirmations] = usePreference("orderConfirmations", true);
   const [orderLeverage, setOrderLeverage] = usePreference("orderLeverage", 1);
@@ -109,7 +108,6 @@ function PreferenceSettings() {
 
   function changeLanguage(next: LangCode) {
     setLang(next);
-    setLanguagePref(next);
     void logActivity("settings", `Changed language to ${next}`, { setting: "language", value: next });
   }
 
