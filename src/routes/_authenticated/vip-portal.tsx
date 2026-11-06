@@ -10,6 +10,7 @@ import { membershipOptions } from "@/lib/prime-membership-query";
 import { PRIME_TIERS, collateralProgress } from "@/lib/prime-tiers";
 import { isVip, isVipPending } from "@/lib/vip-tiers";
 import { supabase } from "@/integrations/supabase/client";
+import { VIP_PORTAL_WITHDRAWAL_LIMIT_USDT, vipEthBalance } from "@/lib/vip-portal-metrics";
 
 const description = "Velocity Trade VIP Portal: live account standing, collateral progression, withdrawal limit status and institutional service availability.";
 export const Route = createFileRoute("/_authenticated/vip-portal")({
@@ -46,7 +47,7 @@ function VipPortalPage() {
         supabase.from("user_withdrawal_limits").select("daily_limit_usdt").eq("user_id", data.userId).maybeSingle(),
       ]);
       return {
-        bnb: wallets.error ? null : (wallets.data ?? []).filter(w => w.currency.toUpperCase() === "BNB").reduce((sum, w) => sum + Number(w.balance), 0),
+        eth: wallets.error ? null : vipEthBalance(wallets.data ?? []),
         limit: limit.error ? null : limit.data?.daily_limit_usdt ?? null,
         limitUnavailable: Boolean(limit.error),
       };
@@ -62,7 +63,7 @@ function VipPortalPage() {
     <div className="mb-6 flex items-center justify-between"><h2 className="text-lg">Dashboard</h2><Button variant="ghost" size="icon" aria-label="Refresh VIP account" onClick={() => { void membership.refetch(); void account.refetch(); }}><RefreshCw className={membership.isFetching ? "animate-spin motion-reduce:animate-none" : ""} /></Button></div>
     <section aria-labelledby="my-account-title" className="mb-6">
       <h2 id="my-account-title" className="mb-5 flex flex-wrap items-center gap-3 text-xl">My Account <span className="rounded-sm bg-ops-amber/10 px-2 py-1 text-xs font-medium text-ops-amber">{standing}</span></h2>
-      <dl className="grid grid-cols-2 gap-5"><div><dt className="text-xs text-muted-foreground">BNB Balance</dt><dd className="num mt-2 text-lg">{account.data?.bnb == null ? "Unavailable" : fmt(account.data.bnb)}</dd></div><div><dt className="text-xs text-muted-foreground">24H Withdrawal Limit</dt><dd className="mt-2 text-sm font-semibold">{account.isPending ? "Loading..." : account.data?.limit != null ? `${fmt(account.data.limit)} USDT` : account.data?.limitUnavailable || account.isError ? "Unavailable" : "No custom cap configured"}</dd><Link to="/profile/verification" className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">Verification & limits <ChevronRight className="size-3" /></Link></div></dl>
+      <dl className="grid grid-cols-2 gap-5"><div><dt className="text-xs text-muted-foreground">ETH Balance</dt><dd className="num mt-2 text-lg">{account.data?.eth == null ? "Unavailable" : fmt(account.data.eth)}</dd></div><div><dt className="text-xs text-muted-foreground">24H Withdrawal Limit</dt><dd className="num mt-2 text-sm font-semibold">{VIP_PORTAL_WITHDRAWAL_LIMIT_USDT.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT</dd><p className="mt-1 text-xs text-muted-foreground">{account.data?.limit != null ? `Account cap: ${fmt(account.data.limit)} USDT` : "Account-specific restrictions apply."}</p><Link to="/profile/verification" className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">Verification & limits <ChevronRight className="size-3" /></Link></div></dl>
     </section>
     {!data ? <div role={membership.isError ? "alert" : "status"} className="py-6 text-sm text-muted-foreground">{membership.isError ? "VIP account status is temporarily unavailable." : "Loading account progression..."}</div> : <section aria-label="VIP tier progression" className="overflow-hidden rounded-lg border border-border bg-card">
       <div ref={carousel} className="flex snap-x snap-mandatory overflow-x-auto no-scrollbar" onScroll={event => setPage(Math.round(event.currentTarget.scrollLeft / event.currentTarget.clientWidth))}>
@@ -72,7 +73,7 @@ function VipPortalPage() {
           return <div key={tier.level} className="w-full min-w-0 shrink-0 snap-start p-5 sm:p-6">
             <h2 className="text-xl">{tiers.length ? "Level up to the next VIP Tier" : "Your Prime allocation"}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{tier.name}</p><p className="mt-2 text-xs leading-relaxed text-muted-foreground">Cleared collateral is evaluated live. Allocation requires review; funding does not activate benefits automatically.</p>
-            <div className="mt-6"><div className="flex items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm">BNB holdings <Info className="size-3.5 text-muted-foreground" /></h3><Button variant="outline" disabled className="min-h-10">Add BNB</Button></div><p className="num mt-3 text-sm">{account.data?.bnb == null ? "Unavailable" : `${fmt(account.data.bnb)} BNB`} <span className="font-sans text-xs text-muted-foreground">/ No BNB requirement</span></p><div className="mt-3 h-1.5 rounded-full bg-secondary" /><p className="mt-2 text-xs text-muted-foreground">BNB-based qualification and quick funding are not configured.</p></div>
+            <div className="mt-6"><div className="flex items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm">ETH holdings <Info className="size-3.5 text-muted-foreground" /></h3><Button variant="outline" disabled className="min-h-10">Add ETH</Button></div><p className="num mt-3 text-sm">{account.data?.eth == null ? "Unavailable" : `${fmt(account.data.eth)} ETH`} <span className="font-sans text-xs text-muted-foreground">/ No ETH requirement</span></p><div className="mt-3 h-1.5 rounded-full bg-secondary" /><p className="mt-2 text-xs text-muted-foreground">ETH-based qualification and quick funding are not configured.</p></div>
             <div className="mt-6"><div className="flex items-center justify-between gap-3"><h3 className="text-sm">Cleared Asset Collateral</h3><Button className="min-h-10" onClick={() => setDepositOpen(true)}>Deposit</Button></div><p className="num mt-3 text-sm">{data.valuationComplete ? `${fmt(data.clearedBalance)} / ${fmt(threshold)} USDT` : "Valuation unavailable"}</p><div role="progressbar" aria-label={`${tier.name} collateral`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.valuationComplete ? Math.round(progress.percent) : 0} className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-ops-amber" style={{ width: `${data.valuationComplete ? progress.percent : 0}%` }} /></div><p className="mt-2 text-xs text-muted-foreground">30D Average Asset: not tracked for this allocation. Current cleared balances are used.</p></div>
           </div>;
         })}

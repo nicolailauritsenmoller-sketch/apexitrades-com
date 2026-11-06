@@ -48,7 +48,7 @@ function FeeSchedulePage() {
         <Tabs value={market} onValueChange={setMarket}>
           <div className="overflow-x-auto no-scrollbar"><TabsList aria-label="Fee markets" className="h-auto w-max justify-start gap-6 rounded-none bg-transparent p-0">{markets.map(m => <TabsTrigger key={m.id} value={m.id} className={tabStyle}>{m.label}</TabsTrigger>)}</TabsList></div>
         </Tabs>
-        <div className="mt-5 flex items-center justify-between gap-4 border-y border-border py-4"><div><label htmlFor="bnb-discount" className="text-sm font-medium">Pay fees with BNB</label><p className="mt-1 text-xs text-muted-foreground">BNB fee discount is not available on Velocity Trade.</p></div><Switch id="bnb-discount" checked={false} disabled aria-label="BNB fee discount unavailable" /></div>
+        <div className="mt-5 flex items-center justify-between gap-4 border-y border-border py-4"><div><label htmlFor="eth-discount" className="text-sm font-medium">Pay fees with ETH</label><p className="mt-1 text-xs text-muted-foreground">ETH fee discount is not available on Velocity Trade.</p></div><Switch id="eth-discount" checked={false} disabled aria-label="ETH fee discount unavailable" /></div>
         {market === "coin" ? <div className="py-8"><h2 className="text-lg">COIN-M Futures</h2><p className="mt-2 text-sm text-muted-foreground">Coin-margined execution is not supported. No COIN-M fee schedule is configured.</p></div> : <>
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><Info className="size-4 shrink-0" />{market === "stocks" ? "Unleveraged stocks use the spot fee schedule. Leveraged positions use the futures schedule." : market === "spot" ? "Unleveraged positions use spot rates. Leveraged margin positions use futures rates." : market === "scalp" ? "Account trading fees shown below. Duration-specific protocol fees may also apply and appear before order confirmation." : "Platform futures and leveraged positions use the configured futures rates."}</p>
           {!data ? <div className="py-8" role={membership.isError ? "alert" : "status"}><p className="text-sm text-muted-foreground">{membership.isError ? "Fee schedule is temporarily unavailable." : "Loading configured fee rates..."}</p>{membership.isError && <Button variant="outline" className="mt-3" onClick={() => void membership.refetch()}><RefreshCw /> Retry</Button>}</div> : <div>
@@ -67,7 +67,7 @@ function FeeSchedulePage() {
                 {Number(maker) < 0 && <p className="mt-3 text-xs text-bull">Negative maker rates represent rebates.</p>}
               </section>;
             })}
-            <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Configured base rates, not a quote for a specific order. Account-specific fee overrides and approved discounts take precedence. VIP allocation requires review; collateral alone does not activate a fee tier. No separate USDC or BNB discount schedule is configured.</p>
+            <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Configured base rates, not a quote for a specific order. Account-specific fee overrides and approved discounts take precedence. VIP allocation requires review; collateral alone does not activate a fee tier. No separate USDC or ETH discount schedule is configured.</p>
           </div>}
         </>}
       </TabsContent>
