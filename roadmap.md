@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Update VIP Portal withdrawal display to 5,000,000.00 USDT and replace VIP-related BNB references with real ETH holdings; preserve enforced account limits and verify signed-in views.
+- [x] Update VIP Portal withdrawal display to 5,000,000.00 USDT and replace VIP-related BNB references with real ETH holdings. Two metric tests pass; signed-in desktop/mobile portal, fee discount and article verified without overflow or runtime errors. Enforced account limits remain unchanged; unavailable ETH qualification/discount controls remain disabled.
 
 - [x] Replace Priority Support agent browsing with department selection and private pending queue; actual assigned staff identity is gated on atomic acceptance/join and active status uses a 60-second heartbeat. Signed-in Treasury pending state, staff Accept & join, customer identity/status readback, message sending and mobile layout verified. Direct specialist-table reads restricted to staff; privacy and handler tests added.
 
