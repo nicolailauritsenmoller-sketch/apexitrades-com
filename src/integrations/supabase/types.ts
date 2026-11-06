@@ -1974,6 +1974,7 @@ export type Database = {
           subject: string
           updated_at: string
           user_id: string
+          vip_credit_drawdown_at: string | null
           vip_credit_review_note: string | null
           vip_credit_scenario: Json | null
           vip_credit_status: string
@@ -1996,6 +1997,7 @@ export type Database = {
           subject: string
           updated_at?: string
           user_id: string
+          vip_credit_drawdown_at?: string | null
           vip_credit_review_note?: string | null
           vip_credit_scenario?: Json | null
           vip_credit_status?: string
@@ -2018,6 +2020,7 @@ export type Database = {
           subject?: string
           updated_at?: string
           user_id?: string
+          vip_credit_drawdown_at?: string | null
           vip_credit_review_note?: string | null
           vip_credit_scenario?: Json | null
           vip_credit_status?: string
@@ -3031,6 +3034,10 @@ export type Database = {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
       }
+      record_vip_simulated_drawdown: {
+        Args: { p_id: string; p_user: string }
+        Returns: undefined
+      }
       request_prime_allocation: {
         Args: { p_level: number; p_user_id: string }
         Returns: string
@@ -3052,6 +3059,15 @@ export type Database = {
       review_balance_correction: {
         Args: { p_action: string; p_actor: string; p_id: string }
         Returns: number
+      }
+      review_vip_credit: {
+        Args: {
+          p_actor: string
+          p_id: string
+          p_reason: string
+          p_status: string
+        }
+        Returns: undefined
       }
       review_withdrawal_atomic: {
         Args: {
