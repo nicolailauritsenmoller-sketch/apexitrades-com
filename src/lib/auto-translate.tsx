@@ -10,11 +10,17 @@ import { translateTexts } from "@/lib/translate.functions";
  * on every route the moment the language changes - no reload required. Results are
  * cached in localStorage per language so repeat visits are instant and free.
  * Numbers, tickers and prices are deliberately skipped.
+ *
+ * Fresh languages apply in two stages so the switch feels instant:
+ *  1. every string already in the cache is applied synchronously in the same pass;
+ *  2. the remaining strings are fetched in parallel batches and applied the
+ *     moment each batch returns - the whole page lands within about a second.
  */
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "TEXTAREA", "SVG", "PATH"]);
 const BATCH = 60;
-const MAX_BATCHES_PER_PASS = 6;
+const CONCURRENCY = 3;
+const MAX_BATCHES_PER_PASS = 24;
 
 function cacheKey(lang: string) {
   return `velocity.i18n-cache.${lang}`;
@@ -117,6 +123,11 @@ function restoreOriginals() {
 export function AutoTranslate() {
   const { lang } = useI18n();
   const translate = useServerFn(translateTexts);
+  // Keep the latest server fn in a ref so the pass effect depends only on the
+  // language; an unstable fn reference would otherwise cancel in-flight passes
+  // on every render and stall translation until the page goes idle.
+  const translateRef = useRef(translate);
+  translateRef.current = translate;
   const running = useRef(false);
   const pending = useRef(false);
 
@@ -142,6 +153,18 @@ export function AutoTranslate() {
       }
     };
 
+    /** Applies every cached translation currently missing from the DOM. */
+    const applyCached = (): string[] => {
+      const targets = collect(document.body);
+      const missing: string[] = [];
+      for (const target of targets) {
+        const hit = cache[target.original];
+        if (hit) apply(target, hit);
+        else if (!missing.includes(target.original)) missing.push(target.original);
+      }
+      return missing;
+    };
+
     const pass = async () => {
       if (cancelled) return;
       if (running.current) {
@@ -150,30 +173,38 @@ export function AutoTranslate() {
       }
       running.current = true;
       try {
-        const targets = collect(document.body);
-        const missing: string[] = [];
-        for (const target of targets) {
-          const hit = cache[target.original];
-          if (hit) apply(target, hit);
-          else if (!missing.includes(target.original)) missing.push(target.original);
-        }
+        // Stage 1: synchronous cache sweep - instant for repeat languages.
+        const missing = applyCached();
         if (missing.length === 0) return;
 
+        // Stage 2: fetch the rest in parallel batches, applying each batch as
+        // soon as it lands so the page fills in progressively within a second.
+        const chunks: string[][] = [];
         for (let i = 0; i < missing.length && i < BATCH * MAX_BATCHES_PER_PASS; i += BATCH) {
-          const chunk = missing.slice(i, i + BATCH);
-          const result = await translate({ data: { lang, texts: chunk } });
-          if (cancelled) return;
-          chunk.forEach((src, idx) => {
-            cache[src] = result[idx] ?? src;
-          });
-          writeCache(lang, cache);
-          for (const target of collect(document.body)) {
-            const hit = cache[target.original];
-            if (hit) apply(target, hit);
-          }
+          chunks.push(missing.slice(i, i + BATCH));
         }
-      } catch {
-        /* keep original copy on failure */
+        let cursor = 0;
+        const worker = async () => {
+          while (!cancelled) {
+            const idx = cursor++;
+            const chunk = chunks[idx];
+            if (!chunk) return;
+            try {
+              const result = await translateRef.current({ data: { lang, texts: chunk } });
+              if (cancelled) return;
+              chunk.forEach((src, i2) => {
+                cache[src] = result[i2] ?? src;
+              });
+              writeCache(lang, cache);
+              applyCached();
+            } catch {
+              /* keep original copy on failure */
+            }
+          }
+        };
+        await Promise.all(
+          Array.from({ length: Math.min(CONCURRENCY, chunks.length) }, () => worker()),
+        );
       } finally {
         running.current = false;
         if (pending.current && !cancelled) {
@@ -188,7 +219,7 @@ export function AutoTranslate() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const observer = new MutationObserver(() => {
       clearTimeout(timer);
-      timer = setTimeout(() => void pass(), 350);
+      timer = setTimeout(() => void pass(), 150);
     });
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
@@ -197,7 +228,7 @@ export function AutoTranslate() {
       clearTimeout(timer);
       observer.disconnect();
     };
-  }, [lang, translate]);
+  }, [lang]);
 
   return null;
 }
