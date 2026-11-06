@@ -2559,6 +2559,9 @@ export type Database = {
       }
       vip_access: {
         Row: {
+          accepted_at: string | null
+          agent_joined_at: string | null
+          agent_last_seen_at: string | null
           assigned_to: string | null
           created_at: string
           granted_by: string | null
@@ -2571,6 +2574,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accepted_at?: string | null
+          agent_joined_at?: string | null
+          agent_last_seen_at?: string | null
           assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
@@ -2583,6 +2589,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accepted_at?: string | null
+          agent_joined_at?: string | null
+          agent_last_seen_at?: string | null
           assigned_to?: string | null
           created_at?: string
           granted_by?: string | null
@@ -2877,6 +2886,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_vip_queue: {
+        Args: { p_agent_id: string; p_role_key: string; p_user_id: string }
+        Returns: boolean
+      }
       apply_balance_correction: {
         Args: {
           p_actor: string

@@ -2,8 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, Check, CheckCheck, Lock, Loader2, Mic, Paperclip, Send, ShieldCheck, X } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft, Check, CheckCheck, Loader2, Paperclip, Send, ShieldCheck, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VIP_DEPARTMENTS } from "@/lib/vip-queue";
 import { ChatComposerInput } from "@/components/support/ChatComposerInput";
 import { VipAttachment, formatBytes } from "@/components/chat/VipAttachment";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,8 +22,9 @@ function time(iso: string) {
 }
 
 function Initials({ name, url }: { name: string; url?: string | null }) {
-  if (url) {
-    return <img src={url} alt={name} className="size-10 rounded-full object-cover" />;
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (url && failedUrl !== url) {
+    return <img src={url} alt={name} onError={() => setFailedUrl(url)} className="size-10 rounded-full object-cover" />;
   }
   const letters = name
     .split(" ")
@@ -28,7 +32,7 @@ function Initials({ name, url }: { name: string; url?: string | null }) {
     .slice(0, 2)
     .join("");
   return (
-    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-600 text-sm font-bold text-white">
+    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-ops-emerald text-sm font-bold text-primary-foreground">
       {letters}
     </span>
   );
@@ -69,7 +73,7 @@ export function VipChatDialog({
   const thread = useQuery({
     queryKey: ["vip-thread", activeRole],
     queryFn: () => fetchThread({ data: { roleKey: activeRole as any } }),
-    enabled: open && !!activeRole && !!active?.unlocked,
+    enabled: open && !!activeRole && !!active?.connected,
     refetchInterval: 5000,
   });
 
@@ -81,11 +85,12 @@ export function VipChatDialog({
   useEffect(() => {
     if (!open) return;
     const channel = supabase
-      .channel("vip-messages-user")
+      .channel(`vip-user-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "vip_messages" }, () => {
         qc.invalidateQueries({ queryKey: ["vip-directory"] });
         qc.invalidateQueries({ queryKey: ["vip-thread"] });
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "vip_access" }, () => { qc.invalidateQueries({ queryKey: ["vip-directory"] }); qc.invalidateQueries({ queryKey: ["vip-thread"] }); })
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -123,7 +128,7 @@ export function VipChatDialog({
   const requestMutation = useMutation({
     mutationFn: (roleKey: string) => request({ data: { roleKey: roleKey as any } }),
     onSuccess: () => {
-      toast.success("Access requested - our support desk will unlock this specialist shortly.");
+      toast.success("Request queued.");
       qc.invalidateQueries({ queryKey: ["vip-directory"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -132,88 +137,54 @@ export function VipChatDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg overflow-hidden p-0 sm:max-w-lg">
-        <div className="flex h-[78vh] flex-col bg-[#0b141a]">
+        <DialogTitle className="sr-only">VIP Live Chat</DialogTitle><DialogDescription className="sr-only">Priority Support department queue and private specialist conversation.</DialogDescription>
+        <div className="flex h-[78vh] flex-col bg-card">
           {/* WhatsApp-style emerald header */}
-          <header className="flex items-center gap-3 bg-emerald-700 px-4 py-3 text-white">
+          <header className="flex items-center gap-3 bg-ops-emerald px-4 py-3 text-foreground">
             {activeRole ? (
-              <button onClick={() => setActiveRole(null)} aria-label="Back to specialists">
+              <Button variant="ghost" size="icon" onClick={() => setActiveRole(null)} aria-label="Back to departments">
                 <ArrowLeft className="size-5" />
-              </button>
+              </Button>
             ) : (
               <ShieldCheck className="size-5" />
             )}
-            {active ? (
+            {active?.connected && active.agent ? (
               <>
-                <Initials name={active.fullName} url={active.avatarUrl} />
+                <Initials name={active.agent.fullName} url={active.agent.avatarUrl} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{active.fullName}</p>
-                  <p className="truncate text-[11px] text-emerald-100">
-                    {active.title} · <span className="font-bold">{active.staffId}</span>
+                  <p className="truncate text-sm font-semibold">{active.agent.fullName}</p>
+                  <p className="truncate text-[11px] text-primary-foreground">
+                    {active.roleLabel} · {active.active ? "Active" : "Away"}
                   </p>
                 </div>
               </>
             ) : (
               <div>
                 <p className="text-sm font-semibold">VIP Live Chat</p>
-                <p className="text-[11px] text-emerald-100">Dedicated specialists desk</p>
+                <p className="text-[11px] text-primary-foreground">Dedicated specialists desk</p>
               </div>
             )}
           </header>
 
-          {!activeRole ? (
-            <div className="flex-1 divide-y divide-white/5 overflow-y-auto">
-              {(directory.data ?? []).map((s: any) => (
-                <button
-                  key={s.roleKey}
-                  onClick={() => setActiveRole(s.roleKey)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5"
-                >
-                  <Initials name={s.fullName} url={s.avatarUrl} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-white">{s.roleLabel}</p>
-                    <p className="truncate text-xs text-white/60">
-                      {s.fullName} · <span className="font-bold">{s.staffId}</span>
-                    </p>
-                  </div>
-                  {s.unlocked ? (
-                    s.unread > 0 ? (
-                      <span className="grid size-5 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white">
-                        {s.unread}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold uppercase text-emerald-400">
-                        Open
-                      </span>
-                    )
-                  ) : (
-                    <Lock className="size-4 text-white/40" />
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : !active?.unlocked ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
-              <Lock className="size-8 text-white/50" />
-              <p className="text-sm font-semibold text-white">This specialist is locked</p>
-              <p className="text-xs text-white/60">
-                {active?.requested
-                  ? "Your request is with our support desk. You'll be notified the moment it's unlocked."
-                  : "Request access and our customer support team will unlock this dedicated thread for you."}
-              </p>
-              <button
-                onClick={() => requestMutation.mutate(activeRole)}
-                disabled={requestMutation.isPending || active?.requested}
-                className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {active?.requested ? "Request pending" : "Request access"}
-              </button>
+          {!active?.connected ? (
+            <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-6">
+              <div className="space-y-2">
+                <label id="vip-department-label" className="text-sm font-medium">Department</label>
+                <Select value={activeRole ?? undefined} onValueChange={value => { setActiveRole(value); setDraft(""); setFile(null); }}>
+                  <SelectTrigger aria-labelledby="vip-department-label" className="min-h-11 w-full"><SelectValue placeholder="Select a department" /></SelectTrigger>
+                  <SelectContent>{VIP_DEPARTMENTS.map(dept => <SelectItem key={dept.key} value={dept.key}>{dept.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              {directory.isError ? <p role="alert" className="text-sm text-destructive">Support queue unavailable. Please retry.</p> : active?.requested ?
+                <div role="status" className="flex flex-1 flex-col items-center justify-center gap-4 text-center"><Loader2 className="size-7 animate-spin text-ops-emerald motion-reduce:animate-none" /><p className="text-sm font-medium">Connecting to next available specialist...</p><p className="text-xs text-muted-foreground">{active.roleLabel}</p></div> :
+                <Button className="min-h-11" disabled={!activeRole || directory.isPending || requestMutation.isPending} onClick={() => { if (activeRole) requestMutation.mutate(activeRole); }}>{requestMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}Connect to specialist</Button>}
             </div>
           ) : (
             <>
-              <div className="flex-1 space-y-2 overflow-y-auto bg-[#0b141a] px-3 py-4">
+              <div className="flex-1 space-y-2 overflow-y-auto bg-card px-3 py-4">
                 {(thread.data ?? []).length === 0 && (
-                  <p className="text-center text-xs text-white/40">
-                    Start the conversation with {active.fullName}.
+                  <p className="text-center text-xs text-foreground/40">
+                    Start the conversation with {active.agent?.fullName ?? "your specialist"}.
                   </p>
                 )}
                 {(thread.data ?? []).map((m: any) => {
@@ -222,7 +193,7 @@ export function VipChatDialog({
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div
                         className={`max-w-[78%] rounded-lg px-3 py-2 text-sm shadow ${
-                          mine ? "bg-emerald-800 text-white" : "bg-[#202c33] text-white"
+                          mine ? "bg-secondary text-foreground" : "bg-surface-raised text-foreground"
                         }`}
                       >
                         {m.attachmentPath && (
@@ -234,11 +205,11 @@ export function VipChatDialog({
                           />
                         )}
                         <p className="whitespace-pre-wrap break-words">{m.body}</p>
-                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/50">
+                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-foreground/50">
                           {time(m.createdAt)}
                           {mine &&
                             (m.readAt ? (
-                              <CheckCheck className="size-3 text-sky-400" />
+                              <CheckCheck className="size-3 text-bull" />
                             ) : (
                               <Check className="size-3" />
                             ))}
@@ -255,16 +226,16 @@ export function VipChatDialog({
                   e.preventDefault();
                   if (draft.trim() || file) sendMutation.mutate(draft.trim());
                 }}
-                className="flex flex-col gap-2 bg-[#202c33] px-3 py-2"
+                className="flex flex-col gap-2 bg-surface-raised px-3 py-2"
               >
                 {file && (
-                  <div className="flex items-center gap-2 rounded-md bg-black/30 px-2 py-1 text-[11px] text-white/80">
+                  <div className="flex items-center gap-2 rounded-md bg-secondary px-2 py-1 text-[11px] text-foreground/80">
                     <Paperclip className="size-3" />
                     <span className="min-w-0 flex-1 truncate">{file.name}</span>
                     <span className="opacity-70">{formatBytes(file.size)}</span>
-                    <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
+                    <Button type="button" onClick={() => setFile(null)} aria-label="Remove attachment">
                       <X className="size-3.5" />
-                    </button>
+                    </Button>
                   </div>
                 )}
                 <div className="flex items-end gap-2">
@@ -275,14 +246,14 @@ export function VipChatDialog({
                   accept="image/png,image/jpeg,image/webp,application/pdf,.doc,.docx,.txt"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="grid size-9 place-items-center rounded-full text-white/70 hover:text-white"
+                  className="grid size-9 place-items-center rounded-full text-foreground/70 hover:text-foreground"
                   aria-label="Attach a file"
                 >
                   <Paperclip className="size-5" />
-                </button>
+                </Button>
                 <ChatComposerInput
                   value={draft}
                   onChange={setDraft}
@@ -291,15 +262,12 @@ export function VipChatDialog({
                   }}
                   placeholder="Message"
                   maxLength={2000}
-                  className="rounded-2xl bg-[#2a3942] px-4 py-2 text-sm text-white placeholder:text-white/40"
+                  className="rounded-2xl bg-secondary px-4 py-2 text-sm text-foreground placeholder:text-foreground/40"
                 />
-                <span className="grid size-9 place-items-center text-white/50" title="Audio note">
-                  <Mic className="size-5" />
-                </span>
-                <button
+                <Button
                   type="submit"
                   disabled={(!draft.trim() && !file) || sendMutation.isPending}
-                  className="grid size-9 place-items-center rounded-full bg-emerald-600 text-white disabled:opacity-50"
+                  className="grid size-9 place-items-center rounded-full bg-ops-emerald text-foreground disabled:opacity-50"
                   aria-label="Send"
                 >
                   {sendMutation.isPending ? (
@@ -307,7 +275,7 @@ export function VipChatDialog({
                   ) : (
                     <Send className="size-4" />
                   )}
-                </button>
+                </Button>
                 </div>
               </form>
             </>
