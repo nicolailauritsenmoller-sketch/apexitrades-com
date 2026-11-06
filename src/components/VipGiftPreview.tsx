@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Clock3 } from "lucide-react";
-import { giftCountdown, giftRotationAt } from "@/lib/vip-gift-rotation";
+import { giftRotationAt } from "@/lib/vip-gift-rotation";
 import apparel from "@/assets/vip-gift-merchandise.jpg";
 import desk from "@/assets/vip-gifts-desk.jpg";
 import security from "@/assets/vip-gifts-security.jpg";
@@ -23,12 +22,8 @@ export function VipGiftPreview() {
     };
   }, []);
   if (now === null) return <div className="aspect-video bg-secondary" role="status">Loading daily preview...</div>;
-  const { pack, remainingSeconds } = giftRotationAt(now);
+  const { pack } = giftRotationAt(now);
   return <>
-    <div className="flex items-center justify-between gap-3 border-y border-border py-3 text-xs">
-      <span className="font-medium text-ops-amber">Daily preview</span>
-      <span className="flex items-center gap-2 text-muted-foreground"><Clock3 className="size-3.5" /> Next rotation <span role="timer" aria-label="Next gift rotation" className="num min-w-16 text-foreground" translate="no">{giftCountdown(remainingSeconds)}</span></span>
-    </div>
     <figure>
       <img src={images[pack.id]} alt={`Illustrative ${pack.category} merchandise concept`} loading="lazy" width={1536} height={864} className="aspect-video h-auto w-full rounded-lg border border-border object-cover" />
       <figcaption className="mt-3 text-xs text-muted-foreground">Actual items may differ from what's shown above.</figcaption>
