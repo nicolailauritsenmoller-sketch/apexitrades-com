@@ -2803,6 +2803,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_research_reports: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          published: boolean
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published?: boolean
+          summary?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published?: boolean
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       vip_specialists: {
         Row: {
           active: boolean
