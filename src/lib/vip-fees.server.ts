@@ -131,6 +131,9 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
   }
   for (const c of (contracts ?? []) as any[]) get(c.user_id).scalp += Number(c.stake);
   for (const a of (accounts ?? []) as any[]) get(a.user_id);
+  const { data: allWalletUsers, error: walletUsersError } = await db.from("wallets").select("user_id");
+  if (walletUsersError) throw new Error("Cleared accounts unavailable.");
+  for (const wallet of allWalletUsers ?? []) get(wallet.user_id);
 
   const ids = [...metrics.keys()];
   if (ids.length) {

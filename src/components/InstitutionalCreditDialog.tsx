@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { creditMetrics, creditScenarioSchema, CREDIT_MAX_LTV, CREDIT_LIQUIDATION_LTV } from "@/lib/institutional-credit";
 import { requestCreditSimulation } from "@/lib/institutional-credit.functions";
 import { requestVipAccess } from "@/lib/vip.functions";
+import { getMyVipCredit } from "@/lib/vip-ecosystem.functions";
 
 const number = (n: number, digits = 2) => n.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 export function InstitutionalCreditDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -30,6 +31,8 @@ export function InstitutionalCreditDialog({ open, onOpenChange }: { open: boolea
   const qc = useQueryClient();
   const submit = useServerFn(requestCreditSimulation);
   const treasury = useServerFn(requestVipAccess);
+  const loadReviews = useServerFn(getMyVipCredit);
+  const reviews = useQuery({ queryKey: ["my-vip-credit"], enabled: open, queryFn: () => loadReviews(), refetchInterval: 5000 });
   const { quotes } = useQuotes(open ? ["BTCUSDT", "ETHUSDT", "USDCUSDT"] : []);
   const price = (asset: string) => asset === "USDT" ? 1 : articleQuote(quotes[`${asset}USDT`])?.price;
   const wallets = useQuery({ queryKey: ["credit-simulation-wallets"], enabled: open, queryFn: async () => {
@@ -46,12 +49,14 @@ export function InstitutionalCreditDialog({ open, onOpenChange }: { open: boolea
     if (!parsed.success) throw new Error("Enter valid collateral and rate assumptions; current quotes are required.");
     const result = await submit({ data: parsed.data });
     void qc.invalidateQueries({ queryKey: ["my-tickets"] });
+    void qc.invalidateQueries({ queryKey: ["my-vip-credit"] });
     return result;
   } });
   const contact = useMutation({ mutationFn: () => treasury({ data: { roleKey: "treasury_ops" } }) });
   const update = () => { request.reset(); setDrawn(false); };
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90dvh] max-w-3xl overflow-y-auto p-0">
     <DialogHeader className="border-b border-border px-5 py-5 sm:px-6"><div className="mb-2 flex items-center gap-2 text-xs uppercase text-muted-foreground"><Building2 className="size-4 text-ops-amber" /> Prime brokerage <span className="ml-auto mr-6 text-ops-amber">Simulation</span></div><DialogTitle className="text-xl">Institutional Credit Facility</DialogTitle><DialogDescription>Indicative scenarios only. No collateral is locked and no loan funds are credited.</DialogDescription></DialogHeader>
+    {reviews.data && reviews.data.length > 0 && <section aria-label="Treasury credit decisions" className="border-b border-border px-5 py-3 text-xs"><h3 className="mb-2 font-semibold">Treasury review status</h3>{reviews.data.slice(0,3).map(row => <p key={row.id} className="py-1">{row.reference}: {row.vip_credit_status.replaceAll("_", " ")}{row.vip_credit_review_note ? ` - ${row.vip_credit_review_note}` : ""}</p>)}</section>}
     <div className="grid gap-6 px-5 py-5 sm:grid-cols-2 sm:px-6">
       <section className="space-y-4"><h3 className="text-sm font-semibold">Collateral management</h3>
         <div className="space-y-2"><label className="text-xs text-muted-foreground" htmlFor="credit-collateral">Collateral asset</label><Select value={collateralAsset} onValueChange={v => { setCollateralAsset(v as typeof collateralAsset); update(); }}><SelectTrigger id="credit-collateral"><SelectValue /></SelectTrigger><SelectContent>{["BTC", "ETH", "USDT"].map(a => <SelectItem key={a} value={a}><span className="flex items-center gap-2"><AssetIcon currency={a} size={18} />{a}</span></SelectItem>)}</SelectContent></Select></div>

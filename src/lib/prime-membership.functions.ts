@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { clearedTierQualified } from "./vip-ecosystem";
+import { clearedTierQualified, ecosystemConfig } from "./vip-ecosystem";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getPrimeMembership = createServerFn({ method: "POST" })
@@ -51,6 +51,12 @@ export const requestPrimeAllocation = createServerFn({ method: "POST" })
     const eth = (wallets.data ?? []).filter(w => w.currency === "ETH").reduce((sum, w) => sum + Number(w.balance), 0);
     if (!target || !clearedTierQualified(target, balance, eth)) throw new Error("Minimum collateral requirement has not been met.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: config } = await context.supabase.rpc("get_vip_ecosystem_config");
+    if (ecosystemConfig(config).autoPromote) {
+      const { error } = await supabaseAdmin.rpc("activate_cleared_vip", { p_user: context.userId, p_level: data.level, p_actor: context.userId });
+      if (error) throw new Error("Automatic allocation could not be completed.");
+      return { status: "active" };
+    }
     const { data: result, error } = await supabaseAdmin.rpc("request_prime_allocation", { p_user_id: context.userId, p_level: data.level });
     if (error) throw new Error("Allocation request could not be submitted. Please refresh and retry.");
     return { status: String(result) };

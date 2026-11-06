@@ -7,7 +7,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc: 
 import { requestPrimeAllocation } from "./prime-membership.functions";
 const context = { userId: "11111111-1111-4111-8111-111111111111", supabase: {
   from: () => ({ select: () => ({ eq: async () => wallets }) }),
-  rpc: async () => ({ data: [{ level: 1, min_portfolio_usdt: 10_000 }], error: null }),
+  rpc: async (name: string) => ({ data: name === "get_vip_ecosystem_config" ? {} : [{ level: 1, min_portfolio_usdt: 10_000, min_collateral_usdt: 0, min_eth_holdings: 0 }], error: null }),
 } };
 const handler = requestPrimeAllocation as unknown as (args: { context: typeof context; data: { level: number } }) => Promise<unknown>;
 describe("Live collateral eligibility", () => {
