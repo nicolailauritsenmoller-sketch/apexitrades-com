@@ -1,3 +1,4 @@
+import { VipEcosystemDesk } from "@/components/admin/VipEcosystemDesk";
 import { NAV } from "@/lib/operations-routing";
 import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCenter";
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
@@ -183,6 +184,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "vipecosystem",
   "health",
   "scalping",
   "discovery",
@@ -716,6 +718,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
                   <TradeCorrections />
                 </div>
               )}
+              {tab === "vipecosystem" && <VipEcosystemDesk onOpen={id => onReview(id)} />}
               {tab === "transactions" && <TransactionsDesk />}
               {tab === "support" && <SupportDesk />}
               {tab === "requests" && <SupportDesk initialView="requests" />}

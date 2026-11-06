@@ -1974,6 +1974,10 @@ export type Database = {
           subject: string
           updated_at: string
           user_id: string
+          vip_credit_drawdown_at: string | null
+          vip_credit_review_note: string | null
+          vip_credit_scenario: Json | null
+          vip_credit_status: string
         }
         Insert: {
           admin_last_read_at?: string
@@ -1993,6 +1997,10 @@ export type Database = {
           subject: string
           updated_at?: string
           user_id: string
+          vip_credit_drawdown_at?: string | null
+          vip_credit_review_note?: string | null
+          vip_credit_scenario?: Json | null
+          vip_credit_status?: string
         }
         Update: {
           admin_last_read_at?: string
@@ -2012,6 +2020,10 @@ export type Database = {
           subject?: string
           updated_at?: string
           user_id?: string
+          vip_credit_drawdown_at?: string | null
+          vip_credit_review_note?: string | null
+          vip_credit_scenario?: Json | null
+          vip_credit_status?: string
         }
         Relationships: []
       }
@@ -2655,6 +2667,8 @@ export type Database = {
           futures_maker: number
           futures_taker: number
           level: number
+          min_collateral_usdt: number
+          min_eth_holdings: number
           min_futures_volume: number
           min_portfolio_usdt: number
           min_scalp_volume: number
@@ -2671,6 +2685,8 @@ export type Database = {
           futures_maker?: number
           futures_taker?: number
           level: number
+          min_collateral_usdt?: number
+          min_eth_holdings?: number
           min_futures_volume?: number
           min_portfolio_usdt?: number
           min_scalp_volume?: number
@@ -2687,6 +2703,8 @@ export type Database = {
           futures_maker?: number
           futures_taker?: number
           level?: number
+          min_collateral_usdt?: number
+          min_eth_holdings?: number
           min_futures_volume?: number
           min_portfolio_usdt?: number
           min_scalp_volume?: number
@@ -2890,6 +2908,10 @@ export type Database = {
         Args: { p_agent_id: string; p_role_key: string; p_user_id: string }
         Returns: boolean
       }
+      activate_cleared_vip: {
+        Args: { p_actor: string; p_level: number; p_user: string }
+        Returns: undefined
+      }
       apply_balance_correction: {
         Args: {
           p_actor: string
@@ -2917,6 +2939,16 @@ export type Database = {
         }[]
       }
       generate_uid7: { Args: never; Returns: string }
+      get_prime_architecture: {
+        Args: never
+        Returns: {
+          level: number
+          min_collateral_usdt: number
+          min_eth_holdings: number
+          min_portfolio_usdt: number
+          name: string
+        }[]
+      }
       get_prime_fee_schedule: {
         Args: never
         Returns: {
@@ -2930,6 +2962,7 @@ export type Database = {
           spot_taker: number
         }[]
       }
+      get_vip_ecosystem_config: { Args: never; Returns: Json }
       has_role:
         | {
             Args: {
@@ -3001,6 +3034,10 @@ export type Database = {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
       }
+      record_vip_simulated_drawdown: {
+        Args: { p_id: string; p_user: string }
+        Returns: undefined
+      }
       request_prime_allocation: {
         Args: { p_level: number; p_user_id: string }
         Returns: string
@@ -3022,6 +3059,15 @@ export type Database = {
       review_balance_correction: {
         Args: { p_action: string; p_actor: string; p_id: string }
         Returns: number
+      }
+      review_vip_credit: {
+        Args: {
+          p_actor: string
+          p_id: string
+          p_reason: string
+          p_status: string
+        }
+        Returns: undefined
       }
       review_withdrawal_atomic: {
         Args: {

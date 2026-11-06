@@ -45,11 +45,13 @@ export const getVipTierDesk = createServerFn({ method: "POST" })
 
 const tierInput = z.object({
   level: z.number().int().min(0).max(20),
-  name: z.string().trim().min(1).max(40),
-  min_spot_volume: z.number().min(0),
-  min_futures_volume: z.number().min(0),
-  min_scalp_volume: z.number().min(0),
-  min_portfolio_usdt: z.number().min(0),
+  name: z.string().trim().min(1).max(80),
+  min_spot_volume: z.number().finite().min(0).max(1_000_000_000_000),
+  min_futures_volume: z.number().finite().min(0).max(1_000_000_000_000),
+  min_scalp_volume: z.number().finite().min(0).max(1_000_000_000_000),
+  min_portfolio_usdt: z.number().finite().min(0).max(1_000_000_000_000),
+  min_collateral_usdt: z.number().finite().min(0).max(1_000_000_000_000).default(0),
+  min_eth_holdings: z.number().finite().min(0).max(1_000_000_000).default(0),
   spot_maker: rate,
   spot_taker: rate,
   futures_maker: rate,
@@ -78,7 +80,10 @@ export const deleteVipTier = createServerFn({ method: "POST" })
     const db = await privileged();
     const { count } = await db.from("vip_accounts").select("user_id", { count: "exact", head: true }).eq("level", data.level);
     if ((count ?? 0) > 0) throw new Error(`${count} account(s) are on this tier. Move them first.`);
-    await db.from("vip_fee_tiers").delete().eq("level", data.level);
+    const { count: pending, error: pendingError } = await db.from("vip_accounts").select("user_id", { count: "exact", head: true }).eq("recommended_level", data.level);
+    if (pendingError || (pending ?? 0) > 0) throw new Error("Resolve pending requests before deleting this tier.");
+    const { error } = await db.from("vip_fee_tiers").delete().eq("level", data.level);
+    if (error) throw new Error(error.message);
     await audit(db, context.userId, "vip.tier_deleted", null, { level: data.level });
     return { ok: true };
   });

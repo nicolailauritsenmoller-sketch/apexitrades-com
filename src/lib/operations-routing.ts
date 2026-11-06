@@ -27,6 +27,7 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
     section: "People",
     items: [
       { id: "users", label: "Users & KYC", icon: Users },
+      { id: "vipecosystem", label: "VIP Control Center", icon: Crown },
       { id: "vipmembers", label: "VIP Memberships", icon: Crown },
       { id: "roles", label: "Roles & permissions", icon: KeySquare },
       { id: "restrictions", label: "Security & restrictions", icon: ShieldAlert },

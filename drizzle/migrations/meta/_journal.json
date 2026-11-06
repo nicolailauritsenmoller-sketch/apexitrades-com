@@ -470,6 +470,34 @@
       "when": 1793944105551,
       "tag": "0066_vip_anonymous_acceptance",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1793945727337,
+      "tag": "0067_vip_ecosystem_management",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1793945886667,
+      "tag": "0068_vip_credit_review_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1793946012243,
+      "tag": "0069_vip_atomic_review_and_architecture",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1793946174069,
+      "tag": "0070_vip_drawdown_and_credit_input_guards",
+      "breakpoints": true
     }
   ]
 }

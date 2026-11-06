@@ -11,7 +11,7 @@ import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { getPrimeMembership, requestPrimeAllocation } from "@/lib/prime-membership.functions";
-import { PRIME_TIERS, collateralProgress, feeBps } from "@/lib/prime-tiers";
+import { collateralProgress, feeBps } from "@/lib/prime-tiers";
 import { isVip, isVipPending } from "@/lib/vip-tiers";
 import { membershipOptions } from "@/lib/prime-membership-query";
 
@@ -52,6 +52,7 @@ function VipUpgradePage() {
 function MembershipContent({ data, isFetching, isError }: { data: Awaited<ReturnType<typeof getPrimeMembership>>; isFetching: boolean; isError: boolean }) {
   const qc = useQueryClient();
   const submit = useServerFn(requestPrimeAllocation);
+  const PRIME_TIERS = data.architecture.map(t => ({ ...t, threshold: Math.max(Number(t.min_portfolio_usdt), Number(t.min_collateral_usdt)) }));
   const currentLevel = Number(data.account?.level ?? 0);
   const recommended = data.account?.recommended_level;
   const initialTarget = recommended ?? Math.min(4, currentLevel + 1);
@@ -59,13 +60,13 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
   const [depositOpen, setDepositOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const selected = PRIME_TIERS.find(t => t.level === selectedLevel) ?? PRIME_TIERS[0];
-  const selectedFees = data.schedule.find(t => t.level === selected.level);
-  const requirement = Number(selectedFees?.min_portfolio_usdt ?? selected.threshold);
+  const selected = PRIME_TIERS.find(t => t.level === selectedLevel) ?? PRIME_TIERS[0] ?? { level: 0, name: "No published tier", threshold: 0, min_eth_holdings: 0 };
+  const selectedFees = data.schedule.find(t => t.level === selected?.level);
+  const requirement = selected?.threshold ?? 0;
   const progress = collateralProgress(data.clearedBalance, requirement);
   const approved = currentLevel >= selected.level;
   const pending = !approved && (recommended != null && recommended >= selected.level);
-  const ready = progress.qualified && data.valuationComplete && !isError;
+  const ready = data.ethBalance >= Number(selected?.min_eth_holdings ?? 0) && progress.qualified && data.valuationComplete && !isError;
   const statusLabel = isVip(data.status) ? "VIP" : isVipPending(data.status) ? "VIP (PENDING)" : "STANDARD";
   const request = useMutation({
     mutationFn: () => submit({ data: { level: selected.level } }),
@@ -115,8 +116,8 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
         <div className="mb-3 flex items-center justify-between gap-3"><h2 id="architecture-title" className="text-sm font-semibold">Allocation levels</h2><span className="text-xs text-muted-foreground">USDT collateral</span></div>
         <ol className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {PRIME_TIERS.map(t => {
-            const threshold = Number(data.schedule.find(s => s.level === t.level)?.min_portfolio_usdt ?? t.threshold);
-            const reached = data.valuationComplete && data.clearedBalance >= threshold;
+            const threshold = t.threshold;
+            const reached = data.valuationComplete && data.clearedBalance >= threshold && data.ethBalance >= Number(t.min_eth_holdings);
             const active = currentLevel >= t.level;
             const waiting = !active && recommended != null && recommended >= t.level;
             return <li key={t.level} className={`overflow-hidden rounded-lg border ${selected.level === t.level ? "border-foreground/40 bg-secondary/50" : "border-border bg-card"}`}>
@@ -137,6 +138,7 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
           <p className="mt-1 text-xs text-muted-foreground">{selected.name}</p>
           <dl className="mt-5 space-y-3 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2"><dt className="text-muted-foreground">Minimum AUM / Collateral Requirement</dt><dd className="num font-semibold">{fmt(requirement)} USDT</dd></div>
+            <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">ETH requirement</dt><dd className="num">{fmt(data.ethBalance)} / {Number(selected.min_eth_holdings)} ETH</dd></div>
             <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">Cleared wallet collateral</dt><dd className="num font-semibold">{data.valuationComplete ? `${fmt(data.clearedBalance)} USDT` : "Valuation unavailable"}</dd></div>
           </dl>
           <div role="progressbar" aria-label="Collateral qualification" aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.valuationComplete ? Math.round(progress.percent) : 0} className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-bull transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${data.valuationComplete ? progress.percent : 0}%` }} /></div>
