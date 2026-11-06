@@ -6,7 +6,9 @@ const user = "bcb48f8e-1f83-46e4-a492-9f63ba39c15a";
 const a = "ce4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 const b = "de4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 const migration = readFileSync("drizzle/migrations/0057_operations_health_and_financial_guards.sql", "utf8");
-const guard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
+const settleMigration = readFileSync("drizzle/migrations/0071_deposit_hash_optional.sql", "utf8");
+const guard = settleMigration.slice(settleMigration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), settleMigration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
+const withdrawalGuard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.review_withdrawal_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
 beforeAll(async () => {
   await db.exec(`CREATE TYPE request_status AS ENUM('pending','approved','rejected','unsubmitted');
     CREATE TABLE user_roles(user_id uuid,role text);
@@ -24,6 +26,7 @@ beforeAll(async () => {
     CREATE FUNCTION wallet_adjust(p_user uuid,p_currency text,p_delta numeric) RETURNS numeric LANGUAGE plpgsql AS $$ DECLARE v numeric; BEGIN UPDATE wallets SET balance=balance+p_delta WHERE user_id=p_user AND currency=p_currency RETURNING balance INTO v; IF v<0 THEN RAISE EXCEPTION 'Insufficient balance'; END IF; RETURN v; END $$;
     INSERT INTO user_roles VALUES('${a}','admin'),('${b}','finance');`);
   await db.exec(guard);
+  await db.exec(withdrawalGuard);
   const withdrawalSql = readFileSync("drizzle/migrations/0059_atomic_withdrawal_request_holds.sql", "utf8");
   await db.exec(withdrawalSql.slice(0, withdrawalSql.indexOf("REVOKE EXECUTE")));
 }, 30000);
@@ -45,9 +48,9 @@ describe("Atomic financial safeguards", () => {
   it("rejects unsubmitted as a settlement transition", async () => {
     await expect(db.query("SELECT settle_deposit_atomic($1,'unsubmitted',NULL,$2)", [await deposit(), a])).rejects.toThrow("Invalid settlement status");
   });
-  it("rejects missing transaction evidence without crediting funds", async () => {
-    await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(""), a])).rejects.toThrow("transaction reference");
-    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1000);
+  it("credits a deposit approved without a transaction hash", async () => {
+    await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(""), a])).resolves.toBeTruthy();
+    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1100);
   });
   it("requires two distinct authorized operators for enabled large withdrawals", async () => {
     await db.exec(`INSERT INTO platform_settings VALUES('risk_controls','{"largeWithdrawalReview":true,"largeWithdrawalThresholdUsd":10000}');`);

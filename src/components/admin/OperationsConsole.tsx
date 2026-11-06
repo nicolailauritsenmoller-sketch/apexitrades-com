@@ -904,15 +904,7 @@ function DepositsTab({
   const { checked, setChecked, toggle } = useBulkSelection();
   const pendingRows = rows.filter((r) => r.status === "pending");
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
-  const missingHash = (id: string) => {
-    const row = allRows.find((r) => r.id === id);
-    return !String(row?.tx_hash ?? "").trim() && (hashes[id] ?? "").trim().length < 10;
-  };
   const openReview = (ids: string[], action: "approve" | "reject") => {
-    if (action === "approve" && ids.some(missingHash)) {
-      toast.error("Enter the on-chain transaction hash for each deposit without one before approving.");
-      return;
-    }
     setConfirmation({ ids, action });
   };
   const runBulk = (action: "approve" | "reject") => {
@@ -997,15 +989,6 @@ function DepositsTab({
 
               {d.status === "pending" && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {!String(d.tx_hash ?? "").trim() && (
-                    <input
-                      value={hashes[d.id] ?? ""}
-                      onChange={(e) => setHashes((p) => ({ ...p, [d.id]: e.target.value.trim() }))}
-                      placeholder="Transaction hash (required to credit)"
-                      aria-label="Transaction hash"
-                      className="h-8 min-w-[220px] flex-1 rounded-md border border-ops-amber/50 bg-background px-2 font-mono text-xs"
-                    />
-                  )}
                   <input
                     value={note[d.id] ?? ""}
                     onChange={(e) => setNote((p) => ({ ...p, [d.id]: e.target.value }))}
