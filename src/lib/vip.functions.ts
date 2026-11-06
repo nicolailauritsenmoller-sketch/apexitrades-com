@@ -266,6 +266,10 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context);
     const db = await privileged();
+    if (!data.internal) {
+      const { data: access } = await db.from("vip_access").select("*").eq("user_id", data.userId).eq("role_key", data.roleKey).maybeSingle();
+      if (!vipConnection(access, null).connected || access?.assigned_to !== context.userId) throw new Error("Accept and join this request before replying.");
+    }
     const { error } = await db.from("vip_messages").insert({
       user_id: data.userId,
       role_key: data.roleKey,
@@ -292,12 +296,12 @@ export const sendVipDeskMessage = createServerFn({ method: "POST" })
 
     const { data: specialist } = await db
       .from("vip_specialists")
-      .select("full_name,role_label")
+      .select("role_label")
       .eq("role_key", data.roleKey)
       .maybeSingle();
     await db.from("notifications").insert({
       user_id: data.userId,
-      title: `${specialist?.full_name ?? "Your specialist"} replied`,
+      title: "Your specialist replied",
       body: `New message in your ${specialist?.role_label ?? "VIP"} conversation.`,
       kind: "support",
     });

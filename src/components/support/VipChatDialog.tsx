@@ -183,7 +183,7 @@ export function VipChatDialog({
               <div className="flex-1 space-y-2 overflow-y-auto bg-card px-3 py-4">
                 {(thread.data ?? []).length === 0 && (
                   <p className="text-center text-xs text-foreground/40">
-                    Start the conversation with {active.agent.fullName}.
+                    Start the conversation with {active.agent?.fullName ?? "your specialist"}.
                   </p>
                 )}
                 {(thread.data ?? []).map((m: any) => {
