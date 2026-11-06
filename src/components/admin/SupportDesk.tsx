@@ -1027,7 +1027,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                       {t.full_name ?? t.legalName ?? t.displayName}
                     </span>
                     <span className="block truncate text-[10px] text-muted-foreground">
-                      {t.email ?? t.uid ?? t.user_id.slice(0, 8)}
+                      <span className={t.email ? "admin-email" : ""} title={t.email ?? undefined}>{t.email ?? t.uid ?? t.user_id.slice(0, 8)}</span>
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs capitalize">{t.category}</td>
@@ -1107,7 +1107,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                   </div>
                   <div>
                     <dt className="opacity-70">Verified email</dt>
-                    <dd className="truncate text-foreground">{active.email ?? "-"}</dd>
+                    <dd className="truncate text-foreground"><span className={active.email ? "admin-email" : ""} title={active.email ?? undefined}>{active.email ?? "-"}</span></dd>
                   </div>
                   <div>
                     <dt className="opacity-70">UID</dt>

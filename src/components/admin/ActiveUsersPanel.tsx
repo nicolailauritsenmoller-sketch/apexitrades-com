@@ -132,7 +132,7 @@ export function ActiveUsersPanel({ compact = false }: { compact?: boolean }) {
                         {r.verified && <VerifiedBadge />}
                       </span>
                       <span className="block text-[11px] text-muted-foreground">
-                        <UidTag uid={r.uid} /> {r.email ? `· ${r.email}` : ""}
+                        <UidTag uid={r.uid} /> {r.email ? <>· <span className="admin-email">{r.email}</span></> : ""}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-xs">

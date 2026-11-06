@@ -131,7 +131,7 @@ export function TreasuryWalletPanel() {
                       className={`flex w-full touch-manipulation items-center gap-2 px-2.5 py-1.5 text-left text-xs ${userId === p.id ? "bg-primary/10" : "hover:bg-secondary"}`}
                     >
                       <span className="font-medium">{p.display_name}</span>
-                      <span className="truncate text-muted-foreground">{p.email}</span>
+                      <span className="admin-email truncate" title={p.email ?? undefined}>{p.email}</span>
                       <span className="num ml-auto text-muted-foreground">{p.uid}</span>
                     </button>
                   </li>

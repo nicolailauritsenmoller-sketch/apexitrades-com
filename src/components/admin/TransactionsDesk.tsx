@@ -188,7 +188,7 @@ function Inspector({ r }: { r: any }) {
         <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground">Account</h4>
         <Line label="Name" value={r.name} />
         <Line label="UID" value={r.uid} mono onCopy={r.uid ? () => copy(r.uid, "UID") : undefined} />
-        <Line label="Email" value={r.email} />
+        <Line label="Email" value={r.email ? <span className="admin-email">{r.email}</span> : "-"} />
         <Line label="KYC level" value={`Level ${r.kycLevel}`} />
       </section>
       <section>

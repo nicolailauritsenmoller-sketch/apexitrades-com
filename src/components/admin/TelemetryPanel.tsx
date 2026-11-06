@@ -308,7 +308,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
               {q.data?.profile?.display_name ?? "User"}
             </p>
             <p className="truncate text-xs text-muted-foreground">
-              {q.data?.profile?.email ?? "-"} · {q.data?.profile?.uid ?? "-"}
+              <span className={q.data?.profile?.email ? "admin-email" : ""}>{q.data?.profile?.email ?? "-"}</span> · {q.data?.profile?.uid ?? "-"}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

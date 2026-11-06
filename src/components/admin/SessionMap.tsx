@@ -57,7 +57,7 @@ export default function SessionMap({
         const popup = `
           <div style="min-width:190px;line-height:1.45">
             <b>${esc(p.name)}</b><br/>
-            <span style="opacity:.8">${esc(p.email)}</span><br/>
+            <span class="${p.email ? "admin-email" : ""}">${esc(p.email)}</span><br/>
             ${esc([p.city, p.country].filter(Boolean).join(", ") || "Unknown location")}<br/>
             IP ${esc(p.ip)}${p.isp ? ` · ${esc(p.isp)}` : ""}<br/>
             <b>${esc(p.deviceModel)}</b><br/>
