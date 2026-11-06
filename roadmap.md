@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Redesign VIP Membership as Institutional Tier Allocation with the requested four-tier collateral architecture, verified fee/access matrix and synchronized account eligibility/request status.
+
 - [x] Apply the approved Precision V artwork across public, customer, staff and support surfaces, with theme-aware original wordmarks and matching browser/install icons. Light/dark auth artwork, signed-in trader/staff headers, mobile layouts and all four icon URLs verified without runtime errors.
 
 - [x] Normalize platform typography to the supplied exchange reference: shared 14px body scale, compact headings, 32px account totals and 12px mobile navigation. Signed-in Home, Portfolio, Markets, Assets, Profile, Terminal and Operations Console checked at desktop/mobile sizes with no page overflow or runtime errors.
