@@ -6,7 +6,9 @@ const user = "bcb48f8e-1f83-46e4-a492-9f63ba39c15a";
 const a = "ce4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 const b = "de4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 const migration = readFileSync("drizzle/migrations/0057_operations_health_and_financial_guards.sql", "utf8");
-const guard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
+const settleMigration = readFileSync("drizzle/migrations/0071_deposit_hash_optional.sql", "utf8");
+const guard = settleMigration.slice(settleMigration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), settleMigration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
+const _oldGuard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
 beforeAll(async () => {
   await db.exec(`CREATE TYPE request_status AS ENUM('pending','approved','rejected','unsubmitted');
     CREATE TABLE user_roles(user_id uuid,role text);
