@@ -152,7 +152,7 @@ export function VipChatDialog({
               <>
                 <Initials name={active.agent.fullName} url={active.agent.avatarUrl} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{active.agent.fullName}</p>
+                  <p className="truncate text-sm font-semibold">{active.agent.fullName}{active.agent.staffId && <span className="ml-2 text-xs font-normal">#{active.agent.staffId}</span>}</p>
                   <p className="truncate text-[11px] text-primary-foreground">
                     {active.roleLabel} · {active.active ? "Active" : "Away"}
                   </p>

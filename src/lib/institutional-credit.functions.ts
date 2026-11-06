@@ -9,7 +9,7 @@ export const requestCreditSimulation = createServerFn({ method: "POST" })
     const { data: ticket, error } = await context.supabase.from("support_tickets").insert({
       user_id: context.userId,
       subject: "Treasury Operations - Credit Facility Simulation",
-      body: creditRequestBody(data), category: "wallet", priority: "normal", status: "open",
+      body: creditRequestBody(data), vip_credit_scenario: data, category: "wallet", priority: "normal", status: "open",
     }).select("id,reference,status").single();
     if (error || !ticket) throw new Error("Could not submit the credit scenario. Please retry.");
     return { ...ticket, borrowingAsset: data.borrowingAsset, borrowingAmount: creditMetrics(data).borrowingAmount };

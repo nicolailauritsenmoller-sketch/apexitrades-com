@@ -36,7 +36,7 @@ export const getVipDirectory = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const db = await privileged();
     const [agents, access, messages] = await Promise.all([
-      db.from("agent_profiles").select("user_id,full_name,avatar_url"),
+      db.from("agent_profiles").select("user_id,full_name,avatar_url,staff_id"),
       db.from("vip_access").select("*").eq("user_id", context.userId),
       db
         .from("vip_messages")

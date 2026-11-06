@@ -15,6 +15,6 @@ export function vipConnection(grant: any, agent: any, now = Date.now()) {
   return {
     connected,
     active,
-    agent: connected ? { fullName: agent?.full_name ?? "Support specialist", avatarUrl: agent?.avatar_url ?? null } : null,
+    agent: connected ? { fullName: agent?.full_name ?? "Support specialist", avatarUrl: agent?.avatar_url ?? null, staffId: agent?.staff_id ?? null } : null,
   };
 }

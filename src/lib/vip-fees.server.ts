@@ -1,3 +1,4 @@
+import { ecosystemConfig, clearedTierQualified } from "./vip-ecosystem";
 /** Server-only VIP fee resolution and the rolling 30-day tier evaluation engine. */
 
 export type FeeProduct = "spot" | "futures" | "scalp";
@@ -63,12 +64,14 @@ type Tier = {
   min_futures_volume: number;
   min_scalp_volume: number;
   min_portfolio_usdt: number;
+  min_collateral_usdt?: number;
+  min_eth_holdings?: number;
 };
 
 /** A tier qualifies when ANY configured criterion (> 0) is met. Level 0 always qualifies. */
 export function qualifyingLevel(
   tiers: Tier[],
-  m: { spot: number; futures: number; scalp: number; portfolio: number },
+  m: { spot: number; futures: number; scalp: number; portfolio: number; eth?: number },
 ) {
   let best = 0;
   for (const t of tiers) {
@@ -78,6 +81,9 @@ export function qualifyingLevel(
     if (Number(t.min_futures_volume) > 0) checks.push(m.futures >= Number(t.min_futures_volume));
     if (Number(t.min_scalp_volume) > 0) checks.push(m.scalp >= Number(t.min_scalp_volume));
     if (Number(t.min_portfolio_usdt) > 0) checks.push(m.portfolio >= Number(t.min_portfolio_usdt));
+    if (Number(t.min_collateral_usdt ?? 0) > 0) checks.push(m.portfolio >= Number(t.min_collateral_usdt));
+    if (Number(t.min_eth_holdings ?? 0) > 0 && Number(m.eth ?? 0) < Number(t.min_eth_holdings)) continue;
+    if (!checks.length && Number(t.min_eth_holdings ?? 0) > 0) checks.push(true);
     if (checks.length && checks.some(Boolean) && t.level > best) best = t.level;
   }
   return best;
@@ -98,10 +104,12 @@ async function audit(db: any, actorId: string | null, action: string, target: st
  * Upgrades are only recommended (admin approval); downgrades apply after the grace period.
  */
 export async function evaluateVipLevels(db: any, actorId: string | null = null) {
+  const { data: configRow } = await db.from("platform_settings").select("value").eq("key", "vip_ecosystem").maybeSingle();
+  const config = ecosystemConfig(configRow?.value);
   const since = new Date(Date.now() - 30 * DAY).toISOString();
   const [{ data: tiers }, { data: grace }, { data: positions }, { data: contracts }, { data: accounts }] =
     await Promise.all([
-      db.from("vip_fee_tiers").select("level,name,min_spot_volume,min_futures_volume,min_scalp_volume,min_portfolio_usdt").order("level"),
+      db.from("vip_fee_tiers").select("level,name,min_spot_volume,min_futures_volume,min_scalp_volume,min_portfolio_usdt,min_collateral_usdt,min_eth_holdings").order("level"),
       db.from("platform_settings").select("value").eq("key", "vip_grace_days").maybeSingle(),
       db.from("positions").select("user_id,asset_class,leverage,quantity,entry_price,exit_price,status,opened_at,closed_at").gte("opened_at", since).limit(50000),
       db.from("contracts").select("user_id,stake").gte("opened_at", since).limit(50000),
@@ -109,10 +117,10 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
     ]);
   const graceDays = Math.max(0, Number(grace?.value ?? 14));
 
-  const metrics = new Map<string, { spot: number; futures: number; scalp: number; portfolio: number }>();
+  const metrics = new Map<string, { spot: number; futures: number; scalp: number; portfolio: number; eth: number; complete: boolean }>();
   const get = (id: string) => {
     let m = metrics.get(id);
-    if (!m) metrics.set(id, (m = { spot: 0, futures: 0, scalp: 0, portfolio: 0 }));
+    if (!m) metrics.set(id, (m = { spot: 0, futures: 0, scalp: 0, portfolio: 0, eth: 0, complete: true }));
     return m;
   };
   for (const p of (positions ?? []) as any[]) {
@@ -132,12 +140,15 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
       db.from("wallets").select("user_id,currency,balance").in("user_id", ids),
     ]);
     for (const w of (wallets ?? []) as any[]) {
+      if (w.currency === "ETH") get(w.user_id).eth += Number(w.balance ?? 0);
+      if (Number(w.balance) > 0 && rates[w.currency] === undefined) get(w.user_id).complete = false;
       get(w.user_id).portfolio += Number(w.balance ?? 0) * ((rates as any)[w.currency] ?? 0);
     }
   }
 
   const accMap = new Map(((accounts ?? []) as any[]).map((a) => [a.user_id, a]));
   const now = new Date();
+  let autoPromoted = 0;
   let upgrades = 0;
   let downgrades = 0;
   let graceStarted = 0;
@@ -145,6 +156,7 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
   for (const [userId, m] of metrics) {
     const acc = accMap.get(userId);
     const current = Number(acc?.level ?? 0);
+    if (!m.complete) continue;
     const qualifies = qualifyingLevel((tiers ?? []) as Tier[], m);
     const patch: Record<string, unknown> = {
       user_id: userId,
@@ -156,6 +168,14 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
       updated_at: now.toISOString(),
       recommended_level: qualifies > current ? qualifies : null,
     };
+    const targetTier = (tiers ?? []).find((t: Tier) => t.level === qualifies);
+    if (config.autoPromote && qualifies > current && targetTier && clearedTierQualified(targetTier, m.portfolio, m.eth)) {
+      const { error } = await db.rpc("activate_cleared_vip", { p_user: userId, p_level: qualifies, p_actor: actorId });
+      if (error) throw new Error("Automatic VIP allocation failed.");
+      patch["recommended_level"] = null;
+      patch["level"] = qualifies;
+      autoPromoted++;
+    }
     if (qualifies > current && acc?.recommended_level !== qualifies) upgrades++;
 
     if (qualifies < current) {
@@ -190,5 +210,5 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
     await db.from("vip_accounts").upsert(patch);
   }
 
-  return { evaluated: metrics.size, upgradeRecommendations: upgrades, downgrades, graceStarted, graceDays };
+  return { autoPromoted, evaluated: metrics.size, upgradeRecommendations: upgrades, downgrades, graceStarted, graceDays };
 }

@@ -6,6 +6,6 @@ const grant = { unlocked: true, assigned_to: "agent", accepted_at: new Date(now)
 it("hides identity for a pending request", () => { expect(vipConnection({ unlocked: false }, agent, now).agent).toBeNull(); });
 it("unlock alone does not reveal identity", () => { expect(vipConnection({ unlocked: true, assigned_to: "agent" }, agent, now).connected).toBe(false); });
 it("acceptance without joining does not reveal identity", () => { expect(vipConnection({ ...grant, agent_joined_at: null }, agent, now).agent).toBeNull(); });
-it("reveals accepted joined staff without their badge ID", () => { expect(vipConnection(grant, agent, now)).toEqual({ connected: true, active: true, agent: { fullName: "Accepted Agent", avatarUrl: "/avatar" } }); });
+it("reveals accepted joined staff with their actual badge ID", () => { expect(vipConnection(grant, agent, now)).toEqual({ connected: true, active: true, agent: { fullName: "Accepted Agent", avatarUrl: "/avatar", staffId: "PRIVATE" } }); });
 it("expires active status after 60 seconds without a heartbeat", () => { expect(vipConnection(grant, agent, now + 60000).active).toBe(false); });
 it("resolved or unassigned sessions hide identity", () => { expect(vipConnection({ ...grant, thread_status: "resolved" }, agent, now).agent).toBeNull(); expect(vipConnection({ ...grant, assigned_to: null }, agent, now).agent).toBeNull(); });

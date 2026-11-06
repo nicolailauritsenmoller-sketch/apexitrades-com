@@ -45,11 +45,13 @@ export const getVipTierDesk = createServerFn({ method: "POST" })
 
 const tierInput = z.object({
   level: z.number().int().min(0).max(20),
-  name: z.string().trim().min(1).max(40),
+  name: z.string().trim().min(1).max(80),
   min_spot_volume: z.number().min(0),
   min_futures_volume: z.number().min(0),
   min_scalp_volume: z.number().min(0),
-  min_portfolio_usdt: z.number().min(0),
+  min_portfolio_usdt: z.number().finite().min(0),
+  min_collateral_usdt: z.number().finite().min(0).default(0),
+  min_eth_holdings: z.number().finite().min(0).default(0),
   spot_maker: rate,
   spot_taker: rate,
   futures_maker: rate,
