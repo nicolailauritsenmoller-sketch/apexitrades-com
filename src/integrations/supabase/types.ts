@@ -2904,6 +2904,19 @@ export type Database = {
         }[]
       }
       generate_uid7: { Args: never; Returns: string }
+      get_prime_fee_schedule: {
+        Args: never
+        Returns: {
+          futures_maker: number
+          futures_taker: number
+          level: number
+          min_portfolio_usdt: number
+          scalp_maker: number
+          scalp_taker: number
+          spot_maker: number
+          spot_taker: number
+        }[]
+      }
       has_role:
         | {
             Args: {
