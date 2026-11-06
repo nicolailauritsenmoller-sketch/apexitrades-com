@@ -316,6 +316,13 @@
 
 
 
+/* Shared staff email emphasis; cyan token adapts to the current theme. */
+@utility admin-email {
+  color: var(--ops-section);
+  font-weight: 500;
+  user-select: text;
+}
+
 @utility num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
