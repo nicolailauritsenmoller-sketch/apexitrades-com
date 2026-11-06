@@ -470,6 +470,13 @@
       "when": 1793944105551,
       "tag": "0066_vip_anonymous_acceptance",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1793945727337,
+      "tag": "0067_vip_ecosystem_management",
+      "breakpoints": true
     }
   ]
 }
