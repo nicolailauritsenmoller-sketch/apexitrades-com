@@ -1208,7 +1208,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                   </div>
                 ))}
                 {thread.length === 0 && (
-                  <p className="text-[11px] text-muted-foreground">No messages yet.</p>
+                  <p className="whitespace-pre-wrap text-xs text-muted-foreground">{active.body || "No messages yet."}</p>
                 )}
               </div>
 

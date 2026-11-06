@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { creditScenarioSchema, creditRequestBody } from "./institutional-credit";
+import { creditScenarioSchema, creditRequestBody, creditMetrics } from "./institutional-credit";
 
 export const requestCreditSimulation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -12,5 +12,5 @@ export const requestCreditSimulation = createServerFn({ method: "POST" })
       body: creditRequestBody(data), category: "wallet", priority: "normal", status: "open",
     }).select("id,reference,status").single();
     if (error || !ticket) throw new Error("Could not submit the credit scenario. Please retry.");
-    return ticket;
+    return { ...ticket, borrowingAsset: data.borrowingAsset, borrowingAmount: creditMetrics(data).borrowingAmount };
   });
