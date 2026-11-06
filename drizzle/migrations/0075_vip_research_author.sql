@@ -1,0 +1,1 @@
+ALTER TABLE public.vip_research_reports ADD COLUMN IF NOT EXISTS author text NOT NULL DEFAULT 'Velocity Trade Research Desk';
