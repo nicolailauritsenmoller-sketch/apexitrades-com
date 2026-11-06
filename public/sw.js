@@ -1,5 +1,5 @@
 /* Velocity Trade service worker — minimal, install-enabling, network-first. */
-const CACHE = "vt-static-v2";
+const CACHE = "vt-static-v3-precision-v";
 const SHELL = ["/manifest.json", "/icon-192.png", "/icon-512.png", "/favicon.png"];
 
 self.addEventListener("install", (event) => {

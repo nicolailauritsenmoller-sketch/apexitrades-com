@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { TrustStrip } from "@/components/TrustBadges";
 import { toast } from "sonner";
-import { BrandMark } from "@/components/Logo";
+import { BrandLockup } from "@/components/Logo";
 import { GoogleGlyph } from "@/components/GoogleGlyph";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -289,8 +289,7 @@ function AuthPage() {
     <div className="hero-glow flex min-h-screen items-center justify-center px-4">
       <div className="panel relative w-full max-w-sm p-7 pt-16">
         <div className="absolute left-7 top-6 flex items-center gap-2">
-          <BrandMark className="size-8" alt="Velocity Trade logo" />
-          <span className="font-display text-sm font-bold">VELOCITY TRADE</span>
+          <BrandLockup className="w-44" />
         </div>
         <h1 className="mt-0 text-2xl font-bold">{heading}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{subheading}</p>

@@ -1,10 +1,11 @@
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminAlerts } from "@/components/admin/AdminAlerts";
 import { AdminSearch } from "@/components/admin/AdminSearch";
+import { BrandMark } from "@/components/Logo";
 
 /**
  * Standalone backend layout. Deliberately shares no chrome with the customer
@@ -25,9 +26,7 @@ export function AdminShell({ children, independentPanes = false }: { children: R
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background">
       <header className="z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/15 text-primary">
-            <ShieldCheck className="size-4" />
-          </span>
+          <BrandMark className="size-8" />
           <div className="min-w-0">
             <p className="truncate font-display text-sm font-bold tracking-tight">
               Operations Console
