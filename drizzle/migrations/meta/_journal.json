@@ -519,6 +519,13 @@
       "when": 1794005439087,
       "tag": "0073_support_history_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1794005966512,
+      "tag": "0074_vip_research_reports",
+      "breakpoints": true
     }
   ]
 }
