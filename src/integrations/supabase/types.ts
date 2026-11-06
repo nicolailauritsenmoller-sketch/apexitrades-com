@@ -2805,6 +2805,7 @@ export type Database = {
       }
       vip_research_reports: {
         Row: {
+          author: string
           body: string
           category: string
           created_at: string
@@ -2816,6 +2817,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          author?: string
           body: string
           category?: string
           created_at?: string
@@ -2827,6 +2829,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          author?: string
           body?: string
           category?: string
           created_at?: string

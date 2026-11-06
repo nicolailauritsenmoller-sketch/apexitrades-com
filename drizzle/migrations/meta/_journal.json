@@ -526,6 +526,13 @@
       "when": 1794005966512,
       "tag": "0074_vip_research_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1794006629471,
+      "tag": "0075_vip_research_author",
+      "breakpoints": true
     }
   ]
 }
