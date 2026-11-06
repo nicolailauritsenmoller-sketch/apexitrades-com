@@ -505,6 +505,13 @@
       "when": 1794003048472,
       "tag": "0071_deposit_hash_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794004162289,
+      "tag": "0072_require_customer_deposit_payment_proof",
+      "breakpoints": true
     }
   ]
 }
