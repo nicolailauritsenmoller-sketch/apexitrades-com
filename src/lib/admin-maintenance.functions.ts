@@ -158,7 +158,7 @@ export const clearSupportHistory = createServerFn({ method: "POST" })
       if (data.audience !== "customer") await apply("vip_access", (q) => scope(q));
     }
 
-    await logAudit(context, "support.history_cleared", data.userId ?? "all", {
+    await logAudit(db, context.userId, "support.history_cleared", data.userId, {
       categories: data.categories,
       audience: data.audience,
       affected,
