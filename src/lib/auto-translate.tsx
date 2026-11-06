@@ -18,9 +18,9 @@ import { translateTexts } from "@/lib/translate.functions";
  */
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "TEXTAREA", "SVG", "PATH"]);
-const BATCH = 120;
-const CONCURRENCY = 4;
-const MAX_BATCHES_PER_PASS = 12;
+const BATCH = 60;
+const CONCURRENCY = 6;
+const MAX_BATCHES_PER_PASS = 24;
 
 function cacheKey(lang: string) {
   return `velocity.i18n-cache.${lang}`;
