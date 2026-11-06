@@ -98,13 +98,13 @@ function VipUpgradePage() {
 
       <section aria-labelledby="architecture-title">
         <div className="mb-3 flex items-center justify-between gap-3"><h2 id="architecture-title" className="text-sm font-semibold">Allocation levels</h2><span className="text-xs text-muted-foreground">USDT collateral</span></div>
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {PRIME_TIERS.map(t => {
             const threshold = Number(data.schedule.find(s => s.level === t.level)?.min_portfolio_usdt ?? t.threshold);
             const reached = data.valuationComplete && data.clearedBalance >= threshold;
             const active = currentLevel >= t.level;
             const waiting = !active && recommended != null && recommended >= t.level;
-            return <li key={t.level} className={`overflow-hidden rounded-lg border ${selected.level === t.level ? "border-ring bg-secondary/50" : "border-border bg-card"}`}>
+            return <li key={t.level} className={`overflow-hidden rounded-lg border ${selected.level === t.level ? "border-foreground/40 bg-secondary/50" : "border-border bg-card"}`}>
               <Button variant="ghost" onClick={() => setSelectedLevel(t.level)} aria-pressed={selected.level === t.level} className="h-auto min-h-44 w-full flex-col items-start justify-between whitespace-normal rounded-none p-4 text-left hover:bg-secondary/50">
                 <span className="flex w-full items-center justify-between text-xs text-muted-foreground"><span className="num">0{t.level}</span>{active ? <Check className="text-bull" /> : waiting ? <Clock3 /> : <ArrowUpRight />}</span>
                 <span className="mt-3 min-h-10 text-sm font-semibold">{t.name}</span>
