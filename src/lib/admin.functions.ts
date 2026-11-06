@@ -540,6 +540,7 @@ export const getSupportInbox = createServerFn({ method: "POST" })
     const { data } = await context.supabase
       .from("chat_sessions")
       .select("*")
+      .is("hidden_from_staff_at", null)
       .order("last_message_at", { ascending: false })
       .limit(100);
     return data ?? [];
@@ -763,6 +764,7 @@ export const getSupportThreads = createServerFn({ method: "POST" })
     const { data: sessions } = await db
       .from("chat_sessions")
       .select("*")
+      .is("hidden_from_staff_at", null)
       .order("last_message_at", { ascending: false })
       .limit(200);
 
@@ -776,6 +778,7 @@ export const getSupportThreads = createServerFn({ method: "POST" })
       db
         .from("chat_messages")
         .select("session_id,body,created_at,sender_role,is_internal")
+        .is("hidden_from_staff_at", null)
         .in(
           "session_id",
           rows.map((r) => r.id),
@@ -831,6 +834,7 @@ export const getThreadMessages = createServerFn({ method: "POST" })
       .from("chat_messages")
       .select("*")
       .eq("session_id", data.sessionId)
+      .is("hidden_from_staff_at", null)
       .order("created_at");
     await db
       .from("chat_sessions")
@@ -893,6 +897,7 @@ export const getSupportTickets = createServerFn({ method: "POST" })
     const { data: tickets } = await db
       .from("support_tickets")
       .select("*")
+      .is("hidden_from_staff_at", null)
       .order("created_at", { ascending: false })
       .limit(200);
 
@@ -905,6 +910,7 @@ export const getSupportTickets = createServerFn({ method: "POST" })
       db
         .from("support_ticket_messages")
         .select("*")
+        .is("hidden_from_staff_at", null)
         .in("ticket_id", rows.map((t) => t.id))
         .order("created_at"),
       db.from("agent_profiles").select("user_id,full_name,agent_role"),

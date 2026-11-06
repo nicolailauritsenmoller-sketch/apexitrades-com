@@ -42,7 +42,8 @@ export const getVipDirectory = createServerFn({ method: "POST" })
         .from("vip_messages")
         .select("role_key,sender_role,read_at,created_at")
         .eq("user_id", context.userId)
-        .eq("is_internal", false),
+        .eq("is_internal", false)
+        .is("hidden_from_customer_at", null),
     ]);
     for (const result of [agents, access, messages]) if (result.error) throw new Error("Could not load support queue.");
 
@@ -81,6 +82,7 @@ export const getVipThread = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
       .eq("is_internal", false)
+      .is("hidden_from_customer_at", null)
       .order("created_at")
       .limit(300);
 
@@ -151,6 +153,8 @@ export const sendVipMessage = createServerFn({ method: "POST" })
       attachment_size: data.attachmentSize ?? null,
     });
     if (error) throw new Error(error.message);
+    // A new trader message resurfaces a thread staff had cleared from the console.
+    await db.from("vip_access").update({ hidden_from_staff_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey);
     // A new trader message reopens a resolved thread.
     await db.from("vip_access").update({ thread_status: "open", resolved_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey).eq("thread_status", "resolved");
     return { ok: true };
@@ -165,8 +169,8 @@ export const getVipDesk = createServerFn({ method: "POST" })
     const db = await privileged();
     const [specialists, access, messages, profiles] = await Promise.all([
       db.from("vip_specialists").select("*").order("role_label"),
-      db.from("vip_access").select("*").order("updated_at", { ascending: false }),
-      db.from("vip_messages").select("*").order("created_at", { ascending: false }).limit(1500),
+      db.from("vip_access").select("*").is("hidden_from_staff_at", null).order("updated_at", { ascending: false }),
+      db.from("vip_messages").select("*").is("hidden_from_staff_at", null).order("created_at", { ascending: false }).limit(1500),
       db.from("profiles").select("id,display_name,uid").limit(1000),
     ]);
 
