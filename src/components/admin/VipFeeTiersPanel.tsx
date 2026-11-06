@@ -20,7 +20,9 @@ const CRIT_KEYS = [
   ["min_spot_volume", "Spot volume (30d, USDT)"],
   ["min_futures_volume", "Futures volume (30d, USDT)"],
   ["min_scalp_volume", "Scalping / options volume (30d, USDT)"],
-  ["min_portfolio_usdt", "Total portfolio value (USDT)"],
+  ["min_portfolio_usdt", "Minimum AUM (USDT)"],
+  ["min_collateral_usdt", "Cleared collateral (USDT)"],
+  ["min_eth_holdings", "ETH holdings (required)"],
 ] as const;
 
 function logText(l: any) {
@@ -91,7 +93,7 @@ function TierEditor({ tier, onClose }: { tier: any; onClose: () => void }) {
             <input value={f["name"] ?? ""} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} className="mt-1 h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground" />
           </label>
         </div>
-        <p className="mb-1 mt-3 text-[10px] uppercase tracking-widest text-muted-foreground">Eligibility - any one criterion qualifies (0 = not used)</p>
+        <p className="mb-1 mt-3 text-[10px] uppercase tracking-widest text-muted-foreground">Eligibility - any volume/AUM criterion; ETH minimum is mandatory when set</p>
         <div className="grid grid-cols-2 gap-2">{CRIT_KEYS.map(([k, l]) => <div key={k}>{input(k, l)}</div>)}</div>
         <p className="mb-1 mt-3 text-[10px] uppercase tracking-widest text-muted-foreground">Maker / taker fees (%) - negative maker = rebate</p>
         <div className="grid grid-cols-2 gap-2">

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { membershipOptions } from "@/lib/prime-membership-query";
-import { PRIME_TIERS } from "@/lib/prime-tiers";
+
 
 const description = "Velocity Trade configured maker and taker fee percentages across spot, stocks, futures and scalping, with VIP collateral requirements.";
 export const Route = createFileRoute("/_authenticated/fees")({
@@ -53,7 +53,7 @@ function FeeSchedulePage() {
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><Info className="size-4 shrink-0" />{market === "stocks" ? "Unleveraged stocks use the spot fee schedule. Leveraged positions use the futures schedule." : market === "spot" ? "Unleveraged positions use spot rates. Leveraged margin positions use futures rates." : market === "scalp" ? "Account trading fees shown below. Duration-specific protocol fees may also apply and appear before order confirmation." : "Platform futures and leveraged positions use the configured futures rates."}</p>
           {!data ? <div className="py-8" role={membership.isError ? "alert" : "status"}><p className="text-sm text-muted-foreground">{membership.isError ? "Fee schedule is temporarily unavailable." : "Loading configured fee rates..."}</p>{membership.isError && <Button variant="outline" className="mt-3" onClick={() => void membership.refetch()}><RefreshCw /> Retry</Button>}</div> : <div>
             {data.schedule.map(tier => {
-              const architecture = PRIME_TIERS.find(t => t.level === tier.level);
+              const architecture = data.architecture.find(t => t.level === tier.level);
               const maker = tier[`${product}_maker`];
               const taker = tier[`${product}_taker`];
               const active = Number(data.account?.level ?? 0) === tier.level;

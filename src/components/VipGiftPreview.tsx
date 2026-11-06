@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { giftRotationAt } from "@/lib/vip-gift-rotation";
+import { activeVipGift } from "@/lib/vip-ecosystem";
+import { useVipEcosystem } from "@/lib/use-vip-ecosystem";
 import apparel from "@/assets/vip-gift-merchandise.jpg";
 import desk from "@/assets/vip-gifts-desk.jpg";
 import security from "@/assets/vip-gifts-security.jpg";
@@ -8,6 +9,7 @@ import special from "@/assets/vip-gifts-special.jpg";
 const images = { apparel, desk, security, special };
 
 export function VipGiftPreview() {
+  const config = useVipEcosystem();
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     const update = () => setNow(Date.now());
@@ -22,10 +24,12 @@ export function VipGiftPreview() {
     };
   }, []);
   if (now === null) return <div className="aspect-video bg-secondary" role="status">Loading daily preview...</div>;
-  const { pack } = giftRotationAt(now);
+  if (!config.data) return <p role="status">{config.isError ? "Gift catalog unavailable." : "Loading gift catalog..."}</p>;
+  const pack = activeVipGift(config.data, now);
+  if (!pack) return <p>No gift collection is currently published.</p>;
   return <>
     <figure>
-      <img src={images[pack.id]} alt={`Illustrative ${pack.category} merchandise concept`} loading="lazy" width={1536} height={864} className="aspect-video h-auto w-full rounded-lg border border-border object-cover" />
+      <img src={images[pack.image]} alt={`Illustrative ${pack.category} merchandise concept`} loading="lazy" width={1536} height={864} className="aspect-video h-auto w-full rounded-lg border border-border object-cover" />
       <figcaption className="mt-3 text-xs text-muted-foreground">Actual items may differ from what's shown above. Preview only; not available to claim.</figcaption>
     </figure>
     <section aria-label="Today's gift preview" className="space-y-2">
@@ -33,7 +37,7 @@ export function VipGiftPreview() {
       <h3 className="text-lg font-medium">{pack.title}</h3>
       <ul className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">{pack.items.map(item => <li key={item} className="border-l border-border pl-3">{item}</li>)}</ul>
     </section>
-    {pack.id === "security" && <p className="text-xs leading-relaxed text-muted-foreground">Generic hardware illustrations only. Ledger and Trezor engraving concepts are not supplied products or endorsed partnerships.</p>}
-    {pack.id === "special" && <p className="text-xs leading-relaxed text-muted-foreground">Special-drop concepts only, not a birthday entitlement or scheduled year-end offer.</p>}
+    {pack.image === "security" && <p className="text-xs leading-relaxed text-muted-foreground">Generic hardware illustrations only. Ledger and Trezor engraving concepts are not supplied products or endorsed partnerships.</p>}
+    {pack.image === "special" && <p className="text-xs leading-relaxed text-muted-foreground">Special-drop concepts only, not a birthday entitlement or scheduled year-end offer.</p>}
   </>;
 }

@@ -1,3 +1,4 @@
+import { VipEcosystemDesk } from "@/components/admin/VipEcosystemDesk";
 import { NAV } from "@/lib/operations-routing";
 import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCenter";
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
@@ -716,6 +717,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
                   <TradeCorrections />
                 </div>
               )}
+              {tab === "vipecosystem" && <VipEcosystemDesk onOpen={id => onReview(id)} />}
               {tab === "transactions" && <TransactionsDesk />}
               {tab === "support" && <SupportDesk />}
               {tab === "requests" && <SupportDesk initialView="requests" />}
