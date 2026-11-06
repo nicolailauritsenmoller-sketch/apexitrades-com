@@ -73,7 +73,7 @@ function FeeSchedulePage() {
       </TabsContent>
       <TabsContent value="promotions" className="py-8"><h2>Spot Promotions</h2><p className="mt-2 text-sm text-muted-foreground">No active spot fee promotion is configured.</p></TabsContent>
       <TabsContent value="liquidity" className="py-8"><h2>Liquidity Program</h2><p className="mt-2 text-sm text-muted-foreground">Liquidity program fee entitlements are not provisioned. Configured trading rates remain in effect.</p><Button asChild variant="outline" className="mt-5"><Link to="/vip-upgrade">View membership allocation <ChevronRight /></Link></Button></TabsContent>
-      <TabsContent value="funding" className="py-8"><h2>Deposits & Withdrawals</h2><p className="mt-2 text-sm text-muted-foreground">Network availability and applicable transfer fees are shown in the funding flow before confirmation.</p><Button asChild variant="outline" className="mt-5"><Link to="/wallet">Open Assets <ChevronRight /></Link></Button></TabsContent>
+      <TabsContent value="funding" className="py-8"><h2>Deposits & Withdrawals</h2><p className="mt-2 text-sm text-muted-foreground">Network availability and applicable transfer fees are shown in the funding flow before confirmation.</p><Button asChild variant="outline" className="mt-5"><Link to="/wallet" search={{ tab: "deposit" }}>Open Assets <ChevronRight /></Link></Button></TabsContent>
     </Tabs>
   </div></AppShell>;
 }
