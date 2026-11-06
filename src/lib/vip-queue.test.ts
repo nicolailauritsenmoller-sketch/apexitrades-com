@@ -1,0 +1,11 @@
+import { expect, it } from "vitest";
+import { vipConnection } from "./vip-queue";
+const now = Date.UTC(2026, 10, 6);
+const agent = { full_name: "Accepted Agent", avatar_url: "/avatar", staff_id: "PRIVATE" };
+const grant = { unlocked: true, assigned_to: "agent", accepted_at: new Date(now).toISOString(), agent_joined_at: new Date(now).toISOString(), agent_last_seen_at: new Date(now).toISOString(), thread_status: "open" };
+it("hides identity for a pending request", () => { expect(vipConnection({ unlocked: false }, agent, now).agent).toBeNull(); });
+it("unlock alone does not reveal identity", () => { expect(vipConnection({ unlocked: true, assigned_to: "agent" }, agent, now).connected).toBe(false); });
+it("acceptance without joining does not reveal identity", () => { expect(vipConnection({ ...grant, agent_joined_at: null }, agent, now).agent).toBeNull(); });
+it("reveals accepted joined staff without their badge ID", () => { expect(vipConnection(grant, agent, now)).toEqual({ connected: true, active: true, agent: { fullName: "Accepted Agent", avatarUrl: "/avatar" } }); });
+it("expires active status after 60 seconds without a heartbeat", () => { expect(vipConnection(grant, agent, now + 60000).active).toBe(false); });
+it("resolved or unassigned sessions hide identity", () => { expect(vipConnection({ ...grant, thread_status: "resolved" }, agent, now).agent).toBeNull(); expect(vipConnection({ ...grant, assigned_to: null }, agent, now).agent).toBeNull(); });

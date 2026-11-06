@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertStaff, logAudit, privileged, appendSignature } from "@/lib/desk.server";
 import { VIP_ROLE_KEYS } from "@/lib/vip";
+import { VIP_DEPARTMENTS, vipConnection } from "@/lib/vip-queue";
 
 const roleKey = z.enum(VIP_ROLE_KEYS);
 
@@ -34,8 +35,8 @@ export const getVipDirectory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await privileged();
-    const [specialists, access, messages] = await Promise.all([
-      db.from("vip_specialists").select("*").order("role_label"),
+    const [agents, access, messages] = await Promise.all([
+      db.from("agent_profiles").select("user_id,full_name,avatar_url"),
       db.from("vip_access").select("*").eq("user_id", context.userId),
       db
         .from("vip_messages")
@@ -43,20 +44,20 @@ export const getVipDirectory = createServerFn({ method: "POST" })
         .eq("user_id", context.userId)
         .eq("is_internal", false),
     ]);
+    for (const result of [agents, access, messages]) if (result.error) throw new Error("Could not load support queue.");
 
     const accessMap = new Map((access.data ?? []).map((a: any) => [a.role_key, a]));
     const msgs: any[] = messages.data ?? [];
 
-    return (specialists.data ?? []).map((s: any) => {
-      const grant = accessMap.get(s.role_key) as any;
-      const mine = msgs.filter((m) => m.role_key === s.role_key);
+    return VIP_DEPARTMENTS.map((s) => {
+      const grant = accessMap.get(s.key) as any;
+      const mine = msgs.filter((m) => m.role_key === s.key);
+      const assigned = agents.data?.find((a: any) => a.user_id === grant?.assigned_to);
+      const connection = vipConnection(grant, assigned);
       return {
-        roleKey: s.role_key,
-        roleLabel: s.role_label,
-        fullName: s.full_name,
-        title: s.title,
-        staffId: s.staff_id,
-        avatarUrl: s.avatar_url,
+        roleKey: s.key,
+        roleLabel: s.label,
+        ...connection,
         unlocked: !!grant?.unlocked,
         requested: !!grant,
         unread: mine.filter((m) => m.sender_role !== "user" && !m.read_at).length,
@@ -72,6 +73,8 @@ export const getVipThread = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ roleKey }).parse(input))
   .handler(async ({ data, context }) => {
     const db = await privileged();
+    const { data: access } = await db.from("vip_access").select("*").eq("user_id", context.userId).eq("role_key", data.roleKey).maybeSingle();
+    if (!vipConnection(access, null).connected) return [];
     const { data: rows } = await db
       .from("vip_messages")
       .select("*")
@@ -107,9 +110,10 @@ export const requestVipAccess = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing?.unlocked) return { ok: true, unlocked: true };
     if (!existing) {
-      await db
+      const { error } = await db
         .from("vip_access")
         .insert({ user_id: context.userId, role_key: data.roleKey, unlocked: false });
+      if (error && error.code !== "23505") throw new Error("Could not join the support queue.");
     }
     return { ok: true, unlocked: false };
   });
@@ -129,11 +133,11 @@ export const sendVipMessage = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: grant } = await db
       .from("vip_access")
-      .select("unlocked")
+      .select("*")
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
       .maybeSingle();
-    if (!grant?.unlocked) throw new Error("This specialist thread is locked.");
+    if (!vipConnection(grant, null).connected) throw new Error("Wait for a specialist to accept and join.");
 
     const { error } = await db.from("vip_messages").insert({
       user_id: context.userId,
@@ -215,6 +219,7 @@ export const getVipDeskThread = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context);
     const db = await privileged();
+    await db.from("vip_access").update({ agent_last_seen_at: new Date().toISOString() }).eq("user_id", data.userId).eq("role_key", data.roleKey).eq("assigned_to", context.userId).not("agent_joined_at", "is", null);
     const { data: rows } = await db
       .from("vip_messages")
       .select("*")
@@ -483,14 +488,19 @@ export const updateVipThread = createServerFn({ method: "POST" })
       const { data: sp } = await db.from("vip_specialists").select("role_label,full_name").eq("role_key", data.toRole).maybeSingle();
       await db.from("vip_messages").insert({
         user_id: data.userId, role_key: data.toRole, sender_role: "specialist", sender_id: context.userId,
-        body: `Your conversation has been transferred to ${sp?.full_name ?? "a specialist"} (${sp?.role_label ?? "VIP"}).`,
+        body: `Your conversation has been transferred to the ${sp?.role_label ?? "VIP"} desk. A specialist will accept your request.`,
       });
       await logAudit(db, context.userId, "vip.thread.transfer", data.userId, { from: data.roleKey, to: data.toRole });
       return { ok: true, roleKey: data.toRole };
     }
+    if (data.action === "assign") {
+      const { data: accepted, error } = await db.rpc("accept_vip_queue", { p_user_id: data.userId, p_role_key: data.roleKey, p_agent_id: context.userId });
+      if (error || !accepted) throw new Error("Request already accepted by another specialist or no longer available.");
+      await logAudit(db, context.userId, "vip.thread.accept", data.userId, { roleKey: data.roleKey });
+      return { ok: true, roleKey: data.roleKey };
+    }
     const patch =
-      data.action === "assign" ? { assigned_to: context.userId, thread_status: "open" }
-      : data.action === "unassign" ? { assigned_to: null }
+      data.action === "unassign" ? { assigned_to: null, accepted_at: null, agent_joined_at: null, agent_last_seen_at: null }
       : data.action === "resolve" ? { thread_status: "resolved", resolved_at: now }
       : { thread_status: "open", resolved_at: null };
     const { error } = await match(db.from("vip_access").update(patch));
