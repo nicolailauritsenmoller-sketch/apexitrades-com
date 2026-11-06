@@ -97,9 +97,25 @@
   --color-ops-section: var(--ops-section);
   --color-ops-section-amber: var(--ops-section-amber);
   --color-ops-section-emerald: var(--ops-section-emerald);
+  --color-vip-background: var(--vip-background);
+  --color-vip-card: var(--vip-card);
+  --color-vip-icon: var(--vip-icon);
+  --color-vip-title: var(--vip-title);
+  --color-vip-muted: var(--vip-muted);
+  --color-vip-gold: var(--vip-gold);
+  --color-vip-gold-light: var(--vip-gold-light);
+  --color-vip-border: var(--vip-border);
 }
 
 :root {
+  --vip-background: oklch(0.985 0 0);
+  --vip-card: oklch(1 0 0);
+  --vip-icon: oklch(0.94 0 0);
+  --vip-title: oklch(0.2 0 0);
+  --vip-muted: oklch(0.5 0 0);
+  --vip-gold: oklch(0.5 0.09 85);
+  --vip-gold-light: oklch(0.6 0.1 90);
+  --vip-border: oklch(0.9 0 0);
   --radius: 0.875rem;
 
   --background: oklch(1 0 0);
@@ -180,6 +196,14 @@
 }
 
 .dark {
+  --vip-background: oklch(0.1448 0 0);
+  --vip-card: oklch(0.1822 0 0);
+  --vip-icon: oklch(0.255 0 0);
+  --vip-title: oklch(0.97 0 0);
+  --vip-muted: oklch(0.63 0 0);
+  --vip-gold: oklch(0.78 0.075 88);
+  --vip-gold-light: oklch(0.94 0.065 96);
+  --vip-border: oklch(0.24 0 0);
   /* Exchange dark surfaces: app #0B0E11, cards #181A20, inputs #2B2F36 */
   --background: oklch(0.15 0.01 264);
   --foreground: oklch(0.975 0.003 258);
