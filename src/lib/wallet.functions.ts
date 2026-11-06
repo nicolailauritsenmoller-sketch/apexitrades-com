@@ -2,14 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MIN_WITHDRAWAL_CREDIT_SCORE } from "@/lib/limits";
-
-const depositInput = z.object({
-  coin: z.string().min(1).max(12),
-  network: z.string().min(1).max(48),
-  amount: z.number().positive().max(100_000_000),
-  txHash: z.string().trim().max(200).optional(),
-  receiptPath: z.string().trim().max(400).optional(),
-});
+import { depositInput } from "@/lib/deposit-input";
 
 const withdrawInput = z.object({
   coin: z.string().min(1).max(16),
@@ -260,7 +253,7 @@ export const requestDeposit = createServerFn({ method: "POST" })
         network: data.network,
         amount: data.amount,
         tx_hash: data.txHash || null,
-        receipt_path: data.receiptPath || null,
+        receipt_path: data.receiptPath,
       })
       .select("id,created_at")
       .single();

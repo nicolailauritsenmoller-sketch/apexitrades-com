@@ -25,6 +25,7 @@ import QRCode from "qrcode";
 
 import { getAccountSecurityState, setAddressWhitelisting } from "@/lib/account-security.functions";
 import { getMyDepositMinimum } from "@/lib/deposit-minimums.functions";
+import { DEPOSIT_PROOF_REQUIRED, depositInput } from "@/lib/deposit-input";
 
 const MEMO_REQUIRED_COINS = new Set(["XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "BNB-BEP2"]);
 import {
@@ -724,8 +725,12 @@ function DepositTab({
 
   const mutation = useMutation({
     mutationFn: async (vars: { coin: string; network: string; amount: number; txHash?: string }) => {
-      let receiptPath: string | undefined;
-      if (proof) {
+      if (!proof) throw new Error(DEPOSIT_PROOF_REQUIRED);
+      if (!proof.type.startsWith("image/") || proof.size === 0) {
+        throw new Error("Attach a valid, non-empty payment screenshot.");
+      }
+      let receiptPath: string;
+      {
         setUploading(true);
         try {
           const { data: auth } = await supabase.auth.getUser();
@@ -740,7 +745,7 @@ function DepositTab({
           setUploading(false);
         }
       }
-      return submit({ data: { ...vars, ...(receiptPath ? { receiptPath } : {}) } });
+      return submit({ data: depositInput.parse({ ...vars, receiptPath }) });
     },
     onSuccess: (res, vars) => {
       void logActivity("deposit", `Deposit request ${vars.amount} ${vars.coin}`, {
@@ -1030,11 +1035,13 @@ function DepositTab({
               />
               <label className="block cursor-pointer rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground transition-colors hover:border-primary/50">
                 <span className="font-medium text-foreground">
-                  Upload proof of payment / transaction screenshot
+                  Upload proof of payment / transaction screenshot (required)
                 </span>
                 <input
                   type="file"
                   accept="image/*"
+                  required
+                  disabled={mutation.isPending || uploading}
                   className="mt-2 block w-full text-xs"
                   onChange={(e) => setProof(e.target.files?.[0] ?? null)}
                 />
@@ -1048,8 +1055,12 @@ function DepositTab({
                 </span>
               </div>
               <Button
-                disabled={mutation.isPending || uploading}
+                disabled={mutation.isPending || uploading || !proof}
                 onClick={() => {
+                  if (!proof) {
+                    toast.error(DEPOSIT_PROOF_REQUIRED);
+                    return;
+                  }
                   const value = Number(amount);
                   if (!Number.isFinite(value) || value <= 0) {
                     toast.error("Enter a valid amount.");
