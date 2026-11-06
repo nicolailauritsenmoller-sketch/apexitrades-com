@@ -190,11 +190,11 @@ export function ReferralsPanel() {
                 <tr key={r.id} className="border-b border-border/60 last:border-0">
                   <td className="px-4 py-3">
                     <p className="font-medium">{r.referrerName}</p>
-                    <p className="text-xs text-muted-foreground">{r.referrerEmail ?? "-"}</p>
+                    <p className="text-xs text-muted-foreground"><span className={r.referrerEmail ? "admin-email" : ""}>{r.referrerEmail ?? "-"}</span></p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{r.refereeName}</p>
-                    <p className="text-xs text-muted-foreground">{r.refereeEmail ?? "-"}</p>
+                    <p className="text-xs text-muted-foreground"><span className={r.refereeEmail ? "admin-email" : ""}>{r.refereeEmail ?? "-"}</span></p>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{r.code ?? "-"}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">

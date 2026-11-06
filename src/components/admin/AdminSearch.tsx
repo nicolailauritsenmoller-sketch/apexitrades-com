@@ -67,7 +67,9 @@ export function AdminSearch() {
                   <CommandItem key={`${h.kind}-${h.id}`} value={`${h.kind} ${h.id} ${h.title} ${h.subtitle} ${term}`} onSelect={() => go(h, g.tab)}>
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold">{h.title}</p>
-                      <p className="truncate font-mono text-[10px] text-muted-foreground">{h.subtitle}</p>
+                      <p className="truncate font-mono text-[10px] text-muted-foreground">
+                        {h.kind === "user" && h.subtitle.includes(" - ") ? <>{h.subtitle.slice(0, h.subtitle.indexOf(" - ") + 3)}<span className="admin-email">{h.subtitle.slice(h.subtitle.indexOf(" - ") + 3)}</span></> : h.subtitle}
+                      </p>
                     </div>
                   </CommandItem>
                 ))}
