@@ -1182,6 +1182,9 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
 
               {/* Thread conversation */}
               <div className="max-h-64 space-y-2 overflow-y-auto">
+                {active.subject === "Treasury Operations - Credit Facility Simulation" && active.body && (
+                  <p className="whitespace-pre-wrap border-b border-border pb-3 text-xs text-muted-foreground">{active.body}</p>
+                )}
                 {thread.map((m) => (
                   <div
                     key={m.id}
@@ -1207,7 +1210,7 @@ function TicketsDesk({ mode = "tickets" }: { mode?: "requests" | "tickets" }) {
                     </span>
                   </div>
                 ))}
-                {thread.length === 0 && (
+                {thread.length === 0 && active.subject !== "Treasury Operations - Credit Facility Simulation" && (
                   <p className="whitespace-pre-wrap text-xs text-muted-foreground">{active.body || "No messages yet."}</p>
                 )}
               </div>
