@@ -21,7 +21,8 @@ export const getVipCreditDesk = createServerFn({ method: "POST" }).middleware([r
   await assertAdmin(context); const db = await privileged();
   const { data, error } = await db.from("support_tickets").select("id,user_id,reference,body,vip_credit_scenario,vip_credit_status,vip_credit_review_note,created_at").eq("subject", "Treasury Operations - Credit Facility Simulation").order("created_at", { ascending: false }).limit(500);
   if (error) throw new Error("Credit requests unavailable.");
-  return (data ?? []).map((row: { id: string; user_id: string; reference: string | null; body: string; vip_credit_scenario: unknown; vip_credit_status: string; vip_credit_review_note: string | null; created_at: string }) => {
+  const rows = (data ?? []) as { id: string; user_id: string; reference: string | null; body: string; vip_credit_scenario: unknown; vip_credit_status: string; vip_credit_review_note: string | null; created_at: string }[];
+  return rows.map(row => {
     const parsed = creditScenarioSchema.safeParse(row.vip_credit_scenario);
     return { ...row, vip_credit_scenario: parsed.success ? parsed.data : null };
   });

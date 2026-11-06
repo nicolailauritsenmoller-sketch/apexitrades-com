@@ -184,6 +184,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "vipecosystem",
   "health",
   "scalping",
   "discovery",

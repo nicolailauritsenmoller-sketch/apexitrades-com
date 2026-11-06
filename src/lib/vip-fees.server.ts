@@ -210,7 +210,13 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
     }
 
     if (!acc && qualifies === 0) continue; // nothing to track yet
-    await db.from("vip_accounts").upsert(patch);
+    if (patch["level"] === qualifies && qualifies > current) {
+      delete patch["level"];
+      delete patch["user_id"];
+      await db.from("vip_accounts").update(patch).eq("user_id", userId);
+    } else {
+      await db.from("vip_accounts").upsert(patch);
+    }
   }
 
   return { autoPromoted, evaluated: metrics.size, upgradeRecommendations: upgrades, downgrades, graceStarted, graceDays };
