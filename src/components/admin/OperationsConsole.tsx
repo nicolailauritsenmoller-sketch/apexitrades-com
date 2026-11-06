@@ -781,7 +781,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 function useReview(fn: typeof reviewDeposit, onDone: () => void, label: string) {
   const call = useServerFn(fn);
   return useMutation({
-    mutationFn: (input: { id: string; action: "approve" | "reject"; note?: string }) =>
+    mutationFn: (input: { id: string; action: "approve" | "reject"; note?: string; txHash?: string }) =>
       call({ data: input }),
     onSuccess: (r: any, v) => {
       toast.success(r?.awaitingSecondApproval ? "First approval recorded. A different finance operator must approve before settlement." : `${label} ${v.action === "approve" ? "approved" : "rejected"}.`);
@@ -894,6 +894,7 @@ function DepositsTab({
 }) {
   const review = useReview(reviewDeposit, onDone, "Deposit");
   const [note, setNote] = useState<Record<string, string>>({});
+  const [hashes, setHashes] = useState<Record<string, string>>({});
   const [term, setTerm] = useState("");
   const [status, setStatus] = useState(statusFilter ?? "all");
   const [confirmation, setConfirmation] = useState<{ ids: string[]; action: "approve" | "reject" } | null>(null);
@@ -903,8 +904,19 @@ function DepositsTab({
   const { checked, setChecked, toggle } = useBulkSelection();
   const pendingRows = rows.filter((r) => r.status === "pending");
   const allChecked = pendingRows.length > 0 && pendingRows.every((r) => checked.has(r.id));
+  const missingHash = (id: string) => {
+    const row = allRows.find((r) => r.id === id);
+    return !String(row?.tx_hash ?? "").trim() && (hashes[id] ?? "").trim().length < 10;
+  };
+  const openReview = (ids: string[], action: "approve" | "reject") => {
+    if (action === "approve" && ids.some(missingHash)) {
+      toast.error("Enter the on-chain transaction hash for each deposit without one before approving.");
+      return;
+    }
+    setConfirmation({ ids, action });
+  };
   const runBulk = (action: "approve" | "reject") => {
-    setConfirmation({ ids: pendingRows.filter((r) => checked.has(r.id)).map((r) => r.id), action });
+    openReview(pendingRows.filter((r) => checked.has(r.id)).map((r) => r.id), action);
   };
 
 
@@ -985,6 +997,15 @@ function DepositsTab({
 
               {d.status === "pending" && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {!String(d.tx_hash ?? "").trim() && (
+                    <input
+                      value={hashes[d.id] ?? ""}
+                      onChange={(e) => setHashes((p) => ({ ...p, [d.id]: e.target.value.trim() }))}
+                      placeholder="Transaction hash (required to credit)"
+                      aria-label="Transaction hash"
+                      className="h-8 min-w-[220px] flex-1 rounded-md border border-ops-amber/50 bg-background px-2 font-mono text-xs"
+                    />
+                  )}
                   <input
                     value={note[d.id] ?? ""}
                     onChange={(e) => setNote((p) => ({ ...p, [d.id]: e.target.value }))}
@@ -995,7 +1016,7 @@ function DepositsTab({
                     pending={review.isPending}
                     approveLabel="Approve & Credit"
                     rejectLabel="Reject Deposit"
-                    onAction={(action) => setConfirmation({ ids: [d.id], action })}
+                    onAction={(action) => openReview([d.id], action)}
                   />
                 </div>
               )}
@@ -1006,7 +1027,7 @@ function DepositsTab({
       <AdminActionConfirm open={!!confirmation} title={confirmation?.action === "reject" ? "Reject Deposit" : "Approve Deposit"} description={`${confirmation?.ids.length ?? 0} pending record(s) will be reviewed. The operator note is recorded for each record.`} optionalNote reasonPresets={[{ label: "Approval preset", reason: "On-chain transaction hash verified, block confirmations cleared, and collateral credited to institutional client ledger under prime settlement mandate." }, { label: "Rejection preset", reason: "Transaction hash verification failed, insufficient network confirmations, or beneficiary account mismatch non-compliant with treasury intake policy." }]} pending={review.isPending} destructive={confirmation?.action === "reject"} onClose={() => setConfirmation(null)} onConfirm={async (reason) => {
         if (!confirmation) return;
         for (const id of confirmation.ids) {
-          await review.mutateAsync({ id, action: confirmation.action, note: reason });
+          await review.mutateAsync({ id, action: confirmation.action, note: reason, txHash: confirmation.action === "approve" && hashes[id] ? hashes[id] : undefined });
           setChecked((prev) => { const next = new Set(prev); next.delete(id); return next; });
         }
       }} />

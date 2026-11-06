@@ -84,6 +84,8 @@ const reviewInput = z.object({
   note: z.string().trim().max(500).optional(),
   /** Standardized rejection code, required when rejecting. */
   code: z.string().trim().max(40).optional(),
+  /** On-chain reference entered by the operator when the customer did not supply one. */
+  txHash: z.string().trim().min(10).max(200).regex(/^[A-Za-z0-9_-]+$/).optional(),
 });
 
 const kycReviewInput = reviewInput.refine((v) => v.action === "approve" || Boolean(v.code), {
@@ -129,6 +131,11 @@ export const reviewDeposit = createServerFn({ method: "POST" })
 
     const status = data.action === "approve" ? "approved" : "rejected";
     const db = await privileged();
+    if (status === "approved" && !String(dep.tx_hash ?? "").trim()) {
+      if (!data.txHash) throw new Error("Enter the on-chain transaction hash for this deposit before approving.");
+      const { error: hashError } = await db.from("deposits").update({ tx_hash: data.txHash }).eq("id", dep.id).eq("status", "pending");
+      if (hashError) throw new Error(hashError.message);
+    }
     const { data: r, error } = await db.rpc("settle_deposit_atomic", {
       p_id: dep.id, p_status: status, p_note: data.note ?? null, p_reviewer: userId,
     });
