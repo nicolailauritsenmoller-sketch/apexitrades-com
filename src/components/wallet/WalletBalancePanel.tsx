@@ -90,9 +90,9 @@ export function WalletBalancePanel({
     <div className="space-y-4">
       <section className="panel touch-manipulation p-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground">Total Balance</p>
-            <p className="num mt-1 text-3xl font-bold tracking-tight">
+            <p className="balance-value mt-1 break-words">
               {isLoading ? "-" : hidden ? "••••••" : fmt(totalUsdt)}{" "}
               <span className="text-base font-semibold text-muted-foreground">USDT</span>
             </p>
@@ -162,7 +162,7 @@ export function WalletBalancePanel({
       >
         <div className="min-h-0 overflow-hidden">
           <section className="panel overflow-hidden">
-        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border px-4 py-2.5 text-xs font-semibold uppercase text-muted-foreground">
           <span>Asset</span>
           <span className="w-20 text-right sm:w-24">Balance</span>
           <span className="w-20 text-right sm:w-24">Value (USDT)</span>

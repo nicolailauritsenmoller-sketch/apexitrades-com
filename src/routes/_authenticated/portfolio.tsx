@@ -138,7 +138,7 @@ function Portfolio() {
             <div className="text-xs font-medium text-muted-foreground">
               Est. Total Value ({display.currency})
             </div>
-            <div className="num mt-1 text-3xl font-bold tracking-tight">
+            <div className="balance-value mt-1 break-words">
               {value.isLoading ? (
                 "-"
               ) : balancesHidden ? (
