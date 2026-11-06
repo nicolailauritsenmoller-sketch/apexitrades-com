@@ -29,13 +29,19 @@ export const getVipCreditDesk = createServerFn({ method: "POST" }).middleware([r
 });
 export const reviewVipCredit = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((v: unknown) => z.object({ id: z.string().uuid(), status: z.enum(["approved_simulation", "rejected", "liquidated_simulation"]), reason: z.string().trim().min(5).max(400) }).parse(v)).handler(async ({ data, context }) => {
   await assertAdmin(context); const db = await privileged();
-  const { data: ticket, error } = await db.from("support_tickets").update({ vip_credit_status: data.status, vip_credit_review_note: data.reason }).eq("id", data.id).eq("subject", "Treasury Operations - Credit Facility Simulation").select("user_id").single();
-  if (error || !ticket) throw new Error("Credit scenario not found.");
-  await logAudit(db, context.userId, "vip.credit_review", ticket.user_id, { ticket: data.id, status: data.status, reason: data.reason });
-  await db.from("notifications").insert({ user_id: ticket.user_id, kind: "info", title: "Credit simulation review", body: `Treasury updated your credit scenario: ${data.status.replaceAll("_", " ")}. No funds have moved.` });
+  const { error } = await db.rpc("review_vip_credit", { p_id: data.id, p_status: data.status, p_reason: data.reason, p_actor: context.userId });
+  if (error) throw new Error("Could not apply credit review. Liquidation requires an approved scenario.");
   return { ok: true };
 });
 export const getMyVipCredit = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-  const { data, error } = await context.supabase.from("support_tickets").select("id,reference,vip_credit_status,vip_credit_review_note,created_at").eq("user_id", context.userId).eq("subject", "Treasury Operations - Credit Facility Simulation").order("created_at", { ascending: false }).limit(20);
+  const { data, error } = await context.supabase.from("support_tickets").select("id,reference,vip_credit_status,vip_credit_review_note,vip_credit_drawdown_at,created_at").eq("user_id", context.userId).eq("subject", "Treasury Operations - Credit Facility Simulation").order("created_at", { ascending: false }).limit(20);
   if (error) throw new Error("Credit review status unavailable."); return data;
+});
+export const recordVipDrawdown = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((v: unknown) => z.object({ id: z.string().uuid() }).parse(v)).handler(async ({ data, context }) => {
+  const { data: ticket, error } = await context.supabase.from("support_tickets").select("id,vip_credit_status").eq("id", data.id).eq("user_id", context.userId).single();
+  if (error || ticket?.vip_credit_status !== "approved_simulation") throw new Error("Treasury approval required for this simulation.");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error: drawError } = await supabaseAdmin.rpc("record_vip_simulated_drawdown", { p_id: data.id, p_user: context.userId });
+  if (drawError) throw new Error("Could not record simulated drawdown.");
+  return { ok: true };
 });
