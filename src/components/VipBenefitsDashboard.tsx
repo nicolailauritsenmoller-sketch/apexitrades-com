@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { collateralProgress } from "@/lib/prime-tiers";
 import insightGraphic from "@/assets/vip-market-insight.jpg";
+import { VipDashboardWidgets } from "@/components/VipDashboardWidgets";
 import { VipGiftPreview } from "@/components/VipGiftPreview";
 
 type Props = {
@@ -35,7 +36,8 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
   return <>
     <header className="flex items-center justify-between gap-3 pb-7 pt-2 sm:pb-8">
       <div>
-        <p className="mb-3 flex items-center gap-3 text-xs font-medium text-muted-foreground">VIP Memberships <span role="img" aria-label={`Account standing: ${status}`} title={status} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-ops-amber-bg bg-ops-amber/10 text-ops-amber"><Crown className="size-4" strokeWidth={1.5} aria-hidden="true" /></span></p>
+        <p className="mb-3 flex items-center gap-3 text-xs font-medium text-muted-foreground">VIP Memberships <span role="img" aria-label={`Account standing: ${status}`} title={status} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-ops-amber-bg bg-ops-amber/10 text-ops-amber"><Crown className="size-4" strokeWidth={1.5} aria-hidden="true" /></span><span className={`rounded-md border px-2 py-1 text-[11px] font-semibold tracking-wide ${status === "VIP" ? "border-vip-gold/50 bg-vip-gold/10 text-vip-gold-light" : status === "VIP (PENDING)" ? "border-ops-amber/40 text-ops-amber" : "border-border text-muted-foreground"}`}>{status}</span></p>
+        <div className="mb-4 max-w-56"><div className="flex justify-between text-[11px] text-vip-muted"><span>Tier progress</span><span className="num">{valuationComplete ? `${Math.round(progress.percent)}%` : "-"}</span></div><div className="mt-1 h-1 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-vip-gold" style={{ width: `${valuationComplete ? progress.percent : 0}%` }} /></div></div>
         <h1 className="bg-linear-to-b from-vip-gold-light to-vip-gold bg-clip-text text-[24px] font-semibold leading-[1.25] text-transparent sm:text-[32px]">Experience your<br />Exclusive Benefits</h1>
       </div>
       <Gem aria-hidden="true" className="size-20 shrink-0 stroke-[0.75] text-vip-gold sm:size-24" />
@@ -47,6 +49,7 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
         return card.to ? <Button key={card.title} asChild variant="ghost" className={classes}><Link to={card.to}>{content}</Link></Button> : <Button key={card.title} variant="ghost" className={classes} onClick={card.action}>{content}</Button>;
       })}
     </section>
+    <VipDashboardWidgets isVip={status === "VIP"} />
     <section aria-labelledby="rising-star-title" className="py-7 sm:py-9">
       <h2 id="rising-star-title" className="mb-4 flex items-center gap-2 text-[16px] font-medium text-vip-gold-light sm:text-[18px]">Become a VIP Rising Star <Info className="size-3.5 text-vip-muted" aria-label="Based on cleared USDT collateral; allocation requires review" /></h2>
       <div className="border-y border-border py-5">
