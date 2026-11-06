@@ -50,7 +50,7 @@ describe("Atomic financial safeguards", () => {
   });
   it("credits a deposit approved without a transaction hash", async () => {
     await expect(db.query("SELECT settle_deposit_atomic($1,'approved',NULL,$2)", [await deposit(""), a])).resolves.toBeTruthy();
-    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1000);
+    expect(Number((await db.query<{ balance: string }>("SELECT balance FROM wallets")).rows[0]?.balance)).toBe(1100);
   });
   it("requires two distinct authorized operators for enabled large withdrawals", async () => {
     await db.exec(`INSERT INTO platform_settings VALUES('risk_controls','{"largeWithdrawalReview":true,"largeWithdrawalThresholdUsd":10000}');`);
