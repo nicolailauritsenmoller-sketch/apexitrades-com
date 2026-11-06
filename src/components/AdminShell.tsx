@@ -10,7 +10,7 @@ import { AdminSearch } from "@/components/admin/AdminSearch";
  * Standalone backend layout. Deliberately shares no chrome with the customer
  * app: no marketing header, no user navigation, no footer, no chat widget.
  */
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, independentPanes = false }: { children: ReactNode; independentPanes?: boolean }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -22,8 +22,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-xl">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background">
+      <header className="z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/15 text-primary">
             <ShieldCheck className="size-4" />
@@ -51,7 +51,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1600px] overflow-x-hidden px-3 py-4 sm:px-4 sm:py-6">
+      <main className={`mx-auto min-h-0 w-full max-w-[1600px] flex-1 overflow-x-hidden px-3 py-4 sm:px-4 sm:py-6 ${independentPanes ? "overflow-y-hidden" : "overflow-y-auto overscroll-contain"}`}>
         {children}
       </main>
     </div>
