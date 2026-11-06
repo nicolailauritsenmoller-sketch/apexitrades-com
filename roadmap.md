@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Link My VIP to a Velocity Trade feature article with branded graphics, all reference sections, working reading actions and a live cryptocurrency ticker.
+
 - [x] Link VIP Portal to a dedicated account dashboard with real account standing, limits, swipeable collateral progression and honest institutional-service availability. Signed-in card navigation, account readback, tier controls, Deposit dialog, service disclosures and mobile fit verified without runtime errors; six collateral tests pass. BNB qualification, average-asset history and institutional services remain unconfigured.
 
 - [x] Link Lower Fee to a dedicated Fee Rate schedule with configured percentage rates, reference-style tabs and honest unavailable program states. Signed-in navigation, spot/stocks/futures filtering, program states, disabled BNB discount and mobile refresh verified; six collateral/fee tests pass.
