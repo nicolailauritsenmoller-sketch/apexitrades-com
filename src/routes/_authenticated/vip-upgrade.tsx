@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, ArrowUpRight, Check, ChevronRight, Clock3, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +24,6 @@ export const Route = createFileRoute("/_authenticated/vip-upgrade")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(membershipOptions),
   component: VipUpgradePage,
   errorComponent: () => <AppShell><div role="alert" className="p-6 text-sm text-bear">Membership status is temporarily unavailable. Please reload to retry.</div></AppShell>,
 });
@@ -40,8 +39,17 @@ const feeRows = [
 ] as const;
 
 function VipUpgradePage() {
+  const membership = useQuery(membershipOptions);
+  if (!membership.data) return <AppShell><div className="mx-auto max-w-6xl py-8" role={membership.isError ? "alert" : "status"}>
+    <h1 className="text-2xl font-semibold">Institutional Tier Allocation</h1>
+    <p className="mt-3 text-sm text-muted-foreground">{membership.isError ? "Membership status is temporarily unavailable." : "Loading membership status..."}</p>
+    {membership.isError && <Button variant="outline" className="mt-4" onClick={() => void membership.refetch()}><RefreshCw /> Retry</Button>}
+  </div></AppShell>;
+  return <MembershipContent data={membership.data} isFetching={membership.isFetching} isError={membership.isError} />;
+}
+
+function MembershipContent({ data, isFetching, isError }: { data: Awaited<ReturnType<typeof getPrimeMembership>>; isFetching: boolean; isError: boolean }) {
   const qc = useQueryClient();
-  const { data, isFetching, isError } = useSuspenseQuery(membershipOptions);
   const submit = useServerFn(requestPrimeAllocation);
   const currentLevel = Number(data.account?.level ?? 0);
   const recommended = data.account?.recommended_level;
