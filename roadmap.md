@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Redesign VIP Membership as Institutional Tier Allocation with 10k/20k/50k/100k collateral requirements, configured basis-point fees, reviewed allocation requests and user-scoped realtime status. Twelve rule/handler/PostgreSQL tests pass; signed-in tier selection, live balance, funding dialog and desktop/mobile layout verified. No live customer allocation submitted during verification. FIX, priority routing and tier-specific encumbrance limits remain explicitly unprovisioned.
+
 - [x] Apply the approved Precision V artwork across public, customer, staff and support surfaces, with theme-aware original wordmarks and matching browser/install icons. Light/dark auth artwork, signed-in trader/staff headers, mobile layouts and all four icon URLs verified without runtime errors.
 
 - [x] Normalize platform typography to the supplied exchange reference: shared 14px body scale, compact headings, 32px account totals and 12px mobile navigation. Signed-in Home, Portfolio, Markets, Assets, Profile, Terminal and Operations Console checked at desktop/mobile sizes with no page overflow or runtime errors.

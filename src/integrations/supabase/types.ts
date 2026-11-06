@@ -2904,6 +2904,19 @@ export type Database = {
         }[]
       }
       generate_uid7: { Args: never; Returns: string }
+      get_prime_fee_schedule: {
+        Args: never
+        Returns: {
+          futures_maker: number
+          futures_taker: number
+          level: number
+          min_portfolio_usdt: number
+          scalp_maker: number
+          scalp_taker: number
+          spot_maker: number
+          spot_taker: number
+        }[]
+      }
       has_role:
         | {
             Args: {
@@ -2974,6 +2987,10 @@ export type Database = {
       record_self_alert: {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
+      }
+      request_prime_allocation: {
+        Args: { p_level: number; p_user_id: string }
+        Returns: string
       }
       request_withdrawal_atomic: {
         Args: {

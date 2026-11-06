@@ -442,6 +442,27 @@
       "when": 1793885951817,
       "tag": "0062_leader_application_resubmission",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1793940921979,
+      "tag": "0063_prime_fee_schedule_read",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1793940968350,
+      "tag": "0064_prime_allocation_request",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1793941048918,
+      "tag": "0065_prime_account_realtime",
+      "breakpoints": true
     }
   ]
 }
