@@ -8,7 +8,7 @@ const b = "de4e4ee3-68b3-4c8e-98a4-19ae6dd1c2d3";
 const migration = readFileSync("drizzle/migrations/0057_operations_health_and_financial_guards.sql", "utf8");
 const settleMigration = readFileSync("drizzle/migrations/0071_deposit_hash_optional.sql", "utf8");
 const guard = settleMigration.slice(settleMigration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), settleMigration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
-const _oldGuard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.settle_deposit_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
+const withdrawalGuard = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION public.review_withdrawal_atomic"), migration.indexOf("REVOKE EXECUTE ON FUNCTION public.settle_deposit_atomic"));
 beforeAll(async () => {
   await db.exec(`CREATE TYPE request_status AS ENUM('pending','approved','rejected','unsubmitted');
     CREATE TABLE user_roles(user_id uuid,role text);
@@ -26,6 +26,7 @@ beforeAll(async () => {
     CREATE FUNCTION wallet_adjust(p_user uuid,p_currency text,p_delta numeric) RETURNS numeric LANGUAGE plpgsql AS $$ DECLARE v numeric; BEGIN UPDATE wallets SET balance=balance+p_delta WHERE user_id=p_user AND currency=p_currency RETURNING balance INTO v; IF v<0 THEN RAISE EXCEPTION 'Insufficient balance'; END IF; RETURN v; END $$;
     INSERT INTO user_roles VALUES('${a}','admin'),('${b}','finance');`);
   await db.exec(guard);
+  await db.exec(withdrawalGuard);
   const withdrawalSql = readFileSync("drizzle/migrations/0059_atomic_withdrawal_request_holds.sql", "utf8");
   await db.exec(withdrawalSql.slice(0, withdrawalSql.indexOf("REVOKE EXECUTE")));
 }, 30000);
