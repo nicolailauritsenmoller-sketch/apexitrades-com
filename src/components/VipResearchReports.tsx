@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Lock, ChevronRight } from "lucide-react";
+import { FileText, Lock, ChevronRight, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Report = { id: string; title: string; summary: string; body: string; category: string; created_at: string };
+type Report = { id: string; title: string; summary: string; body: string; category: string; author: string; created_at: string };
+
+function download(r: Report) {
+  const text = `${r.title}\n${r.category} - ${r.author} - ${new Date(r.created_at).toLocaleDateString()}\n\n${r.body}\n`;
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${r.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 /** VIP-only research library. Database policy returns rows only to active VIP members. */
 export function VipResearchReports({ isVip }: { isVip: boolean }) {
@@ -17,7 +27,7 @@ export function VipResearchReports({ isVip }: { isVip: boolean }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vip_research_reports")
-        .select("id,title,summary,body,category,created_at")
+        .select("id,title,summary,body,category,author,created_at")
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(30);
@@ -46,7 +56,7 @@ export function VipResearchReports({ isVip }: { isVip: boolean }) {
             <Button key={r.id} variant="outline" className="h-auto min-h-20 w-full justify-start gap-4 rounded-lg bg-card p-4 text-left" onClick={() => setOpen(r)}>
               <FileText className="size-6 shrink-0 text-ops-amber" />
               <span className="flex-1 whitespace-normal">
-                <span className="block text-xs font-normal text-muted-foreground">{r.category} - {new Date(r.created_at).toLocaleDateString()}</span>
+                <span className="block text-xs font-normal text-muted-foreground">{r.category} - {r.author} - {new Date(r.created_at).toLocaleDateString()}</span>
                 <span className="mt-1 block text-sm font-medium">{r.title}</span>
                 {r.summary && <span className="mt-1 block text-xs font-normal text-muted-foreground">{r.summary}</span>}
               </span>
@@ -59,10 +69,10 @@ export function VipResearchReports({ isVip }: { isVip: boolean }) {
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{open?.title}</DialogTitle>
-            <DialogDescription>{open?.category} - {open && new Date(open.created_at).toLocaleDateString()}</DialogDescription>
+            <DialogDescription>{open?.category} - {open?.author} - {open && new Date(open.created_at).toLocaleDateString()}</DialogDescription>
           </DialogHeader>
           <div className="whitespace-pre-wrap text-sm leading-relaxed">{open?.body}</div>
-          <p className="text-xs text-muted-foreground">For information only. Not investment advice.</p>
+          <div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">For information only. Not investment advice.</p>{open && <Button size="sm" variant="outline" onClick={() => download(open)}><Download className="size-4" /> Download</Button>}</div>
         </DialogContent>
       </Dialog>
     </section>

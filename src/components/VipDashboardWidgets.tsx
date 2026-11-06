@@ -34,7 +34,7 @@ export function VipDashboardWidgets({ isVip }: { isVip: boolean }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vip_research_reports")
-        .select("id,title,summary,body,category,created_at")
+        .select("id,title,summary,body,category,author,created_at")
         .eq("published", true)
         .order("created_at", { ascending: false })
         .limit(30);
