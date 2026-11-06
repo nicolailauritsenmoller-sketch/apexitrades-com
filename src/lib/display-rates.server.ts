@@ -14,11 +14,11 @@ async function fallbackFx() {
 }
 
 export async function fetchDisplayRates(): Promise<Record<string, number>> {
-  const [eur, gbp, usdCad, btc] = await Promise.all([
+  const [eur, gbp, usdCad, btc, fallback] = await Promise.all([
     fetchPrice("EURUSD=X").catch(() => 0), fetchPrice("GBPUSD=X").catch(() => 0),
     fetchPrice("USDCAD=X").catch(() => 0), fetchPrice("BTCUSDT").catch(() => 0),
+    fallbackFx(),
   ]);
-  const fallback = !eur || !gbp || !usdCad ? await fallbackFx() : {};
-  return { USD: 1, USDT: 1, EUR: eur || fallback.EUR || 0, GBP: gbp || fallback.GBP || 0,
+  return { ...fallback, USD: 1, USDT: 1, EUR: eur || fallback.EUR || 0, GBP: gbp || fallback.GBP || 0,
     CAD: usdCad > 0 ? 1 / usdCad : fallback.CAD || 0, BTC: btc };
 }
