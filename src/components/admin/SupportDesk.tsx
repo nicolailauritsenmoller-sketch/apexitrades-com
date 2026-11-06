@@ -1,3 +1,4 @@
+import { SupportHistoryCleaner } from "@/components/admin/SupportHistoryCleaner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -91,6 +92,7 @@ export function SupportDesk({
   useEffect(() => setView(initialView), [initialView]);
   return (
     <div className="space-y-4">
+      <div className="flex justify-end"><SupportHistoryCleaner /></div>
       <div className="inline-flex flex-wrap rounded-lg border border-border bg-card p-1">
         {(
           [
