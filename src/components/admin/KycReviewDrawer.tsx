@@ -111,7 +111,7 @@ export function KycReviewDrawer({
             <p className="break-words font-display text-sm font-bold">Compliance review - {row.full_name}</p>
             <p className="font-mono text-[11px] text-muted-foreground">User {String(row.user_id).slice(0, 8)}</p>
             {docs.data?.registeredEmail && (
-              <p className="select-text break-all text-xs text-muted-foreground">{docs.data.registeredEmail}</p>
+              <p className="admin-email break-all text-xs">{docs.data.registeredEmail}</p>
             )}
           </div>
           <button onClick={onClose} aria-label="Close" className="ml-auto touch-manipulation rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground">

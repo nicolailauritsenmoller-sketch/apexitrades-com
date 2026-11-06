@@ -88,7 +88,7 @@ export function PendingVipPanel({ onOpen }: { onOpen?: (userId: string) => void 
                 {r.uid ?? "-"}
               </td>
               <td className="max-w-[180px] truncate py-2.5 pr-3 text-xs text-muted-foreground">
-                {r.email ?? "-"}
+                <span className={r.email ? "admin-email" : ""} title={r.email ?? undefined}>{r.email ?? "-"}</span>
               </td>
               <td className="py-2.5 pr-3">
                 <span className="num text-xs font-semibold">

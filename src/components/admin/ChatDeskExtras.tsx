@@ -143,7 +143,7 @@ export function ChatUserSidebar({ userId }: { userId: string }) {
           <div className="mt-2 divide-y divide-border rounded-md border border-border px-2.5">
             <Row k="UID" v={d.uid ?? "-"} />
             <Row k="Full name" v={d.fullName ?? "-"} />
-            <Row k="Email" v={<span title={d.email ?? ""}>{d.email ?? "-"}</span>} />
+            <Row k="Email" v={<span className={d.email ? "admin-email" : ""} title={d.email ?? ""}>{d.email ?? "-"}</span>} />
             <Row k="Verification" v={d.kycTier} />
             <Row k="2FA" v={d.twoFactor ? "Enabled" : "Not enabled"} />
           </div>

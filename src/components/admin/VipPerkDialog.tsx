@@ -51,7 +51,7 @@ export function VipPerkDialog() {
           {list.length > 0 && (
             <ul className="divide-y divide-border rounded-md border border-border">
               {list.map((u) => (
-                <li key={u.id}><button type="button" onClick={() => { pick(u.id); setTerm(""); }} className="w-full px-3 py-2 text-left text-xs hover:bg-muted">{u.display_name} <span className="text-muted-foreground">{u.email} - {u.uid}</span></button></li>
+                <li key={u.id}><button type="button" onClick={() => { pick(u.id); setTerm(""); }} className="w-full px-3 py-2 text-left text-xs hover:bg-muted">{u.display_name} <span className="text-muted-foreground"><span className={u.email ? "admin-email" : ""}>{u.email}</span> - {u.uid}</span></button></li>
               ))}
             </ul>
           )}

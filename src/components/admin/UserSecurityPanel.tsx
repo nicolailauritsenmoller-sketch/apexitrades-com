@@ -127,7 +127,7 @@ export function UserSecurityPanel() {
                   <p className="font-semibold">{r.displayName}</p>
                   <p className="text-[11px] text-muted-foreground">{r.uid ?? r.id.slice(0, 8)}</p>
                 </td>
-                <td className="px-3 py-2 text-muted-foreground">{r.email ?? "-"}</td>
+                <td className="px-3 py-2 text-muted-foreground"><span className={r.email ? "admin-email" : ""}>{r.email ?? "-"}</span></td>
                 <td className="px-3 py-2 text-muted-foreground">
                   {new Date(r.createdAt).toLocaleDateString()}
                 </td>
@@ -188,7 +188,7 @@ export function UserSecurityPanel() {
               <p className="text-sm font-semibold">
                 {selected.displayName}{" "}
                 <span className="text-xs font-normal text-muted-foreground">
-                  {selected.email ?? selected.id.slice(0, 8)}
+                  <span className={selected.email ? "admin-email" : ""}>{selected.email ?? selected.id.slice(0, 8)}</span>
                 </span>
               </p>
             </div>
