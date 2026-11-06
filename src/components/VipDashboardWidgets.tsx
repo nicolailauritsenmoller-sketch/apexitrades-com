@@ -59,7 +59,7 @@ export function VipDashboardWidgets({ isVip }: { isVip: boolean }) {
                 </li>
               ))}
             </ul>}
-        <Link to="/wallet" className="mt-2 inline-flex items-center gap-1 text-xs text-vip-muted">All transactions <ChevronRight className="size-3" /></Link>
+        <Link to="/wallet" search={{ tab: "deposit" }} className="mt-2 inline-flex items-center gap-1 text-xs text-vip-muted">Deposit funds <ChevronRight className="size-3" /></Link>
       </div>
       <div className={card}>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-vip-gold-light"><FileText className="size-4" /> Research reports</h2>
