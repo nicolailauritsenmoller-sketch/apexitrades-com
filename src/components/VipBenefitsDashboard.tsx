@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { collateralProgress } from "@/lib/prime-tiers";
 import insightGraphic from "@/assets/vip-market-insight.jpg";
+import giftGraphic from "@/assets/vip-gift-merchandise.jpg";
 
 type Props = {
   balance: number;
@@ -64,8 +65,15 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
       </DialogContent>
     </Dialog>
     <Dialog open={resource !== null} onOpenChange={open => { if (!open) setResource(null); }}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>{resource === "gifts" ? "VIP Gift Packs" : "VIP Portal"}</DialogTitle><DialogDescription>{resource === "gifts" ? "Gift packs are not currently provisioned. Membership approval does not grant a claimable gift." : "Membership resources and live market coverage."}</DialogDescription></DialogHeader>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto rounded-t-lg border-border bg-card p-5 max-sm:left-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 sm:max-w-lg">
+        <DialogHeader className="text-left"><DialogTitle className="pr-7 text-lg">{resource === "gifts" ? "VIP Gift Packs" : "VIP Portal"}</DialogTitle><DialogDescription className="pt-2 text-sm leading-relaxed text-foreground">{resource === "gifts" ? "A variety of exclusive VIP gifts are available for valued members across VIP tiers - claim them while supplies last." : "Membership resources and live market coverage."}</DialogDescription></DialogHeader>
+        {resource === "gifts" && <>
+          <figure>
+            <img src={giftGraphic} alt="Illustrative Velocity Trade VIP merchandise: backpack, jacket, branded suitcase and vest on a gold background" loading="lazy" width={1536} height={864} className="h-auto w-full rounded-lg border border-border" />
+            <figcaption className="mt-3 text-xs text-muted-foreground">Actual items may differ from what's shown above.</figcaption>
+          </figure>
+          <p className="text-xs leading-relaxed text-muted-foreground">Illustrative preview only. Gift packs are not currently provisioned or available to claim. Membership approval does not grant a claimable gift.</p>
+        </>}
         {resource === "portal" ? <div className="grid gap-3"><Button variant="outline" onClick={() => { setResource(null); onManage("allocation"); }}><BadgeCheck /> Membership & collateral</Button><Button asChild variant="outline"><Link to="/markets"><ChartNoAxesCombined /> Live market insights</Link></Button><Button asChild variant="outline"><Link to="/profile/help"><LibraryBig /> Help center & resources</Link></Button></div> : <Button variant="outline" onClick={() => { setResource(null); onSupport(); }}><Headset /> Contact VIP support</Button>}
       </DialogContent>
     </Dialog>
