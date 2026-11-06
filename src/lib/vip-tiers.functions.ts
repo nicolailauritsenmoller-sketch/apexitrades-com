@@ -80,7 +80,10 @@ export const deleteVipTier = createServerFn({ method: "POST" })
     const db = await privileged();
     const { count } = await db.from("vip_accounts").select("user_id", { count: "exact", head: true }).eq("level", data.level);
     if ((count ?? 0) > 0) throw new Error(`${count} account(s) are on this tier. Move them first.`);
-    await db.from("vip_fee_tiers").delete().eq("level", data.level);
+    const { count: pending, error: pendingError } = await db.from("vip_accounts").select("user_id", { count: "exact", head: true }).eq("recommended_level", data.level);
+    if (pendingError || (pending ?? 0) > 0) throw new Error("Resolve pending requests before deleting this tier.");
+    const { error } = await db.from("vip_fee_tiers").delete().eq("level", data.level);
+    if (error) throw new Error(error.message);
     await audit(db, context.userId, "vip.tier_deleted", null, { level: data.level });
     return { ok: true };
   });
