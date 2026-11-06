@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, ArrowUpRight, Check, ChevronRight, Clock3, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -12,8 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPrimeMembership, requestPrimeAllocation } from "@/lib/prime-membership.functions";
 import { PRIME_TIERS, collateralProgress, feeBps } from "@/lib/prime-tiers";
 import { isVip, isVipPending } from "@/lib/vip-tiers";
+import { membershipOptions } from "@/lib/prime-membership-query";
 
-const membershipOptions = queryOptions({ queryKey: ["prime-membership"], queryFn: () => getPrimeMembership(), refetchInterval: 5_000 });
 const description = "Prime Tier Architecture on Velocity Trade: collateral requirements, configured maker/taker fees and reviewed institutional tier allocations.";
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({ meta: [
