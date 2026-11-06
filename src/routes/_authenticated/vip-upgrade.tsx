@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, ArrowUpRight, Check, ChevronRight, Clock3, Layers3, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { VipBenefitsDashboard } from "@/components/VipBenefitsDashboard";
 import { Button } from "@/components/ui/button";
 import { QuickDepositDialog } from "@/components/home/QuickDepositDialog";
 import { VipChatDialog } from "@/components/support/VipChatDialog";
@@ -14,12 +15,12 @@ import { PRIME_TIERS, collateralProgress, feeBps } from "@/lib/prime-tiers";
 import { isVip, isVipPending } from "@/lib/vip-tiers";
 import { membershipOptions } from "@/lib/prime-membership-query";
 
-const description = "Prime Tier Architecture on Velocity Trade: collateral requirements, configured maker/taker fees and reviewed institutional tier allocations.";
+const description = "Explore Velocity Trade VIP benefits, configured trading fees, membership resources and live collateral progress.";
 export const Route = createFileRoute("/_authenticated/vip-upgrade")({
   head: () => ({ meta: [
-    { title: "Institutional Tier Allocation | Velocity Trade" },
+    { title: "VIP Memberships | Velocity Trade" },
     { name: "description", content: description },
-    { property: "og:title", content: "Prime Tier Architecture | Velocity Trade" },
+    { property: "og:title", content: "VIP Memberships | Velocity Trade" },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
@@ -57,6 +58,7 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
   const [selectedLevel, setSelectedLevel] = useState(initialTarget);
   const [depositOpen, setDepositOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const selected = PRIME_TIERS.find(t => t.level === selectedLevel) ?? PRIME_TIERS[0];
   const selectedFees = data.schedule.find(t => t.level === selected.level);
   const requirement = Number(selectedFees?.min_portfolio_usdt ?? selected.threshold);
@@ -93,8 +95,13 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
   ];
 
   return <AppShell>
-    <div className="mx-auto max-w-6xl space-y-7 touch-manipulation pb-5">
+    <div className={`mx-auto touch-manipulation pb-5 ${detailsOpen ? "max-w-6xl" : "max-w-3xl"}`}>
       <Button asChild variant="ghost" size="sm" className="-ml-3 text-muted-foreground"><Link to="/profile"><ArrowLeft /> Profile</Link></Button>
+      <VipBenefitsDashboard balance={data.clearedBalance} requirement={requirement} valuationComplete={data.valuationComplete} status={statusLabel} onAdd={() => setDepositOpen(true)} onSupport={() => setChatOpen(true)} onManage={section => {
+        setDetailsOpen(true);
+        requestAnimationFrame(() => document.getElementById(section === "fees" ? "matrix-title" : "allocation-details")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }));
+      }} />
+      {detailsOpen && <div id="allocation-details" className="scroll-mt-24 space-y-7">
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
         <div className="max-w-2xl">
           <p className="mb-2 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground"><Layers3 className="size-4" /> Prime Tier Architecture</p>
@@ -160,6 +167,7 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
       </section>
       {data.account?.account_manager_name && currentLevel >= 3 && <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><p className="text-xs text-muted-foreground">Assigned account manager</p><p className="mt-1 text-sm font-medium">{data.account.account_manager_name}</p></div><Button variant="outline" onClick={() => setChatOpen(true)}>Contact support <ArrowUpRight /></Button></section>}
       <div className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="size-4 shrink-0 text-bull" /><p>Allocations are reviewed, not automatic. Your current trading fees remain in effect until approval.</p></div>
+      </div>}
     </div>
     <QuickDepositDialog open={depositOpen} onOpenChange={open => { setDepositOpen(open); if (!open) void qc.invalidateQueries({ queryKey: ["prime-membership"] }); }} />
     <VipChatDialog open={chatOpen} onOpenChange={setChatOpen} />
