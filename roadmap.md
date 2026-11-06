@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Add a synchronized VIP ecosystem control center for tier/ETH criteria, cleared-account promotion, daily gift catalog, priority routing, credit simulation review and portal settings; verify staff changes read back on customer pages.
+
 - [x] Build Institutional Loan collateral/LTV/rate simulation with real wallet/market references, 70% LTV ceiling, adjustable illustrative APR, risk buffer and frozen drawdown preview. Persist non-executing Treasury Operations support tickets; seven tests pass. Signed-in request VT-297201, drawdown, desktop/mobile fit and staff workspace scenario readback verified without runtime errors. Real lending and financial movements remain disabled.
 
 - [x] Update VIP Portal withdrawal display to 5,000,000.00 USDT and replace VIP-related BNB references with real ETH holdings. Two metric tests pass; signed-in desktop/mobile portal, fee discount and article verified without overflow or runtime errors. Enforced account limits remain unchanged; unavailable ETH qualification/discount controls remain disabled.
