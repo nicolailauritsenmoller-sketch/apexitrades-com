@@ -7,6 +7,7 @@ import {
   Bell,
   CalendarDays,
   Check,
+  ChevronDown,
   Clock3,
   Copy,
   Crown,
@@ -78,6 +79,7 @@ function PersonalInformation() {
   const [timezone] = usePreference("timezone", "utc");
   const [displayName, setDisplayName] = useState("");
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [personalDetailsOpen, setPersonalDetailsOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
 
   const overview = useQuery({ queryKey: ["profile-overview"], queryFn: () => fetchOverview() });
@@ -204,12 +206,19 @@ function PersonalInformation() {
 
           <VerificationCenter kyc={kyc.data ?? null} />
 
-          <section className="overflow-hidden rounded-lg border border-border bg-card">
-            <header className="border-b border-border px-4 py-4 sm:px-5">
-              <h2 className="text-base font-bold">Personal details</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">Core identity and regional details attached to your account.</p>
+          <section id="personal-details" className="overflow-hidden rounded-lg border border-border bg-card">
+            <header className={`flex items-start gap-3 px-4 py-4 sm:px-5 ${personalDetailsOpen ? "border-b border-border" : ""}`}>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-bold">Personal details</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">Core identity and regional details attached to your account.</p>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setPersonalDetailsOpen((open) => !open)} aria-label="Personal details" aria-expanded={personalDetailsOpen} aria-controls="personal-details-panel" className="shrink-0 text-muted-foreground">
+                <ChevronDown className={`size-4 transition-transform duration-300 motion-reduce:transition-none ${personalDetailsOpen ? "" : "-rotate-90"}`} />
+              </Button>
             </header>
-            <div className="divide-y divide-border">
+            <div id="personal-details-panel" aria-hidden={!personalDetailsOpen} inert={!personalDetailsOpen} className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${personalDetailsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <div className="divide-y divide-border">
               <DetailRow icon={User} label="Display Name" description="Public account name used across the trading desk.">
                 <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
                   <div className="flex gap-2">
@@ -258,6 +267,8 @@ function PersonalInformation() {
                   <Button asChild type="button" variant="outline" size="sm"><Link to="/profile/settings/preferences">Edit</Link></Button>
                 </div>
               </DetailRow>
+                </div>
+              </div>
             </div>
           </section>
         </div>
