@@ -21,7 +21,7 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
   const [resource, setResource] = useState<"portal" | "gifts" | null>(null);
   const progress = collateralProgress(balance, requirement);
   const cards = [
-    { title: "Lower Fee", subtitle: "Reduced Trading Fees", icon: Percent, action: () => onManage("fees") },
+    { title: "Lower Fee", subtitle: "Reduced Trading Fees", icon: Percent, to: "/fees" as const },
     { title: "My VIP", subtitle: "Manage VIP benefits", icon: BadgeCheck, action: () => onManage("allocation") },
     { title: "VIP Portal", subtitle: "VIP news and resources", icon: LibraryBig, action: () => setResource("portal") },
     { title: "VIP Insights", subtitle: "The latest market trends", icon: ChartNoAxesCombined, to: "/markets" as const },

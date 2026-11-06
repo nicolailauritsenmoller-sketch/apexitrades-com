@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Link Lower Fee to a dedicated Fee Rate schedule with configured percentage rates, reference-style tabs and honest unavailable program states. Signed-in navigation, spot/stocks/futures filtering, program states, disabled BNB discount and mobile refresh verified; six collateral/fee tests pass.
+
 - [x] Match the VIP destination to the six-card exclusive-benefits dashboard with live USDT Rising Star progress and existing funding/support actions. Signed-in desktop/mobile, fee matrix, funding and gift disclosure verified; six collateral tests pass. Gifts remain unprovisioned.
 
 - [x] Redesign VIP Membership as Institutional Tier Allocation with 10k/20k/50k/100k collateral requirements, configured basis-point fees, reviewed allocation requests and user-scoped realtime status. Twelve rule/handler/PostgreSQL tests pass; signed-in tier selection, live balance, funding dialog and desktop/mobile layout verified. No live customer allocation submitted during verification. FIX, priority routing and tier-specific encumbrance limits remain explicitly unprovisioned.
