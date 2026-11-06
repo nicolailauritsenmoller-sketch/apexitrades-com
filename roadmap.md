@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add daily preview-only VIP gift collections, UTC 24-hour rotation/countdown, four merchandise visuals and boundary tests; verify signed-in desktop/mobile and rollover. Claims intentionally unavailable.
+- [x] Add daily preview-only VIP gift collections with UTC 24-hour rotation/countdown and four merchandise visuals. Four boundary/cycle/countdown tests pass; signed-in midnight rollover, all collection images, countdown reset, dismissal and desktop/mobile fit verified. Claims intentionally unavailable.
 
 - [x] Link My VIP to a Velocity Trade feature article with branded graphics, all reference sections, working reading actions and a live cryptocurrency ticker. Signed-in navigation, banner loading, contents menu, like control and changing BTC/ETH/BNB/SOL prices verified on desktop/mobile without runtime errors; two real-quote safeguards tests pass.
 
