@@ -10,7 +10,7 @@ export const getVipEcosystem = createServerFn({ method: "POST" }).middleware([re
   if (error) throw new Error("VIP configuration unavailable.");
   return ecosystemConfig(data);
 });
-export const saveVipEcosystem = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((v: unknown) => z.object({ config: ecosystemSchema, reason: z.string().trim().min(5).max(400) }).parse(v)).handler(async ({ data, context }) => {
+export const saveVipEcosystem = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((v: unknown) => z.object({ config: ecosystemSchema, reason: z.string().trim().max(400).optional().default("") }).parse(v)).handler(async ({ data, context }) => {
   await assertAdmin(context); const db = await privileged();
   const { error } = await db.from("platform_settings").upsert({ key: "vip_ecosystem", value: data.config, updated_at: new Date().toISOString() });
   if (error) throw new Error("Could not save VIP controls.");
