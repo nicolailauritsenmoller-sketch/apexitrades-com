@@ -22,8 +22,9 @@ function time(iso: string) {
 }
 
 function Initials({ name, url }: { name: string; url?: string | null }) {
-  if (url) {
-    return <img src={url} alt={name} className="size-10 rounded-full object-cover" />;
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (url && failedUrl !== url) {
+    return <img src={url} alt={name} onError={() => setFailedUrl(url)} className="size-10 rounded-full object-cover" />;
   }
   const letters = name
     .split(" ")
