@@ -153,6 +153,8 @@ export const sendVipMessage = createServerFn({ method: "POST" })
       attachment_size: data.attachmentSize ?? null,
     });
     if (error) throw new Error(error.message);
+    // A new trader message resurfaces a thread staff had cleared from the console.
+    await db.from("vip_access").update({ hidden_from_staff_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey);
     // A new trader message reopens a resolved thread.
     await db.from("vip_access").update({ thread_status: "open", resolved_at: null }).eq("user_id", context.userId).eq("role_key", data.roleKey).eq("thread_status", "resolved");
     return { ok: true };

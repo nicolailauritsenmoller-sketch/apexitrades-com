@@ -834,6 +834,7 @@ export const getThreadMessages = createServerFn({ method: "POST" })
       .from("chat_messages")
       .select("*")
       .eq("session_id", data.sessionId)
+      .is("hidden_from_staff_at", null)
       .order("created_at");
     await db
       .from("chat_sessions")
