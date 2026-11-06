@@ -1,3 +1,4 @@
+import { AdminNotificationsCenter } from "@/components/admin/AdminNotificationsCenter";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
@@ -39,6 +40,7 @@ export function AdminShell({ children, independentPanes = false }: { children: R
           <div className="ml-auto flex items-center gap-2">
             <AdminSearch />
             <AdminAlerts />
+            <AdminNotificationsCenter />
             <button
               onClick={signOut}
               className="flex touch-manipulation items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
