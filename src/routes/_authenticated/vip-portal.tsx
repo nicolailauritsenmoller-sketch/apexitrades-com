@@ -12,6 +12,7 @@ import { isVip, isVipPending } from "@/lib/vip-tiers";
 import { supabase } from "@/integrations/supabase/client";
 import { vipEthBalance } from "@/lib/vip-portal-metrics";
 import { useVipEcosystem } from "@/lib/use-vip-ecosystem";
+import { VipResearchReports } from "@/components/VipResearchReports";
 import { InstitutionalCreditDialog } from "@/components/InstitutionalCreditDialog";
 
 const description = "Velocity Trade VIP Portal: live account standing, collateral progression, withdrawal limit status and institutional service availability.";
@@ -84,6 +85,7 @@ function VipPortalPage() {
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-3"><span className="text-xs text-muted-foreground">Prime Tier Architecture</span><div className="flex items-center gap-1"><Button variant="ghost" size="icon" className="size-8" aria-label="Previous allocation tier" disabled={page === 0} onClick={() => goTo(page - 1)}><ChevronLeft /></Button>{slides.map((t, index) => <Button key={t.level} variant="ghost" size="icon" className="size-6" aria-label={`View ${t.name}`} aria-pressed={page === index} onClick={() => goTo(index)}><span className={`h-1 w-3 rounded-full ${page === index ? "bg-ops-amber" : "bg-muted-foreground/30"}`} /></Button>)}<Button variant="ghost" size="icon" className="size-8" aria-label="Next allocation tier" disabled={page >= slides.length - 1} onClick={() => goTo(page + 1)}><ChevronRight /></Button></div></div>
     </section>}
+    <VipResearchReports isVip={!!data && isVip(data.status)} />
     <section className="mt-8" aria-labelledby="exclusive-title"><h2 id="exclusive-title" className="mb-4 text-xl">VIP Exclusive</h2><div className="space-y-3">{services.map(item => <Button key={item.name} variant="outline" className="h-auto min-h-20 w-full justify-start gap-4 rounded-lg bg-card p-4 text-left" onClick={() => setService(item)}><item.icon className="size-6 shrink-0 text-ops-amber" /><span className="flex-1 whitespace-normal"><span className="block text-sm font-medium">{item.name}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{item.name === "Institutional Loan" ? "Credit facility simulation" : "Not provisioned"}</span></span>{item.isNew && <span className="rounded-sm bg-bear/10 px-2 py-1 text-xs text-bear">New</span>}<ChevronRight className="size-4 shrink-0 text-muted-foreground" /></Button>)}</div></section>
     <QuickDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
     <InstitutionalCreditDialog open={service?.name === "Institutional Loan"} onOpenChange={open => { if (!open) setService(null); }} />

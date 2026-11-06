@@ -1,3 +1,5 @@
+import { FileText } from "lucide-react";
+import { VipResearchDesk } from "@/components/admin/VipResearchDesk";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -19,10 +21,11 @@ export function VipEcosystemDesk({ onOpen }: { onOpen: (id: string) => void }) {
   const load = useServerFn(getVipEcosystem);
   const q = useQuery({ queryKey: ["vip-ecosystem"], queryFn: () => load(), refetchInterval: 5000 });
   return <div className="space-y-5"><header className="flex items-start justify-between gap-4 border-b border-border pb-4"><div><h2 className="flex items-center gap-2 text-xl"><Crown className="text-ops-amber" />VIP Ecosystem Control Center</h2><p className="mt-2 text-xs text-muted-foreground">Membership, daily catalog, specialist routing and Treasury credit review.</p></div><Button variant="outline" size="icon" aria-label="Refresh VIP control center" onClick={() => void q.refetch()}><RefreshCw /></Button></header>
-    <Tabs defaultValue="tiers"><div className="overflow-x-auto"><TabsList className="h-auto w-max gap-2"><TabsTrigger value="tiers"><Crown className="mr-2 size-4" />Tier architecture</TabsTrigger><TabsTrigger value="gifts"><Gift className="mr-2 size-4" />Gift inventory</TabsTrigger><TabsTrigger value="support"><Headset className="mr-2 size-4" />Priority routing</TabsTrigger><TabsTrigger value="credit"><Landmark className="mr-2 size-4" />Credit risk desk</TabsTrigger><TabsTrigger value="settings"><Settings2 className="mr-2 size-4" />Currency & limits</TabsTrigger></TabsList></div>
+    <Tabs defaultValue="tiers"><div className="overflow-x-auto"><TabsList className="h-auto w-max gap-2"><TabsTrigger value="tiers"><Crown className="mr-2 size-4" />Tier architecture</TabsTrigger><TabsTrigger value="gifts"><Gift className="mr-2 size-4" />Gift inventory</TabsTrigger><TabsTrigger value="support"><Headset className="mr-2 size-4" />Priority routing</TabsTrigger><TabsTrigger value="credit"><Landmark className="mr-2 size-4" />Credit risk desk</TabsTrigger><TabsTrigger value="research"><FileText className="mr-2 size-4" />Research reports</TabsTrigger><TabsTrigger value="settings"><Settings2 className="mr-2 size-4" />Currency & limits</TabsTrigger></TabsList></div>
       <TabsContent value="tiers"><VipMembershipsPage onOpen={onOpen} /></TabsContent>
       <TabsContent value="support"><VipDesk /></TabsContent>
       <TabsContent value="credit"><CreditRiskDesk /></TabsContent>
+      <TabsContent value="research"><VipResearchDesk /></TabsContent>
       {(["gifts", "settings"] as const).map(view => <TabsContent key={view} value={view}>{q.data ? <ConfigEditor key={`${view}-${JSON.stringify(q.data)}`} initial={q.data} view={view} /> : <p role={q.isError ? "alert" : "status"}>{q.isError ? "VIP controls unavailable" : "Loading controls..."}</p>}</TabsContent>)}
     </Tabs>
   </div>;
