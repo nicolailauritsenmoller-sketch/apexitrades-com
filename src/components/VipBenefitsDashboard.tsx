@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { collateralProgress } from "@/lib/prime-tiers";
+import insightGraphic from "@/assets/vip-market-insight.jpg";
 
 type Props = {
   balance: number;
@@ -19,12 +20,13 @@ const amount = (value: number) => value.toLocaleString("en-US", { maximumFractio
 
 export function VipBenefitsDashboard({ balance, requirement, valuationComplete, status, onAdd, onManage, onSupport }: Props) {
   const [resource, setResource] = useState<"portal" | "gifts" | null>(null);
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const progress = collateralProgress(balance, requirement);
   const cards = [
     { title: "Lower Fee", subtitle: "Reduced Trading Fees", icon: Percent, to: "/fees" as const },
     { title: "My VIP", subtitle: "Manage VIP benefits", icon: BadgeCheck, to: "/my-vip" as const },
     { title: "VIP Portal", subtitle: "VIP news and resources", icon: LibraryBig, to: "/vip-portal" as const },
-    { title: "VIP Insights", subtitle: "The latest market trends", icon: ChartNoAxesCombined, to: "/markets" as const },
+    { title: "VIP Insights", subtitle: "The latest market trends", icon: ChartNoAxesCombined, action: () => setInsightsOpen(true) },
     { title: "VIP Gift Packs", subtitle: "Unlocked at VIP 3", icon: Gift, action: () => setResource("gifts") },
     { title: "Priority Support", subtitle: "24/7 Customer Service", icon: Headset, action: onSupport },
   ];
@@ -53,6 +55,14 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
         <p className="mt-3 text-xs text-muted-foreground">{valuationComplete ? progress.qualified ? "Collateral requirement met. Allocation subject to review." : `Need +${amount(progress.remaining)} USDT` : "Live conversion required to evaluate collateral."}</p>
       </div>
     </section>
+    <Dialog open={insightsOpen} onOpenChange={setInsightsOpen}>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto rounded-t-lg border-border bg-card p-5 max-sm:left-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 sm:max-w-lg">
+        <DialogHeader className="text-left"><DialogTitle className="pr-7 text-lg">Monthly Market Insights Report</DialogTitle></DialogHeader>
+        <img src={insightGraphic} alt="Velocity Trade VIP - Market Insight Early Access" width={1200} height={704} className="h-auto w-full rounded-lg border border-border" />
+        <DialogDescription className="text-sm leading-relaxed text-foreground">Get monthly market insights by email, with key takeaways on market moves and trends to watch</DialogDescription>
+        <p className="text-xs text-muted-foreground">Email report delivery is not currently enabled. Opening this preview does not subscribe you.</p>
+      </DialogContent>
+    </Dialog>
     <Dialog open={resource !== null} onOpenChange={open => { if (!open) setResource(null); }}>
       <DialogContent>
         <DialogHeader><DialogTitle>{resource === "gifts" ? "VIP Gift Packs" : "VIP Portal"}</DialogTitle><DialogDescription>{resource === "gifts" ? "Gift packs are not currently provisioned. Membership approval does not grant a claimable gift." : "Membership resources and live market coverage."}</DialogDescription></DialogHeader>
