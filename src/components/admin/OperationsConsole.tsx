@@ -225,7 +225,7 @@ function Card({
 }) {
   return (
     <section className="relative rounded-lg border border-border/70 bg-card">
-      <header className="sticky top-14 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3">
+      <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3">
         <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
         {action}
       </header>
@@ -458,12 +458,12 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 
 
   return (
-    <AdminShell>
+    <AdminShell independentPanes>
       {isAdmin && <ComplianceAlerts reviewId={reviewId} onReview={onReview} onClose={onCloseReview} />}
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="flex h-full min-h-0 flex-col gap-4 lg:flex-row">
         {/* Vertical backend sidebar */}
-        <aside className="shrink-0 lg:w-60">
-          <div className="rounded-lg border border-border bg-card p-2 lg:sticky lg:top-20">
+        <aside aria-label="Desk navigation" className="shrink-0 lg:min-h-0 lg:w-60 lg:overflow-y-auto lg:overscroll-contain">
+          <div className="rounded-lg border border-border bg-card p-2">
             <div className="hidden px-2 py-2 lg:block">
               <p className="font-display text-sm font-bold tracking-tight">Desk management</p>
               <p className="text-[11px] text-muted-foreground">Operations backend</p>
@@ -560,7 +560,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 space-y-4">
+        <div role="region" aria-label="Operations content" className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-1">
           <div className="-mx-1 mb-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/95 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
             <div className="min-w-0 flex-1 basis-56">
               <nav className="flex flex-wrap items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">
