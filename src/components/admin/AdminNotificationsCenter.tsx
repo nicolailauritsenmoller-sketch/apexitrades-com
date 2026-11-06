@@ -165,7 +165,7 @@ export function AdminNotificationsCenter() {
               <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${isUnread(i) ? "bg-primary" : "bg-transparent"}`} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className={`truncate text-xs capitalize-first ${isUnread(i) ? "font-semibold" : "text-muted-foreground"}`}>{i.title}</p>
+                  <p className={`truncate text-xs ${isUnread(i) ? "font-semibold" : "text-muted-foreground"}`}>{i.title}</p>
                   <span className="shrink-0 text-[10px] text-muted-foreground">{ago(i.at)}</span>
                 </div>
                 <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{i.body}</p>
