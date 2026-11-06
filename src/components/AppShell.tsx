@@ -155,8 +155,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
       <AnnouncementBanner />
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
         <div className="mx-auto grid h-14 max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:flex md:gap-6">
-          {exchangeHome && <Link to="/profile" aria-label="Profile" className="touch-manipulation md:hidden"><UserAvatar className="size-8" alt="Your profile avatar" /></Link>}
-          <Link to="/dashboard" className={`${exchangeHome ? "hidden md:flex" : "flex"} min-w-0 items-center gap-2`}>
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-2">
             <BrandMark className="size-9" alt="Velocity Trade logo" />
             <span className="truncate text-sm font-semibold tracking-tight text-foreground">
               {resolvePageTitle(pathname)}
@@ -207,7 +206,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
               <span className="live-dot size-1.5 rounded-full bg-bull" />
               {t("nav.liveAccount")}
             </span>
-            <Link to="/profile" aria-label="Profile" className={`${exchangeHome ? "hidden md:block" : ""} touch-manipulation`}>
+            <Link to="/profile" aria-label="Profile" className="touch-manipulation">
               <UserAvatar className="size-8" alt="Your profile avatar" />
             </Link>
           </div>
