@@ -98,6 +98,10 @@ export function UserWorkspaceDrawer({
           {d && (
             <>
               <Section title="Identity">
+                <p className="mb-1 break-all text-xs text-foreground">
+                  <span className="text-muted-foreground">Email: </span>
+                  {d.profile?.email ?? "Not available"}
+                </p>
                 <p className="text-sm font-semibold">{d.profile?.display_name ?? "-"}</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   <UidTag uid={d.profile?.uid} /> · base {d.profile?.base_currency ?? "-"} · credit{" "}
