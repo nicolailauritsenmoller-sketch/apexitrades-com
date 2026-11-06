@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VIP_DEPARTMENTS } from "@/lib/vip-queue";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -65,6 +67,7 @@ export function VipDesk() {
   const endRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<"all" | "unassigned" | "active" | "resolved">("all");
   const [search, setSearch] = useState("");
+  const [department, setDepartment] = useState("all");
   const [internal, setInternal] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 15_000); return () => clearInterval(t); }, []);
@@ -113,6 +116,7 @@ export function VipDesk() {
     resolved: allThreads.filter((t: any) => t.status === "resolved").length,
   };
   const threads = allThreads.filter((t: any) => {
+    if (department !== "all" && t.roleKey !== department) return false;
     if (filter === "unassigned" && (t.status === "resolved" || t.assignedTo)) return false;
     if (filter === "active" && (t.status === "resolved" || !t.assignedTo)) return false;
     if (filter === "resolved" && t.status !== "resolved") return false;
@@ -285,6 +289,7 @@ export function VipDesk() {
               ))}
             </div>
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search UID, trader or specialist role" className="w-full rounded-md bg-secondary px-3 py-2 text-xs outline-none" />
+            <Select value={department} onValueChange={setDepartment}><SelectTrigger aria-label="Filter support department"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All departments</SelectItem>{VIP_DEPARTMENTS.map(d => <SelectItem key={d.key} value={d.key}>{d.label}</SelectItem>)}</SelectContent></Select>
           </header>
           <div className="max-h-[520px] divide-y divide-border overflow-y-auto">
             {threads.length === 0 && (
