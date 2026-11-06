@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Link VIP Portal to a dedicated account dashboard with real account standing, limits, swipeable collateral progression and honest institutional-service availability.
+
 - [x] Link Lower Fee to a dedicated Fee Rate schedule with configured percentage rates, reference-style tabs and honest unavailable program states. Signed-in navigation, spot/stocks/futures filtering, program states, disabled BNB discount and mobile refresh verified; six collateral/fee tests pass.
 
 - [x] Match the VIP destination to the six-card exclusive-benefits dashboard with live USDT Rising Star progress and existing funding/support actions. Signed-in desktop/mobile, fee matrix, funding and gift disclosure verified; six collateral tests pass. Gifts remain unprovisioned.

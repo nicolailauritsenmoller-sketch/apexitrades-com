@@ -23,7 +23,7 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
   const cards = [
     { title: "Lower Fee", subtitle: "Reduced Trading Fees", icon: Percent, to: "/fees" as const },
     { title: "My VIP", subtitle: "Manage VIP benefits", icon: BadgeCheck, action: () => onManage("allocation") },
-    { title: "VIP Portal", subtitle: "VIP news and resources", icon: LibraryBig, action: () => setResource("portal") },
+    { title: "VIP Portal", subtitle: "VIP news and resources", icon: LibraryBig, to: "/vip-portal" as const },
     { title: "VIP Insights", subtitle: "The latest market trends", icon: ChartNoAxesCombined, to: "/markets" as const },
     { title: "VIP Gift Packs", subtitle: "Unlocked at VIP 3", icon: Gift, action: () => setResource("gifts") },
     { title: "Priority Support", subtitle: "24/7 Customer Service", icon: Headset, action: onSupport },
