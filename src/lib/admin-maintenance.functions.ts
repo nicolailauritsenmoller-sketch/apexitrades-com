@@ -99,3 +99,69 @@ export const resetUserActivity = createServerFn({ method: "POST" })
 
     return { ok: true as const, removed };
   });
+
+export const SUPPORT_HISTORY_CATEGORIES = ["live_chat", "priority_support", "tickets"] as const;
+export const SUPPORT_HISTORY_AUDIENCES = ["both", "staff", "customer"] as const;
+
+const ClearSupportInput = z.object({
+  categories: z.array(z.enum(SUPPORT_HISTORY_CATEGORIES)).min(1),
+  audience: z.enum(SUPPORT_HISTORY_AUDIENCES),
+  userId: z.string().uuid().nullable(),
+  confirm: z.literal("CLEAR"),
+});
+
+/**
+ * Clears support history. "both" permanently deletes; "staff" / "customer"
+ * hides it from just that side. Optionally limited to one user.
+ */
+export const clearSupportHistory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => ClearSupportInput.parse(data))
+  .handler(async ({ data, context }) => {
+    const { assertStaff, logAudit } = await import("@/lib/desk.server");
+    await assertStaff(context);
+    const db: any = await privileged();
+    const now = new Date().toISOString();
+    const column = data.audience === "staff" ? "hidden_from_staff_at" : "hidden_from_customer_at";
+    const affected: Record<string, number> = {};
+    const scope = (q: any, col = "user_id") => (data.userId ? q.eq(col, data.userId) : q.not("id", "is", null));
+
+    const ids = async (table: string) => {
+      const { data: rows, error } = await scope(db.from(table).select("id"));
+      if (error) throw new Error(`${table}: ${error.message}`);
+      return ((rows ?? []) as { id: string }[]).map((r) => r.id);
+    };
+    const apply = async (table: string, build: (q: any) => any) => {
+      const base = data.audience === "both" ? db.from(table).delete() : db.from(table).update({ [column]: now });
+      const { data: rows, error } = await build(base).select("id");
+      if (error) throw new Error(`${table}: ${error.message}`);
+      affected[table] = (affected[table] ?? 0) + (rows?.length ?? 0);
+    };
+    const chunks = (list: string[]) => Array.from({ length: Math.ceil(list.length / 200) }, (_, i) => list.slice(i * 200, i * 200 + 200));
+
+    const cats = new Set(data.categories);
+    if (cats.has("live_chat")) {
+      const sessionIds = await ids("chat_sessions");
+      for (const part of chunks(sessionIds)) {
+        await apply("chat_messages", (q) => q.in("session_id", part));
+        if (data.audience === "both") await apply("chat_ratings", (q) => q.in("session_id", part));
+      }
+      await apply("chat_sessions", (q) => scope(q));
+    }
+    if (cats.has("tickets")) {
+      const ticketIds = await ids("support_tickets");
+      for (const part of chunks(ticketIds)) await apply("support_ticket_messages", (q) => q.in("ticket_id", part));
+      await apply("support_tickets", (q) => scope(q));
+    }
+    if (cats.has("priority_support")) {
+      await apply("vip_messages", (q) => scope(q));
+      if (data.audience !== "customer") await apply("vip_access", (q) => scope(q));
+    }
+
+    await logAudit(context, "support.history_cleared", data.userId ?? "all", {
+      categories: data.categories,
+      audience: data.audience,
+      affected,
+    }).catch(() => undefined);
+    return { affected };
+  });
