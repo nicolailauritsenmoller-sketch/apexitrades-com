@@ -20,6 +20,7 @@ import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFeesRouteImport } from './routes/_authenticated/fees'
 import { Route as AuthenticatedMarketsRouteImport } from './routes/_authenticated/markets'
+import { Route as AuthenticatedMyVipRouteImport } from './routes/_authenticated/my-vip'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -98,6 +99,11 @@ const AuthenticatedFeesRoute = AuthenticatedFeesRouteImport.update({
 const AuthenticatedMarketsRoute = AuthenticatedMarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMyVipRoute = AuthenticatedMyVipRouteImport.update({
+  id: '/my-vip',
+  path: '/my-vip',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fees': typeof AuthenticatedFeesRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/my-vip': typeof AuthenticatedMyVipRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fees': typeof AuthenticatedFeesRoute
   '/markets': typeof AuthenticatedMarketsRoute
+  '/my-vip': typeof AuthenticatedMyVipRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/vip-portal': typeof AuthenticatedVipPortalRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fees': typeof AuthenticatedFeesRoute
   '/_authenticated/markets': typeof AuthenticatedMarketsRoute
+  '/_authenticated/my-vip': typeof AuthenticatedMyVipRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
@@ -366,6 +375,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/markets'
+    | '/my-vip'
     | '/notifications'
     | '/portfolio'
     | '/profile'
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/markets'
+    | '/my-vip'
     | '/notifications'
     | '/portfolio'
     | '/vip-portal'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/fees'
     | '/_authenticated/markets'
+    | '/_authenticated/my-vip'
     | '/_authenticated/notifications'
     | '/_authenticated/portfolio'
     | '/_authenticated/profile'
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       path: '/markets'
       fullPath: '/markets'
       preLoaderRoute: typeof AuthenticatedMarketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/my-vip': {
+      id: '/_authenticated/my-vip'
+      path: '/my-vip'
+      fullPath: '/my-vip'
+      preLoaderRoute: typeof AuthenticatedMyVipRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -789,6 +808,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeesRoute: typeof AuthenticatedFeesRoute
   AuthenticatedMarketsRoute: typeof AuthenticatedMarketsRoute
+  AuthenticatedMyVipRoute: typeof AuthenticatedMyVipRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
@@ -805,6 +825,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeesRoute: AuthenticatedFeesRoute,
   AuthenticatedMarketsRoute: AuthenticatedMarketsRoute,
+  AuthenticatedMyVipRoute: AuthenticatedMyVipRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
