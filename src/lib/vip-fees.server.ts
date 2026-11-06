@@ -83,6 +83,7 @@ export function qualifyingLevel(
     if (Number(t.min_portfolio_usdt) > 0) checks.push(m.portfolio >= Number(t.min_portfolio_usdt));
     if (Number(t.min_collateral_usdt ?? 0) > 0) checks.push(m.portfolio >= Number(t.min_collateral_usdt));
     if (Number(t.min_eth_holdings ?? 0) > 0 && Number(m.eth ?? 0) < Number(t.min_eth_holdings)) continue;
+    if (Number(t.min_collateral_usdt ?? 0) > 0 && m.portfolio < Number(t.min_collateral_usdt)) continue;
     if (!checks.length && Number(t.min_eth_holdings ?? 0) > 0) checks.push(true);
     if (checks.length && checks.some(Boolean) && t.level > best) best = t.level;
   }
@@ -138,10 +139,12 @@ export async function evaluateVipLevels(db: any, actorId: string | null = null) 
   const ids = [...metrics.keys()];
   if (ids.length) {
     const { usdtRates } = await import("./rates.server");
-    const [rates, { data: wallets }] = await Promise.all([
+    const [rates, walletResult] = await Promise.all([
       usdtRates(),
       db.from("wallets").select("user_id,currency,balance").in("user_id", ids),
     ]);
+    if (walletResult.error) throw new Error("Cleared wallet balances unavailable.");
+    const wallets = walletResult.data;
     for (const w of (wallets ?? []) as any[]) {
       if (w.currency === "ETH") get(w.user_id).eth += Number(w.balance ?? 0);
       if (Number(w.balance) > 0 && rates[w.currency] === undefined) get(w.user_id).complete = false;
