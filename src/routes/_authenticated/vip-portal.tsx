@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Building2, Handshake, Layers3, Info, RefreshCw } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Building2, Handshake, Layers3, Info, RefreshCw, Crown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -66,7 +66,7 @@ function VipPortalPage() {
     <header className="mb-7 flex items-center justify-between border-b border-border pb-4"><Button asChild variant="ghost" size="sm" className="-ml-3"><Link to="/vip-upgrade"><ArrowLeft /> VIP Memberships</Link></Button><h1 className="text-lg">VIP Portal</h1></header>
     <div className="mb-6 flex items-center justify-between"><h2 className="text-lg">Dashboard</h2><Button variant="ghost" size="icon" aria-label="Refresh VIP account" onClick={() => { void membership.refetch(); void account.refetch(); }}><RefreshCw className={membership.isFetching ? "animate-spin motion-reduce:animate-none" : ""} /></Button></div>
     <section aria-labelledby="my-account-title" className="mb-6">
-      <h2 id="my-account-title" className="mb-5 flex flex-wrap items-center gap-3 text-xl">My Account <span className="rounded-sm bg-ops-amber/10 px-2 py-1 text-xs font-medium text-ops-amber">{standing}</span></h2>
+      <h2 id="my-account-title" className="mb-5 flex flex-wrap items-center gap-3 text-xl">My Account <span role="img" aria-label={`Account standing: ${standing}`} title={standing} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-ops-amber-bg bg-ops-amber/10 text-ops-amber"><Crown className="size-4" strokeWidth={1.5} aria-hidden="true" /></span></h2>
       <dl className="grid grid-cols-2 gap-5"><div hidden={!config.data?.showEth}><dt className="text-xs text-muted-foreground">ETH Balance</dt><dd className="num mt-2 text-lg">{account.data?.eth == null ? "Unavailable" : fmt(account.data.eth)}</dd></div><div><dt className="text-xs text-muted-foreground">24H Withdrawal Limit</dt><dd className="num mt-2 text-sm font-semibold">{(config.data?.withdrawalLimit ?? 5_000_000).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT</dd><p className="mt-1 text-xs text-muted-foreground">{account.data?.limit != null ? `Account cap: ${fmt(account.data.limit)} USDT` : "Account-specific restrictions apply."}</p><Link to="/profile/verification" className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">Verification & limits <ChevronRight className="size-3" /></Link></div></dl>
     </section>
     {!data ? <div role={membership.isError ? "alert" : "status"} className="py-6 text-sm text-muted-foreground">{membership.isError ? "VIP account status is temporarily unavailable." : "Loading account progression..."}</div> : <section aria-label="VIP tier progression" className="overflow-hidden rounded-lg border border-border bg-card">
