@@ -4,6 +4,7 @@ import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
 import { LeaderboardManager } from "@/components/admin/LeaderboardManager";
 import { LeaderApplicationWatcher } from "@/components/admin/LeaderApplicationWatcher";
+import { UserActivityWatcher } from "@/components/admin/UserActivityWatcher";
 import { ScalpingManagement } from "@/components/admin/ScalpingManagement";
 import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
 import { AdminTableToolbar } from "@/components/admin/AdminTableToolbar";
@@ -459,6 +460,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 
   return (
     <AdminShell independentPanes>
+      <UserActivityWatcher />
       {isAdmin && <ComplianceAlerts reviewId={reviewId} onReview={onReview} onClose={onCloseReview} />}
       <div className="flex h-full min-h-0 flex-col gap-4 lg:flex-row">
         {/* Vertical backend sidebar */}
