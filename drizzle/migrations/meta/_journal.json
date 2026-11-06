@@ -498,6 +498,13 @@
       "when": 1793946174069,
       "tag": "0070_vip_drawdown_and_credit_input_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794003048472,
+      "tag": "0071_deposit_hash_optional",
+      "breakpoints": true
     }
   ]
 }
