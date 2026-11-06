@@ -449,6 +449,13 @@
       "when": 1793940921979,
       "tag": "0063_prime_fee_schedule_read",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1793940968350,
+      "tag": "0064_prime_allocation_request",
+      "breakpoints": true
     }
   ]
 }

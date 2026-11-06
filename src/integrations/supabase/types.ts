@@ -2988,6 +2988,10 @@ export type Database = {
         Args: { p_body: string; p_kind: string; p_title: string }
         Returns: boolean
       }
+      request_prime_allocation: {
+        Args: { p_level: number; p_user_id: string }
+        Returns: string
+      }
       request_withdrawal_atomic: {
         Args: {
           p_amount: number
