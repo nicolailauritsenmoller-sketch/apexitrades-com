@@ -65,6 +65,7 @@ const PAGE_TITLES: ReadonlyArray<readonly [prefix: string, title: string]> = [
   ["/portfolio", "Portfolio"],
   ["/vip-upgrade", "VIP Memberships"],
   ["/vip-portal", "VIP Portal"],
+  ["/my-vip", "My VIP"],
   ["/fees", "Fees"],
   ["/markets", "Markets"],
   ["/market", "Markets"],
