@@ -292,6 +292,29 @@
   --gradient-edge: linear-gradient(180deg, oklch(0.165 0.007 258) 0%, oklch(0.13 0.006 258) 100%);
 }
 
+/* Obsidian Gold variant: neutral obsidian surfaces with warm gold accents, matching the VIP pages. */
+.dark[data-variant="obsidian"] {
+  --background: oklch(0.1448 0 0);
+  --foreground: oklch(0.97 0 0);
+  --surface: oklch(0.1822 0 0);
+  --surface-raised: oklch(0.225 0 0);
+  --card: oklch(0.1822 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.1822 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --secondary: oklch(0.225 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.225 0 0);
+  --muted-foreground: oklch(0.63 0 0);
+  --accent: oklch(0.225 0 0);
+  --input: oklch(0.24 0 0);
+  --border: oklch(0.24 0 0);
+  --ring: oklch(0.78 0.075 88);
+  --grid: oklch(1 0 0 / 4%);
+  --gradient-edge: linear-gradient(180deg, oklch(0.1822 0 0) 0%, oklch(0.1448 0 0) 100%);
+}
+
+.dark[data-variant="obsidian"] body,
 .dark[data-variant="midnight"] body {
   background-color: var(--color-background);
 }
