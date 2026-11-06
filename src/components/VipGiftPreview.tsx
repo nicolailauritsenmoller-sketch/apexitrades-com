@@ -26,7 +26,7 @@ export function VipGiftPreview() {
   return <>
     <figure>
       <img src={images[pack.id]} alt={`Illustrative ${pack.category} merchandise concept`} loading="lazy" width={1536} height={864} className="aspect-video h-auto w-full rounded-lg border border-border object-cover" />
-      <figcaption className="mt-3 text-xs text-muted-foreground">Actual items may differ from what's shown above.</figcaption>
+      <figcaption className="mt-3 text-xs text-muted-foreground">Actual items may differ from what's shown above. Preview only; not available to claim.</figcaption>
     </figure>
     <section aria-label="Today's gift preview" className="space-y-2">
       <p className="text-xs text-muted-foreground">{pack.category}</p>
@@ -35,6 +35,5 @@ export function VipGiftPreview() {
     </section>
     {pack.id === "security" && <p className="text-xs leading-relaxed text-muted-foreground">Generic hardware illustrations only. Ledger and Trezor engraving concepts are not supplied products or endorsed partnerships.</p>}
     {pack.id === "special" && <p className="text-xs leading-relaxed text-muted-foreground">Special-drop concepts only, not a birthday entitlement or scheduled year-end offer.</p>}
-    <p className="text-xs leading-relaxed text-muted-foreground">Rotates daily at 00:00 UTC. Illustrative preview only; gifts are not stocked or available to claim. Membership approval does not grant a claimable gift.</p>
   </>;
 }
