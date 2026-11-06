@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Normalize platform typography to the supplied exchange reference: shared 14px body scale, compact headings, 32px account totals and 12px mobile navigation. Signed-in Home, Portfolio, Markets, Assets, Profile, Terminal and Operations Console checked at desktop/mobile sizes with no page overflow or runtime errors.
+
 - [x] Allow rejected lead-trader applications to be revised and resubmitted: inputs unlock and keep the trader's previous details, the disclosure switch stays editable, submit becomes "Resubmit leader application", the console queue sorts by latest submission, and the alert watcher re-fires on resubmission. Database policy blocks self-approval and edits to approved applications; 4 PostgreSQL tests pass and the signed-in rejected-state dialog was inspected live.
 
 - [x] Refine Futures Copy Trading enrollment, directory, allocation and shared leaderboard cards with micro-borders, emerald consent/leverage controls and gold primary actions; signed-in desktop/mobile consent and leverage checks pass without overflow or errors, 10 tests pass. Current directory has no approved traders, so populated live-card inspection is unavailable.

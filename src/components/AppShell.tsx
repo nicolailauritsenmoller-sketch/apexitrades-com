@@ -229,7 +229,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
                   to={to}
                   params={params}
                   activeOptions={{ exact }}
-                  className="flex touch-manipulation flex-col items-center gap-1 text-[10px] font-medium text-muted-foreground transition-colors"
+                  className="flex min-w-0 touch-manipulation flex-col items-center gap-1 text-xs font-medium text-muted-foreground transition-colors"
                   activeProps={{ className: "text-primary" }}
                 >
                   <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 ring-4 ring-background transition-transform active:scale-95">
@@ -244,7 +244,7 @@ export function AppShell({ children, exchangeHome = false }: { children: ReactNo
                   to={to}
                   params={params}
                   activeOptions={{ exact }}
-                  className="flex min-h-[56px] touch-manipulation flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors active:bg-secondary/60"
+                  className="flex min-h-[56px] min-w-0 touch-manipulation flex-col items-center justify-center gap-1 py-2 text-xs font-medium text-muted-foreground transition-colors active:bg-secondary/60"
                   activeProps={{ className: "text-primary" }}
                 >
                   <Icon className="size-5" />

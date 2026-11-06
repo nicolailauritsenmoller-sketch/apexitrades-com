@@ -83,7 +83,7 @@ function Home() {
           <BalancePrivacyToggle hidden={hidden} onToggle={toggle} className="ml-0.5" />
         </div>
          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-1.5">
-            <div className="num min-w-0 break-words text-[30px] leading-10 font-bold tracking-normal sm:text-4xl">
+            <div className="balance-value min-w-0 break-words">
             {value.isLoading ? "-" : hidden ? "••••••" : format(total)}
           </div>
            <Button onClick={() => setDepositOpen(true)} className="min-h-10 shrink-0 touch-manipulation rounded-md px-4 text-[13px] font-semibold active:scale-[0.97]">
