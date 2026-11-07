@@ -96,7 +96,7 @@ function MembershipContent({ data, isFetching, isError }: { data: Awaited<Return
   ];
 
   return <AppShell>
-    <div className={`mx-auto touch-manipulation bg-vip-background px-1 pb-5 text-vip-title sm:px-4 ${detailsOpen ? "max-w-6xl" : "max-w-3xl"}`}>
+    <div className={`vip-ref mx-auto touch-manipulation bg-vip-background px-1 pb-5 text-vip-title sm:px-4 ${detailsOpen ? "max-w-6xl" : "max-w-3xl"}`}>
       <Button asChild variant="ghost" size="sm" className="-ml-3 text-muted-foreground"><Link to="/profile"><ArrowLeft /> Profile</Link></Button>
       <VipBenefitsDashboard balance={data.clearedBalance} requirement={requirement} valuationComplete={data.valuationComplete} status={statusLabel} onAdd={() => setDepositOpen(true)} onSupport={() => setChatOpen(true)} onManage={section => {
         setDetailsOpen(true);

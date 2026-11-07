@@ -39,7 +39,7 @@ function MyVipArticle() {
     } catch (error) { if (!(error instanceof DOMException && error.name === "AbortError")) toast.error("Unable to share. Please copy the address from your browser."); }
   };
   const jump = (id: string) => { setContentsOpen(false); requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" })); };
-  return <AppShell><div className="mx-auto max-w-3xl pb-8">
+  return <AppShell><div className="vip-ref mx-auto max-w-3xl pb-8">
     <Button asChild variant="ghost" size="sm" className="-ml-3 mb-6"><Link to="/vip-upgrade"><ArrowLeft /> VIP Memberships</Link></Button>
     <nav aria-label="Article breadcrumb" className="mb-5 flex items-center gap-2 text-xs text-muted-foreground"><span>Insights</span><ChevronRight className="size-3" /><Link to="/vip-upgrade">VIP</Link><ChevronRight className="size-3" /><span>My VIP</span></nav>
     <article className="space-y-8 text-sm leading-7 sm:text-lg sm:leading-8 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_p+p]:mt-4 [&_section]:scroll-mt-24">

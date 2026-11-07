@@ -63,7 +63,7 @@ function VipPortalPage() {
   const slides = tiers.length ? tiers : PRIME_TIERS.slice(-1);
   const goTo = (index: number) => carousel.current?.scrollTo({ left: index * carousel.current.clientWidth, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
 
-  return <AppShell><div className="mx-auto max-w-3xl pb-8 touch-manipulation">
+  return <AppShell><div className="vip-ref mx-auto max-w-3xl pb-8 touch-manipulation">
     <header className="mb-7 flex items-center justify-between border-b border-border pb-4"><Button asChild variant="ghost" size="sm" className="-ml-3"><Link to="/vip-upgrade"><ArrowLeft /> VIP Memberships</Link></Button><h1 className="text-lg">VIP Portal</h1></header>
     <div className="mb-6 flex items-center justify-between"><h2 className="text-lg">Dashboard</h2><Button variant="ghost" size="icon" aria-label="Refresh VIP account" onClick={() => { void membership.refetch(); void account.refetch(); }}><RefreshCw className={membership.isFetching ? "animate-spin motion-reduce:animate-none" : ""} /></Button></div>
     <section aria-labelledby="my-account-title" className="mb-6">

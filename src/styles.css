@@ -632,3 +632,28 @@
     animation: none;
   }
 }
+
+/* VIP reference look (mobile exchange VIP Portal): slate surfaces, larger crisp type, proportional numbers. */
+.vip-ref {
+  --background: oklch(0.255 0.012 260);
+  --card: oklch(0.255 0.012 260);
+  --popover: oklch(0.255 0.012 260);
+  --secondary: oklch(0.34 0.012 260);
+  --muted: oklch(0.31 0.012 260);
+  --border: oklch(0.38 0.012 260);
+  --foreground: oklch(0.98 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --muted-foreground: oklch(0.72 0.01 260);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--foreground);
+}
+.vip-ref .num, .vip-ref .font-mono { font-family: inherit; font-variant-numeric: tabular-nums; letter-spacing: 0; font-weight: 600; }
+.vip-ref h1 { font-size: 1.25rem; font-weight: 700; }
+.vip-ref h2 { font-size: 1.3rem; font-weight: 700; }
+.vip-ref h3 { font-size: 1.1rem; font-weight: 600; }
+.vip-ref .text-xs { font-size: 0.875rem; line-height: 1.45; }
+.vip-ref .text-sm { font-size: 1rem; line-height: 1.5; }
+.vip-ref .text-\[10px\], .vip-ref .text-\[11px\] { font-size: 0.8125rem; }
+.vip-ref .rounded-lg, .vip-ref .rounded-xl { border-radius: 1rem; }
+.vip-ref .border { border-color: var(--border); }
