@@ -105,9 +105,17 @@
   --color-vip-gold: var(--vip-gold);
   --color-vip-gold-light: var(--vip-gold-light);
   --color-vip-border: var(--vip-border);
+  --color-portal-background: var(--portal-background);
+  --color-portal-muted: var(--portal-muted);
+  --color-portal-border: var(--portal-border);
+  --color-portal-track: var(--portal-track);
 }
 
 :root {
+  --portal-background: oklch(0.985 0.002 258);
+  --portal-muted: oklch(0.51 0.014 258);
+  --portal-border: oklch(0.88 0.006 258);
+  --portal-track: oklch(0.9 0.008 258);
   --vip-background: oklch(0.985 0 0);
   --vip-card: oklch(1 0 0);
   --vip-icon: oklch(0.94 0 0);
@@ -196,6 +204,10 @@
 }
 
 .dark {
+  --portal-background: oklch(0.255 0.014 267);
+  --portal-muted: oklch(0.64 0.016 258);
+  --portal-border: oklch(0.34 0.013 258);
+  --portal-track: oklch(0.34 0.013 258);
   --vip-background: oklch(0.1448 0 0);
   --vip-card: oklch(0.1822 0 0);
   --vip-icon: oklch(0.255 0 0);
@@ -658,6 +670,51 @@
 .vip-ref .text-sm { font-size: 1rem; line-height: 1.5; }
 .vip-ref .text-\[10px\], .vip-ref .text-\[11px\] { font-size: 0.8125rem; }
 .vip-ref .rounded-lg, .vip-ref .rounded-xl { border-radius: 1rem; }
+/* Portal-only reference: slate band, compact proportional type and outlined rows. */
+main:has(.vip-portal-ref) {
+  background: var(--portal-background);
+  min-height: calc(100dvh - 56px);
+  padding-top: 0;
+}
+.vip-ref.vip-portal-ref {
+  --background: var(--portal-background);
+  --card: var(--portal-background);
+  --muted-foreground: var(--portal-muted);
+  --border: var(--portal-border);
+  --secondary: var(--portal-track);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.vip-portal-ref .portal-header { padding-top: 12px; padding-bottom: 12px; }
+.vip-portal-ref h1 { font-size: 18px; font-weight: 600; }
+.vip-portal-ref h2 { font-size: 17px; line-height: 1.4; font-weight: 600; }
+.vip-portal-ref h3 { font-size: 14px; line-height: 1.5; font-weight: 500; }
+.vip-portal-ref .text-sm { font-size: 14px; line-height: 1.5; }
+.vip-portal-ref .text-xs { font-size: 12px; line-height: 1.5; }
+.vip-portal-ref .portal-dashboard h2 { font-size: 15px; }
+.vip-portal-ref .portal-account h2 { font-size: 18px; margin-bottom: 16px; }
+.vip-portal-ref .portal-account dl { gap: 16px; }
+.vip-portal-ref .portal-account dt { font-size: 11px; }
+.vip-portal-ref .portal-account dd { font-size: 15px; line-height: 1.5; margin-top: 6px; font-weight: 500; }
+.vip-portal-ref .portal-account dd + p,
+.vip-portal-ref .portal-account dd ~ a { font-size: 10px; line-height: 1.5; }
+.vip-portal-ref .portal-slide > p { font-size: 12px; margin-top: 4px; }
+.vip-portal-ref .portal-slide > div { margin-top: 20px; }
+.vip-portal-ref .portal-slide .num { font-size: 14px; font-weight: 500; margin-top: 8px; }
+.vip-portal-ref .portal-slide .num .text-xs { font-size: 12px; }
+.vip-portal-ref .portal-slide .num ~ p { font-size: 10px; }
+.vip-portal-ref .portal-slide .h-1\.5 { height: 8px; }
+.vip-portal-ref .portal-slide button { min-height: 32px; height: 32px; padding-inline: 14px; border-radius: 4px; }
+.vip-portal-ref .portal-progression { border-radius: 14px; }
+.vip-portal-ref .portal-progression > div:last-child { border-top: 0; padding: 0 16px 12px; }
+.vip-portal-ref .portal-service { border-radius: 12px; box-shadow: none; }
+.vip-portal-ref .portal-service .text-sm { font-size: 13px; }
+.vip-portal-ref .portal-service .text-xs { font-size: 10px; }
+@media (min-width: 640px) {
+  .vip-portal-ref .portal-header { padding-top: 16px; }
+  .vip-portal-ref .portal-account dd { font-size: 17px; }
+  .vip-portal-ref h2 { font-size: 19px; }
+}
 .vip-benefits-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
 .vip-ref h1.vip-benefits-title { font-size: 24px; line-height: 1.42; font-weight: 500; color: var(--vip-gold-light); }
 .vip-benefits-diamond { width: 88px; height: 76px; flex-shrink: 0; color: var(--vip-gold); }
