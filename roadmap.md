@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Match VIP reference typography, borderless benefit cards, line icons and Rising Star layout; preserve live status, account widgets and shared navigation.
+- [x] Match VIP reference typography, borderless benefit cards, line icons and Rising Star layout; preserve live status, account widgets and shared navigation. Signed-in desktop/mobile verified: six cards, borderless obsidian surfaces, 24px medium-weight mobile heading, no horizontal overflow, working Portal navigation and no runtime errors.
 
 - [x] Add one-click institutional approval and rejection operator notes to the Deposit clearing review modal, with the note field remaining editable before submission. Signed-in Approve Deposit modal verified: both presets present, exact note text filled, operator edit appended, Cancel closes without recording.
 
