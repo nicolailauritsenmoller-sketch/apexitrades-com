@@ -37,7 +37,7 @@ function FeeSchedulePage() {
   const [market, setMarket] = useState("spot");
   const data = membership.data;
   const product = market === "futures" ? "futures" : market === "scalp" ? "scalp" : "spot";
-  return <AppShell><div className="mx-auto max-w-4xl pb-8 touch-manipulation">
+  return <AppShell><div className="vip-ref mx-auto max-w-4xl pb-8 touch-manipulation">
     <div className="mb-6 flex items-center justify-between border-b border-border pb-4"><Button asChild variant="ghost" size="sm" className="-ml-3"><Link to="/vip-upgrade"><ArrowLeft /> VIP Memberships</Link></Button><span className="text-sm font-semibold">Fees</span></div>
     <header className="mb-5 flex items-center justify-between gap-3"><h1 className="text-2xl font-medium">Fee Rate</h1><Button asChild variant="ghost" size="sm"><Link to="/profile/referrals">Invite Friends <ChevronRight /></Link></Button></header>
     <Tabs defaultValue="trading">
