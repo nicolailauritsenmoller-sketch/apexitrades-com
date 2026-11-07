@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Match VIP reference typography, borderless benefit cards, line icons and Rising Star layout; preserve live status, account widgets and shared navigation.
+
 - [x] Add one-click institutional approval and rejection operator notes to the Deposit clearing review modal, with the note field remaining editable before submission. Signed-in Approve Deposit modal verified: both presets present, exact note text filled, operator edit appended, Cancel closes without recording.
 
 - [x] Add VIP Control Center at /admin?tab=vipecosystem with tier/AUM/collateral/ETH management, optional server-verified automatic promotion, persisted gift catalog/daily rotation/override/stock, department routing and accepted-staff badge identity, atomic credit simulation review/drawdown tracking and portal ETH/withdrawal display settings. Forty-five tests pass; signed-in gift override/customer readback/restoration, tier rename/customer readback/restoration, structured credit submission/staff approval/customer approved drawdown/readback and mobile fit verified without errors. Automatic promotion remains off until enabled; gifts remain previews and loans remain non-executing simulations.

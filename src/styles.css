@@ -633,20 +633,22 @@
   }
 }
 
-/* VIP reference look (mobile exchange VIP Portal): slate surfaces, larger crisp type, proportional numbers. */
+/* VIP reference hierarchy; theme-aware, with neutral obsidian surfaces in dark mode. */
 .vip-ref {
-  --background: oklch(0.255 0.012 260);
-  --card: oklch(0.255 0.012 260);
-  --popover: oklch(0.255 0.012 260);
-  --secondary: oklch(0.34 0.012 260);
-  --muted: oklch(0.31 0.012 260);
-  --border: oklch(0.38 0.012 260);
-  --foreground: oklch(0.98 0 0);
-  --card-foreground: oklch(0.98 0 0);
-  --muted-foreground: oklch(0.72 0.01 260);
+  --background: var(--vip-background);
+  --card: var(--vip-card);
+  --popover: var(--vip-card);
+  --foreground: var(--vip-title);
+  --card-foreground: var(--vip-title);
+  --muted-foreground: var(--vip-muted);
   font-size: 15px;
   line-height: 1.55;
   color: var(--foreground);
+}
+.dark .vip-ref {
+  --secondary: oklch(0.32 0 0);
+  --muted: var(--vip-icon);
+  --border: var(--vip-border);
 }
 .vip-ref .num, .vip-ref .font-mono { font-family: inherit; font-variant-numeric: tabular-nums; letter-spacing: 0; font-weight: 600; }
 .vip-ref h1 { font-size: 1.25rem; font-weight: 700; }
@@ -656,4 +658,20 @@
 .vip-ref .text-sm { font-size: 1rem; line-height: 1.5; }
 .vip-ref .text-\[10px\], .vip-ref .text-\[11px\] { font-size: 0.8125rem; }
 .vip-ref .rounded-lg, .vip-ref .rounded-xl { border-radius: 1rem; }
-.vip-ref .border { border-color: var(--border); }
+.vip-benefits-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
+.vip-ref h1.vip-benefits-title { font-size: 24px; line-height: 1.42; font-weight: 500; color: var(--vip-gold-light); }
+.vip-benefits-diamond { width: 88px; height: 76px; flex-shrink: 0; color: var(--vip-gold); }
+.vip-benefit-card { min-height: 142px; border: 0; border-radius: 12px; background: var(--vip-card); padding: 16px 14px; box-shadow: none; }
+.vip-benefit-icon { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 14px; border-radius: 50%; background: var(--vip-icon); color: var(--vip-title); }
+.vip-benefit-label { font-size: 14px; line-height: 1.5; font-weight: 500; color: var(--vip-title); }
+.vip-benefit-description { margin-top: 4px; font-size: 12px; line-height: 1.5; font-weight: 400; color: var(--vip-muted); }
+.vip-ref h2.vip-rising-title { font-size: 18px; line-height: 1.4; font-weight: 400; color: var(--vip-gold-light); }
+.vip-collateral-card { border-radius: 12px; }
+@media (min-width: 640px) {
+  .vip-ref h1.vip-benefits-title { font-size: 30px; }
+  .vip-benefits-diamond { width: 110px; height: 94px; }
+  .vip-benefit-card { min-height: 162px; padding: 20px; }
+  .vip-benefit-label { font-size: 16px; }
+  .vip-benefit-description { font-size: 14px; }
+  .vip-benefit-icon { width: 44px; height: 44px; }
+}
