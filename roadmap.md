@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Enable Fee Rate ETH toggle with instant 25% displayed maker/taker reductions across all tiers and markets; preserve execution fees and clearly disclose preview-only ETH payment. Eight tests pass; signed-in five-tier recalculation, OFF restoration, futures/scalp state and desktop/mobile fit verified without runtime errors.
+
 - [x] Match VIP reference typography, borderless benefit cards, line icons and Rising Star layout; preserve live status, account widgets and shared navigation. Signed-in desktop/mobile verified: six cards, borderless obsidian surfaces, 24px medium-weight mobile heading, no horizontal overflow, working Portal navigation and no runtime errors.
 
 - [x] Add one-click institutional approval and rejection operator notes to the Deposit clearing review modal, with the note field remaining editable before submission. Signed-in Approve Deposit modal verified: both presets present, exact note text filled, operator edit appended, Cancel closes without recording.
