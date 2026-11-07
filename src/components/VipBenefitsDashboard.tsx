@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, ChartNoAxesCombined, Crown, Gem, Gift, Headset, Info, LibraryBig, Percent } from "lucide-react";
+import { BadgeCheck, ChartNoAxesCombined, Crown, Gift, Headset, Info, LibraryBig, Percent } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +7,7 @@ import { collateralProgress } from "@/lib/prime-tiers";
 import insightGraphic from "@/assets/vip-market-insight.jpg";
 import { VipDashboardWidgets } from "@/components/VipDashboardWidgets";
 import { VipGiftPreview } from "@/components/VipGiftPreview";
+import { VipDiamondIcon, VipInsightsIcon, VipMembershipIcon, VipPortalIcon, VipSpecialistIcon } from "@/components/VipBenefitIcons";
 
 type Props = {
   balance: number;
@@ -26,39 +27,38 @@ export function VipBenefitsDashboard({ balance, requirement, valuationComplete, 
   const progress = collateralProgress(balance, requirement);
   const cards = [
     { title: "Lower Fee", subtitle: "Reduced Trading Fees", icon: Percent, to: "/fees" as const },
-    { title: "My VIP", subtitle: "Manage VIP benefits", icon: BadgeCheck, to: "/my-vip" as const },
-    { title: "VIP Portal", subtitle: "VIP news and resources", icon: LibraryBig, to: "/vip-portal" as const },
-    { title: "VIP Insights", subtitle: "The latest market trends", icon: ChartNoAxesCombined, action: () => setInsightsOpen(true) },
+    { title: "My VIP", subtitle: "Manage VIP benefits", icon: VipMembershipIcon, to: "/my-vip" as const },
+    { title: "VIP Portal", subtitle: "VIP news and resources", icon: VipPortalIcon, to: "/vip-portal" as const },
+    { title: "VIP Insights", subtitle: "The latest market trends", icon: VipInsightsIcon, action: () => setInsightsOpen(true) },
     { title: "VIP Gift Packs", subtitle: "Daily catalog preview", icon: Gift, action: () => setResource("gifts") },
-    { title: "Priority Support", subtitle: "24/7 Customer Service", icon: Headset, action: onSupport },
+    { title: "Priority Support", subtitle: "24/7 Customer Service", icon: VipSpecialistIcon, action: onSupport },
   ];
 
   return <>
-    <header className="flex items-center justify-between gap-3 pb-7 pt-2 sm:pb-8">
+    <header className="vip-benefits-header pb-7 pt-2 sm:pb-8">
       <div>
         <p className="mb-3 flex items-center gap-3 text-xs font-medium text-muted-foreground">VIP Memberships <span role="img" aria-label={`Account standing: ${status}`} title={status} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-ops-amber-bg bg-ops-amber/10 text-ops-amber"><Crown className="size-4" strokeWidth={1.5} aria-hidden="true" /></span><span className={`rounded-md border px-2 py-1 text-[11px] font-semibold tracking-wide ${status === "VIP" ? "border-vip-gold/50 bg-vip-gold/10 text-vip-gold-light" : status === "VIP (PENDING)" ? "border-ops-amber/40 text-ops-amber" : "border-border text-muted-foreground"}`}>{status}</span></p>
         <div className="mb-4 max-w-56"><div className="flex justify-between text-[11px] text-vip-muted"><span>Tier progress</span><span className="num">{valuationComplete ? `${Math.round(progress.percent)}%` : "-"}</span></div><div className="mt-1 h-1 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-vip-gold" style={{ width: `${valuationComplete ? progress.percent : 0}%` }} /></div></div>
-        <h1 className="bg-linear-to-b from-vip-gold-light to-vip-gold bg-clip-text text-[24px] font-semibold leading-[1.25] text-transparent sm:text-[32px]">Experience your<br />Exclusive Benefits</h1>
+        <div className="vip-benefits-title-row"><h1 className="vip-benefits-title">Experience your<br />Exclusive Benefits</h1><VipDiamondIcon aria-hidden="true" className="vip-benefits-diamond" /></div>
       </div>
-      <Gem aria-hidden="true" className="size-20 shrink-0 stroke-[0.75] text-vip-gold sm:size-24" />
     </header>
-    <section aria-label="Exclusive VIP benefits" className="grid grid-cols-2 gap-3 sm:gap-4">
+    <section aria-label="Exclusive VIP benefits" className="grid grid-cols-2 gap-3.5 sm:gap-4">
       {cards.map(card => {
-        const content = <><span className="mb-3 grid size-10 place-items-center rounded-full bg-vip-icon text-vip-title"><card.icon className="size-5 stroke-[1.5]" /></span><span className="text-[14px] font-medium leading-5 text-vip-title sm:text-[16px]">{card.title}</span><span className="mt-1 text-[11px] font-normal leading-4 text-vip-muted sm:text-[13px]">{card.subtitle}</span></>;
-        const classes = "h-auto min-h-[132px] w-full flex-col items-start justify-start gap-0 whitespace-normal rounded-lg border border-vip-border/40 bg-vip-card p-3.5 text-left hover:border-vip-gold/30 hover:bg-vip-icon/50 sm:min-h-[152px] sm:p-5";
+        const content = <><span className="vip-benefit-icon"><card.icon aria-hidden="true" className="size-6 stroke-[1.5]" /></span><span className="vip-benefit-label">{card.title}</span><span className="vip-benefit-description">{card.subtitle}</span></>;
+        const classes = "vip-benefit-card h-auto w-full flex-col items-start justify-start gap-0 whitespace-normal text-left hover:bg-vip-icon/50";
         return card.to ? <Button key={card.title} asChild variant="ghost" className={classes}><Link to={card.to}>{content}</Link></Button> : <Button key={card.title} variant="ghost" className={classes} onClick={card.action}>{content}</Button>;
       })}
     </section>
-    <VipDashboardWidgets isVip={status === "VIP"} />
     <section aria-labelledby="rising-star-title" className="py-7 sm:py-9">
-      <h2 id="rising-star-title" className="mb-4 flex items-center gap-2 text-[16px] font-medium text-vip-gold-light sm:text-[18px]">Become a VIP Rising Star <Info className="size-3.5 text-vip-muted" aria-label="Based on cleared USDT collateral; allocation requires review" /></h2>
-      <div className="border-y border-border py-5">
+      <h2 id="rising-star-title" className="vip-rising-title mb-4 flex items-center gap-2">Become a VIP Rising Star <Info className="size-3.5 text-vip-muted" aria-label="Based on cleared USDT collateral; allocation requires review" /></h2>
+      <div className="vip-collateral-card bg-vip-card p-4 sm:p-5">
         <div className="flex items-center justify-between gap-4"><h3 className="text-sm font-medium">USDT Collateral Requirement</h3><Button className="min-h-10 min-w-20 rounded-md" onClick={onAdd}>Add</Button></div>
         <p className="num mt-4 text-lg">{valuationComplete ? `${amount(balance)} / ${amount(requirement)}` : "Valuation unavailable"}<span className="ml-2 text-xs text-muted-foreground">USDT</span></p>
         <div role="progressbar" aria-label="VIP Rising Star collateral" aria-valuemin={0} aria-valuemax={100} aria-valuenow={valuationComplete ? Math.round(progress.percent) : 0} className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-ops-amber transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${valuationComplete ? progress.percent : 0}%` }} /></div>
         <p className="mt-3 text-xs text-muted-foreground">{valuationComplete ? progress.qualified ? "Collateral requirement met. Allocation subject to review." : `Need +${amount(progress.remaining)} USDT` : "Live conversion required to evaluate collateral."}</p>
       </div>
     </section>
+    <VipDashboardWidgets isVip={status === "VIP"} />
     <Dialog open={insightsOpen} onOpenChange={setInsightsOpen}>
       <DialogContent className="max-h-[85dvh] overflow-y-auto rounded-t-lg border-border bg-card p-5 max-sm:left-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 sm:max-w-lg">
         <DialogHeader className="text-left"><DialogTitle className="pr-7 text-lg">Monthly Market Insights Report</DialogTitle></DialogHeader>

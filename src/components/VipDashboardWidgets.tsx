@@ -43,7 +43,7 @@ export function VipDashboardWidgets({ isVip }: { isVip: boolean }) {
     },
   });
 
-  const card = "rounded-lg border border-vip-border/40 bg-vip-card p-4";
+  const card = "rounded-xl bg-vip-card p-4";
   return (
     <section aria-label="VIP account widgets" className="grid gap-3 pt-7 sm:grid-cols-2 sm:gap-4">
       <div className={card}>
