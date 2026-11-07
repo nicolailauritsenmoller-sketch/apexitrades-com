@@ -1,5 +1,5 @@
 // Static catalog marks: Binance token metadata / CoinGecko Kaspa and FMP issuer images.
-import token0 from "@/assets/crypto/1inch.png.asset.json";
+import token0 from "@/assets/crypto/1inch-official-logo.png.asset.json";
 import token1 from "@/assets/crypto/aave.png.asset.json";
 import token2 from "@/assets/crypto/agix.png.asset.json";
 import token3 from "@/assets/crypto/algo.png.asset.json";
