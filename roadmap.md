@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Match VIP Portal to the supplied slate reference with compact proportional typography, account metrics, outlined progression and service rows; preserve ETH, crown, configured limits and live actions.
+- [x] Match VIP Portal to the supplied slate reference with compact proportional typography, account metrics, outlined progression and service rows; preserve ETH, crown, configured limits and live actions. Signed-in desktop/mobile appearance, no overflow, Deposit and credit dialog verified; five regression tests pass and build is healthy.
 
 - [x] Enable Fee Rate ETH toggle with instant 25% displayed maker/taker reductions across all tiers and markets; preserve execution fees and clearly disclose preview-only ETH payment. Eight tests pass; signed-in five-tier recalculation, OFF restoration, futures/scalp state and desktop/mobile fit verified without runtime errors.
 
