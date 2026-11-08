@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Send the exact institutional welcome notification at account creation, unread on first login. Applied trigger definition confirmed; 12 database/filter tests pass, preserving provisioning, recipient isolation and read state across logins. Existing signed-in bell opens and reads historical notifications; fresh-account first-login browser verification was not performed. No existing accounts backfilled.
+
 - [x] Match VIP Portal to the supplied slate reference with compact proportional typography, account metrics, outlined progression and service rows; preserve ETH, crown, configured limits and live actions. Signed-in desktop/mobile appearance, no overflow, Deposit and credit dialog verified; five regression tests pass and build is healthy.
 
 - [x] Enable Fee Rate ETH toggle with instant 25% displayed maker/taker reductions across all tiers and markets; preserve execution fees and clearly disclose preview-only ETH payment. Eight tests pass; signed-in five-tier recalculation, OFF restoration, futures/scalp state and desktop/mobile fit verified without runtime errors.
