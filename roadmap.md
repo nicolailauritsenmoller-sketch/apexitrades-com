@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Repair resolved VIP chat reconnection and legacy specialist acceptance; preserve identity privacy and verify recovery paths.
+- [x] Repair resolved VIP chat reconnection and legacy specialist acceptance; explicit reconnect reopens the owner's thread and resurfaces it for staff, while legacy assignees can use atomic Accept & join without unassigning. Fourteen regression tests pass, including message readback and acceptance/ownership privacy gates. Signed-in customer department dialog verified; live staff recovery could not be exercised because the available session redirects out of the console.
 
 - [x] Send the exact institutional welcome notification at account creation, unread on first login. Applied trigger definition confirmed; 12 database/filter tests pass, preserving provisioning, recipient isolation and read state across logins. Existing signed-in bell opens and reads historical notifications; fresh-account first-login browser verification was not performed. No existing accounts backfilled.
 
