@@ -22,7 +22,7 @@ beforeEach(() => {
     b.neq = (key: string, value: unknown) => { filters.push(row => row[key] !== value); return b; };
     b.is = (key: string, value: unknown) => { filters.push(row => (row[key] ?? null) === value); return b; };
     b.update = (value: unknown) => { patch = value; return b; };
-    b.insert = (value: unknown) => { tables[table] = [...(tables[table] ?? []), value]; return b; };
+    b.insert = (value: object) => { tables[table] = [...(tables[table] ?? []), ...(table === "vip_messages" ? [{ is_internal: false, ...value }] : [value])]; return b; };
     b.maybeSingle = async () => ({ data: rows()[0] ?? null, error: null });
     return b;
   });
