@@ -533,6 +533,13 @@
       "when": 1794006629471,
       "tag": "0075_vip_research_author",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1794133044896,
+      "tag": "0076_institutional_welcome_notification",
+      "breakpoints": true
     }
   ]
 }
