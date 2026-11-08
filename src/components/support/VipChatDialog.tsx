@@ -175,9 +175,9 @@ export function VipChatDialog({
                   <SelectContent>{VIP_DEPARTMENTS.map(dept => <SelectItem key={dept.key} value={dept.key}>{dept.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              {directory.isError ? <p role="alert" className="text-sm text-destructive">Support queue unavailable. Please retry.</p> : active?.requested ?
+              {directory.isError ? <p role="alert" className="text-sm text-destructive">Support queue unavailable. Please retry.</p> : active?.requested && !active.resolved ?
                 <div role="status" className="flex flex-1 flex-col items-center justify-center gap-4 text-center"><Loader2 className="size-7 animate-spin text-ops-emerald motion-reduce:animate-none" /><p className="text-sm font-medium">Connecting to next available specialist...</p><p className="text-xs text-muted-foreground">{active.roleLabel}</p></div> :
-                <Button className="min-h-11" disabled={!activeRole || directory.isPending || requestMutation.isPending} onClick={() => { if (activeRole) requestMutation.mutate(activeRole); }}>{requestMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}Connect to specialist</Button>}
+                <Button className="min-h-11" disabled={!activeRole || directory.isPending || requestMutation.isPending} onClick={() => { if (activeRole) requestMutation.mutate(activeRole); }}>{requestMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}{active?.resolved ? "Reconnect to specialist" : "Connect to specialist"}</Button>}
             </div>
           ) : (
             <>

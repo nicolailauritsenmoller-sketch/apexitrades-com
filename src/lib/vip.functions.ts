@@ -61,6 +61,7 @@ export const getVipDirectory = createServerFn({ method: "POST" })
         ...connection,
         unlocked: !!grant?.unlocked,
         requested: !!grant,
+        resolved: grant?.thread_status === "resolved",
         unread: mine.filter((m) => m.sender_role !== "user" && !m.read_at).length,
         lastMessageAt:
           mine.map((m) => m.created_at).sort((a, b) => (a < b ? 1 : -1))[0] ?? null,
@@ -106,10 +107,16 @@ export const requestVipAccess = createServerFn({ method: "POST" })
     const db = await privileged();
     const { data: existing } = await db
       .from("vip_access")
-      .select("id,unlocked")
+      .select("id,unlocked,thread_status")
       .eq("user_id", context.userId)
       .eq("role_key", data.roleKey)
       .maybeSingle();
+    if (existing?.thread_status === "resolved") {
+      const { error } = await db.from("vip_access")
+        .update({ thread_status: "open", resolved_at: null, hidden_from_staff_at: null })
+        .eq("id", existing.id).eq("thread_status", "resolved");
+      if (error) throw new Error("Could not reconnect to the support queue.");
+    }
     if (existing?.unlocked) return { ok: true, unlocked: true };
     if (!existing) {
       const { error } = await db
@@ -187,6 +194,8 @@ export const getVipDesk = createServerFn({ method: "POST" })
       return {
         status: a.thread_status ?? "open",
         assignedTo: a.assigned_to ?? null,
+        connected: vipConnection(a, null).connected,
+        canAccept: !a.assigned_to || a.assigned_to === context.userId,
         assignedName: a.assigned_to ? ((pmap.get(a.assigned_to) as any)?.display_name ?? "Staff") : null,
         waitingSince,
         userId: a.user_id,

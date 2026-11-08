@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Repair resolved VIP chat reconnection and legacy specialist acceptance; explicit reconnect reopens the owner's thread and resurfaces it for staff, while legacy assignees can use atomic Accept & join without unassigning. Fourteen regression tests pass, including message readback and acceptance/ownership privacy gates. Signed-in customer department dialog verified; live staff recovery could not be exercised because the available session redirects out of the console.
+
 - [x] Send the exact institutional welcome notification at account creation, unread on first login. Applied trigger definition confirmed; 12 database/filter tests pass, preserving provisioning, recipient isolation and read state across logins. Existing signed-in bell opens and reads historical notifications; fresh-account first-login browser verification was not performed. No existing accounts backfilled.
 
 - [x] Match VIP Portal to the supplied slate reference with compact proportional typography, account metrics, outlined progression and service rows; preserve ETH, crown, configured limits and live actions. Signed-in desktop/mobile appearance, no overflow, Deposit and credit dialog verified; five regression tests pass and build is healthy.
