@@ -101,6 +101,10 @@ export function VipDesk() {
         qc.invalidateQueries({ queryKey: ["vip-desk"] });
         qc.invalidateQueries({ queryKey: ["vip-desk-thread"] });
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "vip_access" }, () => {
+        qc.invalidateQueries({ queryKey: ["vip-desk"] });
+        qc.invalidateQueries({ queryKey: ["vip-desk-thread"] });
+      })
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -133,8 +137,8 @@ export function VipDesk() {
     [specialists, active],
   );
   const activeThread = useMemo(
-    () => threads.find((t: any) => t.userId === active?.userId && t.roleKey === active?.roleKey),
-    [threads, active],
+    () => allThreads.find((t: any) => t.userId === active?.userId && t.roleKey === active?.roleKey),
+    [allThreads, active],
   );
 
   const sendMutation = useMutation({
@@ -353,7 +357,8 @@ export function VipDesk() {
                 <div className="ml-auto flex flex-wrap items-center gap-1.5">
                   {activeThread?.assignedTo ? (
                     <button onClick={() => workflow.mutate({ action: "unassign" })} disabled={workflow.isPending} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Unassign</button>
-                  ) : (
+                  ) : null}
+                  {!activeThread?.connected && activeThread?.canAccept && (
                     <Button onClick={() => workflow.mutate({ action: "assign" })} disabled={workflow.isPending} variant="secondary" size="sm">Accept & join</Button>
                   )}
                   <button onClick={() => workflow.mutate({ action: activeThread?.status === "resolved" ? "reopen" : "resolve" })} disabled={workflow.isPending} className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
