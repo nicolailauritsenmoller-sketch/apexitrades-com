@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Send the exact institutional welcome notification once at account creation, unread on first login; preserve provisioning and verify database behavior and notification readback.
+- [x] Send the exact institutional welcome notification at account creation, unread on first login. Applied trigger definition confirmed; 12 database/filter tests pass, preserving provisioning, recipient isolation and read state across logins. Existing signed-in bell opens and reads historical notifications; fresh-account first-login browser verification was not performed. No existing accounts backfilled.
 
 - [x] Match VIP Portal to the supplied slate reference with compact proportional typography, account metrics, outlined progression and service rows; preserve ETH, crown, configured limits and live actions. Signed-in desktop/mobile appearance, no overflow, Deposit and credit dialog verified; five regression tests pass and build is healthy.
 
