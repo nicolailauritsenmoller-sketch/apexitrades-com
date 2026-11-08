@@ -70,7 +70,7 @@ it("reconnecting an unaccepted resolved assignment does not bypass acceptance", 
   await expect((sendVipMessage as any)({ context, data: { roleKey: "billing_settlements", body: "test" } })).rejects.toThrow("accept and join");
 });
 it("legacy assigned specialists can accept directly, but competing specialists cannot", async () => {
-  const grant = { ...acceptedGrant(), thread_status: "open", accepted_at: null, agent_joined_at: null };
+  const grant = { ...acceptedGrant(), thread_status: "open", accepted_at: null, agent_joined_at: null, hidden_from_staff_at: null };
   tables.vip_access = [grant];
   const staffContext = { ...context, userId: "agent" };
   const own = await (getVipDesk as any)({ context: staffContext });
@@ -85,7 +85,7 @@ it("legacy assigned specialists can accept directly, but competing specialists c
   await expect((sendVipDeskMessage as any)({ context: { ...context, userId: "other" }, data: { userId: "customer", roleKey: "billing_settlements", body: "Reply" } })).rejects.toThrow("Accept and join");
 });
 it("reconnect is scoped to the requesting customer's resolved grant", async () => {
-  const other = { ...acceptedGrant(), user_id: "other" };
+  const other = { ...acceptedGrant(), id: "other-grant", user_id: "other" };
   tables.vip_access = [acceptedGrant(), other];
   await (requestVipAccess as any)({ context, data: { roleKey: "billing_settlements" } });
   expect(other.thread_status).toBe("resolved");
