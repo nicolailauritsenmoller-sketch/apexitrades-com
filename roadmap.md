@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [x] Add approved Lv.2 Delete Live Photo with irreversible-action confirmation and mandatory audit reason; administrator-only exact-path storage removal and service-only finalization preserve approvals and review history while clearing capture evidence and atomically auditing. Twenty-six regression tests pass and preview builds cleanly. The available signed-in account redirects out of the console, so live officer deletion remains unverified; no customer photos were deleted during testing.
+
 - [x] Repair resolved VIP chat reconnection and legacy specialist acceptance; explicit reconnect reopens the owner's thread and resurfaces it for staff, while legacy assignees can use atomic Accept & join without unassigning. Fourteen regression tests pass, including message readback and acceptance/ownership privacy gates. Signed-in customer department dialog verified; live staff recovery could not be exercised because the available session redirects out of the console.
 
 - [x] Send the exact institutional welcome notification at account creation, unread on first login. Applied trigger definition confirmed; 12 database/filter tests pass, preserving provisioning, recipient isolation and read state across logins. Existing signed-in bell opens and reads historical notifications; fresh-account first-login browser verification was not performed. No existing accounts backfilled.

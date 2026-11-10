@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { APPROVE_BTN, DANGER_BTN } from "@/lib/admin-accents";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { getKycDocumentUrls, reviewKyc, reviewKycLevel2 } from "@/lib/admin.functions";
 import { DocumentViewer } from "@/components/admin/DocumentViewer";
 import { KycOverridePanel } from "@/components/admin/KycOverridePanel";
+import { AdminActionConfirm } from "@/components/admin/AdminActionConfirm";
+import { deleteKycLivePhoto } from "@/lib/kyc-biometric.functions";
 
 export const REJECTION_CODES = [
   { code: "ILLEGIBLE", label: "Illegible Document", message: "The document is illegible. Please upload a sharp, fully visible photo of every corner." },
@@ -61,6 +63,8 @@ export function KycReviewDrawer({
   const fetchDocs = useServerFn(getKycDocumentUrls);
   const reviewL1 = useServerFn(reviewKyc);
   const reviewL2 = useServerFn(reviewKycLevel2);
+  const deletePhoto = useServerFn(deleteKycLivePhoto);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const level2Status: string = row.level2_status ?? "unsubmitted";
   const [tier, setTier] = useState<Tier>(
     initialTier ?? (row.status !== "pending" && level2Status === "pending" ? "L2" : "L1"),
@@ -76,6 +80,16 @@ export function KycReviewDrawer({
   const d = docs.data as
     | { document: string | null; documentBack?: string | null; selfie: string | null; level2Selfie: string | null }
     | undefined;
+
+  const purge = useMutation({
+    mutationFn: (reason: string) => deletePhoto({ data: { id: row.id, reason } }),
+    onSuccess: async () => {
+      await docs.refetch();
+      toast.success("Live photo deleted. Lv.2 approval preserved.");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const act = useMutation({
     mutationFn: (vars: { action: "approve" | "reject" }) => {
@@ -206,8 +220,15 @@ export function KycReviewDrawer({
                 {docs.isError && <p className="text-xs text-bear">Unable to load private evidence. Reopen the review to try again.</p>}
                 <div className="grid gap-3">
                   <div className="space-y-2">
-                    <p className="text-xs font-medium">Biometric facial selfie (required)</p>
-                    {d?.level2Selfie ? <DocumentViewer src={d.level2Selfie} alt={`${row.full_name} biometric facial selfie`} /> : <p className="text-xs text-bear">Required selfie unavailable</p>}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-medium">Biometric facial selfie</p>
+                      {level2Status === "approved" && d?.level2Selfie && (
+                        <Button variant="destructive" size="sm" disabled={purge.isPending} onClick={() => setConfirmDelete(true)}>
+                          <Trash2 className="size-4" />Delete Live Photo
+                        </Button>
+                      )}
+                    </div>
+                    {d?.level2Selfie ? <DocumentViewer src={d.level2Selfie} alt={`${row.full_name} biometric facial selfie`} /> : docs.data?.level2SelfieDeletedAt ? <p className="text-xs text-muted-foreground">Live photo deleted for privacy. Lv.2 approval retained.</p> : <p className="text-xs text-bear">Required selfie unavailable</p>}
                   </div>
                 </div>
               </section>
@@ -270,6 +291,9 @@ export function KycReviewDrawer({
           </footer>
         )}
       </aside>
+      <AdminActionConfirm open={confirmDelete} title="Delete Live Photo"
+        description="Are you sure you want to delete this biometric capture? This action cannot be undone. Lv.2 approval will remain in place."
+        pending={purge.isPending} onClose={() => setConfirmDelete(false)} onConfirm={reason => purge.mutateAsync(reason)} />
     </div>
   );
 }

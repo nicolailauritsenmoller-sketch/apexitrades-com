@@ -1221,6 +1221,7 @@ export type Database = {
           level2_reviewed_at: string | null
           level2_reviewed_by: string | null
           level2_selfie_capture: Json | null
+          level2_selfie_deleted_at: string | null
           level2_selfie_path: string | null
           level2_status: string
           level2_submitted_at: string | null
@@ -1255,6 +1256,7 @@ export type Database = {
           level2_reviewed_at?: string | null
           level2_reviewed_by?: string | null
           level2_selfie_capture?: Json | null
+          level2_selfie_deleted_at?: string | null
           level2_selfie_path?: string | null
           level2_status?: string
           level2_submitted_at?: string | null
@@ -1289,6 +1291,7 @@ export type Database = {
           level2_reviewed_at?: string | null
           level2_reviewed_by?: string | null
           level2_selfie_capture?: Json | null
+          level2_selfie_deleted_at?: string | null
           level2_selfie_path?: string | null
           level2_status?: string
           level2_submitted_at?: string | null
@@ -3012,6 +3015,15 @@ export type Database = {
           roi_pct: number
           win_rate_pct: number
         }[]
+      }
+      finalize_kyc_biometric_purge: {
+        Args: {
+          p_actor: string
+          p_expected_path: string
+          p_id: string
+          p_reason: string
+        }
+        Returns: boolean
       }
       generate_uid7: { Args: never; Returns: string }
       get_prime_architecture: {
