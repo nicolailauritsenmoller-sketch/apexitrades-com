@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Finish approved Lv.2 biometric photo deletion with confirmation, administrator authorization, permanent private-storage removal, preserved approval and immutable audit records; verify tests and the available signed-in flow.
+- [x] Add approved Lv.2 Delete Live Photo with irreversible-action confirmation and mandatory audit reason; administrator-only exact-path storage removal and service-only finalization preserve approvals and review history while clearing capture evidence and atomically auditing. Twenty-six regression tests pass and preview builds cleanly. The available signed-in account redirects out of the console, so live officer deletion remains unverified; no customer photos were deleted during testing.
 
 - [x] Repair resolved VIP chat reconnection and legacy specialist acceptance; explicit reconnect reopens the owner's thread and resurfaces it for staff, while legacy assignees can use atomic Accept & join without unassigning. Fourteen regression tests pass, including message readback and acceptance/ownership privacy gates. Signed-in customer department dialog verified; live staff recovery could not be exercised because the available session redirects out of the console.
 
