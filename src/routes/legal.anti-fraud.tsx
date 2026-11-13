@@ -68,7 +68,7 @@ function AntiFraudNoticePage() {
             href={notice.officialDomain}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-2 text-base font-semibold text-primary underline-offset-4 hover:underline"
+            className="mt-3 inline-flex items-center gap-2 text-base font-semibold text-ops-blue underline-offset-4 hover:underline"
           >
             <Globe className="size-4" />
             {notice.officialDomainLabel}
