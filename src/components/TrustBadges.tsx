@@ -196,6 +196,34 @@ export function TrustCertificates() {
             <CertificateCard key={c.id} cert={c} onVerify={() => setActive(c)} />
           ))}
         </div>
+
+        <div className="mt-4 flex touch-manipulation flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background text-bull">
+              <ShieldCheck className="size-5" strokeWidth={2.2} />
+            </span>
+            <div className="min-w-0">
+              <p className="flex flex-wrap items-center gap-2 text-sm font-semibold leading-snug">
+                Anti-Fraud &amp; Impersonation Protection
+                <span className="inline-flex items-center gap-1 rounded-full border border-bull/30 bg-bull/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-bull">
+                  <BadgeCheck className="size-3" />
+                  Verified
+                </span>
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Confirm you are on the official domain, and report impersonation, phishing or scam
+                attempts to our security desk.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/legal/anti-fraud"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold transition-colors hover:border-primary/50 hover:text-primary"
+          >
+            Read the notice
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
       </div>
 
       {active ? (
