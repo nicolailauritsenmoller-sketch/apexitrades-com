@@ -10,7 +10,7 @@ import {
   Landmark,
   X,
   ExternalLink,
-  ShieldQuestion,
+  ArrowRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
