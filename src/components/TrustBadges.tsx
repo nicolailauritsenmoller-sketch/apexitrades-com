@@ -1,7 +1,17 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BadgeCheck, Lock, ShieldCheck, Vault, Landmark, X, ExternalLink } from "lucide-react";
+import {
+  BadgeCheck,
+  Lock,
+  ShieldCheck,
+  Vault,
+  Landmark,
+  X,
+  ExternalLink,
+  ShieldQuestion,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCertificateDocumentUrl } from "@/lib/certificates.functions";
