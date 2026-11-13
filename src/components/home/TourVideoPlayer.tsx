@@ -11,7 +11,9 @@ const CHAPTERS = [
   { seconds: 50, label: "0:50 - Instant Treasury Funding & VIP Concierge Desk" },
 ];
 
-export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl: string; poster: string }) {
+type TourSource = { mp4: string; webm: string };
+
+export function TourVideoPlayer({ hd, sd, poster }: { hd: TourSource; sd: TourSource; poster: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const pendingTime = useRef<number | null>(null);
   const resumePlayback = useRef(true);
@@ -78,7 +80,7 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
         </div>
       </div>
       <div className="relative aspect-video w-full bg-background">
-        <video ref={videoRef} src={quality === "hd" ? hdUrl : sdUrl} poster={poster} controls muted={false} autoPlay={autoplay} playsInline preload="auto"
+        <video key={quality} ref={videoRef} poster={poster} controls muted={false} autoPlay={autoplay} playsInline preload="auto"
           aria-label="Velocity Trade 60-second platform walkthrough" className="h-full w-full"
           onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
           onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
@@ -93,7 +95,12 @@ export function TourVideoPlayer({ hdUrl, sdUrl, poster }: { hdUrl: string; sdUrl
               pendingTime.current = null;
               if (resumePlayback.current) play(); else event.currentTarget.pause();
             }
-          }} />
+          }}>
+          {/* H.264 first for Safari/iOS; VP9 WebM as fallback. Error on the last source means nothing could play. */}
+          <source src={(quality === "hd" ? hd : sd).mp4} type="video/mp4" />
+          <source src={(quality === "hd" ? hd : sd).webm} type="video/webm"
+            onError={() => { setError(true); setReady(false); }} />
+        </video>
         {!ready && !error && <span role="status" className="pointer-events-none absolute left-3 top-3 rounded-md bg-background/90 px-3 py-2 text-xs text-muted-foreground">Loading video...</span>}
         {error && <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90 p-4 text-center text-sm">
           <p>The tour could not load. Please try again.</p>
