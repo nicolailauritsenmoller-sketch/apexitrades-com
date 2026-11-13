@@ -30,6 +30,7 @@ const NAV_GROUPS = [
       { label: "Cookie Policy", to: "/legal/$doc" as const, params: { doc: "cookies" } },
       { label: "Terms of Service", to: "/legal/$doc" as const, params: { doc: "terms" } },
       { label: "Risk Disclosure", to: "/legal/$doc" as const, params: { doc: "risk" } },
+      { label: "Anti-Fraud Notice", to: "/legal/anti-fraud" as const },
     ],
   },
 ];

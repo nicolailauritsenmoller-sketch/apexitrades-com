@@ -28,6 +28,7 @@ import { Route as AuthenticatedVipPortalRouteImport } from './routes/_authentica
 import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authenticated/vip-upgrade'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as LegalAntiFraudRouteImport } from './routes/legal.anti-fraud'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile.index'
@@ -140,6 +141,11 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
   path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalAntiFraudRoute = LegalAntiFraudRouteImport.update({
+  id: '/legal/anti-fraud',
+  path: '/legal/anti-fraud',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   '/_authenticated/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/_authenticated/profile/help': typeof AuthenticatedProfileHelpRoute
   '/_authenticated/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
+    | '/legal/anti-fraud'
     | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/legal/$doc'
+    | '/legal/anti-fraud'
     | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
@@ -458,6 +469,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vip-upgrade'
     | '/_authenticated/wallet'
     | '/legal/$doc'
+    | '/legal/anti-fraud'
     | '/_authenticated/admin/community'
     | '/_authenticated/profile/help'
     | '/_authenticated/profile/referrals'
@@ -486,6 +498,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TradeRoute: typeof TradeRoute
   LegalDocRoute: typeof LegalDocRoute
+  LegalAntiFraudRoute: typeof LegalAntiFraudRoute
   ApiPublicHooksVipEvaluateRoute: typeof ApiPublicHooksVipEvaluateRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -625,6 +638,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/$doc'
       fullPath: '/legal/$doc'
       preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/anti-fraud': {
+      id: '/legal/anti-fraud'
+      path: '/legal/anti-fraud'
+      fullPath: '/legal/anti-fraud'
+      preLoaderRoute: typeof LegalAntiFraudRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -848,6 +868,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TradeRoute: TradeRoute,
   LegalDocRoute: LegalDocRoute,
+  LegalAntiFraudRoute: LegalAntiFraudRoute,
   ApiPublicHooksVipEvaluateRoute: ApiPublicHooksVipEvaluateRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
