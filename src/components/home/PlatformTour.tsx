@@ -6,6 +6,8 @@ import { TourVideoPlayer } from "@/components/home/TourVideoPlayer";
 import tourThumb from "@/assets/platform-tour-thumb.jpg";
 import tourVideo from "@/assets/platform-tour-v2-1080p.webm.asset.json";
 import tourVideoSd from "@/assets/platform-tour-v2-720p.webm.asset.json";
+import tourVideoMp4 from "@/assets/platform-tour-v2-1080p.mp4.asset.json";
+import tourVideoSdMp4 from "@/assets/platform-tour-v2-720p.mp4.asset.json";
 
 export function PlatformTourSection() {
   const [open, setOpen] = useState(false);
@@ -52,7 +54,7 @@ export function PlatformTourSection() {
         >
           <video
             ref={previewRef}
-            src={visible ? tourVideoSd.url : undefined}
+            src={visible ? tourVideoSdMp4.url : undefined}
             poster={tourThumb}
             muted loop playsInline autoPlay={visible && !open} preload="none"
             aria-hidden="true"
@@ -82,7 +84,7 @@ export function PlatformTourSection() {
             <DialogTitle className="text-sm font-semibold">Platform Tour</DialogTitle>
           </div>
           <div className="mx-auto w-full max-w-5xl pb-6">
-            {open && <TourVideoPlayer hdUrl={tourVideo.url} sdUrl={tourVideoSd.url} poster={tourThumb} />}
+            {open && <TourVideoPlayer hd={{ mp4: tourVideoMp4.url, webm: tourVideo.url }} sd={{ mp4: tourVideoSdMp4.url, webm: tourVideoSd.url }} poster={tourThumb} />}
           </div>
         </DialogContent>
       </Dialog>
