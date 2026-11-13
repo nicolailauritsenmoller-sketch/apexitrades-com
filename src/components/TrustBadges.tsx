@@ -218,7 +218,7 @@ export function TrustCertificates() {
           </div>
           <Link
             to="/legal/anti-fraud"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold transition-colors hover:border-primary/50 hover:text-primary"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold transition-colors hover:border-ops-blue/50 hover:text-ops-blue"
           >
             Read the notice
             <ArrowRight className="size-3.5" />

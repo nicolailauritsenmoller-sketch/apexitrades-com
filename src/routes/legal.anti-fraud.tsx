@@ -122,14 +122,14 @@ function AntiFraudNoticePage() {
 
         <section className="mt-10 rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2">
-            <Mail className="size-4 text-primary" />
+            <Mail className="size-4 text-ops-blue" />
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Security report contact
             </h2>
           </div>
           <a
             href={`mailto:${notice.contactEmail}`}
-            className="mt-3 inline-block text-base font-semibold text-primary underline-offset-4 hover:underline"
+            className="mt-3 inline-block text-base font-semibold text-ops-blue underline-offset-4 hover:underline"
           >
             {notice.contactEmail}
           </a>
