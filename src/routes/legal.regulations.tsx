@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BadgeCheck, Landmark, ShieldCheck } from "lucide-react";
+import { Landmark, ShieldCheck } from "lucide-react";
 import { BrandLockup } from "@/components/Logo";
 import { SiteFooter } from "@/components/SiteFooter";
 import {
@@ -9,6 +9,24 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { REGULATIONS_PAGE } from "@/lib/regulations-content";
+import ciroMark from "@/assets/regulators/ciro.png.asset.json";
+import cipfMark from "@/assets/regulators/cipf.png.asset.json";
+
+const regulatorPresentation: Record<string, { label: string; caption: string; image?: string }> = {
+  ASIC: { label: "ASIC", caption: "Australian Securities and Investments Commission" },
+  ASX: { label: "ASX", caption: "Australian Securities Exchange" },
+  CIRO: { label: "CIRO", caption: "Canadian Investment Regulatory Organization", image: ciroMark.url },
+  CIPF: { label: "CIPF", caption: "Canadian Investor Protection Fund", image: cipfMark.url },
+  "TMX / Toronto Stock Exchange": { label: "TMX", caption: "Toronto Stock Exchange" },
+  FINTRAC: { label: "FINTRAC", caption: "Financial Transactions and Reports Analysis Centre of Canada" },
+  AFM: { label: "AFM", caption: "Authority for the Financial Markets" },
+  FMA: { label: "FMA", caption: "Financial Markets Authority New Zealand" },
+  FSCA: { label: "FSCA", caption: "Financial Sector Conduct Authority" },
+  STRATE: { label: "strate", caption: "Central Securities Depository" },
+  FCA: { label: "FCA", caption: "Financial Conduct Authority" },
+  MAS: { label: "MAS", caption: "Monetary Authority of Singapore" },
+  "SEC / FINRA framework": { label: "SEC / FINRA", caption: "US regulatory framework" },
+};
 
 export const Route = createFileRoute("/legal/regulations")({
   head: () => ({
@@ -43,7 +61,7 @@ function RegulationsPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           {page.eyebrow}
         </p>
@@ -65,9 +83,9 @@ function RegulationsPage() {
             <AccordionItem
               key={j.id}
               value={j.id}
-              className="overflow-hidden rounded-2xl border border-border bg-surface px-4"
+              className="overflow-hidden rounded-sm border border-border bg-background"
             >
-              <AccordionTrigger className="touch-manipulation gap-3 py-4 hover:no-underline">
+              <AccordionTrigger className="touch-manipulation gap-3 px-5 py-5 hover:no-underline sm:px-8">
                 <span className="flex min-w-0 items-center gap-3 text-left">
                   <img
                     src={j.flag}
@@ -83,26 +101,35 @@ function RegulationsPage() {
                   </span>
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="pb-5">
-                <p className="text-sm leading-relaxed text-muted-foreground">{j.summary}</p>
-                <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {j.badges.map((b) => (
-                    <li
-                      key={b.name}
-                      className="rounded-xl border border-border bg-background p-3.5"
-                    >
-                      <span className="flex items-center gap-2">
-                        <BadgeCheck className="size-4 shrink-0 text-bull" strokeWidth={2.2} />
-                        <span className="text-xs font-semibold uppercase tracking-widest">
-                          {b.name}
-                        </span>
-                      </span>
-                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        {b.detail}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+              <AccordionContent className="bg-surface px-5 py-7 sm:px-8 sm:py-8">
+                <div className="grid items-start gap-7 md:grid-cols-2 md:gap-10">
+                  <div>
+                    <p className="text-sm leading-7 text-foreground">{j.summary}</p>
+                    <ul className="mt-3 space-y-2 text-sm leading-7 text-muted-foreground">
+                      {j.badges.map((b) => <li key={b.name}>{b.detail}</li>)}
+                    </ul>
+                  </div>
+                  <ul aria-label={`${j.country} regulators`} className="flex flex-wrap justify-center gap-y-4">
+                    {j.badges.filter((b) => regulatorPresentation[b.name]).map((b) => {
+                      const badge = regulatorPresentation[b.name];
+                      if (!badge) return null;
+                      return (
+                        <li key={b.name} className="flex h-[120px] w-1/2 max-w-[185px] flex-col items-center justify-center border border-border bg-card px-3 text-center text-regulator-ink">
+                          {badge.image ? (
+                            <span className="flex h-[82px] w-full items-center justify-center bg-regulator-mark-surface">
+                              <img src={badge.image} alt={badge.caption} className="max-h-[76px] w-[132px] max-w-full object-contain" />
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-2xl font-extrabold leading-tight">{badge.label}</span>
+                              <span className="mt-1 text-xs leading-[1.4]">{badge.caption}</span>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}
