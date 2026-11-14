@@ -109,9 +109,13 @@
   --color-portal-muted: var(--portal-muted);
   --color-portal-border: var(--portal-border);
   --color-portal-track: var(--portal-track);
+  --color-regulator-ink: var(--regulator-ink);
+  --color-regulator-mark-surface: var(--regulator-mark-surface);
 }
 
 :root {
+  --regulator-ink: oklch(0.27 0.1 264);
+  --regulator-mark-surface: oklch(1 0 0);
   --portal-background: oklch(0.985 0.002 258);
   --portal-muted: oklch(0.51 0.014 258);
   --portal-border: oklch(0.88 0.006 258);
@@ -204,6 +208,7 @@
 }
 
 .dark {
+  --regulator-ink: oklch(0.9 0.04 264);
   --portal-background: oklch(0.255 0.014 267);
   --portal-muted: oklch(0.64 0.016 258);
   --portal-border: oklch(0.34 0.013 258);
