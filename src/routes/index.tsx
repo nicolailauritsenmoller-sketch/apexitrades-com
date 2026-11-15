@@ -88,7 +88,7 @@ function Landing() {
               to={authed ? "/dashboard" : "/auth"}
               className="min-h-9 touch-manipulation rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              {authed ? "Go to terminal" : "Get Started"}
+              {authed ? "Launch Terminal" : "Get Started"}
             </Link>
           </div>
         </div>
