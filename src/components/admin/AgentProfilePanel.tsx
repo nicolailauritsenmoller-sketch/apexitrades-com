@@ -11,8 +11,10 @@ import staff1 from "@/assets/avatars/staff-1.jpg";
 import staff2 from "@/assets/avatars/staff-2.jpg";
 import badgeShield from "@/assets/avatars/badge-shield.jpg";
 import badgeSupport from "@/assets/avatars/badge-support.jpg";
+import platformMark from "@/assets/brand/precision-v-mark.png.asset.json";
 
-const PRESETS = [
+const PRESETS: { src: string; label: string; contain?: boolean }[] = [
+  { src: platformMark.url, label: "Velocity Trade logo", contain: true },
   { src: staff1, label: "Staff portrait A" },
   { src: staff2, label: "Staff portrait B" },
   { src: badgeShield, label: "Brand shield" },
@@ -190,7 +192,7 @@ export function AgentProfilePanel() {
                 return (
                   <button key={p.label} type="button" title={p.label} onClick={() => set("avatarUrl", abs)}
                     className={`rounded-full ring-2 ${form.avatarUrl === abs ? "ring-primary" : "ring-transparent"}`}>
-                    <img src={p.src} alt={p.label} loading="lazy" width={40} height={40} className="size-10 rounded-full object-cover" />
+                    <img src={p.src} alt={p.label} loading="lazy" width={40} height={40} className={`size-10 rounded-full ${p.contain ? "bg-card object-contain p-1" : "object-cover"}`} />
                   </button>
                 );
               })}
