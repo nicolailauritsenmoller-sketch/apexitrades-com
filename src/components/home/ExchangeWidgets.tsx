@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BadgePercent, ChevronRight, Landmark, ShieldCheck, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -50,9 +50,17 @@ const PROMOS = [
     actionLabel: "Apply",
   },
 ];
+const LEADERBOARD_BANNER_KEY = "exchange-leaderboard-banner";
+
+// Consent-free session guarantee: a banner closed in this tab stays closed for the
+// rest of the visit, even before functional-cookie consent lets preferences persist.
+const sessionDismissed = new Set<string>();
 
 export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
+  const bannerHidden = dismissed.includes(LEADERBOARD_BANNER_KEY) || sessionDismissed.has(LEADERBOARD_BANNER_KEY);
+  const [bannerMounted, setBannerMounted] = useState(() => !sessionDismissed.has(LEADERBOARD_BANNER_KEY));
+  const [bannerAnim, setBannerAnim] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [program, setProgram] = useState<TradingProgram | null>(null);
@@ -67,6 +75,31 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const closes = (candles.data ?? []).slice(-24).map(candle => candle.c);
   if (live && closes.length) closes[closes.length - 1] = quote.price;
   const points = sparklinePoints(closes);
+
+  function dismissLeaderboard() {
+    sessionDismissed.add(LEADERBOARD_BANNER_KEY);
+    setBannerAnim(true);
+    if (!dismissed.includes(LEADERBOARD_BANNER_KEY)) setDismissed([...dismissed, LEADERBOARD_BANNER_KEY]);
+  }
+
+  // Collapse only when the trader clicked the close button; a banner already
+  // dismissed (storage or account sync) leaves the page without animating.
+  useEffect(() => {
+    if (!bannerHidden) {
+      setBannerMounted(true);
+      setBannerAnim(false);
+      return;
+    }
+    if (!bannerAnim) {
+      setBannerMounted(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setBannerMounted(false);
+      setBannerAnim(false);
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [bannerHidden, bannerAnim]);
 
   function activeIndexFromScroll() {
     const el = trackRef.current;
@@ -92,10 +125,19 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   }
 
   return <div className="exchange-widgets space-y-3">
-    <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
-      <span className="flex min-w-0 items-center gap-2 text-sm font-semibold"><Trophy className="size-4 shrink-0 text-muted-foreground" />Trader leaderboard</span>
-      <Button variant="outline" size="sm" className="min-h-11 shrink-0" onClick={() => setProgram("copy_trading")}>{enrolled ? "Open Leaderboard" : "Join leaderboard"}<ChevronRight className="size-4" /></Button>
-    </div>
+    {bannerMounted && (
+      <div className={`grid ${bannerAnim ? "transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none" : ""} ${bannerHidden ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+            <span className="flex min-w-0 items-center gap-2 text-sm font-semibold"><Trophy className="size-4 shrink-0 text-muted-foreground" />Trader leaderboard</span>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button variant="outline" size="sm" className="min-h-11" onClick={() => setProgram("copy_trading")}>{enrolled ? "Open Leaderboard" : "Join leaderboard"}<ChevronRight className="size-4" /></Button>
+              <Button variant="ghost" size="icon" className="size-10 shrink-0 touch-manipulation text-muted-foreground" aria-label="Dismiss Trader leaderboard" onClick={dismissLeaderboard}><X /></Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     {!dismissed.includes("exchange-futures-promo") && (
       <article className="relative rounded-lg border border-border bg-surface px-3 py-2" aria-label="Exchange promotions">
         <div className="flex items-center justify-between gap-2">
