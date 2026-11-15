@@ -52,10 +52,14 @@ const PROMOS = [
 ];
 const LEADERBOARD_BANNER_KEY = "exchange-leaderboard-banner";
 
+// Consent-free session guarantee: a banner closed in this tab stays closed for the
+// rest of the visit, even before functional-cookie consent lets preferences persist.
+const sessionDismissed = new Set<string>();
+
 export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const [dismissed, setDismissed] = usePreference("dismissedOnboarding", []);
-  const bannerHidden = dismissed.includes(LEADERBOARD_BANNER_KEY);
-  const [bannerMounted, setBannerMounted] = useState(true);
+  const bannerHidden = dismissed.includes(LEADERBOARD_BANNER_KEY) || sessionDismissed.has(LEADERBOARD_BANNER_KEY);
+  const [bannerMounted, setBannerMounted] = useState(() => !sessionDismissed.has(LEADERBOARD_BANNER_KEY));
   const [bannerAnim, setBannerAnim] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -73,6 +77,7 @@ export function ExchangeWidgets({ onDeposit }: { onDeposit: () => void }) {
   const points = sparklinePoints(closes);
 
   function dismissLeaderboard() {
+    sessionDismissed.add(LEADERBOARD_BANNER_KEY);
     setBannerAnim(true);
     if (!dismissed.includes(LEADERBOARD_BANNER_KEY)) setDismissed([...dismissed, LEADERBOARD_BANNER_KEY]);
   }
