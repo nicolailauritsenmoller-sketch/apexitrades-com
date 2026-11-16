@@ -39,12 +39,6 @@ export function PlatformTourSection() {
   return (
     <>
       <section className="panel overflow-hidden">
-        <div className="flex items-center justify-between px-5 pt-4">
-          <h2 className="text-sm font-semibold tracking-tight">
-            See How Velocity Trade Works
-          </h2>
-          <span className="num text-xs text-muted-foreground">60-second tour</span>
-        </div>
         <Button
           variant="ghost"
           type="button"
@@ -69,11 +63,6 @@ export function PlatformTourSection() {
             >
               <span className="absolute inset-0 motion-safe:animate-ping rounded-full bg-primary/40" />
               <Play className="relative size-7 fill-current" />
-            </span>
-          </span>
-          <span className="absolute bottom-3 left-4 right-4 flex flex-wrap items-center justify-between gap-2">
-            <span className="tour-audio-badge max-w-full whitespace-normal rounded-lg border border-primary/50 bg-background/90 px-3 py-2 text-xs font-semibold text-foreground backdrop-blur sm:text-sm">
-              Tap to Expand &amp; Play Walkthrough with Audio
             </span>
           </span>
         </Button>
