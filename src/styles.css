@@ -614,7 +614,6 @@
   transform-origin: center;
 }
 .tour-preview-running { animation-play-state: running; }
-.tour-audio-badge { box-shadow: var(--glow-primary); }
 @media (prefers-reduced-motion: reduce) {
   .tour-preview-motion { animation: none; transform: none; }
 }
