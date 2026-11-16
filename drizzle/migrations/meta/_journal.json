@@ -547,6 +547,13 @@
       "when": 1794299730497,
       "tag": "0077_approved_kyc_biometric_purge",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1794787471512,
+      "tag": "0078_silent_balance_corrections",
+      "breakpoints": true
     }
   ]
 }
