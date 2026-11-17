@@ -18,6 +18,7 @@ const NAV_GROUPS = [
     title: "Company",
     links: [
       { label: "About", to: "/legal/$doc" as const, params: { doc: "about" } },
+      { label: "Blog", to: "/blog" as const },
       { label: "Contact", to: "/legal/$doc" as const, params: { doc: "contact" } },
       { label: "Help / Support", to: "/legal/$doc" as const, params: { doc: "help" } },
       { label: "FAQ", to: "/legal/$doc" as const, params: { doc: "faq" } },
