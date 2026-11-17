@@ -27,6 +27,8 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedVipPortalRouteImport } from './routes/_authenticated/vip-portal'
 import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authenticated/vip-upgrade'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalAntiFraudRouteImport } from './routes/legal.anti-fraud'
 import { Route as LegalRegulationsRouteImport } from './routes/legal.regulations'
@@ -138,6 +140,16 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
@@ -278,9 +290,11 @@ export interface FileRoutesByFullPath {
   '/vip-portal': typeof AuthenticatedVipPortalRoute
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
+  '/blog/': typeof BlogIndexRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -316,9 +330,11 @@ export interface FileRoutesByTo {
   '/vip-portal': typeof AuthenticatedVipPortalRoute
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
+  '/blog': typeof BlogIndexRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/profile/help': typeof AuthenticatedProfileHelpRoute
   '/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -358,9 +374,11 @@ export interface FileRoutesById {
   '/_authenticated/vip-portal': typeof AuthenticatedVipPortalRoute
   '/_authenticated/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
+  '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
   '/_authenticated/profile/help': typeof AuthenticatedProfileHelpRoute
   '/_authenticated/profile/referrals': typeof AuthenticatedProfileReferralsRoute
@@ -400,9 +418,11 @@ export interface FileRouteTypes {
     | '/vip-portal'
     | '/vip-upgrade'
     | '/wallet'
+    | '/blog/$slug'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
+    | '/blog/'
     | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
@@ -438,9 +458,11 @@ export interface FileRouteTypes {
     | '/vip-portal'
     | '/vip-upgrade'
     | '/wallet'
+    | '/blog/$slug'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
+    | '/blog'
     | '/admin/community'
     | '/profile/help'
     | '/profile/referrals'
@@ -479,9 +501,11 @@ export interface FileRouteTypes {
     | '/_authenticated/vip-portal'
     | '/_authenticated/vip-upgrade'
     | '/_authenticated/wallet'
+    | '/blog/$slug'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
+    | '/blog/'
     | '/_authenticated/admin/community'
     | '/_authenticated/profile/help'
     | '/_authenticated/profile/referrals'
@@ -509,9 +533,11 @@ export interface RootRouteChildren {
   MarketRoute: typeof MarketRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TradeRoute: typeof TradeRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalAntiFraudRoute: typeof LegalAntiFraudRoute
   LegalRegulationsRoute: typeof LegalRegulationsRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicHooksVipEvaluateRoute: typeof ApiPublicHooksVipEvaluateRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -645,6 +671,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/legal/$doc': {
       id: '/legal/$doc'
@@ -887,9 +927,11 @@ const rootRouteChildren: RootRouteChildren = {
   MarketRoute: MarketRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TradeRoute: TradeRoute,
+  BlogSlugRoute: BlogSlugRoute,
   LegalDocRoute: LegalDocRoute,
   LegalAntiFraudRoute: LegalAntiFraudRoute,
   LegalRegulationsRoute: LegalRegulationsRoute,
+  BlogIndexRoute: BlogIndexRoute,
   ApiPublicHooksVipEvaluateRoute: ApiPublicHooksVipEvaluateRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
