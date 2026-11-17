@@ -22,7 +22,7 @@ export function BlogShell({ children }: { children: ReactNode }) {
 
 export function BlogCover({ post, featured = false }: { post: BlogPost; featured?: boolean }) {
   const Icon = post.category === "Security" ? ShieldCheck : post.category === "Institutional" ? Building2 : post.category === "Product" ? SlidersHorizontal : TrendingUp;
-  return <div className={`relative overflow-hidden rounded-lg border border-border ${featured ? "aspect-[16/7] min-h-56" : "aspect-video"} bg-surface`}>
+  return <div className={`relative w-full overflow-hidden rounded-lg border border-border ${featured ? "aspect-video sm:aspect-[16/7]" : "aspect-video"} bg-surface`}>
     {featured ? <img src={editorialImage} alt="Sculptural silver V with teal detailing" width={1536} height={864} className="absolute inset-0 h-full w-full object-cover" /> : <Icon className="absolute right-5 top-1/2 size-24 -translate-y-1/2 text-ops-section/20 sm:size-28" strokeWidth={0.7} />}
     <div className={`relative flex h-full flex-col justify-between p-6 sm:p-8 ${featured ? "max-w-[65%] text-help-foreground" : "text-foreground"}`}>
       <p className="text-[10px] font-semibold uppercase">Velocity Trade / {post.category}</p>

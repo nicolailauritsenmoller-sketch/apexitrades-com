@@ -2,7 +2,7 @@
 
 ## In Progress
 
-- [ ] Add footer Blog link, reference-style public index and seven readable article pages; retain editorial-preview labels for unverified announcements.
+- [x] Add footer Blog link, reference-style public index and seven readable article pages; user confirmed reference treatment, with editorial-preview labels and noindex until approved copy is provided. Footer navigation, all article deep links, missing-article state and mobile layouts verified without runtime errors.
 
 - [x] Add approved Lv.2 Delete Live Photo with irreversible-action confirmation and mandatory audit reason; administrator-only exact-path storage removal and service-only finalization preserve approvals and review history while clearing capture evidence and atomically auditing. Twenty-six regression tests pass and preview builds cleanly. The available signed-in account redirects out of the console, so live officer deletion remains unverified; no customer photos were deleted during testing.
 
