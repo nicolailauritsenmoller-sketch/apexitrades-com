@@ -22,12 +22,12 @@ export function BlogShell({ children }: { children: ReactNode }) {
 
 export function BlogCover({ post, featured = false }: { post: BlogPost; featured?: boolean }) {
   const Icon = post.category === "Security" ? ShieldCheck : post.category === "Institutional" ? Building2 : post.category === "Product" ? SlidersHorizontal : TrendingUp;
-  return <div className={`relative w-full overflow-hidden rounded-lg border border-border ${featured ? "aspect-video sm:aspect-[16/7]" : "aspect-video"} bg-surface`}>
-    {featured ? <img src={editorialImage} alt="Sculptural silver V with teal detailing" width={1536} height={864} className="absolute inset-0 h-full w-full object-cover" /> : <Icon className="absolute right-5 top-1/2 size-24 -translate-y-1/2 text-ops-section/20 sm:size-28" strokeWidth={0.7} />}
+  return <div className={`relative w-full overflow-hidden rounded-lg border border-border ${featured ? "aspect-video sm:aspect-[16/7]" : "aspect-video"} ${featured ? "bg-surface" : "blog-cover"}`}>
+    {featured ? <img src={editorialImage} alt="Sculptural silver V with teal detailing" width={1536} height={864} className="absolute inset-0 h-full w-full object-cover" /> : <Icon className="absolute right-5 top-1/2 size-24 -translate-y-1/2 text-brand-teal/35 sm:size-28" strokeWidth={0.7} />}
     <div className={`relative flex h-full flex-col justify-between p-6 sm:p-8 ${featured ? "max-w-[65%] text-help-foreground" : "text-foreground"}`}>
-      <p className="text-[10px] font-semibold uppercase">Velocity Trade / {post.category}</p>
+      <p className={`text-[10px] font-semibold uppercase ${featured ? "" : "text-brand-teal"}`}>Velocity Trade / {post.category}</p>
       <p className={`${featured ? "text-3xl sm:text-4xl" : "text-2xl"} max-w-60 font-display font-semibold leading-tight`}>{post.coverTitle}</p>
-      <span className={`h-px w-9 ${featured ? "bg-help-foreground" : "bg-ops-section"}`} />
+      <span className={`h-px w-9 ${featured ? "bg-help-foreground" : "bg-brand-teal"}`} />
     </div>
   </div>;
 }
@@ -41,6 +41,6 @@ export function BlogCard({ post }: { post: BlogPost }) {
     {post.authors && <p className="mt-3 text-xs font-medium">{post.authors}</p>}
     <p className="mt-2 text-xs text-muted-foreground">{post.date}</p>
     <p className="mt-4 text-sm leading-6 text-muted-foreground">{post.excerpt}</p>
-    <p className="mt-4 text-[11px] font-medium text-ops-section">{post.category} <span className="text-muted-foreground">/ Editorial preview</span></p>
+    <p className="mt-4 text-[11px] font-medium text-brand-teal">{post.category} <span className="text-muted-foreground">/ Editorial preview</span></p>
   </article>;
 }

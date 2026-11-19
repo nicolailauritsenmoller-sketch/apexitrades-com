@@ -95,6 +95,7 @@
   --color-ops-red-bg: var(--ops-red-bg);
   --color-ops-emerald-bg: var(--ops-emerald-bg);
   --color-ops-section: var(--ops-section);
+  --color-brand-teal: var(--brand-teal);
   --color-ops-section-amber: var(--ops-section-amber);
   --color-ops-section-emerald: var(--ops-section-emerald);
   --color-vip-background: var(--vip-background);
@@ -135,6 +136,7 @@
 
   --surface: oklch(0.985 0.002 258);
   --surface-raised: oklch(0.965 0.004 258);
+  --brand-teal: oklch(0.7 0.12 195);
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.17 0.014 258);
@@ -227,6 +229,7 @@
 
   --surface: oklch(0.2 0.012 264);
   --surface-raised: oklch(0.28 0.015 264);
+  --brand-teal: oklch(0.78 0.13 195);
 
   --card: oklch(0.2 0.012 264);
   --card-foreground: oklch(0.975 0.003 258);
@@ -288,6 +291,7 @@
 
   --surface: oklch(0.165 0.007 258);
   --surface-raised: oklch(0.22 0.008 258);
+  --brand-teal: oklch(0.78 0.13 195);
 
   --card: oklch(0.165 0.007 258);
   --card-foreground: oklch(0.975 0.003 258);
@@ -315,6 +319,7 @@
   --foreground: oklch(0.97 0 0);
   --surface: oklch(0.1822 0 0);
   --surface-raised: oklch(0.225 0 0);
+  --brand-teal: oklch(0.75 0.12 195);
   --card: oklch(0.1822 0 0);
   --card-foreground: oklch(0.97 0 0);
   --popover: oklch(0.1822 0 0);
@@ -735,4 +740,11 @@ main:has(.vip-portal-ref) {
   .vip-benefit-label { font-size: 16px; }
   .vip-benefit-description { font-size: 14px; }
   .vip-benefit-icon { width: 44px; height: 44px; }
+}
+
+/* Blog cover surface: brand-teal glow over theme surfaces, adapts to every theme. */
+@utility blog-cover {
+  background:
+    radial-gradient(120% 150% at 82% 50%, color-mix(in oklab, var(--brand-teal) 16%, transparent), transparent 62%),
+    linear-gradient(155deg, var(--surface), var(--background));
 }
