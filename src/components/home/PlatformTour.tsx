@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TourVideoPlayer } from "@/components/home/TourVideoPlayer";
@@ -57,14 +56,6 @@ export function PlatformTourSection() {
             className={`tour-preview-motion pointer-events-none aspect-video w-full object-cover ${visible && !open ? "tour-preview-running" : ""}`}
           />
           <span className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="relative flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-105"
-              style={{ boxShadow: "var(--glow-primary)" }}
-            >
-              <span className="absolute inset-0 motion-safe:animate-ping rounded-full bg-primary/40" />
-              <Play className="relative size-7 fill-current" />
-            </span>
-          </span>
         </Button>
       </section>
       <Dialog open={open} onOpenChange={setOpen}>
