@@ -23,6 +23,7 @@ const NAV_GROUPS = [
       { label: "Help / Support", to: "/legal/$doc" as const, params: { doc: "help" } },
       { label: "FAQ", to: "/legal/$doc" as const, params: { doc: "faq" } },
       { label: "Important Information", to: "/important-information" as const },
+      { label: "Careers", to: "/careers" as const },
     ],
   },
   {

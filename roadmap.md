@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [x] Add Careers beneath Important Information in the footer and a reference-style public Careers page with Earth visual, culture, joining paths, teal mission banner and draft candidate disclosures. Footer order, role dialogs, all five section pages and mobile light/dark layouts verified without runtime errors.
+- [ ] Publish verified Careers vacancies and finalize recruitment/privacy copy - user will provide openings for this page; awaiting role details and approved policy wording. No candidate applications are collected.
+
 - [x] Add footer Blog link, reference-style public index and seven readable article pages; user confirmed reference treatment, with editorial-preview labels and noindex until approved copy is provided. Footer navigation, all article deep links, missing-article state and mobile layouts verified without runtime errors.
 
 - [x] Add approved Lv.2 Delete Live Photo with irreversible-action confirmation and mandatory audit reason; administrator-only exact-path storage removal and service-only finalization preserve approvals and review history while clearing capture evidence and atomically auditing. Twenty-six regression tests pass and preview builds cleanly. The available signed-in account redirects out of the console, so live officer deletion remains unverified; no customer photos were deleted during testing.

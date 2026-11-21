@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ImportantInformationRouteImport } from './routes/important-information'
 import { Route as MarketRouteImport } from './routes/market'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -30,6 +31,11 @@ import { Route as AuthenticatedVipUpgradeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as CareersExtraordinaryAbilityRouteImport } from './routes/careers_.extraordinary-ability'
+import { Route as CareersHowToInterviewRouteImport } from './routes/careers_.how-to-interview'
+import { Route as CareersInternshipsRouteImport } from './routes/careers_.internships'
+import { Route as CareersMissionCultureRouteImport } from './routes/careers_.mission-culture'
+import { Route as CareersProductGroupsRouteImport } from './routes/careers_.product-groups'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalAntiFraudRouteImport } from './routes/legal.anti-fraud'
 import { Route as LegalRegulationsRouteImport } from './routes/legal.regulations'
@@ -64,6 +70,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImportantInformationRoute = ImportantInformationRouteImport.update({
@@ -155,6 +166,32 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersExtraordinaryAbilityRoute =
+  CareersExtraordinaryAbilityRouteImport.update({
+    id: '/careers_/extraordinary-ability',
+    path: '/careers/extraordinary-ability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CareersHowToInterviewRoute = CareersHowToInterviewRouteImport.update({
+  id: '/careers_/how-to-interview',
+  path: '/careers/how-to-interview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersInternshipsRoute = CareersInternshipsRouteImport.update({
+  id: '/careers_/internships',
+  path: '/careers/internships',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersMissionCultureRoute = CareersMissionCultureRouteImport.update({
+  id: '/careers_/mission-culture',
+  path: '/careers/mission-culture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersProductGroupsRoute = CareersProductGroupsRouteImport.update({
+  id: '/careers_/product-groups',
+  path: '/careers/product-groups',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalDocRoute = LegalDocRouteImport.update({
@@ -281,6 +318,7 @@ const LovableEmailTransactionalPreviewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/careers': typeof CareersRoute
   '/important-information': typeof ImportantInformationRoute
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -298,6 +336,11 @@ export interface FileRoutesByFullPath {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/careers/extraordinary-ability': typeof CareersExtraordinaryAbilityRoute
+  '/careers/how-to-interview': typeof CareersHowToInterviewRoute
+  '/careers/internships': typeof CareersInternshipsRoute
+  '/careers/mission-culture': typeof CareersMissionCultureRoute
+  '/careers/product-groups': typeof CareersProductGroupsRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -324,6 +367,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/careers': typeof CareersRoute
   '/important-information': typeof ImportantInformationRoute
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -339,6 +383,11 @@ export interface FileRoutesByTo {
   '/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/careers/extraordinary-ability': typeof CareersExtraordinaryAbilityRoute
+  '/careers/how-to-interview': typeof CareersHowToInterviewRoute
+  '/careers/internships': typeof CareersInternshipsRoute
+  '/careers/mission-culture': typeof CareersMissionCultureRoute
+  '/careers/product-groups': typeof CareersProductGroupsRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -367,6 +416,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/careers': typeof CareersRoute
   '/important-information': typeof ImportantInformationRoute
   '/market': typeof MarketRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -384,6 +434,11 @@ export interface FileRoutesById {
   '/_authenticated/vip-upgrade': typeof AuthenticatedVipUpgradeRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/careers_/extraordinary-ability': typeof CareersExtraordinaryAbilityRoute
+  '/careers_/how-to-interview': typeof CareersHowToInterviewRoute
+  '/careers_/internships': typeof CareersInternshipsRoute
+  '/careers_/mission-culture': typeof CareersMissionCultureRoute
+  '/careers_/product-groups': typeof CareersProductGroupsRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -412,6 +467,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/careers'
     | '/important-information'
     | '/market'
     | '/reset-password'
@@ -429,6 +485,11 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/blog/$slug'
+    | '/careers/extraordinary-ability'
+    | '/careers/how-to-interview'
+    | '/careers/internships'
+    | '/careers/mission-culture'
+    | '/careers/product-groups'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -455,6 +516,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/careers'
     | '/important-information'
     | '/market'
     | '/reset-password'
@@ -470,6 +532,11 @@ export interface FileRouteTypes {
     | '/vip-upgrade'
     | '/wallet'
     | '/blog/$slug'
+    | '/careers/extraordinary-ability'
+    | '/careers/how-to-interview'
+    | '/careers/internships'
+    | '/careers/mission-culture'
+    | '/careers/product-groups'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -497,6 +564,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/careers'
     | '/important-information'
     | '/market'
     | '/reset-password'
@@ -514,6 +582,11 @@ export interface FileRouteTypes {
     | '/_authenticated/vip-upgrade'
     | '/_authenticated/wallet'
     | '/blog/$slug'
+    | '/careers_/extraordinary-ability'
+    | '/careers_/how-to-interview'
+    | '/careers_/internships'
+    | '/careers_/mission-culture'
+    | '/careers_/product-groups'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -542,11 +615,17 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CareersRoute: typeof CareersRoute
   ImportantInformationRoute: typeof ImportantInformationRoute
   MarketRoute: typeof MarketRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TradeRoute: typeof TradeRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  CareersExtraordinaryAbilityRoute: typeof CareersExtraordinaryAbilityRoute
+  CareersHowToInterviewRoute: typeof CareersHowToInterviewRoute
+  CareersInternshipsRoute: typeof CareersInternshipsRoute
+  CareersMissionCultureRoute: typeof CareersMissionCultureRoute
+  CareersProductGroupsRoute: typeof CareersProductGroupsRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalAntiFraudRoute: typeof LegalAntiFraudRoute
   LegalRegulationsRoute: typeof LegalRegulationsRoute
@@ -578,6 +657,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/important-information': {
@@ -704,6 +790,41 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/extraordinary-ability': {
+      id: '/careers_/extraordinary-ability'
+      path: '/careers/extraordinary-ability'
+      fullPath: '/careers/extraordinary-ability'
+      preLoaderRoute: typeof CareersExtraordinaryAbilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/how-to-interview': {
+      id: '/careers_/how-to-interview'
+      path: '/careers/how-to-interview'
+      fullPath: '/careers/how-to-interview'
+      preLoaderRoute: typeof CareersHowToInterviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/internships': {
+      id: '/careers_/internships'
+      path: '/careers/internships'
+      fullPath: '/careers/internships'
+      preLoaderRoute: typeof CareersInternshipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/mission-culture': {
+      id: '/careers_/mission-culture'
+      path: '/careers/mission-culture'
+      fullPath: '/careers/mission-culture'
+      preLoaderRoute: typeof CareersMissionCultureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/product-groups': {
+      id: '/careers_/product-groups'
+      path: '/careers/product-groups'
+      fullPath: '/careers/product-groups'
+      preLoaderRoute: typeof CareersProductGroupsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/$doc': {
@@ -944,11 +1065,17 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CareersRoute: CareersRoute,
   ImportantInformationRoute: ImportantInformationRoute,
   MarketRoute: MarketRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TradeRoute: TradeRoute,
   BlogSlugRoute: BlogSlugRoute,
+  CareersExtraordinaryAbilityRoute: CareersExtraordinaryAbilityRoute,
+  CareersHowToInterviewRoute: CareersHowToInterviewRoute,
+  CareersInternshipsRoute: CareersInternshipsRoute,
+  CareersMissionCultureRoute: CareersMissionCultureRoute,
+  CareersProductGroupsRoute: CareersProductGroupsRoute,
   LegalDocRoute: LegalDocRoute,
   LegalAntiFraudRoute: LegalAntiFraudRoute,
   LegalRegulationsRoute: LegalRegulationsRoute,
