@@ -2,6 +2,9 @@
 
 ## In Progress
 
+- [ ] Finish reference-style Careers hiring homepage, featured openings and searchable roles with detail/application links.
+- [ ] Add administrator-only Careers opening creation, editing, publication and closure with persistent storage and audit history; verify public visibility and admin access.
+
 - [x] Add Careers beneath Important Information in the footer and a reference-style public Careers page with Earth visual, culture, joining paths, teal mission banner and draft candidate disclosures. Footer order, role dialogs, all five section pages and mobile light/dark layouts verified without runtime errors.
 - [ ] Publish verified Careers vacancies and finalize recruitment/privacy copy - user will provide openings for this page; awaiting role details and approved policy wording. No candidate applications are collected.
 

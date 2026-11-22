@@ -554,6 +554,13 @@
       "when": 1794787471512,
       "tag": "0078_silent_balance_corrections",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1795305741698,
+      "tag": "0079_careers_openings_management",
+      "breakpoints": true
     }
   ]
 }

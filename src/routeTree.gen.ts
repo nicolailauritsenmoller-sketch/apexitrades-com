@@ -36,6 +36,7 @@ import { Route as CareersHowToInterviewRouteImport } from './routes/careers_.how
 import { Route as CareersInternshipsRouteImport } from './routes/careers_.internships'
 import { Route as CareersMissionCultureRouteImport } from './routes/careers_.mission-culture'
 import { Route as CareersProductGroupsRouteImport } from './routes/careers_.product-groups'
+import { Route as CareersRolesRouteImport } from './routes/careers_.roles'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalAntiFraudRouteImport } from './routes/legal.anti-fraud'
 import { Route as LegalRegulationsRouteImport } from './routes/legal.regulations'
@@ -194,6 +195,11 @@ const CareersProductGroupsRoute = CareersProductGroupsRouteImport.update({
   path: '/careers/product-groups',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CareersRolesRoute = CareersRolesRouteImport.update({
+  id: '/careers_/roles',
+  path: '/careers/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
   path: '/legal/$doc',
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/careers/internships': typeof CareersInternshipsRoute
   '/careers/mission-culture': typeof CareersMissionCultureRoute
   '/careers/product-groups': typeof CareersProductGroupsRoute
+  '/careers/roles': typeof CareersRolesRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/careers/internships': typeof CareersInternshipsRoute
   '/careers/mission-culture': typeof CareersMissionCultureRoute
   '/careers/product-groups': typeof CareersProductGroupsRoute
+  '/careers/roles': typeof CareersRolesRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -439,6 +447,7 @@ export interface FileRoutesById {
   '/careers_/internships': typeof CareersInternshipsRoute
   '/careers_/mission-culture': typeof CareersMissionCultureRoute
   '/careers_/product-groups': typeof CareersProductGroupsRoute
+  '/careers_/roles': typeof CareersRolesRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/anti-fraud': typeof LegalAntiFraudRoute
   '/legal/regulations': typeof LegalRegulationsRoute
@@ -490,6 +499,7 @@ export interface FileRouteTypes {
     | '/careers/internships'
     | '/careers/mission-culture'
     | '/careers/product-groups'
+    | '/careers/roles'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/careers/internships'
     | '/careers/mission-culture'
     | '/careers/product-groups'
+    | '/careers/roles'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -587,6 +598,7 @@ export interface FileRouteTypes {
     | '/careers_/internships'
     | '/careers_/mission-culture'
     | '/careers_/product-groups'
+    | '/careers_/roles'
     | '/legal/$doc'
     | '/legal/anti-fraud'
     | '/legal/regulations'
@@ -626,6 +638,7 @@ export interface RootRouteChildren {
   CareersInternshipsRoute: typeof CareersInternshipsRoute
   CareersMissionCultureRoute: typeof CareersMissionCultureRoute
   CareersProductGroupsRoute: typeof CareersProductGroupsRoute
+  CareersRolesRoute: typeof CareersRolesRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalAntiFraudRoute: typeof LegalAntiFraudRoute
   LegalRegulationsRoute: typeof LegalRegulationsRoute
@@ -825,6 +838,13 @@ declare module '@tanstack/react-router' {
       path: '/careers/product-groups'
       fullPath: '/careers/product-groups'
       preLoaderRoute: typeof CareersProductGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers_/roles': {
+      id: '/careers_/roles'
+      path: '/careers/roles'
+      fullPath: '/careers/roles'
+      preLoaderRoute: typeof CareersRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/$doc': {
@@ -1076,6 +1096,7 @@ const rootRouteChildren: RootRouteChildren = {
   CareersInternshipsRoute: CareersInternshipsRoute,
   CareersMissionCultureRoute: CareersMissionCultureRoute,
   CareersProductGroupsRoute: CareersProductGroupsRoute,
+  CareersRolesRoute: CareersRolesRoute,
   LegalDocRoute: LegalDocRoute,
   LegalAntiFraudRoute: LegalAntiFraudRoute,
   LegalRegulationsRoute: LegalRegulationsRoute,

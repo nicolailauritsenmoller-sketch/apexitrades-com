@@ -759,15 +759,17 @@ main:has(.vip-portal-ref) {
     linear-gradient(155deg, var(--surface), var(--background));
 }
 
-.careers-hero { position: relative; isolation: isolate; min-height: 690px; overflow: hidden; }
+.careers-hero { position: relative; isolation: isolate; min-height: 720px; overflow: hidden; padding-bottom: 44px; }
+.careers-search { position: relative; margin-top: 210px; }
 .careers-hero-image { position: absolute; z-index: -1; bottom: 0; left: 0; width: 100%; height: 440px; object-fit: cover; object-position: center 46%; }
-.careers-hero-copy { padding: 64px 24px 0; }
+.careers-hero-copy { padding: 72px 24px 0; }
 .careers-hero h1 { font-size: 44px; line-height: 1.16; font-weight: 600; }
 .careers-section { padding: 76px 24px; }
 .careers-section h2 { font-size: 30px; line-height: 1.25; font-weight: 600; }
 @media (max-width: 639px) {
   .careers-hero { min-height: 640px; }
   .careers-hero-copy { padding: 44px 20px 0; }
+  .careers-search { margin-top: 150px; }
   .careers-hero h1 { font-size: 30px; }
   .careers-hero-image { height: 340px; object-position: center bottom; }
   .careers-section { padding: 48px 20px; }

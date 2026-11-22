@@ -380,6 +380,66 @@ export type Database = {
         }
         Relationships: []
       }
+      careers_openings: {
+        Row: {
+          application_url: string
+          business_group: string
+          country: string
+          created_at: string
+          description: string
+          duration: string
+          employment_type: string
+          featured: boolean
+          id: string
+          location: string
+          published_at: string | null
+          requirements: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          work_mode: string
+        }
+        Insert: {
+          application_url?: string
+          business_group: string
+          country: string
+          created_at?: string
+          description: string
+          duration?: string
+          employment_type?: string
+          featured?: boolean
+          id?: string
+          location: string
+          published_at?: string | null
+          requirements?: string
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          work_mode?: string
+        }
+        Update: {
+          application_url?: string
+          business_group?: string
+          country?: string
+          created_at?: string
+          description?: string
+          duration?: string
+          employment_type?: string
+          featured?: boolean
+          id?: string
+          location?: string
+          published_at?: string | null
+          requirements?: string
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          work_mode?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           badge_key: string
