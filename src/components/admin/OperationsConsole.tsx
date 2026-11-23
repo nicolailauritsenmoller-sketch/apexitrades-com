@@ -3,6 +3,7 @@ import { NAV } from "@/lib/operations-routing";
 import { OperationsHealthCenter } from "@/components/admin/OperationsHealthCenter";
 import { ComplianceAlerts } from "@/components/admin/ComplianceAlerts";
 import { DiscoveryDesk } from "@/components/admin/DiscoveryDesk";
+import { CareersManager } from "@/components/admin/CareersManager";
 import { LeaderboardManager } from "@/components/admin/LeaderboardManager";
 import { LeaderApplicationWatcher } from "@/components/admin/LeaderApplicationWatcher";
 import { UserActivityWatcher } from "@/components/admin/UserActivityWatcher";
@@ -184,6 +185,7 @@ const DATA_TABS = new Set([
 
 /** Tabs reserved for Super Admins only. */
 const ADMIN_ONLY_TABS = new Set([
+  "careers",
   "vipecosystem",
   "health",
   "scalping",
@@ -602,6 +604,7 @@ export function OperationsConsole({ selectedTab = "overview", onTab, reviewId, o
 
           {tab === "corrections" && <TradeCorrections />}
           {tab === "discovery" && isAdmin && <DiscoveryDesk />}
+          {tab === "careers" && isAdmin && <CareersManager />}
           {isAdmin && <LeaderApplicationWatcher onReview={() => setTab("leaderboard" as TabId)} />}
           {tab === "leaderboard" && isAdmin && <LeaderboardManager />}
           {tab === "scalping" && isAdmin && <ScalpingManagement />}

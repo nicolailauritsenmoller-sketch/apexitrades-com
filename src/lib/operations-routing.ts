@@ -50,6 +50,7 @@ export const NAV: { section: string; items: { id: string; label: string; icon: a
     section: "Engagement",
     items: [
       { id: "discovery", label: "Discovery & publishing", icon: Globe2 },
+      { id: "careers", label: "Careers openings", icon: IdCard },
       { id: "leaderboard", label: "Leaderboard Manager", icon: Star },
       { id: "broadcast", label: "Broadcast", icon: Megaphone },
       { id: "community", label: "Community Desk", icon: Globe2 },

@@ -33,6 +33,7 @@ export function careersHead(title: string, description: string) {
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
+    ...(title === "Working at Velocity Trade" ? [{ property: "og:image", content: earth.url }, { name: "twitter:image", content: earth.url }] : []),
   ] };
 }
 
@@ -93,7 +94,7 @@ export function CareersPage({ view = "overview", filters = {} }: { view?: Career
           <h2>Alternative ways<br />to join the team</h2>
           <div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-2">
             <article className="rounded-lg border border-border bg-background p-7 text-left sm:p-9"><Sparkles className="mb-6 size-6 text-brand-teal" /><h3 className="text-lg font-semibold">Extraordinary ability</h3><p className="mb-6 mt-3 text-sm leading-7 text-muted-foreground">Have you built something extraordinary, but don't see a role that fits? Discover the kind of work and evidence that can help tell your story.</p><Button variant="secondary" className="h-11 rounded-full px-6" asChild><Link to="/careers/extraordinary-ability">Learn more <ArrowRight /></Link></Button></article>
-            <article className="rounded-lg border border-border bg-background p-7 text-left sm:p-9"><BriefcaseBusiness className="mb-6 size-6 text-brand-teal" /><h3 className="text-lg font-semibold">Contract roles</h3><p className="mb-6 mt-3 text-sm leading-7 text-muted-foreground">Bring specialist expertise to focused projects across market technology, operations and client experience. Available contracts will include scope and location requirements.</p><Button variant="secondary" className="h-11 rounded-full px-6" asChild><Link to="/careers/roles" search={{ type: "Contract" }}>Find contract roles</Link> <ArrowRight /></Button></article>
+            <article className="rounded-lg border border-border bg-background p-7 text-left sm:p-9"><BriefcaseBusiness className="mb-6 size-6 text-brand-teal" /><h3 className="text-lg font-semibold">Contract roles</h3><p className="mb-6 mt-3 text-sm leading-7 text-muted-foreground">Bring specialist expertise to focused projects across market technology, operations and client experience. Available contracts will include scope and location requirements.</p><Button variant="secondary" className="h-11 rounded-full px-6" asChild><Link to="/careers/roles" search={{ type: "Contract" }}>Find contract roles <ArrowRight /></Link></Button></article>
           </div>
         </section>
       </> : view === "roles" ? <RolesDirectory filters={filters} /> : <CareersDetail view={view} />}
