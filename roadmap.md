@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [ ] Correct leverage, decimal position sizing, fill-based P&L and atomic settlement; synchronize history/receipts/exports, flag legacy reconciliation without rewriting records, and verify financial tests.
 - [ ] Finish reference-style Careers hiring homepage, featured openings and searchable roles with detail/application links.
 - [ ] Add administrator-only Careers opening creation, editing, publication and closure with persistent storage and audit history; verify public visibility and admin access.
 

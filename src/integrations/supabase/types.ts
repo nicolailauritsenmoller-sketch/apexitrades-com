@@ -864,6 +864,7 @@ export type Database = {
           direction: string
           display_symbol: string
           duration_seconds: number
+          engine_version: string
           entry_price: number
           exit_price: number | null
           expires_at: string
@@ -889,6 +890,7 @@ export type Database = {
           direction: string
           display_symbol: string
           duration_seconds: number
+          engine_version?: string
           entry_price: number
           exit_price?: number | null
           expires_at: string
@@ -914,6 +916,7 @@ export type Database = {
           direction?: string
           display_symbol?: string
           duration_seconds?: number
+          engine_version?: string
           entry_price?: number
           exit_price?: number | null
           expires_at?: string
@@ -1236,6 +1239,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      execution_fills: {
+        Row: {
+          currency: string
+          executed_at: string
+          fee: number
+          id: string
+          leg: string
+          observed_at: string
+          price: number
+          quantity: number
+          source: string
+          source_reference: string
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          currency: string
+          executed_at?: string
+          fee: number
+          id?: string
+          leg: string
+          observed_at: string
+          price: number
+          quantity: number
+          source: string
+          source_reference: string
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          currency?: string
+          executed_at?: string
+          fee?: number
+          id?: string
+          leg?: string
+          observed_at?: string
+          price?: number
+          quantity?: number
+          source?: string
+          source_reference?: string
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_fills_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_settlements"
+            referencedColumns: ["trade_id"]
+          },
+        ]
       }
       financial_review_approvals: {
         Row: {
@@ -1617,6 +1673,7 @@ export type Database = {
           closed_at: string | null
           currency: string
           display_symbol: string
+          engine_version: string
           entry_price: number
           exit_price: number | null
           fees_paid: number
@@ -1635,6 +1692,7 @@ export type Database = {
           closed_at?: string | null
           currency?: string
           display_symbol: string
+          engine_version?: string
           entry_price: number
           exit_price?: number | null
           fees_paid?: number
@@ -1653,6 +1711,7 @@ export type Database = {
           closed_at?: string | null
           currency?: string
           display_symbol?: string
+          engine_version?: string
           entry_price?: number
           exit_price?: number | null
           fees_paid?: number
@@ -2200,6 +2259,143 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trade_reconciliation: {
+        Row: {
+          kind: string
+          reason: string
+          recorded_at: string
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          kind: string
+          reason: string
+          recorded_at?: string
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          kind?: string
+          reason?: string
+          recorded_at?: string
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trade_settlements: {
+        Row: {
+          adjustments: number
+          average_entry: number
+          average_exit: number | null
+          balance_after_close: number | null
+          balance_after_open: number
+          balance_before_close: number | null
+          balance_before_open: number
+          close_reason: string | null
+          closing_fee: number
+          currency: string
+          expires_at: string | null
+          funding_fee: number
+          gross_pnl: number | null
+          initial_margin: number
+          kind: string
+          leverage: number
+          net_pnl: number | null
+          notional: number
+          opened_at: string
+          opening_fee: number
+          price_observed_at: string
+          price_source: string
+          product_type: string
+          quantity: number
+          roi_pct: number | null
+          settled_at: string | null
+          side: string
+          status: string
+          symbol: string
+          trade_id: string
+          user_id: string
+          wallet_credit: number | null
+        }
+        Insert: {
+          adjustments?: number
+          average_entry: number
+          average_exit?: number | null
+          balance_after_close?: number | null
+          balance_after_open: number
+          balance_before_close?: number | null
+          balance_before_open: number
+          close_reason?: string | null
+          closing_fee?: number
+          currency: string
+          expires_at?: string | null
+          funding_fee?: number
+          gross_pnl?: number | null
+          initial_margin: number
+          kind: string
+          leverage: number
+          net_pnl?: number | null
+          notional: number
+          opened_at: string
+          opening_fee: number
+          price_observed_at: string
+          price_source: string
+          product_type: string
+          quantity: number
+          roi_pct?: number | null
+          settled_at?: string | null
+          side: string
+          status?: string
+          symbol: string
+          trade_id: string
+          user_id: string
+          wallet_credit?: number | null
+        }
+        Update: {
+          adjustments?: number
+          average_entry?: number
+          average_exit?: number | null
+          balance_after_close?: number | null
+          balance_after_open?: number
+          balance_before_close?: number | null
+          balance_before_open?: number
+          close_reason?: string | null
+          closing_fee?: number
+          currency?: string
+          expires_at?: string | null
+          funding_fee?: number
+          gross_pnl?: number | null
+          initial_margin?: number
+          kind?: string
+          leverage?: number
+          net_pnl?: number | null
+          notional?: number
+          opened_at?: string
+          opening_fee?: number
+          price_observed_at?: string
+          price_source?: string
+          product_type?: string
+          quantity?: number
+          roi_pct?: number | null
+          settled_at?: string | null
+          side?: string
+          status?: string
+          symbol?: string
+          trade_id?: string
+          user_id?: string
+          wallet_credit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_settlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trading_program_requests: {
         Row: {
@@ -3175,6 +3371,24 @@ export type Database = {
           views: number
         }[]
       }
+      open_linear_trade: {
+        Args: {
+          p_asset: string
+          p_currency: string
+          p_display: string
+          p_fee_rate: number
+          p_kind: string
+          p_leverage: number
+          p_quote: Json
+          p_side: string
+          p_size: number
+          p_symbol: string
+          p_tier?: string
+          p_user: string
+          p_version?: string
+        }
+        Returns: string
+      }
       operations_health_summary: { Args: never; Returns: Json }
       purge_old_session_replays: { Args: never; Returns: number }
       record_self_alert: {
@@ -3252,6 +3466,15 @@ export type Database = {
         }
         Returns: Json
       }
+      settle_linear_trade: {
+        Args: {
+          p_close_rate: number
+          p_id: string
+          p_quote: Json
+          p_user: string
+        }
+        Returns: Json
+      }
       swap_assets_atomic: {
         Args: {
           p_from: string
@@ -3274,6 +3497,10 @@ export type Database = {
           p_user: string
         }
         Returns: Json
+      }
+      validate_execution_quote: {
+        Args: { p_earliest?: string; p_quote: Json }
+        Returns: undefined
       }
       verify_cron_token: {
         Args: { p_name: string; p_token: string }
